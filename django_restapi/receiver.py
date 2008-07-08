@@ -45,7 +45,10 @@ class SerializeReceiver(Receiver):
     
     def get_data(self, request, method):
         try:
-            deserialized_objects = list(serializers.deserialize(self.format, request.raw_post_data))
+            deserialized_objects = []
+            deserialized = serializers.deserialize(self.format, request.raw_post_data)
+            for dobj in deserialized:
+                deserialized_objects.append(dobj)
         except serializers.base.DeserializationError:
             raise InvalidFormData
         if len(deserialized_objects) != 1:
@@ -53,9 +56,16 @@ class SerializeReceiver(Receiver):
         model = deserialized_objects[0].object
         data = {}
         for field in model._meta.fields:
-            data[field.name] = getattr(model, field.name)
+            ##print 'field=', field, field.name
+            if hasattr(model, field.name):
+                data[field.name] = getattr(model, field.name)
+                ##print '  val=', getattr(model, field.name)
+            else:
+                ##print field.default, field.null
+                pass
         # m2m = deserialized_objects[0].m2m_data
         # data.update(m2m)
+        print 'data=',data
         return data
 
 class JSONReceiver(SerializeReceiver):

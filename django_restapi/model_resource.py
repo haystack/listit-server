@@ -146,6 +146,7 @@ class Collection(ResourceBase):
         # return a "201 Created" response with the model's
         # URI in the location header and a representation
         # of the model in the response body.
+        print form.is_valid()
         if form.is_valid():
             new_model = form.save()
             model_entry = self.entry_class(self, new_model)

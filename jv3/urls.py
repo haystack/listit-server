@@ -2,20 +2,39 @@ from django.conf.urls.defaults import *
 from django_restapi.model_resource import Collection, Entry
 from django_restapi.responder import *
 from django_restapi.receiver import *
-from server.jv3.models import SPO
+from server.jv3.models import SPO, SPOForm
 from server.jv3.views import SPOCollection
+
+class XMLReceiverSetOwner(XMLReceiver):
+    def __init__(self, user):
+        self.format = 'xml'
+        self.user = user
+
+    def get_data(self, request, method):
+        d = super(XMLReceiverSetOwner, self).get_data(request, method)
+        ##d['owner'] = User.objects
+        print dir(request)
+        print 'here d=', d
+        return d
+
+class JSONReceiverSetOwner(JSONReceiver):
+    def get_data(self, request, method):
+        d = super(JSONReceiverSetOwner, self).get_data(request, method)
+        return d
 
 fullxml_spo_resource = Collection(
     queryset = SPO.objects.all(), 
     permitted_methods = ('GET', 'POST', 'PUT', 'DELETE'),
-    expose_fields = ['subj', 'pred', 'obj'],
+    expose_fields = ['owner', 'version', 'subj', 'pred', 'obj'],
+    form_class=SPOForm,
     receiver = XMLReceiver(),
     responder = XMLResponder(),
 )
 fulljson_spo_resource = Collection(
     queryset = SPO.objects.all(),
     permitted_methods = ('GET', 'POST', 'PUT', 'DELETE'),
-    expose_fields = ['subj', 'pred', 'obj'],
+    expose_fields = ['owner', 'version', 'subj', 'pred', 'obj'],
+    form_class=SPOForm,
     receiver = JSONReceiver(),
     responder = JSONResponder()
 )
@@ -24,14 +43,16 @@ def filtered_xml_resource(queryset):
     return Collection(
         queryset=queryset,
         permitted_methods = ('GET', 'POST', 'PUT', 'DELETE'),
-        expose_fields = ['subj', 'pred', 'obj'],
+        expose_fields = ['owner', 'version', 'subj', 'pred', 'obj'],
+        form_class=SPOForm,
         receiver=XMLReceiver(),
         responder=XMLResponder())
 def filtered_json_resource(queryset):
     return Collection(
         queryset=queryset,
         permitted_methods = ('GET', 'POST', 'PUT', 'DELETE'),
-        expose_fields = ['subj', 'pred', 'obj'],
+        expose_fields = ['owner', 'version', 'subj', 'pred', 'obj'],
+        form_class=SPOForm,
         receiver=JSONReceiver(),
         responder=JSONResponder())
 
