@@ -1,0 +1,2 @@
+[{"pk": 1000, "model": "jv3.spo", "fields": {"owner": 1, "pred": "bar", "version": 0, "subj": "foobar", "obj": "bazfoo"}}]
+

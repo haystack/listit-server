@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<django-objects version="1.0">
+  <object pk="1" model="jv3.spo">
+    <field to="auth.user" name="owner" rel="ManyToOneRel">1</field>
+    <field type="IntegerField" name="version">0</field>
+    <field type="TextField" name="subj">sub1</field>
+    <field type="TextField" name="pred">pred1</field>
+    <field type="TextField" name="obj">obj1</field>
+  </object>
+</django-objects>
+
