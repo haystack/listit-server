@@ -1,11 +1,11 @@
 """
 Model-bound resource class.
 """
-from django import newforms as forms
+from django import forms
 from django.conf.urls.defaults import patterns
 from django.http import *
-from django.newforms import BaseForm
-from django.newforms.util import ErrorDict
+from django.forms import BaseForm
+from django.forms.util import ErrorDict
 from django.utils.functional import curry
 from django.utils.translation.trans_null import _
 from resource import ResourceBase, load_put_and_files, reverse, HttpMethodNotAllowed

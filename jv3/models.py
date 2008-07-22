@@ -1,6 +1,6 @@
 from django.db import models
 import django.contrib.auth.models as authmodels
-import django.newforms as forms
+import django.forms as forms
 
 # Create your models here.
 class SPO(models.Model):

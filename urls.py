@@ -7,5 +7,5 @@ urlpatterns = patterns('',
     (r'^jv3/', include('server.jv3.urls')),
 
     # Uncomment this for admin:
-    (r'^admin/', include('django.contrib.admin.urls')),
+#    (r'^admin/', include('django.contrib.admin.urls')),
 )
