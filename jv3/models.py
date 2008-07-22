@@ -14,11 +14,11 @@ class SPO(models.Model):
     obj = models.TextField()
     def __str__(self):
         return '%s.%s.%s' % (self.subj, self.pred, self.obj)
-#     class Admin:
-#         list_display = ('owner', 'pk', 'version', 'subj', 'pred', 'obj')
-#         list_filter = ('owner', 'subj', 'pred', 'obj')
-#         pass
-
+    class Admin:
+        list_display = ('owner', 'pk', 'version', 'subj', 'pred', 'obj')
+        list_filter = ('owner', 'subj', 'pred', 'obj')
+        pass
+    
 class FixedModelChoiceField(forms.ModelChoiceField):
     ## override clean() until Django ticket #7668 is resolved
     def clean(self, value):
