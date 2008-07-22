@@ -1,6 +1,8 @@
 from django.db import models
 import django.contrib.auth.models as authmodels
 import django.forms as forms
+import django.contrib.admin.sites as sites
+from django.contrib import admin
 
 # Create your models here.
 class SPO(models.Model):
@@ -12,10 +14,10 @@ class SPO(models.Model):
     obj = models.TextField()
     def __str__(self):
         return '%s.%s.%s' % (self.subj, self.pred, self.obj)
-    class Admin:
-        list_display = ('owner', 'pk', 'version', 'subj', 'pred', 'obj')
-        list_filter = ('owner', 'subj', 'pred', 'obj')
-        pass
+#     class Admin:
+#         list_display = ('owner', 'pk', 'version', 'subj', 'pred', 'obj')
+#         list_filter = ('owner', 'subj', 'pred', 'obj')
+#         pass
 
 class FixedModelChoiceField(forms.ModelChoiceField):
     ## override clean() until Django ticket #7668 is resolved
@@ -42,3 +44,7 @@ class SPOForm(forms.Form):
     def clean(self):
         return self.cleaned_data
     
+try:
+    admin.site.register(SPO)
+except sites.AlreadyRegistered,r:
+    pass

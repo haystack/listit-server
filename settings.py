@@ -5,6 +5,7 @@ TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     ('Jamey Hicks', 'jamey.hicks@nokia.com'),
+    ('emax', 'emax@csail.mit.edu'),
 )
 
 MANAGERS = ADMINS
@@ -64,13 +65,14 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.doc.XViewMiddleware',
 )
 
-ROOT_URLCONF = 'server.urls'
+ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    '/work/connectingme/plum/server/templates'
+    #'/work/connectingme/plum/server/templates'
+    '/afs/csail.mit.edu/u/e/emax/plum_www/workspace/trunk/server/server/templates'
 )
 
 INSTALLED_APPS = (
@@ -79,5 +81,5 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    'server.jv3',
+    'jv3',
 )
