@@ -2,8 +2,8 @@ from django.conf.urls.defaults import *
 from django_restapi.model_resource import Collection, Entry
 from django_restapi.responder import *
 from django_restapi.receiver import *
-from server.jv3.models import SPO, SPOForm
-from server.jv3.views import SPOCollection
+from server.jv3.models import SPO, SPOForm, Note, NoteForm
+from server.jv3.views import SPOCollection, NoteCollection
 
 class XMLReceiverSetOwner(XMLReceiver):
     def __init__(self, user):
@@ -78,6 +78,16 @@ def json_by_obj(request, obj):
     c = filtered_json_resource(SPO.objects.filter(obj=obj))
     return c(request)
 
+
+fullnotes_json_resource = NoteCollection(
+    queryset = Note.objects.all(), 
+    permitted_methods = ('GET', 'POST', 'PUT', 'DELETE'),
+    expose_fields = ['owner','jid','version','modified','created','contents'],
+    form_class=NoteForm,
+    receiver = JSONReceiver(),
+    responder = JSONResponder(),
+)
+
 urlpatterns = patterns('server.jv3.views.',
     (r'^all$', SPOCollection()),
     (r'^all/xml$', fullxml_spo_resource),
@@ -91,4 +101,5 @@ urlpatterns = patterns('server.jv3.views.',
     (r'^subj/(.+)/json$', json_by_subj),
     (r'^pred/(.+)/json$', json_by_pred),
     (r'^obj/(.+)/json$', json_by_obj),
+    (r'^notes$', fullnotes_json_resource),
 )

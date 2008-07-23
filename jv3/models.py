@@ -44,7 +44,30 @@ class SPOForm(forms.Form):
     def clean(self):
         return self.cleaned_data
     
+## register these with the admin interface, circa django 1.0a
 try:
     admin.site.register(SPO)
+except sites.AlreadyRegistered,r:
+    pass
+
+class Note(models.Model):
+    owner = models.ForeignKey(authmodels.User,related_name='note_owner',null=True)
+    jid = models.IntegerField(default=0)
+    version = models.IntegerField(default=0)
+    modified  = models.IntegerField(default=0)
+    created = models.IntegerField(default=0)
+    contents = models.TextField()
+    update_fields = ['contents','created','modified']
+
+class NoteForm(forms.Form):
+    contents = forms.CharField()
+    owner = FixedModelChoiceField( queryset=authmodels.User.objects,  cache_choices=True  )
+    jid = forms.IntegerField()
+    version = forms.IntegerField()
+    modified  = forms.IntegerField() 
+    created = forms.IntegerField()
+
+try:
+    admin.site.register(Note)
 except sites.AlreadyRegistered,r:
     pass
