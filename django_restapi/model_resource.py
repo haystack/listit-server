@@ -96,9 +96,13 @@ class Collection(ResourceBase):
         if not self.authentication.is_authenticated(request):
             response = self.responder.error(request, 401)
             challenge_headers = self.authentication.challenge_headers()
+            #print "challenge headers are %s " % repr(challenge_headers)
             response._headers.update(challenge_headers)
+            #print "response _headers are  %s " % repr(response._headers)
             return response
-        
+
+        print ">>> request user is %s " % repr(request.user)
+
         # Remove queryset cache
         self.queryset = self.queryset._clone()
         
@@ -146,7 +150,7 @@ class Collection(ResourceBase):
         # return a "201 Created" response with the model's
         # URI in the location header and a representation
         # of the model in the response body.
-        print form.is_valid()
+        # print "IsValid? %s Form is %s" % (repr(form.is_valid()),repr(dir(form)))
         if form.is_valid():
             new_model = form.save()
             model_entry = self.entry_class(self, new_model)

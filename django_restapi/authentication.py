@@ -11,12 +11,53 @@ def djangouser_auth(username, password):
     try:
         user = User.objects.get(username=username)
         if user.check_password(password):
-            return True
+            try:
+                return True
+            except AttributeError:
+                return False
         else:
             return False
     except User.DoesNotExist:
         return False
 
+def djangouser_auth_mod(username, password, request=None):
+    """
+    Check username and password against
+    django.contrib.auth.models.User
+    """
+    from django.contrib.auth.models import User
+    try:
+        user = User.objects.get(username=username)
+        if user.check_password(password):
+            try:
+                return (request == None) or (request.user == user)
+            except AttributeError:
+                return False
+        else:
+            return False
+    except User.DoesNotExist:
+        return False
+
+def basicauth_get_user(request):
+    """
+    If we use this, then we do not have to rely on session authentication 
+    """
+    if not request.META.has_key('HTTP_AUTHORIZATION'):
+        return False
+    (authmeth, auth) = request.META['HTTP_AUTHORIZATION'].split(' ', 1)
+    if authmeth.lower() != 'basic':
+        return False
+    auth = auth.strip().decode('base64')
+    username, password = auth.split(':', 1)
+    from django.contrib.auth.models import User
+    try:
+        user = User.objects.get(username=username)
+        if user.check_password(password):
+            return user;
+    except User.DoesNotExist:
+        pass
+    return False
+        
 class NoAuthentication(object):
     """
     No authentication: Permit every request.
@@ -49,7 +90,8 @@ class HttpBasicAuthentication(object):
         Returns the http headers that ask for appropriate
         authorization.
         """
-        return {'WWW-Authenticate' : 'Basic realm="%s"' % self.realm}
+        #return {'WWW-Authenticate' : 'Basic realm="%s"' % self.realm}
+        return {'WWW-Authenticate' : ('Basic realm','%s' % self.realm)}
     
     def is_authenticated(self, request):
         """
@@ -63,6 +105,8 @@ class HttpBasicAuthentication(object):
         auth = auth.strip().decode('base64')
         username, password = auth.split(':', 1)
         return self.authfunc(username=username, password=password)
+
+
 
 def digest_password(realm, username, password):
     """
@@ -158,7 +202,9 @@ class HttpDigestAuthentication(object):
         if stale:
             parts['stale'] = 'true'
         head = ", ".join(['%s="%s"' % (k, v) for (k, v) in parts.items()])
+        ## broken:
         return {'WWW-Authenticate':'Digest %s' % head}
+        
     
     def is_authenticated(self, request):
         """

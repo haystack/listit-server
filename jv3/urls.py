@@ -1,9 +1,11 @@
 from django.conf.urls.defaults import *
+import django.contrib.auth.views
 from django_restapi.model_resource import Collection, Entry
 from django_restapi.responder import *
 from django_restapi.receiver import *
 from server.jv3.models import SPO, SPOForm, Note, NoteForm
 from server.jv3.views import SPOCollection, NoteCollection
+from django_restapi.authentication import HttpBasicAuthentication, HttpDigestAuthentication, djangouser_auth
 
 class XMLReceiverSetOwner(XMLReceiver):
     def __init__(self, user):
@@ -83,6 +85,7 @@ fullnotes_json_resource = NoteCollection(
     queryset = Note.objects.all(), 
     permitted_methods = ('GET', 'POST', 'PUT', 'DELETE'),
     expose_fields = ['owner','jid','version','modified','created','contents'],
+    authentication = HttpBasicAuthentication(), #HttpDigestAuthentication(djangouser_auth),
     form_class=NoteForm,
     receiver = JSONReceiver(),
     responder = JSONResponder(),
@@ -102,4 +105,7 @@ urlpatterns = patterns('server.jv3.views.',
     (r'^pred/(.+)/json$', json_by_pred),
     (r'^obj/(.+)/json$', json_by_obj),
     (r'^notes$', fullnotes_json_resource),
+    #(r'^login$', 'django.contrib.auth.views.login', {'template_name': 'jv3/login.html', 'module_name':'jv3'}),
+    #(r'^login$', login_view),
+                       
 )
