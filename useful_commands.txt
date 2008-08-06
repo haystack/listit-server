@@ -1,0 +1,37 @@
+
+useful commands for starting and stopping the jourknow server
+
+python manage.py runserver 0.0.0.0:12345
+  runs the server on all interfaces port 12345
+
+python manage.py syncdb
+  creates the database if it doesn't exist, and updates it to reflect the models declared
+  in models.py.  You must run this command every time you modify models.py.  If you already
+  have stuff in your database, running syncdb may be insufficient.  you may needs to 
+  drop the database and re-create it.  if so, you should back up the contents first.
+
+python manage.py dumpdata jv3 > data_backup.json
+  dumps an image (backup) of the current database into data_backup.json using json format
+
+python manage.py dumpdata jv3 --format=xml > data_backup.xml
+  dumps an image (backup) of the current database into data_backup.xml using xml format
+
+python manage.py loaddata data_backup.json
+python manage.py loaddata data_backup.xml
+  loads an image into the model 
+
+python manage.py shell 
+  enters a python interpreter with all the django stuff declared
+
+So, if you make a major change to your models and want to nuke everything in the db, do it in the
+following sequence:
+
+	  python manage.py dumpdata jv3 > data_backup.json
+	  rm jv3.db
+	  python manage.py syncdb
+	  python manage.py loaddata data_backup.json
+	  python manage.py runserver 0.0.0.0:12345
+
+got it, cowboy??
+
+if you need more help go here: http://www.djangoproject.com/documentation/django-admin/

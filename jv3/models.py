@@ -57,6 +57,7 @@ class Note(models.Model):
     modified  = models.IntegerField(default=0)
     created = models.IntegerField(default=0)
     contents = models.TextField()
+    ## what is this for?
     update_fields = ['contents','created','modified']
 
 class NoteForm(forms.Form):
@@ -69,5 +70,30 @@ class NoteForm(forms.Form):
 
 try:
     admin.site.register(Note)
+except sites.AlreadyRegistered,r:
+    pass
+
+class ActivityLog(models.Model):
+    owner = models.ForeignKey(authmodels.User,null=True)
+    when = models.IntegerField(default=0)
+    action = models.TextField()
+    noteid = models.IntegerField(null=True)
+    noteText = models.TextField(blank=True,null=True)
+
+class Sighting(models.Model):
+    when = models.IntegerField()
+    lat = models.FloatField()
+    lon = models.FloatField()
+    mph = models.FloatField()
+    dirr = models.FloatField();
+    
+try:
+    admin.site.register(Sighting)
+except sites.AlreadyRegistered,r:
+    pass
+
+
+try:
+    admin.site.register(ActivityLog)
 except sites.AlreadyRegistered,r:
     pass

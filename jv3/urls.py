@@ -3,8 +3,8 @@ import django.contrib.auth.views
 from django_restapi.model_resource import Collection, Entry
 from django_restapi.responder import *
 from django_restapi.receiver import *
-from server.jv3.models import SPO, SPOForm, Note, NoteForm
-from server.jv3.views import SPOCollection, NoteCollection
+from server.jv3.models import SPO, SPOForm, Note, NoteForm, Sighting, ActivityLog
+from server.jv3.views import SPOCollection, NoteCollection, sightings_new, SightingsCollection, ActivityLogCollection
 from django_restapi.authentication import HttpBasicAuthentication, HttpDigestAuthentication, djangouser_auth
 
 class XMLReceiverSetOwner(XMLReceiver):
@@ -91,6 +91,19 @@ fullnotes_json_resource = NoteCollection(
     responder = JSONResponder(),
 )
 
+sightings_view = SightingsCollection(
+    queryset=Sighting.objects.all(),
+    permitted_methods = ('GET',),
+    expose_fields = ['lat', 'lon', 'dirr', 'when', 'mph'],
+    responder=JSONResponder() );
+
+actlog_view = ActivityLogCollection(
+    queryset=ActivityLog.objects.all(),
+    permitted_methods= ('GET','POST',),
+    expose_fields = ['when','action','noteid','noteText'],
+    responder=JSONResponder(),
+    receiver=JSONReceiver())
+
 urlpatterns = patterns('server.jv3.views.',
     (r'^all$', SPOCollection()),
     (r'^all/xml$', fullxml_spo_resource),
@@ -105,7 +118,9 @@ urlpatterns = patterns('server.jv3.views.',
     (r'^pred/(.+)/json$', json_by_pred),
     (r'^obj/(.+)/json$', json_by_obj),
     (r'^notes$', fullnotes_json_resource),
+    (r'^sightings$', sightings_view),                   
+    (r'^gps$', sightings_new),
+    (r'^notelog$', actlog_view),                   
     #(r'^login$', 'django.contrib.auth.views.login', {'template_name': 'jv3/login.html', 'module_name':'jv3'}),
-    #(r'^login$', login_view),
-                       
+    #(r'^login$', login_view),                       
 )
