@@ -34,8 +34,9 @@ class NoteCollection(Collection):
         is assigned to this ModelResource instance. Usually called by a
         HTTP request to the factory URI with method GET.
         """
-        request_user = basicauth_get_user(request);        
-        qs_user = Note.objects.filter(owner=request_user)
+        request_user = basicauth_get_user(request);
+        print "request user is %s " % repr(request_user)
+        qs_user = Note.objects.filter(owner=request_user).exclude(deleted=True)
         return self.responder.list(request, qs_user)
     
     def create(self,request):
@@ -109,6 +110,8 @@ class NoteCollection(Collection):
         if form.is_valid() :
             for key in Note.update_fields:
                 matching_notes[0].__setattr__(key,form.data[key])
+
+            #matching_notes[0]['deleted'] = form.data.get('deleted',False) 
             # increment version number
             matching_notes[0].version = matching_notes[0].version + 1;
             # save!

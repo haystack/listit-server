@@ -57,8 +57,10 @@ class Note(models.Model):
     modified  = models.IntegerField(default=0)
     created = models.IntegerField(default=0)
     contents = models.TextField()
+    ## we use a nullboolean field because that simplifies validation -- 
+    deleted = models.NullBooleanField()
     ## what is this for?
-    update_fields = ['contents','created','modified']
+    update_fields = ['contents','created','modified','deleted'] 
 
 class NoteForm(forms.Form):
     contents = forms.CharField()
@@ -67,6 +69,7 @@ class NoteForm(forms.Form):
     version = forms.IntegerField()
     modified  = forms.IntegerField() 
     created = forms.IntegerField()
+    deleted = forms.NullBooleanField()
 
 try:
     admin.site.register(Note)
@@ -85,7 +88,7 @@ class Sighting(models.Model):
     lat = models.FloatField()
     lon = models.FloatField()
     mph = models.FloatField()
-    dirr = models.FloatField();
+    dirr = models.FloatField()
     
 try:
     admin.site.register(Sighting)
