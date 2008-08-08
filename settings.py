@@ -72,7 +72,8 @@ TEMPLATE_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     #'/work/connectingme/plum/server/templates'
-    '/afs/csail.mit.edu/u/e/emax/plum_www/workspace/trunk/server/templates'
+    #'/afs/csail.mit.edu/u/e/emax/plum_www/workspace/trunk/server/templates'
+    '/z/home/emax/workspace/trunk/server/templates'
 )
 
 INSTALLED_APPS = (

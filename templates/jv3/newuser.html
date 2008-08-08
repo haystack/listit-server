@@ -1,0 +1,192 @@
+<html>
+<head><title>list.it - new user account</title>
+    <link rel="stylesheet" type="text/css" href="http://projects.csail.mit.edu/jourknow/jv3/deploy/css/listit.css" />
+    <link rel="stylesheet" type="text/css" href="http://projects.csail.mit.edu/jourknow/jv3/deploy/css/homepage.css" />
+    <link rel="stylesheet" type="text/css" href="http://projects.csail.mit.edu/jourknow/jv3/deploy/css/soon.css" />
+    <script type="text/javascript" src="http://projects.csail.mit.edu/jourknow/jv3/deploy/js/jquery.js"></script>
+    <script type="text/javascript" src="http://projects.csail.mit.edu/jourknow/jv3/deploy/js/jquery.dimensions.js"></script>
+    <script type="text/javascript" src="http://projects.csail.mit.edu/jourknow/jv3/deploy/js/jquery.accordion.js"></script>
+    <script type="text/javascript" src="http://projects.csail.mit.edu/jourknow/jv3/deploy/js/plum-util-ns.js"></script> 
+    <script type="text/javascript">
+
+    var setmsg = function(msg) {
+	if (msg && msg.length > 0) {
+            $("#msg").html(msg);
+	    $("#msg").fadeIn("fast");				    
+	} else {
+	    $("#msg").fadeOut("fast");
+	}
+    };
+    var setok = function(ok) {
+	if (ok) {
+	    $("#submit").fadeIn("fast");
+	    $("#submit").show();
+	} else {
+	    $("#submit").fadeOut("fast");
+	}
+    };
+
+    var validateEmail = function(cont) {
+	var emailval = $("#email").val();
+	emailval = plumutil.trim(emailval);
+	if (emailval.length == 0) {
+	    return cont(false, "Email must not be blank");
+	}
+	if (!plumutil.isValidEmail(emailval)) {
+	    console.log("not valid email " + emailval);
+	    return cont(false, "Not a valid e-mail address.");
+	} else {
+	    return jQuery.ajax({ type:"GET",
+			  url: "/jv3/userexists?email="+encodeURIComponent(emailval),
+			  success: function(data,success, x) {
+			      //success means that there exists already such an email adddr
+			      cont(false,"Sorry that e-mail address is taken.");				  
+			  },
+			  error: function(req,status) {
+			      if (req.status == 404){
+				  cont(true);
+			      } else {
+				  cont(false,"Uh oh the server seems to be down.");
+			      }
+			  }});
+	}
+    };
+
+var validatePass = function(cont) {
+    var p1 = $("#pass1").val();
+    var p2 = $("#pass2").val();
+    p1 = plumutil.trim(p1);
+    p2 = plumutil.trim(p2);
+    if (p1.length > 3) {
+	if (p1 == p2) {
+	    return cont(true);
+	} else {
+	    return cont(false, "Your passwords don't seem to match. Try re-typing?");
+	}
+    }
+    cont(false, "Passwords must have more than 3 characters");    
+};
+
+var sendCreateRequest = function() {
+    var emailval = $("#email").val();
+    var p1 = $("#pass1").val();
+
+    setok(false);
+    setmsg("Sending request...");
+
+    var cont = function(success, info) {
+	if (success) {
+	    setmsg();
+	    setmsg("An email has been sent to " + emailval);
+	} else {
+	    setmsg();
+	    setmsg(info);
+	}
+    };
+    return jQuery.ajax({ type:"POST",
+			  url: "/jv3/createuser",
+			 data:({ username: emailval, password: p1 }),
+			 success: function(data,success) {
+			     //success means that there exists already such an email adddr
+			     cont(true);
+			 },
+			 error: function(data,status) {
+			     cont(false,data.responseText);
+			 }
+		       });
+    
+}
+
+var validate = function(cont) {
+	validateEmail(function(ok,msg) {
+	    if (!ok) { cont(ok,msg); }
+	    else {
+		validatePass(function(ok,msg) {
+		    if (!ok) { cont(ok,msg); }
+		    else cont(true);
+		});
+	    }			    
+	});
+    };
+    $(document).ready(function() {
+	setok(false);
+	var vcont = function(ok, msg) {
+	    if (ok) {
+		setok(true);
+		setmsg("");
+	    } else {
+		setok(false);
+		setmsg(msg);
+	    }
+	};
+        $("#email").keydown(function() {
+	    validate(vcont);
+	});
+	$("#pass1").keydown(function() {
+	    validate(vcont);
+	});
+	$("#pass2").keydown(function() {
+	    validate(vcont);
+	});
+	$("#submit").click(function() {
+	    sendCreateRequest();
+	});
+    });
+    </script>
+</head>
+
+<body>
+  <body style="margin: 0">
+    <div class="topbar">
+      <center>
+        <table width="720" height="75" class="normal" cellpadding="0" cellspacing="0">
+          <tr valign="bottom">
+
+            <td style="padding-top:0px; font-weight: bold; margin: 5px">
+	      <div class="topbartitle"><!--<img class="logo" src="imgs/orangedot.png"/>--><span style="font-size: 72px;">list<span style="font-size:36px;"><span style="color:#fca11f">.</span>it</span></span></div>
+            </td>
+
+	    <td align="right">
+	      <a href="http://haystack.csail.mit.edu">Haystack Home</a>
+	      | list.it
+	      | <a href="http://plum.csail.mit.edu/">jourknow</a> 
+	      | <a href="http://plum.csail.mit.edu/">PLUM</a> 
+	      | <a href="http://simile.mit.edu/exhibit/">Exhibit</a> 
+	      | <a href="http://relo.csail.mit.edu/">Relo</a> 
+              | <a href="http://groups.csail.mit.edu/haystack/">haystack</a> 
+
+            </td>
+          </tr>
+        </table>
+      </center>
+    </div>
+    <p>&nbsp;</p>
+
+    <center>
+      <table width="500" cellpadding="0" cellspacing="0" border="0">
+	<tr>
+	  <td class="prose">
+	  <div id="signup">
+	  Sign up for a new List.it account:
+	  <form id action="uservalidate">
+		      <table>
+                      <tr><td></td><td></td></tr>
+		      <tr><td>email</td><td><input id="email" name="email"  class="{required:true,email:true}" ></input></td>
+		      <tr><td>pass</td><td><input id="pass1" type="password"></input></td></tr>
+		      <tr><td>pass (again)</td><td><input id="pass2" type="password"></input></td></tr>
+		      <tr><td></td></td></tr>
+		      </table>
+    <input id="submit" type="button" style="hidden:true;" value="Make me a List.it account"></input>
+                      <div id="msg"/>
+
+		      </p>		      
+	  </form>
+	  </div>
+	  </td>
+	</tr>
+      </table>
+    </center>
+
+
+</body>
+</html>

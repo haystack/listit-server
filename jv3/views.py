@@ -191,9 +191,41 @@ def sightings_new(request):
     sighting.mph= request.GET['mph'];
     sighting.save();
     image_data = open('/z/www/red.png','rb').read();
-    print "data len is %d " % len(image_data)
+    # print "data len is %d " % len(image_data)
     return  HttpResponse(image_data, mimetype='image/png');
+
+def userexists(request):
+    userid = request.GET['email'];
+    print " userid is %s " % repr(userid)
+    if len(authmodels.User.objects.filter(username=userid)) > 0:
+        response = HttpResponse("User exists", "text/html");
+        response.status_code = 200;
+        return response
+    response = HttpResponse("User does not exist", "text/html");
+    response.status_code = 404;
+    return response
+
+
+def createuser(request):
     
+    rpd = request.raw_post_data;
+    print "rpd is %s " % repr(rpd);
+    username = request.POST['username'];
+    passwd = request.POST['password'];
+    print " userid is %s, password is %s " % (repr(username),repr(passwd))
+    if len(authmodels.User.objects.filter(username=username)) > 0:
+        response = HttpResponse("User exists", "text/html");
+        response.status_code = 405;
+        return response
+    user = authmodels.User();
+    user.username = username;
+    user.email = username;
+    user.set_password(passwd); 
+    user.save();
+    print "user is %s " % repr(user);
+    response = HttpResponse("User created successfully", "text/html");
+    response.status_code = 200;
+    return response
 
 class ActivityLogCollection(Collection):
 
