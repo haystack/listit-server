@@ -40,7 +40,7 @@
 			  url: "/jv3/userexists?email="+encodeURIComponent(emailval),
 			  success: function(data,success, x) {
 			      //success means that there exists already such an email adddr
-			      cont(false,"Sorry that e-mail address is taken.");				  
+			      cont(false,"Error. I already have an account for " + emailval + ".");				  
 			  },
 			  error: function(req,status) {
 			      if (req.status == 404){
@@ -110,6 +110,7 @@ var validate = function(cont) {
     };
     $(document).ready(function() {
 	setok(false);
+	setmsg("");
 	var vcont = function(ok, msg) {
 	    if (ok) {
 		setok(true);
@@ -130,6 +131,14 @@ var validate = function(cont) {
 	});
 	$("#submit").click(function() {
 	    sendCreateRequest();
+	});
+	$("#participate").click(function() {
+	   if ($("#participate").val()) {
+	      $("#couhes").fadeIn();
+       	      $("#couhes").show();	      
+	   } else {
+	      $("#couhes").fadeOut();
+	   }
 	});
     });
     </script>
@@ -171,13 +180,75 @@ var validate = function(cont) {
 	  <form id action="uservalidate">
 		      <table>
                       <tr><td></td><td></td></tr>
-		      <tr><td>email</td><td><input id="email" name="email"  class="{required:true,email:true}" ></input></td>
+
+		      <tr>
+		      <td colspan="2">
+		      		      <div style="width:300px; height:20px;">
+		                    <div id="msg"/>
+				      </div>
+     		      </td>
+		      </tr>
+		      
+		      <tr><td>email</td><td><input id="email" name="email"></input></td>
+		      
 		      <tr><td>pass</td><td><input id="pass1" type="password"></input></td></tr>
+		      
 		      <tr><td>pass (again)</td><td><input id="pass2" type="password"></input></td></tr>
-		      <tr><td></td></td></tr>
+		      		      
+		      <tr><td>contribute to science?</td><td><input type="checkbox" id="participate" name="Participate in the note-taking study."/>
+
+     		      <tr><td>
+		      <div id="couhes" style="visibility:hidden;">
+
+		      
+*  PARTICIPATION AND WITHDRAWAL
+
+Your participation in this study is completely voluntary and you are free to choose whether to be in it or not. If you choose to be in this study, you may subsequently withdraw from it at any time without penalty or consequences of any kind.  The investigator may withdraw you from this research if circumstances arise which warrant doing so.  
+
+If the investigator determines that you are not fulfilling the requirements of the study, he/she may decide to terminate the study early and provide prorated payment.
+
+*PROCEDURES
+
+If you volunteer to participate in this study, we would ask you to do the following things:
+
+Preparation
+We will be installing a personal information management system on your main computer.  The researcher will demonstrate its use and teach you how to use its main features.   hour.
+
+Usage
+You will then be asked to use the system over a determined period of time (multiple days) to manage your personal information.  During that period, you may be asked to keep a diary noting any thoughts that you have regarding the system, and the researcher may schedule periodic interviews with you to further discuss your reactions and opinions.  For example, this may involve taking note of instances where you experience a breakdown in current tools or when you perform a certain action (e.g., send an email to yourself as a reminder).  This procedure may also involve use of automated application logging software written by the researchers to accurately capture use patterns.
+
+You may be asked to ensure to use the system at least a specified amount of time per day.  We may be experimentally manipulating the tool we give you and the tasks we ask of you. Your assignment to a particular study condition will be done completely at random.  Time: predefined number of days agreed to by the participant, with a predefined minimum use time per day.
+
+Final interview
+At the culmination of the period of usage, the researcher will hold a final interview with you and distribute a survey to capture final thoughts.  Time: 1 hour.
+
+Total length of time: 1.5hrs + required usage over extended period
+
+
+*POTENTIAL RISKS AND DISCOMFORTS
+
+Risks surrounding this study are minimal.  The researcher will not share  information that he/she encounters during the interviews, in reviewing the diary, or in processing the application log data, and all notes surrounding your data will be coded by participant number rather than name.
+
+As with any computer program, there is a potential risk that the system may glitch and lose some of the information you have recorded into it.  This is extremely unlikely to occur.
+
+*POTENTIAL BENEFITS 
+
+There will be no direct benefit to the subject for participating in this research aside from compensation.  It is plausible that the tool we assign you to use may improve upon your current practices and you may decide to continue its use.
+
+The s benefit to society will focus on improving information management work for computer users.  If successful, the research will make it easier to manage the large amount of personal information (emails, todos, memories, files) on the computer.
+
+*PAYMENT FOR PARTICIPATION
+
+The subjects will receive payment in the amount of ___ dollars researchpersonalany Time: 
+
+		      
+		      </div>
+		      </td></td></tr>
+
+		      <tr><td><input id="submit" type="button" style="hidden:true;" value="Register me for List.it"></input> </td></tr>
+		      
 		      </table>
-    <input id="submit" type="button" style="hidden:true;" value="Make me a List.it account"></input>
-                      <div id="msg"/>
+
 
 		      </p>		      
 	  </form>
