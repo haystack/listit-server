@@ -5,6 +5,9 @@ from django_restapi.model_resource import Collection
 from django.forms.util import ErrorDict
 from django.utils.translation.trans_null import _
 from django.core import serializers
+from django.core.mail import send_mail
+from django.conf import settings
+
 
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 import django.contrib.auth.models as authmodels
@@ -13,7 +16,7 @@ from server.django_restapi.resource import Resource
 from server.django_restapi.model_resource import InvalidModelData
 from server.jv3.models import SPO
 from server.jv3.models import Note
-from server.jv3.models import Sighting, ActivityLog
+from server.jv3.models import Sighting, ActivityLog, UserRegistration
 import time
 
 # Create your views here.
@@ -194,6 +197,7 @@ def sightings_new(request):
     # print "data len is %d " % len(image_data)
     return  HttpResponse(image_data, mimetype='image/png');
 
+## a view new user/user management
 def userexists(request):
     userid = request.GET['email'];
     print " userid is %s " % repr(userid)
@@ -205,11 +209,7 @@ def userexists(request):
     response.status_code = 404;
     return response
 
-
 def createuser(request):
-    
-    rpd = request.raw_post_data;
-    print "rpd is %s " % repr(rpd);
     username = request.POST['username'];
     passwd = request.POST['password'];
     print " userid is %s, password is %s " % (repr(username),repr(passwd))
@@ -217,15 +217,73 @@ def createuser(request):
         response = HttpResponse("User exists", "text/html");
         response.status_code = 405;
         return response
-    user = authmodels.User();
-    user.username = username;
+    
+    user = UserRegistration();
+    user.when = int(time.time()*1000);
     user.email = username;
-    user.set_password(passwd); 
+    user.password = passwd;
+    user.cookie = gen_cookie();
     user.save();
-    print "user is %s " % repr(user);
-    response = HttpResponse("User created successfully", "text/html");
+    
+    print "New user registration is %s " % repr(user);
+    send_mail('Did you register for Listit?', gen_confirm_newuser_email_body(user) , 'listit@csail.mit.edu', (user.email,), fail_silently=False)
+    response = HttpResponse("User created successfully", "text/html");    
     response.status_code = 200;
     return response
+
+def confirmuser(request):
+    cookie = request.GET['cookie'];
+    matching_registrations = UserRegistration.objects.filter(cookie=cookie)
+    if len(matching_registrations) > 0:
+        ## create user
+        newest_registration = get_most_recent(matching_registrations)
+        ## check to see if already registered
+        if len(authmodels.User.objects.filter(email=newest_registration.email)) > 0:
+            return render_to_response('jv3/confirmuser.html', {"message":"I think already know you, %s.  You should have no trouble logging in.  Let us know if you have problems! " % newest_registration.email});
+        user = authmodels.User();
+        user.username = newest_registration.email;         ## intentionally a dupe, since we dont have a username
+        user.email = newest_registration.email;
+        user.set_password(newest_registration.password); 
+        user.save();
+        return render_to_response('jv3/confirmuser.html', {'message':"Success in confirming user %s  You can now synchronize with List.it " % user.username});
+    
+    response = render_to_response('jv3/confirmuser.html', {'message': "Oops, could not figure out what you are talking about!"});
+    response.status_code = 405;
+    return response
+
+## utilities -- NOT views 
+
+## not a view
+def gen_confirm_newuser_email_body(userreg):
+    url = "http://%s:%d/jv3/confirmuser?cookie=%s" % (settings.SERVER_HOSTNAME,settings.SERVER_PORT,userreg.cookie)
+    return  """
+    Hi!
+
+    Someone tried to register for Listit (http://projects.csail.mit.edu/jourknow/listit)
+    using your the email address %s.
+
+    If you are that person, click here to complete your registration:
+
+    <a href=\"%s\">%s</a>
+
+    Love,
+
+    the Listit Team at MIT CSAIL.
+    """ % (userreg.email, url, url);
+
+def gen_cookie(cookiesize=25):
+    import random
+    randchar = lambda : chr(ord('a')+random.randint(0,26))
+    return ''.join([ randchar() for i in range(cookiesize) ])                
+             
+def get_most_recent(act):
+    if act == None or len(act) == 0:
+        return None
+    def comp(x,y):
+        if x.when >= y.when:
+            return x;
+        return y;
+    return reduce(comp,act);        
 
 class ActivityLogCollection(Collection):
 
@@ -238,7 +296,7 @@ class ActivityLogCollection(Collection):
         if (request.GET['type'] == 'get_max_log_id'):
             ## return the max id (used by the client to determine which records
             ## need to be retrieved.
-            most_recent_activity = self.get_most_recent(user_activity);
+            most_recent_activity = get_most_recent(user_activity);
             if most_recent_activity == None: most_recent_activity = 0;
             print "most_recent " + repr(most_recent_activity)
             if most_recent_activity:
@@ -248,14 +306,6 @@ class ActivityLogCollection(Collection):
             ## retrieve the entire activity log            
             return self.responder.list(request, qs_user)
 
-    def get_most_recent(self,act):
-        if act == None or len(act) == 0:
-            return None
-        def comp(x,y):
-            if x.when >= y.when:
-                return x;
-            return y;
-        return reduce(comp,act);        
 
     def create(self,request):
         """

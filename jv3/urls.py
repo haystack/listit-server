@@ -4,7 +4,7 @@ from django_restapi.model_resource import Collection, Entry
 from django_restapi.responder import *
 from django_restapi.receiver import *
 from server.jv3.models import SPO, SPOForm, Note, NoteForm, Sighting, ActivityLog
-from server.jv3.views import SPOCollection, NoteCollection, sightings_new, SightingsCollection, ActivityLogCollection, userexists, createuser
+from server.jv3.views import SPOCollection, NoteCollection, sightings_new, SightingsCollection, ActivityLogCollection, userexists, createuser, confirmuser
 from django_restapi.authentication import HttpBasicAuthentication, HttpDigestAuthentication, djangouser_auth
 
 class XMLReceiverSetOwner(XMLReceiver):
@@ -124,6 +124,7 @@ urlpatterns = patterns('server.jv3.views.',
     (r'^newuser$', lambda request: render_to_response('jv3/newuser.html')),
     (r'^userexists$', userexists),
     (r'^createuser$', createuser),
+    (r'^confirmuser$', confirmuser),
     #(r'^login$', 'django.contrib.auth.views.login', {'template_name': 'jv3/login.html', 'module_name':'jv3'}),
     #(r'^login$', login_view),                       
 )

@@ -76,6 +76,23 @@ try:
 except sites.AlreadyRegistered,r:
     pass
 
+
+
+## created for new users -- and converted later to a real user
+## when they confirm
+class UserRegistration(models.Model):
+    when = models.IntegerField()
+    username = models.TextField(null=True)
+    email = models.TextField()
+    password = models.TextField()
+    cookie = models.TextField()
+
+try:
+    admin.site.register(UserRegistration)
+except sites.AlreadyRegistered,r:
+    pass
+
+
 class ActivityLog(models.Model):
     owner = models.ForeignKey(authmodels.User,null=True)
     when = models.IntegerField(default=0)
