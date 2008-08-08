@@ -89,3 +89,4 @@ SERVER_PORT = 12345
 EMAIL_HOST = "outgoing.csail.mit.edu"
 EMAIL_HOST_USER = "<csail username>"
 EMAIL_HOST_PASSWORD = "<csail password>"
+EMAIL_TLS = True

@@ -132,13 +132,15 @@ var validate = function(cont) {
 	$("#submit").click(function() {
 	    sendCreateRequest();
 	});
-	$("#participate").click(function() {
-	   if ($("#participate").val()) {
-	      $("#couhes").fadeIn();
-       	      $("#couhes").show();	      
-	   } else {
-	      $("#couhes").fadeOut();
-	   }
+	
+ 	$("#participate").click(function() {
+	    //alert('' + $("#participate")[0].checked);
+ 	    if ($("#participate")[0].checked)  {
+	     	$("#couhes").fadeIn();
+	    }		
+	    else {
+	         $("#couhes").fadeOut();
+	    }
 	});
     });
     </script>
@@ -195,10 +197,11 @@ var validate = function(cont) {
 		      
 		      <tr><td>pass (again)</td><td><input id="pass2" type="password"></input></td></tr>
 		      		      
-		      <tr><td>contribute to science?</td><td><input type="checkbox" id="participate" name="Participate in the note-taking study."/>
+		      <tr><td>contribute to science?</td><td>
+		      <input type="checkbox" id="participate" value="false">Participate in user study?</input>
 
      		      <tr><td>
-		      <div id="couhes" style="visibility:hidden;">
+		      <div id="couhes" style="display:none;">
 
 		      
 *  PARTICIPATION AND WITHDRAWAL
