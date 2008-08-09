@@ -70,7 +70,14 @@ var validatePass = function(cont) {
 var sendCreateRequest = function() {
     var emailval = $("#email").val();
     var p1 = $("#pass1").val();
-
+    var couhes  = $("#consent")[0].checked && $("#participate")[0].checked;
+    var firstname ="", lastname = "";
+    
+    if (couhes) {
+	firstname = $("#firstname").val();
+	lastname = $("#lastname").val();
+    }
+    
     setok(false);
     setmsg("Sending request...");
 
@@ -85,7 +92,7 @@ var sendCreateRequest = function() {
     };
     return jQuery.ajax({ type:"POST",
 			  url: "/jv3/createuser",
-			 data:({ username: emailval, password: p1 }),
+			 data:({ username: emailval, password: p1, couhes:couhes, firstname: firstname, lastname: lastname }),
 			 success: function(data,success) {
 			     //success means that there exists already such an email adddr
 			     cont(true);
@@ -97,21 +104,8 @@ var sendCreateRequest = function() {
     
 }
 
-var validate = function(cont) {
-	validateEmail(function(ok,msg) {
-	    if (!ok) { cont(ok,msg); }
-	    else {
-		validatePass(function(ok,msg) {
-		    if (!ok) { cont(ok,msg); }
-		    else cont(true);
-		});
-	    }			    
-	});
-    };
-    $(document).ready(function() {
-	setok(false);
-	setmsg("");
-	var vcont = function(ok, msg) {
+    var validate = function() {
+	var cont = function(ok, msg) {
 	    if (ok) {
 		setok(true);
 		setmsg("");
@@ -120,26 +114,73 @@ var validate = function(cont) {
 		setmsg(msg);
 	    }
 	};
-        $("#email").keydown(function() {
-	    validate(vcont);
+	validateEmail(function(ok,msg) {
+	    if (!ok) { cont(ok,msg); }
+	    else {
+		validatePass(function(ok,msg) {
+		    if (!ok) { cont(ok,msg); }
+		    else {
+			if ($("#participate")[0].checked) {
+			    if (plumutil.trim($("#firstname").val()).length > 0 && plumutil.trim($("#lastname").val()).length > 0 ){
+				console.log('bar');
+				$("#consent").attr("disabled",false);
+				if ($("#consent")[0].checked) {
+				    cont(true);
+				} else {
+				    cont(false,"Please consent to participate in the study, or uncheck the Paricipate in Study check mark above.");
+				}
+			    } else {
+				// names not blank
+				$("#consent").attr("disabled",true);
+				cont(false,"Please supply your first and last name and consent to participate in the study, or uncheck the Paricipate in Study check mark above.");
+			    }
+			} else {
+			    cont(true);
+			}
+		    }});
+	    }			    
 	});
-	$("#pass1").keydown(function() {
-	    validate(vcont);
+    };
+    $(document).ready(function() {
+	setok(false);
+	setmsg("");
+	$("input:checked").attr("checked",false);
+	$("#consent").attr("disabled",true);
+
+        $("#email").keyup(function() {
+	    validate();
 	});
-	$("#pass2").keydown(function() {
-	    validate(vcont);
+	$("#pass1").keyup(function() {
+	    validate();
+	});
+	$("#pass2").keyup(function() {
+	    validate();
 	});
 	$("#submit").click(function() {
 	    sendCreateRequest();
-	});
-	
+	});	
  	$("#participate").click(function() {
-	    //alert('' + $("#participate")[0].checked);
+	    validate();
  	    if ($("#participate")[0].checked)  {
 	     	$("#couhes").fadeIn();
-	    }		
-	    else {
+	    } else {
 	         $("#couhes").fadeOut();
+	    }
+	});
+	$("#firstname").keyup(function() {
+	   validate();	   
+	});
+	$("#lastname").keyup(function() {
+	   validate();	   
+	});
+	$("#consent").click(function() {
+	    validate();
+	    signeddate = new Date();
+	    if ($("#consent")[0].checked) {
+		$("#consentdate").html( "" + (new Date()) );
+		$("#consentdate").fadeIn();		
+	    } else {
+		$("#consentdate").fadeOut();
 	    }
 	});
     });
@@ -159,7 +200,7 @@ var validate = function(cont) {
 
 	    <td align="right">
 	      <a href="http://haystack.csail.mit.edu">Haystack Home</a>
-	      | list.it
+	      | <span class="topbar">list.it</span>
 	      | <a href="http://plum.csail.mit.edu/">jourknow</a> 
 	      | <a href="http://plum.csail.mit.edu/">PLUM</a> 
 	      | <a href="http://simile.mit.edu/exhibit/">Exhibit</a> 
@@ -174,61 +215,57 @@ var validate = function(cont) {
     <p>&nbsp;</p>
 
     <center>
-      <table width="500" cellpadding="0" cellspacing="0" border="0">
+      <table width="700px;" cellpadding="0" cellspacing="0" border="0">
 	<tr>
 	  <td class="prose">
 	  <div id="signup">
-	  Sign up for a new List.it account:
-		      <table>
-                      <tr><td></td><td></td></tr>
+	  <h1>Sign up for List.it</h1>
+	  
+	  <p>By signing up for a list.it account, you can synchronize
+	  your list across multiple computers running list.it.  As a
+	  result, your notes will also automatically be backed up in 
+	  case your computer crashes or you accidentally delete data.
 
+	  <p>
+	  
+ 	 <center>
+         <table>
+	       <tr><td style="text-align:right;">your <b>email</b>:</td><td><input id="email" name="email" style="width:100%"/></td></tr>
+	       <tr><td style="text-align:right;">choose a <b>password</b>:</td><td><input id="pass1" type="password" style="width:100%"></input></td></tr>
+ 	       <tr><td style="text-align:right;"> type your <b>password again</b>:</td><td><input id="pass2" type="password" style="width:100%"></input></td></tr>
+		      
+		      <tr><td>participate in our study?</td><td><input type="checkbox" id="participate"></input></td></tr>
+		      <tr><td colspan=2></td></tr>
 		      <tr>
 		      <td colspan="2">
 		        <div style="width:300px;height:20px;">
-		        <div id="msg"/>
+                        
 		      </div>
      		      </td>
-		      </tr>
+	      </table>
+	  </center>
+      <P>
+        <div id="couhes" style="display:none;">
+        <p>Thank you for your interest in helping us ith our research. Please review the documentbelow, which utlines what we are doing and
+	   why, as well as important information regarding how the data we are collecting about	your note taking habits will be used and
+	   handled. <p>(You can return to the document later <a href="http://projects.csail.mit.edu/jourknow/jv3/deploy/couhes.html">here</a>)
 
-		      <form id action="uservalidate">
-		      <tr><td>email</td><td><input id="email" name="email" style="width:100%"></input></td></tr>
-		      <tr><td>pass</td><td><input id="pass1" type="password" style="width:100%"></input></td></tr>
-		      <tr><td>pass (again)</td><td><input id="pass2" type="password" style="width:100%"></input></td></tr>
-		      
-		      <tr><td>contribute to science?</td><td>
-			<input type="checkbox" id="participate" value="false">Participate in user study?</input>
-     		      <tr><td colspan="2">
-			<div style="width:500px"></div>
-		      <div id="couhes" style="display:none;">
-			
-			<p>Please briefly review the following document, which outlines the procedure
-			of the study and outlines the terms which you must agree to to paticipate in
-			the study:
-			
-			<BR>
-			
-			<P><iframe style="width:500px;height:400px;border:none;" src="http://projects.csail.mit.edu/jourknow/jv3/deploy/couhes.html">
-			<P>
-		      </div>
-		      </td></tr>
-
-		      <tr><td><input id="submit" type="button"
-		      style="hidden:true;" value="Register me for
-		      List.it"></input> </td></tr>
-
-		      </form>
-		      
-		      </table>
-
-
-		      </p>		      
-
-	  </div>
+   	  <iframe style="width:100%;height:100px;border:1px;" src="http://projects.csail.mit.edu/jourknow/jv3/deploy/couhes.html"></iframe>
+  	  
+  	  <br>
+  	  <p>If you agree to the terms of the document and wish to participate, please provide:
+	  <p>
+	  your <b>first name</b>:<input type="text" id="firstname"></input> and <b>last name</b>:<input type="text" id="lastname"></input>
+	  <br>
+  	  and check: <input type="checkbox" id="consent" name="consent">I agree to the terms of the study.  (date: <span id="consentdate" style="display:none;">)</span>
+	  
+     </div>
+     
+	  <center><div id="msg" style="color:rgb(250,150,150);"/></center>
+  	  <center><input id="submit" name="submit" type="button" style="hidden:true;" value="Register me"></input></center>
 	  </td>
 	</tr>
       </table>
     </center>
-
-
 </body>
 </html>

@@ -86,12 +86,24 @@ class UserRegistration(models.Model):
     email = models.TextField()
     password = models.TextField()
     cookie = models.TextField()
-
+    couhes = models.BooleanField()
+    first_name = models.TextField(null=True)
+    last_name = models.TextField(null=True)
+    
 try:
     admin.site.register(UserRegistration)
 except sites.AlreadyRegistered,r:
     pass
 
+class CouhesConsent(models.Model):
+    owner = models.ForeignKey(authmodels.User,null=True)
+    signed_date = models.IntegerField()
+
+try:
+    admin.site.register(CouhesConsent)
+except sites.AlreadyRegistered,r:
+    pass
+    
 
 class ActivityLog(models.Model):
     owner = models.ForeignKey(authmodels.User,null=True)
@@ -99,19 +111,6 @@ class ActivityLog(models.Model):
     action = models.TextField()
     noteid = models.IntegerField(null=True)
     noteText = models.TextField(blank=True,null=True)
-
-class Sighting(models.Model):
-    when = models.IntegerField()
-    lat = models.FloatField()
-    lon = models.FloatField()
-    mph = models.FloatField()
-    dirr = models.FloatField()
-    
-try:
-    admin.site.register(Sighting)
-except sites.AlreadyRegistered,r:
-    pass
-
 
 try:
     admin.site.register(ActivityLog)

@@ -16,7 +16,7 @@ from server.django_restapi.resource import Resource
 from server.django_restapi.model_resource import InvalidModelData
 from server.jv3.models import SPO
 from server.jv3.models import Note
-from server.jv3.models import Sighting, ActivityLog, UserRegistration
+from server.jv3.models import ActivityLog, UserRegistration, CouhesConsent
 import time
 
 # Create your views here.
@@ -170,32 +170,6 @@ class NoteCollection(Collection):
 #             pass        
 #     return HttpResponse(_("Login unsuccessful."));
 
-class  SightingsCollection(Collection):
-    ## read is covered by the superclass
-    def read(self, request):
-        """
-        Returns a representation of the queryset.
-        The format depends on which responder (e.g. JSONResponder)
-        is assigned to this ModelResource instance. Usually called by a
-        HTTP request to the factory URI with method GET.
-        """
-        #request_user = basicauth_get_user(request);        
-        #qs_user = Note.objects.filter(owner=request_user)
-        return self.responder.list(request, self.queryset)
-
-def sightings_new(request):
-    ## for posting from GPSTracker: 
-    ## http://www.websmithing.com/portal/Programming/tabid/55/articleType/ArticleView/articleId/2/Google-Map-GPS-Cell-Phone-Tracker.aspx
-    sighting = Sighting()
-    sighting.lat = request.GET['lat'];
-    sighting.lon = request.GET['lng'];
-    sighting.when = int(time.time()*1000);
-    sighting.dirr = request.GET['dir'];
-    sighting.mph= request.GET['mph'];
-    sighting.save();
-    image_data = open('/z/www/red.png','rb').read();
-    # print "data len is %d " % len(image_data)
-    return  HttpResponse(image_data, mimetype='image/png');
 
 ## a view new user/user management
 def userexists(request):
@@ -222,6 +196,13 @@ def createuser(request):
     user.when = int(time.time()*1000);
     user.email = username;
     user.password = passwd;
+
+    ## couhes handling: couhes requires first & last name 
+    user.couhes = (request.POST['couhes'] == 'true'); ## assume this is boolean
+    user.first_name = request.POST['firstname']; 
+    user.last_name = request.POST['lastname']; 
+    
+    print "user couhes is %s " % repr(type(user.couhes))
     user.cookie = gen_cookie();
     user.save();
     
@@ -243,15 +224,32 @@ def confirmuser(request):
         user = authmodels.User();
         user.username = newest_registration.email;         ## intentionally a dupe, since we dont have a username
         user.email = newest_registration.email;
-        user.set_password(newest_registration.password); 
+        user.set_password(newest_registration.password);
         user.save();
-        return render_to_response('jv3/confirmuser.html', {'message':"Success in confirming user %s  You can now synchronize with List.it " % user.username});
+        
+        ## handle couhes reg
+        if (newest_registration.couhes):
+            assert nonblank(newest_registration.first_name) and nonblank(newest_registration.last_name), "Couhes requires non blank first and last names"
+            user.first_name = newest_registration.first_name;
+            user.last_name = newest_registration.last_name;
+            user.save();
+            
+            ## now make couhes consetnform
+            cc = CouhesConsent()
+            cc.owner = user;
+            cc.signed_date = newest_registration.when;
+            cc.save()
+            
+        return render_to_response('jv3/confirmuser.html', {'message': "Okay, thank you for confirming that you are a human, %s.  You can now synchronize with List.it. " % user.username});
     
     response = render_to_response('jv3/confirmuser.html', {'message': "Oops, could not figure out what you are talking about!"});
     response.status_code = 405;
     return response
 
-## utilities -- NOT views 
+## utilities -- NOT views
+
+def nonblank(s):
+    return (s != None) and (type(s) == str or type(s) == unicode) and len(s.strip()) > 0
 
 ## not a view
 def gen_confirm_newuser_email_body(userreg):
@@ -273,7 +271,7 @@ def gen_confirm_newuser_email_body(userreg):
 
 def gen_cookie(cookiesize=25):
     import random
-    randchar = lambda : chr(ord('a')+random.randint(0,26))
+    randchar = lambda : chr(ord('a')+random.randint(0,25))
     return ''.join([ randchar() for i in range(cookiesize) ])                
              
 def get_most_recent(act):

@@ -3,8 +3,8 @@ import django.contrib.auth.views
 from django_restapi.model_resource import Collection, Entry
 from django_restapi.responder import *
 from django_restapi.receiver import *
-from server.jv3.models import SPO, SPOForm, Note, NoteForm, Sighting, ActivityLog
-from server.jv3.views import SPOCollection, NoteCollection, sightings_new, SightingsCollection, ActivityLogCollection, userexists, createuser, confirmuser
+from server.jv3.models import SPO, SPOForm, Note, NoteForm, ActivityLog
+from server.jv3.views import SPOCollection, NoteCollection, ActivityLogCollection, userexists, createuser, confirmuser
 from django_restapi.authentication import HttpBasicAuthentication, HttpDigestAuthentication, djangouser_auth
 
 class XMLReceiverSetOwner(XMLReceiver):
@@ -91,11 +91,6 @@ fullnotes_json_resource = NoteCollection(
     responder = JSONResponder(),
 )
 
-sightings_view = SightingsCollection(
-    queryset=Sighting.objects.all(),
-    permitted_methods = ('GET',),
-    expose_fields = ['lat', 'lon', 'dirr', 'when', 'mph'],
-    responder=JSONResponder() );
 
 actlog_view = ActivityLogCollection(
     queryset=ActivityLog.objects.all(),
@@ -118,8 +113,6 @@ urlpatterns = patterns('server.jv3.views.',
     (r'^pred/(.+)/json$', json_by_pred),
     (r'^obj/(.+)/json$', json_by_obj),
     (r'^notes$', fullnotes_json_resource),
-    (r'^sightings$', sightings_view),                   
-    (r'^gps$', sightings_new),
     (r'^notelog$', actlog_view),
     (r'^newuser$', lambda request: render_to_response('jv3/newuser.html')),
     (r'^userexists$', userexists),
