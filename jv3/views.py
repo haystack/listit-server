@@ -253,21 +253,21 @@ def nonblank(s):
 
 ## not a view
 def gen_confirm_newuser_email_body(userreg):
-    url = "http://%s:%d/jv3/confirmuser?cookie=%s" % (settings.SERVER_HOSTNAME,settings.SERVER_PORT,userreg.cookie)
+    url = "%s/jv3/confirmuser?cookie=%s" % (settings.SERVER_URL,userreg.cookie)
     return  """
     Hi!
 
-    Someone tried to register for Listit (http://projects.csail.mit.edu/jourknow/listit)
+    You or someone tried to register for Listit (http://projects.csail.mit.edu/jourknow/listit)
     using your the email address %s.
 
-    If you are that person, click here to complete your registration:
+    If you are that person, click here to get started!
+    
+    %s
 
-    <a href=\"%s\">%s</a>
-
-    Love,
+    Thanks,
 
     the Listit Team at MIT CSAIL.
-    """ % (userreg.email, url, url);
+    """ % (userreg.email, url);
 
 def gen_cookie(cookiesize=25):
     import random

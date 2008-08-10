@@ -116,7 +116,7 @@ urlpatterns = patterns('server.jv3.views.',
     (r'^notelog$', actlog_view),
     (r'^newuser$', lambda request: render_to_response('jv3/newuser.html')),
     (r'^userexists$', userexists),
-    (r'^createuser$', createuser),
+    (r'^createuser/$', createuser), ## POST
     (r'^confirmuser$', confirmuser),
     #(r'^login$', 'django.contrib.auth.views.login', {'template_name': 'jv3/login.html', 'module_name':'jv3'}),
     #(r'^login$', login_view),                       

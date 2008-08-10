@@ -81,7 +81,7 @@ except sites.AlreadyRegistered,r:
 ## created for new users -- and converted later to a real user
 ## when they confirm
 class UserRegistration(models.Model):
-    when = models.IntegerField()
+    when = models.DecimalField(max_digits=19,decimal_places=0)
     username = models.TextField(null=True)
     email = models.TextField()
     password = models.TextField()
@@ -107,7 +107,7 @@ except sites.AlreadyRegistered,r:
 
 class ActivityLog(models.Model):
     owner = models.ForeignKey(authmodels.User,null=True)
-    when = models.IntegerField(default=0)
+    when = models.DecimalField(max_digits=19,decimal_places=0)
     action = models.TextField()
     noteid = models.IntegerField(null=True)
     noteText = models.TextField(blank=True,null=True)

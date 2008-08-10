@@ -9,6 +9,8 @@
     <script type="text/javascript" src="http://projects.csail.mit.edu/jourknow/jv3/deploy/js/plum-util-ns.js"></script> 
     <script type="text/javascript">
 
+    var BASE_URL = "/listit/jv3";
+
     var setmsg = function(msg) {
 	if (msg && msg.length > 0) {
             $("#msg").html(msg);
@@ -37,7 +39,7 @@
 	    return cont(false, "Not a valid e-mail address.");
 	} else {
 	    return jQuery.ajax({ type:"GET",
-			  url: "/jv3/userexists?email="+encodeURIComponent(emailval),
+			  url: BASE_URL + "/userexists?email="+encodeURIComponent(emailval),
 			  success: function(data,success, x) {
 			      //success means that there exists already such an email adddr
 			      cont(false,"Error. I already have an account for " + emailval + ".");				  
@@ -91,7 +93,7 @@ var sendCreateRequest = function() {
 	}
     };
     return jQuery.ajax({ type:"POST",
-			  url: "/jv3/createuser",
+			  url: BASE_URL + "/createuser/",
 			 data:({ username: emailval, password: p1, couhes:couhes, firstname: firstname, lastname: lastname }),
 			 success: function(data,success) {
 			     //success means that there exists already such an email adddr
