@@ -112,8 +112,10 @@ urlpatterns = patterns('server.jv3.views.',
     (r'^subj/(.+)/json$', json_by_subj),
     (r'^pred/(.+)/json$', json_by_pred),
     (r'^obj/(.+)/json$', json_by_obj),
-    (r'^notes$', fullnotes_json_resource),
+    (r'^notes$', fullnotes_json_resource),   # GET
+    (r'^notes/$', fullnotes_json_resource), ## POST
     (r'^notelog$', actlog_view),
+    (r'^notelog/$', actlog_view),
     (r'^newuser$', lambda request: render_to_response('jv3/newuser.html')),
     (r'^userexists$', userexists),
     (r'^createuser/$', createuser), ## POST
