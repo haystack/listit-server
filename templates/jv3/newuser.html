@@ -35,7 +35,6 @@
 	    return cont(false, "Email must not be blank");
 	}
 	if (!plumutil.isValidEmail(emailval)) {
-	    console.log("not valid email " + emailval);
 	    return cont(false, "Not a valid e-mail address.");
 	} else {
 	    return jQuery.ajax({ type:"GET",
@@ -124,7 +123,6 @@ var sendCreateRequest = function() {
 		    else {
 			if ($("#participate")[0].checked) {
 			    if (plumutil.trim($("#firstname").val()).length > 0 && plumutil.trim($("#lastname").val()).length > 0 ){
-				console.log('bar');
 				$("#consent").attr("disabled",false);
 				if ($("#consent")[0].checked) {
 				    cont(true);
