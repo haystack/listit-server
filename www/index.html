@@ -1,0 +1,169 @@
+<html>
+  <head><title>list.it - a place to stash your information</title>
+
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta http-equiv="content-language" content="en" />
+    <link rel="stylesheet" type="text/css" href="css/listit.css" />
+    <link rel="stylesheet" type="text/css" href="css/homepage.css" />
+    <link rel="stylesheet" type="text/css" href="css/soon.css" />
+
+    <script type="text/javascript" src="js/jquery.js"></script>
+    
+    <script type="text/javascript" src="js/jquery.dimensions.js"></script>
+    <script type="text/javascript" src="js/jquery.accordion.js"></script>
+
+  </head>
+
+  <body style="margin: 0">
+    <div class="topbar">
+      <center>
+        <table width="720" height="75" class="normal" cellpadding="0" cellspacing="0">
+          <tr valign="bottom">
+
+            <td style="padding-top:0px; font-weight: bold; margin: 5px">
+	      <div class="topbartitle"><span style="font-size: 72px;">list<span style="font-size:36px;"><span style="color:#fca11f">.</span>it</span></span></div>
+            </td>
+
+	    <td align="right">
+	      <a href="http://haystack.csail.mit.edu">Haystack Home</a>
+	      | list.it
+	      | <a href="http://plum.csail.mit.edu/">jourknow</a> 
+	      | <a href="http://plum.csail.mit.edu/">PLUM</a> 
+	      | <a href="http://simile.mit.edu/exhibit/">Exhibit</a> 
+	      | <a href="http://relo.csail.mit.edu/">Relo</a> 
+              | <a href="http://groups.csail.mit.edu/haystack/">haystack</a> 
+
+            </td>
+          </tr>
+        </table>
+      </center>
+    </div>
+    <p>&nbsp;</p>
+
+    <center>
+      <table width="500" cellpadding="0" cellspacing="0" border="0">
+
+	<tr>
+	  <td class="prose">
+
+	  <p>
+	  <div class="topbartitle"><span style="font-size: 18px;">list<span style="font-size:18px;"><span style="color:#fca11f">.</span>it  <span style="font-size:14; font-weight:bold;">..
+	       before you forget it!</span></span></span>
+	  </div>
+	  <p>
+	  
+	  <p>
+	    <div class="prose" style="text-align:right;">an easy-to-use note taking tool for Firefox <p></div>
+	    <div class="prose">
+	      <p>Here are some of the things we're working on:</p>
+
+
+	      <script>
+		$(document).ready(function(){
+		    $(".feature-list").accordion({ 
+			header: "div.feature-title",
+			alwaysOpen: false,
+                        active: ""
+		    });
+		});
+	      </script>
+	      
+
+	      <div class="hmini">Features</div>
+
+	      <ul id="benchmarks" class="feature-list">
+
+	      <li>
+		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Runs in your browser sidebar</div>
+		  <div class="feature-description">
+		      Lorem ipsum dolor
+		  </div>
+		  </li>
+
+              <li>
+		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Use it whether you're online or off</div>
+		  <div class="feature-description">
+		      Lorem ipsum dolor
+		  </div>
+		  </li>
+
+		<li>
+		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Synchronize across computers</div>
+		  <div class="feature-description">
+		    <p>Looking to support synchronization across multiple computers. Currently, emax is working on setting up a django server to help with this. As soon as the server is up and I have an API, the logic will be mostly on my side and should be fairly easy to set up.</p>
+		  </div>
+		</li>
+
+		<li>
+		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Pop-up the input box to quickly add a note</div>
+		  <div class="feature-description">
+		    <p>One of the harder problems we're facing. Not only do we have to find a good hotkey that isn't already taken on most people's machines, but then we need to get them working across the 3 major platforms (Mac/Windows/Linux). This involves writing a native component for each platform. This is theoretically possible and we're still working on the actual implementation.</p>
+		  </div>
+		</li>
+
+		<li>
+		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Wiki syntax</div>
+		  <div class="feature-description">
+		    <p>I like the functionality of the interface I have now, but with some tweaking of colors and stylesheets, I could make it much nicer. Also, I may want to pull it out of the sidebar and into its own chrome window so it doesn't take up too much of my browsing space.</p>
+		  </div>
+		</li>
+
+	      </ul>
+
+
+     	      <div class="hmini">Get.it now</div>
+	      
+
+	      <ul class="feature-list">
+	      <li>
+	      <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Download now!</div>
+	      <div class="feature-description">
+	      <p>
+	         Terms and conditions:
+		 <br>
+		 <P>
+		 This software is licensed under the MIT License.
+		 <P>
+		 Redistribution and use in source and binary forms, with or without modification,
+		 are permitted provided that the following conditions are met:
+		 <OL>
+		 <LI>Redistributions must retain the following disclaimer:
+		 </OL>
+		 
+		 <P>
+		  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS
+		  AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+		  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+		  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+		  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+		  SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+		  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+		  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+		  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+		  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+		  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+		  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+		  CHOCOLATE TORTE (INCLUDING NEGLIGENCE OR OTHERWISE)
+		  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+		  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+		  </P>
+
+		  <P>
+		  <center><a href="../jv3.xpi" ><span style="font-size:120%; font-weight:bold;">install List.it!</span></a> (Requires Firefox 3.0+)</center>
+		  <P>
+		 </div>
+	      </li>
+	      <br> 
+	      </ul>
+
+	    </div>
+
+
+	  </td>
+
+	</tr>
+      </table>
+    </center>
+
+  </body>
+</html>
