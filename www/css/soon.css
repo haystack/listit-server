@@ -1,0 +1,48 @@
+
+.feature-list  {
+	width: 500px;
+	font-family: verdana;
+	border: none;
+	list-style-type: none;
+}
+.feature-list div {
+	background-color: #252525;
+}
+
+.feature-list p {
+	margin-bottom : 10px;
+	border: none;
+	text-decoration: none;
+	font-weight: bold;
+	font-size: 12px;
+	margin: 0px;
+	padding: 10px;
+}
+.feature-list .feature-title {
+	cursor:pointer;
+	display:block;
+	padding:5px;
+	margin-top: 0;
+	text-decoration: none;
+	font-weight: normal;
+	font-size: 15px;
+	background-color: #252525;
+	border-bottom: 1px solid #252525;
+	height: 18px;
+	background-image: url("../imgs/AccordionTab0.png");
+}
+.feature-list .feature-title:hover {
+	background-color: #252525;
+	background-image: url("../imgs/AccordionTab2.png");
+}
+.feature-list .feature-title.selected {
+	color: #fca11f;
+	background-color: #252525;
+	background-image: url("../imgs/AccordionTab2.png");
+}
+
+.listdot {
+    height: 12px;
+    width: 12px;
+    margin-right: 4px;
+}

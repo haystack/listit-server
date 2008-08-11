@@ -1,0 +1,32 @@
+.p1 { margin-top: 30px; }
+
+body { margin-left:0px; margin-right:60px; color: #ffffff; font-family: lucida sans,sans-serif; font-size: 12pt;  }
+.h1 { font-size: 26pt; font-weight: bold; color: rgb(34,0,73); vertical-align: middle; font-variant: small-caps; }
+.h2 { font-size: 18pt; font-weight: bold; color: rgb(34,0,73); vertical-align: middle; font-variant: small-caps; }
+
+/* */
+.hmini { font-size: 14pt; font-weight: bold; color: rgb(34,0,73); vertical-align: super; font-variant: small-caps; }
+.hmaxi { font-size: 20pt; font-weight: bold; color: rgb(34,0,73);  position:relative; top:-0.4em; margin-left: 12px; font-variant: small-caps; text-align: right; }
+
+.hmaxj { font-size: 40pt; font-weight: bold; color: rgb(34,0,73);  position:relative; left:auto; right: auto;
+         bottom:-0.1em; margin-left: 12px; font-variant: small-caps; }
+
+/* prose on the mainpage */
+.prose { width: 560px; margin-bottom:2em;}
+.prose P { margin-top: 1em; margin-top: 0em;}
+
+/* sidebar   */
+div#sidebartitle  { margin-top: 0px; margin-bottom:10px; font-size: 1.2em;}
+dt#sidebar {font-size: 10pt;}
+dd#sidebar {font-size: 8pt; margin-bottom: 10px; margin-left: 0px; left: 0px;}
+dl#sidebar {font-size: 8pt; margin-bottom: 20px; margin-top: 0px; left: 0px;}
+
+
+img.logo { margin:0px; margin-top:20px; margin-bottom:20px; margin-right:50px; }
+a:link { color: rgb(34,0,73); background: transparent; text-decoration: none; }
+a:visited { color: rgb(34,34,34); background: transparent; text-decoration: none; }
+a:active { color: rgb(80,0,100); background: transparent; text-decoration: none; }
+
+/* captions for sidebar images */
+#nokcap { text-align:center; color:rgb(0,0,80); font-variant: small-caps;}
+#csailcap { text-align:center; color:rgb(0,0,0); font-variant: small-caps;}
