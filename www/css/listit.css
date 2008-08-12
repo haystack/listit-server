@@ -55,3 +55,8 @@ img.logo { width: 40px; height: 40px; margin: 0 4px 10px 0;}
 #nokcap { text-align:center; color:rgb(0,0,80); font-variant: small-caps;}
 #csailcap { text-align:center; color:rgb(0,0,0); font-variant: small-caps;}
 
+.terms {
+    font-size:70%;
+}
+
+.screenshot { float:right; margin-left:30px;}

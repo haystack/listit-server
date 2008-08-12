@@ -14,7 +14,7 @@
 
 var resetbackground = function() {
     $('#back').attr('width',$(window).width());
-//  $('#back').attr('height',$(window).height());      
+  //$('#back').attr('height',$(window).height());      
 }
 
 $(window).resize(resetbackground);
@@ -62,22 +62,39 @@ $(document).ready(function(){
 	    <div id="main">
 	    <h2><span style="font-size: 24pt;">list</span><span style="font-size:16pt;"><span style="color:#fca11f">.</span>it</span>
 	         -- <span style="font-weight:normal">before you forget it!</span></h2>
-		 <p>
-		<B>list<span style="color:#fca11f">.</span>it</b>, the <B>L</B>atitudinal <B>I</B>nformation <B>S</B>crap-<B>T</B>rapper that <B>I</B>ndexes
-		<B>T</B>hings - is a simple note taking tool with a grand name 	-- and a grand goal.  list<span style="color:#fca11f">.</span>it aims to help 
-                you quickly capture and stash away all the random bits of information you generate each day, so you can get back to them effectively and easily.
-				
-		<p>Our design aims for simplicity, speed and elegance.  Building up on our previous ethnographic work on <i>information scraps</i>...blah blah</p>
+	 <p>
+	      <B>list<span style="color:#fca11f">.</span>it</b>, the <B>L</B>atitudinal <B>I</B>nformation <B>S</B>crap-<B>T</B>rapper that <B>I</B>ndexes
+	      <B>T</B>hings - is a small, simple note-keeping tool for solving a big, complex task -- helping you manage all of the little
+	      bits of information you need to keep track of each day .
 
+	      <p><B>list<span style="color:#fca11f">.</span>it</b> does this by focusing on <i>speed</i> and <i>simplicity</i>.  We have
+	      gotten rid of everything except a way to get things in and out <i>quickly</i>, so that you can get things out of your head
+	      and somewhere you can access easily any time. 
+	      
 	      <h2>features</h2>
-
 	      <ul id="benchmarks" class="feature-list">
 	      <li>
-		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Runs in your browser sidebar</div>
+		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Simple Browser-Sidebar interface</div>
 		  <div class="feature-description">
-		      Lorem ipsum dolor
+ 	            <img src="imgs/screenshot.png" class="screenshot">
+		    <img src="imgs/screenshot-close.png" class="screenshot">
+		    <P><B>list<span style="color:#fca11f">.</span>it</b> lives in your Firefox browser sidebar, which
+		    can be pulled up and pulled away using a customizable hot key.
+		    <P>At the top is a search box and a note input box; under that are your notes.
 		  </div>
   	      </li>
+   	      <li>
+		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Hotkeys and quick input box</div>
+		  <div class="feature-description">
+		    <p>One of the harder problems we're facing. Not only do we have to find a good hotkey that isn't already taken on most people's machines, but then we need to get them working across the 3 major platforms (Mac/Windows/Linux). This involves writing a native component for each platform. This is theoretically possible and we're still working on the actual implementation.</p>
+		  </div>
+		</li>
+		<li>
+		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Synchronize across computers</div>
+		  <div class="feature-description">
+		    <p>Looking to support synchronization across multiple computers. Currently, emax is working on setting up a django server to help with this. As soon as the server is up and I have an API, the logic will be mostly on my side and should be fairly easy to set up.</p>
+		  </div>
+		</li>
               <li>
 		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Use it whether you're online or off</div>
 		  <div class="feature-description">
@@ -85,27 +102,51 @@ $(document).ready(function(){
 		  </div>
   	     </li>
 		<li>
-		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Synchronize across computers</div>
-		  <div class="feature-description">
-		    <p>Looking to support synchronization across multiple computers. Currently, emax is working on setting up a django server to help with this. As soon as the server is up and I have an API, the logic will be mostly on my side and should be fairly easy to set up.</p>
-		  </div>
-		</li>
-
-		<li>
-		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Pop-up the input box to quickly add a note</div>
-		  <div class="feature-description">
-		    <p>One of the harder problems we're facing. Not only do we have to find a good hotkey that isn't already taken on most people's machines, but then we need to get them working across the 3 major platforms (Mac/Windows/Linux). This involves writing a native component for each platform. This is theoretically possible and we're still working on the actual implementation.</p>
-		  </div>
-		</li>
-
-		<li>
 		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Wiki syntax</div>
 		  <div class="feature-description">
 		    <p>I like the functionality of the interface I have now, but with some tweaking of colors and stylesheets, I could make it much nicer. Also, I may want to pull it out of the sidebar and into its own chrome window so it doesn't take up too much of my browsing space.</p>
 		  </div>
 		</li>
 	      </ul>
-	    </div>
+
+     	      <h2>get.it!</h2>
+     	      <ul class="feature-list">
+	      <li>
+	      <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Download now!</div>
+	      <div class="feature-description">
+
+	      <div class="terms">
+	         <p>
+	         Terms and conditions:
+		 <P>
+		 This software is licensed under the MIT License.
+		 <P>
+		  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS
+		  AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+		  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+		  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+		  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+		  SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+		  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+		  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+		  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+		  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+		  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+		  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+		  CHOCOLATE TORTE (INCLUDING NEGLIGENCE OR OTHERWISE)
+		  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+		  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+		  </P>
+		 </div>
+		  <P>
+		   <center><a href="../jv3.xpi" ><span style="font-size:120%; font-weight:bold;">install List.it!</span></a> (Requires Firefox 3.0+)</center>
+		  <P>
+	      </li>
+	      </ul>
+
+
+	      
+	    </div> <!-- main panel --> 
 	  </td>
 	</tr>
       </table>
