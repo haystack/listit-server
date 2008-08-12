@@ -57,6 +57,9 @@ img.logo { width: 40px; height: 40px; margin: 0 4px 10px 0;}
 
 .terms {
     font-size:70%;
+border-style:solid; border-color:white;
 }
 
 .screenshot { float:right ; margin-left:10px; }
+
+#register { border-style: solid; border-width: 1px; border-color:#303030; }

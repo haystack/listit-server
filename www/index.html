@@ -9,9 +9,11 @@
     <script type="text/javascript" src="js/jquery.js"></script>
     <script type="text/javascript" src="js/jquery.dimensions.js"></script>
     <script type="text/javascript" src="js/jquery.accordion.js"></script>
+    <script type="text/javascript" src="js/plum-util-ns.js"></script> 
 
     <script type="text/javascript">
-
+<![CDATA[    
+// for the background
 var resetbackground = function() {
     $('#back').attr('width',$(window).width());
   //$('#back').attr('height',$(window).height());      
@@ -20,7 +22,6 @@ var resetbackground = function() {
 //$(window).resize(resetbackground);
 //$(document).resize(resetbackground);
 $(document).ready(resetbackground);
-
 $(document).ready(function(){
     $(".feature-list").accordion({
 	header: "div.feature-title",
@@ -28,8 +29,184 @@ $(document).ready(function(){
 	alwaysOpen: false,
         active:	""
     });	
-});		
-    </script>
+});
+
+    var BASE_URL = "/listit/jv3";
+
+    var setmsg = function(msg) {
+	if (msg && msg.length > 0) {
+            $("#msg").html(msg);
+	    $("#msg").fadeIn("fast");				    
+	} else {
+	    $("#msg").fadeOut("fast");
+	}
+    };
+    var setok = function(ok) {
+	if (ok) {
+	    $("#submit").fadeIn("fast");
+	    $("#submit").show();
+	} else {
+	    $("#submit").fadeOut("fast");
+	}
+    };
+
+    var validateEmail = function(cont) {
+	var emailval = $("#email").val();
+	emailval = plumutil.trim(emailval);
+	if (emailval.length == 0) {
+	    return cont(false, "Email must not be blank");
+	}
+	if (!plumutil.isValidEmail(emailval)) {
+	    return cont(false, "Not a valid e-mail address.");
+	} else {
+	    return jQuery.ajax({ type:"GET",
+			  url: BASE_URL + "/userexists?email="+encodeURIComponent(emailval),
+			  success: function(data,success, x) {
+			      //success means that there exists already such an email adddr
+			      cont(false,"Error. I already have an account for " + emailval + ".");				  
+			  },
+			  error: function(req,status) {
+			      if (req.status == 404){
+				  cont(true);
+			      } else {
+				  cont(false,"Uh oh the server seems to be down.");
+			      }
+			  }});
+	}
+    };
+
+var validatePass = function(cont) {
+    var p1 = $("#pass1").val();
+    var p2 = $("#pass2").val();
+    p1 = plumutil.trim(p1);
+    p2 = plumutil.trim(p2);
+    if (p1.length > 3) {
+	if (p1 == p2) {
+	    return cont(true);
+	} else {
+	    return cont(false, "Your passwords don't seem to match. Try re-typing?");
+	}
+    }
+    cont(false, "Passwords must have more than 3 characters");    
+};
+
+var sendCreateRequest = function() {
+    var emailval = $("#email").val();
+    var p1 = $("#pass1").val();
+    var couhes  = $("#consent")[0].checked && $("#participate")[0].checked;
+    var firstname ="", lastname = "";
+    
+    if (couhes) {
+	firstname = $("#firstname").val();
+	lastname = $("#lastname").val();
+    }
+    
+    setok(false);
+    setmsg("Sending request...");
+
+    var cont = function(success, info) {
+	if (success) {
+	    setmsg();
+	    setmsg("An email has been sent to " + emailval);
+	} else {
+	    setmsg();
+	    setmsg(info);
+	}
+    };
+    return jQuery.ajax({ type:"POST",
+			  url: BASE_URL + "/createuser/",
+			 data:({ username: emailval, password: p1, couhes:couhes, firstname: firstname, lastname: lastname }),
+			 success: function(data,success) {
+			     //success means that there exists already such an email adddr
+			     cont(true);
+			 },
+			 error: function(data,status) {
+			     cont(false,data.responseText);
+			 }
+		       });
+    
+}
+
+    var validate = function() {
+	var cont = function(ok, msg) {
+	    if (ok) {
+		setok(true);
+		setmsg("");
+	    } else {
+		setok(false);
+		setmsg(msg);
+	    }
+	};
+	validateEmail(function(ok,msg) {
+	    if (!ok) { cont(ok,msg); }
+	    else {
+		validatePass(function(ok,msg) {
+		    if (!ok) { cont(ok,msg); }
+		    else {
+			if ($("#participate")[0].checked) {
+			    if (plumutil.trim($("#firstname").val()).length > 0 && plumutil.trim($("#lastname").val()).length > 0 ){
+				$("#consent").attr("disabled",false);
+				if ($("#consent")[0].checked) {
+				    cont(true);
+				} else {
+				    cont(false,"Please consent to participate in the study, or uncheck the Paricipate in Study check mark above.");
+				}
+			    } else {
+				// names not blank
+				$("#consent").attr("disabled",true);
+				cont(false,"Please supply your first and last name and consent to participate in the study, or uncheck the Paricipate in Study check mark above.");
+			    }
+			} else {
+			    cont(true);
+			}
+		    }});
+	    }			    
+	});
+    };
+    $(document).ready(function() {
+	setok(false);
+	setmsg("");
+	$("input:checked").attr("checked",false);
+	$("#consent").attr("disabled",true);
+
+        $("#email").keyup(function() {
+	    validate();
+	});
+	$("#pass1").keyup(function() {
+	    validate();
+	});
+	$("#pass2").keyup(function() {
+	    validate();
+	});
+	$("#submit").click(function() {
+	    sendCreateRequest();
+	});	
+ 	$("#participate").click(function() {
+	    validate();
+ 	    if ($("#participate")[0].checked)  {
+	     	$("#couhes").fadeIn();
+	    } else {
+	         $("#couhes").fadeOut();
+	    }
+	});
+	$("#firstname").keyup(function() {
+	   validate();	   
+	});
+	$("#lastname").keyup(function() {
+	   validate();	   
+	});
+	$("#consent").click(function() {
+	    validate();
+	    signeddate = new Date();
+	    if ($("#consent")[0].checked) {
+		$("#consentdate").html( "" + (new Date()) );
+		$("#consentdate").fadeIn();		
+	    } else {
+		$("#consentdate").fadeOut();
+	    }
+	});
+    });
+    </script>	
   </head>
 
   <body style="margin: 0;">
@@ -130,8 +307,31 @@ $(document).ready(function(){
      	      <ul class="feature-list">
 	      <li>
 	      <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Download now!</div>
-	      <div class="feature-description">
-	      <div class="terms">
+	      <div id="getit-description" class="feature-description">
+
+	      <div id="register">
+ 	       <div><div class="useremail">your <b>email</b>:</div><input id="email" name="email"/></div>
+	       <div><div class="useremail">choose a <b>password</b>:</div><input id="pass1" type="password" style="width:100%"></input></div>
+ 	       <div><div class="useremail">type your <b>password again</b>:</div><input id="pass2" type="password" style="width:100%"></input></div>
+	       <div><div class="useremail">participate in our study?</div><input type="checkbox" id="participate"></input></div>
+	       <div id="couhes" style="display:none;">
+	         <p>Thank you for your interest in helping us ith our research. Please review the documentbelow, which utlines what we are doing and
+  	        why, as well as important information regarding how the data we are collecting about	your note taking habits will be used and
+	        handled. <p>(You can return to the document later <a href="http://projects.csail.mit.edu/jourknow/jv3/deploy/couhes.html">here</a>)
+
+		<iframe style="width:100%;height:100px;border:1px;" src="http://projects.csail.mit.edu/jourknow/jv3/deploy/couhes.html"></iframe>
+	        <br>
+	        <p>If you agree to the terms of the document and wish to participate, please provide:</p>
+	        <div><div class="useremail"> your <b>first name</b>:</div><input type="text" id="firstname"></input></div>
+	        <div><div class="useremail"> your <b>last name</b>:</div><input type="text" id="lastname"></input></div>
+	        <div><div class="useremail"> I agree to the terms of the study</div> <input type="checkbox" id="consent" name="consent"/></div>
+	        <div><div class="useremail">date: </div><span id="consentdate" style="display:none;">)</span></div>
+	        </p>
+	      </div> <!-- couhes -->
+	      <input id="submit" name="submit" type="button" style="hidden:true;" value="Register me"></input>
+	      <div id="msg" style="color:rgb(250,150,150);">test<div/>
+	    </div> <!-- register -- >	    
+            <div class="terms">
 	         <p>
 	         Terms and conditions:
 		 </p><p>
@@ -153,16 +353,13 @@ $(document).ready(function(){
 		  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 		  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		  </p>
-		 </div>
-		 <p>
-		   <a href="../jv3.xpi" ><span style="font-size:120%; font-weight:bold; text-align:center;">install List.it!</span></a> (Requires Firefox 3.0+)
-		 </p>
-		 </div>
-	      </li>
-	      </ul>	      
-	    </div> <!-- main panel --> 
-	  </td>
-	</tr>
+	    	    <a href="../jv3.xpi" ><span style="font-size:120%; font-weight:bold; text-align:center;">install List.it!</span></a> (Requires Firefox 3.0+)
+   	     </div>	     
+      </li> <!-- get it! -->
+      </ul>	      
+    </div> <!-- main panel --> 
+ </td>
+</tr>
       </table>
       </center>
   </body>
