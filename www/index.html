@@ -1,34 +1,33 @@
 <html>
   <head><title>list.it - a place to stash your information</title>
-
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta http-equiv="content-language" content="en" />
     <link rel="stylesheet" type="text/css" href="css/listit.css" />
-    <link rel="stylesheet" type="text/css" href="css/homepage.css" />
+    <!--<link rel="stylesheet" type="text/css" href="css/homepage.css" />-->
     <link rel="stylesheet" type="text/css" href="css/soon.css" />
 
     <script type="text/javascript" src="js/jquery.js"></script>
-    
     <script type="text/javascript" src="js/jquery.dimensions.js"></script>
     <script type="text/javascript" src="js/jquery.accordion.js"></script>
 
     <script type="text/javascript">
-    
-    $(window).resize(function() {
-      console.log('resize' + $(window).width());
-      //$('#back').attr('width',$(window).width());
-      $('#back').attr('height',$(window).height());      
-    });
-    $(document).resize(function() {
-      console.log('resize' + $(window).width());
-      //$('#back').attr('width',$(window).width());
-      $('#back').attr('height',$(window).height());      
-    });
-    $(document).ready(function() {
-       console.log('ready' + $(window).width());
-      //$('#back').attr('width',$(window).width());
-      $('#back').attr('height',$(window).height());      
-    });
+
+var resetbackground = function() {
+    $('#back').attr('width',$(window).width());
+//  $('#back').attr('height',$(window).height());      
+}
+
+$(window).resize(resetbackground);
+$(document).resize(resetbackground);
+$(document).ready(resetbackground);
+
+$(document).ready(function(){
+    $(".feature-list").accordion({
+	header: "div.feature-title",
+	alwaysOpen: false,
+        active:	""
+    });	
+});		
     </script>
   </head>
 
@@ -54,47 +53,37 @@
             </td>
           </tr>
         </table>
-      </center>
+    </center>
     </div>
-    <img id="back" src="imgs/scraps-desk.jpg" style="z-index:-1; position:absolute; left:0px; top:1in; right:0px; bottom:0px;"/>
+    <img id="back" src="imgs/postits-sm.jpg" style="z-index:-1; position:absolute; left:0px; top:1in; right:0px; bottom:0px;"/>
     <center>
-      <table width="720" cellpadding="0" cellspacing="0" border="0">
+    <table width="720" cellpadding="0" cellspacing="0" border="0">
 	<tr>
-	  <td class="prose" style="width:720px;">
 	    <div id="main">
-	      <h2>...before you forget it!</h2>	   
-		<p>
-		       <div class="prose" style="text-align:right;">an easy-to-use note taking tool for Firefox <p></div>
-		       <p>Here are some of the things we're working on:</p>
+	    <h2><span style="font-size: 24pt;">list</span><span style="font-size:16pt;"><span style="color:#fca11f">.</span>it</span>
+	         -- <span style="font-weight:normal">before you forget it!</span></h2>
+		 <p>
+		<B>list<span style="color:#fca11f">.</span>it</b>, the <B>L</B>atitudinal <B>I</B>nformation <B>S</B>crap-<B>T</B>rapper that <B>I</B>ndexes
+		<B>T</B>hings - is a simple note taking tool with a grand name 	-- and a grand goal.  list<span style="color:#fca11f">.</span>it aims to help 
+                you quickly capture and stash away all the random bits of information you generate each day, so you can get back to them effectively and easily.
+				
+		<p>Our design aims for simplicity, speed and elegance.  Building up on our previous ethnographic work on <i>information scraps</i>...blah blah</p>
 
-	      <script>
-		$(document).ready(function(){
-		    $(".feature-list").accordion({ 
-			header: "div.feature-title",
-			alwaysOpen: false,
-                        active: ""
-		    });
-		});
-	      </script>	      
-
-	      <div class="hmini">Features</div>
+	      <h2>features</h2>
 
 	      <ul id="benchmarks" class="feature-list">
-
 	      <li>
 		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Runs in your browser sidebar</div>
 		  <div class="feature-description">
 		      Lorem ipsum dolor
 		  </div>
-		  </li>
-
+  	      </li>
               <li>
 		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Use it whether you're online or off</div>
 		  <div class="feature-description">
 		      Lorem ipsum dolor
 		  </div>
-		  </li>
-
+  	     </li>
 		<li>
 		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Synchronize across computers</div>
 		  <div class="feature-description">
@@ -115,60 +104,12 @@
 		    <p>I like the functionality of the interface I have now, but with some tweaking of colors and stylesheets, I could make it much nicer. Also, I may want to pull it out of the sidebar and into its own chrome window so it doesn't take up too much of my browsing space.</p>
 		  </div>
 		</li>
-
-	      </ul>
-
-
-     	      <div class="hmini">Get.it now</div>
-	      
-
-	      <ul class="feature-list">
-	      <li>
-	      <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Download now!</div>
-	      <div class="feature-description">
-	      <p>
-	         Terms and conditions:
-		 <br>
-		 <P>
-		 This software is licensed under the MIT License.
-		 <P>
-		 Redistribution and use in source and binary forms, with or without modification,
-		 are permitted provided that the following conditions are met:
-		 <OL>
-		 <LI>Redistributions must retain the following disclaimer:
-		 </OL>
-		 
-		 <P>
-		  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS
-		  AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-		  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-		  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-		  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
-		  SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-		  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-		  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-		  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-		  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-		  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-		  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
-		  CHOCOLATE TORTE (INCLUDING NEGLIGENCE OR OTHERWISE)
-		  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-		  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-		  </P>
-
-		  <P>
-		  <center><a href="../jv3.xpi" ><span style="font-size:120%; font-weight:bold;">install List.it!</span></a> (Requires Firefox 3.0+)</center>
-		  <P>
-
-	      </li>
-	      <br> 
 	      </ul>
 	    </div>
-	    </center>
 	  </td>
 	</tr>
       </table>
-    </center>
+      </center>
     </div>
   </body>
 </html>
