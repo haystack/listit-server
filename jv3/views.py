@@ -298,7 +298,7 @@ class ActivityLogCollection(Collection):
             if most_recent_activity == None: most_recent_activity = 0;
             print "most_recent " + repr(most_recent_activity)
             if most_recent_activity:
-                return HttpResponse(JSONEncoder().encode({'value':most_recent_activity.when}), self.responder.mimetype)
+                return HttpResponse(JSONEncoder().encode({'value':int(most_recent_activity.when)}), self.responder.mimetype)
             return self.responder.error(request, 404, ErrorDict({"value":"No activity found"}));
         else:
             ## retrieve the entire activity log            
