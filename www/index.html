@@ -1,4 +1,4 @@
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
   <head><title>list.it - a place to stash your information</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta http-equiv="content-language" content="en" />
@@ -17,13 +17,14 @@ var resetbackground = function() {
   //$('#back').attr('height',$(window).height());      
 }
 
-$(window).resize(resetbackground);
-$(document).resize(resetbackground);
+//$(window).resize(resetbackground);
+//$(document).resize(resetbackground);
 $(document).ready(resetbackground);
 
 $(document).ready(function(){
     $(".feature-list").accordion({
 	header: "div.feature-title",
+	autoHeight:true,
 	alwaysOpen: false,
         active:	""
     });	
@@ -34,7 +35,7 @@ $(document).ready(function(){
   <body style="margin: 0;">
     <div id="topbar" class="topbar">
       <center>
-        <table width="720" height="75" class="normal" cellpadding="0" cellspacing="0">
+        <table width="720" class="normal" cellpadding="0" cellspacing="0">
           <tr valign="bottom">
 
             <td style="padding-top:0px; font-weight: bold; margin: 5px">
@@ -55,73 +56,87 @@ $(document).ready(function(){
         </table>
     </center>
     </div>
-   <img id="back" src="imgs/postits-sm.jpg" style="z-index:-1; position:absolute; left:0px; top:1in; right:0px; bottom:0px;"/>
+   <img id="back" src="imgs/postits-sm.jpg" style="z-index:-1; position:absolute; left:0px; top:1in; right:0px; bottom:0px;" alt="post-its"/>
     <center>
     <table width="720" cellpadding="0" cellspacing="0" border="0">
 	<tr>
+	<td>
 	    <div id="main">
-	    <h2><span style="font-size: 24pt;">list</span><span style="font-size:16pt;"><span style="color:#fca11f">.</span>it</span>
+	       <h2><span style="font-size: 24pt;">list</span><span style="font-size:16pt;"><span style="color:#fca11f">.</span>it</span>
 	         -- <span style="font-weight:normal">before you forget it!</span></h2>
-	 <p>
-	      <B>list<span style="color:#fca11f">.</span>it</b>, the <B>L</B>atitudinal <B>I</B>nformation <B>S</B>crap <B>T</B>rapper that <B>I</B>ndexes
-	      <B>T</B>hings - is a small, simple note-keeping tool for solving a big, complex task -- helping you manage all of the little
-	      bits of information you need to keep track of each day .
+		 <p>
+	      <b>list<span style="color:#fca11f">.</span>it</b>, the <b>L</b>atitudinal <b>I</b>nformation <b>S</b>crap <b>T</b>rapper that <b>I</b>ndexes
+	      <b>T</b>hings - is a small, simple note-keeping tool for solving a big, complex task -- helping you manage all of the little
+	      bits of information you need to keep track of each day .</p>
 
-	      <p><B>list<span style="color:#fca11f">.</span>it</b> does this by focusing on <i>speed</i> and <i>simplicity</i>.  We have
+	      <p><b>list<span style="color:#fca11f">.</span>it</b> does this by focusing on <i>speed</i> and <i>simplicity</i>.  We have
 	      gotten rid of everything except a way to get things in and out <i>quickly</i>, so that you can get things out of your head
-	      and somewhere you can access easily any time. 
+	      and somewhere you can access easily any time.</p>
 	      
+	      <p/>
+      	      <h2>news</h2>
+               <ul class="feature-list">
+	       <li>
+	       <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>aug.12 - list.it v.0.2 released!</div>
+	       <div class="feature-description" >
+	         We are happy to announce version 0.2 of list.it is ready for download.  This version
+		 supports server synchronisation, better stability, and a new semitranslucent UI!
+		 <a href="mailto:jourknow-dev@csail.mit.edu">Let us know</a> what you think.		 
+	       </div>
+	       </li>
+	      </ul>
+	      <p/>
 	      <h2>features</h2>
-	      <ul id="benchmarks" class="feature-list">
+	      <ul id="features" class="feature-list">	      
 	      <li>
-		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Simple Browser-Sidebar interface</div>
+		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Simple Browser-Sidebar interface</div>
 		  <div class="feature-description">
- 	            <img src="imgs/screenshot.png" class="screenshot">
-		    <img src="imgs/screenshot-close.png" class="screenshot">
-		    <P><B>list<span style="color:#fca11f">.</span>it</b> lives in your Firefox browser sidebar, which
-		    can be pulled up and pulled away using a customizable hot key.
-		    <P>At the top is a search box and a note input box; under that are your notes.
+		  <div>
+  		  <img src="imgs/input.png" class="screenshot" alt="screen shot" width="100"/>
+		    <b>list<span style="color:#fca11f">.</span>it</b> lives in your Firefox browser sidebar, which
+		    can be pulled up and pulled away using a customizable hot key.<!--    At the top is a search box and a note input box; under that are your notes. -->
+		   </div>
 		  </div>
   	      </li>
-   	      <li>
-		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Hotkeys and quick input box</div>
-		  <div class="feature-description">
-		    <img src="imgs/screenshot-input.png" class="screenshot">
-		    <p>Sometimes you just need to write it down. For those times, use the quick input box.
-		  </div>
-		</li>
-		<li>
-		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Synchronize across computers</div>
-		  <div class="feature-description">
-		    <p>Looking to support synchronization across multiple computers. Currently, emax is working on setting up a django server to help with this. As soon as the server is up and I have an API, the logic will be mostly on my side and should be fairly easy to set up.</p>
-		  </div>
-		</li>
-              <li>
-		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Use it whether you're online or off</div>
-		  <div class="feature-description">
-		      Lorem ipsum dolor
-		  </div>
-  	     </li>
-		<li>
-		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Wiki syntax</div>
-		  <div class="feature-description">
-		    <p>I like the functionality of the interface I have now, but with some tweaking of colors and stylesheets, I could make it much nicer. Also, I may want to pull it out of the sidebar and into its own chrome window so it doesn't take up too much of my browsing space.</p>
-		  </div>
-		</li>
-	      </ul>
 
+	      <li>
+		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Quick input box</div>
+		  <div class="feature-description">
+		   <p>Sometimes you just need to write it down. Use the quick input box to get it in, and get on with the rest of your life.<Br>
+		   	       <img src="imgs/inputbox.png" alt="screen shot" width="400" style="margin:14px; "/>
+ 	           </p> 
+		  </div>
+		</li>
+
+	      <li>
+		 <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Automatic sync & backup</div>
+		 <div class="feature-description">If you register for our free sync service, your notes will be securely backed up
+		 so you don't have to worry about losing information. And, if you install list.it on multiple computers,
+		 your notes will be mirrored to all of them.  </div>
+	      </li>
+
+	      <li>
+		 <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Contribute to science!</div>
+		 <div class="feature-description">
+		 <p>A primary reason for building list.it tool is as an instrument to study how people keep and use
+		 information, so that we can figure out ways to build better tools.</p>
+		 <p>When you sign up for list.it sync service, you can volunteer to donate your notes to science.
+		 We will in turn study them to figure out how you take notes and how to better improve List.it and other tools.
+  	      </div>
+	      </li>	      	      
+	      </ul>
+	      <p/>
      	      <h2>get.it!</h2>
      	      <ul class="feature-list">
 	      <li>
-	      <div class="feature-title"><img class="listdot" src="imgs/orangedot.png"/>Download now!</div>
+	      <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Download now!</div>
 	      <div class="feature-description">
-
 	      <div class="terms">
 	         <p>
 	         Terms and conditions:
-		 <P>
+		 </p><p>
 		 This software is licensed under the MIT License.
-		 <P>
+ 		 </p><p>
 		  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS
 		  AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
 		  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -137,21 +152,18 @@ $(document).ready(function(){
 		  CHOCOLATE TORTE (INCLUDING NEGLIGENCE OR OTHERWISE)
 		  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 		  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-		  </P>
+		  </p>
 		 </div>
-		  <P>
-		   <center><a href="../jv3.xpi" ><span style="font-size:120%; font-weight:bold;">install List.it!</span></a> (Requires Firefox 3.0+)</center>
-		  <P>
+		 <p>
+		   <a href="../jv3.xpi" ><span style="font-size:120%; font-weight:bold; text-align:center;">install List.it!</span></a> (Requires Firefox 3.0+)
+		 </p>
+		 </div>
 	      </li>
-	      </ul>
-
-
-	      
+	      </ul>	      
 	    </div> <!-- main panel --> 
 	  </td>
 	</tr>
       </table>
       </center>
-    </div>
   </body>
 </html>
