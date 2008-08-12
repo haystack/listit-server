@@ -12,10 +12,28 @@
     <script type="text/javascript" src="js/jquery.dimensions.js"></script>
     <script type="text/javascript" src="js/jquery.accordion.js"></script>
 
+    <script type="text/javascript">
+    
+    $(window).resize(function() {
+      console.log('resize' + $(window).width());
+      //$('#back').attr('width',$(window).width());
+      $('#back').attr('height',$(window).height());      
+    });
+    $(document).resize(function() {
+      console.log('resize' + $(window).width());
+      //$('#back').attr('width',$(window).width());
+      $('#back').attr('height',$(window).height());      
+    });
+    $(document).ready(function() {
+       console.log('ready' + $(window).width());
+      //$('#back').attr('width',$(window).width());
+      $('#back').attr('height',$(window).height());      
+    });
+    </script>
   </head>
 
   <body style="margin: 0">
-    <div class="topbar">
+    <div id="topbar" class="topbar">
       <center>
         <table width="720" height="75" class="normal" cellpadding="0" cellspacing="0">
           <tr valign="bottom">
@@ -38,25 +56,16 @@
         </table>
       </center>
     </div>
-    <p>&nbsp;</p>
-
+    <img id="back" src="imgs/scraps-desk.jpg" style="z-index:-1; position:absolute; left:0px; top:1in; right:0px; bottom:0px;"/>
     <center>
-      <table width="500" cellpadding="0" cellspacing="0" border="0">
-
+      <table width="720" cellpadding="0" cellspacing="0" border="0">
 	<tr>
-	  <td class="prose">
-
-	  <p>
-	  <div class="topbartitle"><span style="font-size: 18px;">list<span style="font-size:18px;"><span style="color:#fca11f">.</span>it  <span style="font-size:14; font-weight:bold;">..
-	       before you forget it!</span></span></span>
-	  </div>
-	  <p>
-	  
-	  <p>
-	    <div class="prose" style="text-align:right;">an easy-to-use note taking tool for Firefox <p></div>
-	    <div class="prose">
-	      <p>Here are some of the things we're working on:</p>
-
+	  <td class="prose" style="width:720px;">
+	    <div id="main">
+	      <h2>...before you forget it!</h2>	   
+		<p>
+		       <div class="prose" style="text-align:right;">an easy-to-use note taking tool for Firefox <p></div>
+		       <p>Here are some of the things we're working on:</p>
 
 	      <script>
 		$(document).ready(function(){
@@ -66,8 +75,7 @@
                         active: ""
 		    });
 		});
-	      </script>
-	      
+	      </script>	      
 
 	      <div class="hmini">Features</div>
 
@@ -151,19 +159,16 @@
 		  <P>
 		  <center><a href="../jv3.xpi" ><span style="font-size:120%; font-weight:bold;">install List.it!</span></a> (Requires Firefox 3.0+)</center>
 		  <P>
-		 </div>
+
 	      </li>
 	      <br> 
 	      </ul>
-
 	    </div>
-
-
+	    </center>
 	  </td>
-
 	</tr>
       </table>
     </center>
-
+    </div>
   </body>
 </html>
