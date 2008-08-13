@@ -7,8 +7,8 @@ body {
 }
 
 p { margin-top: 20px; }
-
-h2 { font-size: 16pt; font-weight: bold; color: white; margin: 0pt;} 
+h2 { font-size: 16pt; font-weight: bold; color: white; margin: 0pt;}
+h2 { font-size: 14pt; font-weight: bold; color: white; margin: 0pt;} 
 
 #main {
   padding:20px;
@@ -57,15 +57,16 @@ img.logo { width: 40px; height: 40px; margin: 0 4px 10px 0;}
 
 .terms {
     font-size:70%;
-border-style:solid; border-color:white;
+    border-style:solid; border-color:white;
 }
 
 .screenshot { float:right ; margin-left:10px; }
 
-#register { border-style: solid; border-width: 1px; border-color:#505050; }
+.downloadboxes { border-style: solid; border-width: 1px; border-color:#505050; padding:15px;}
+
 .useremail { display:inline-block; width:200px; margin-right: 20px; text-align:right; }
 
 #submit { opacity:.5; }
 
-#msg { text-align: center; }
+#msg { text-align: center; margin: 6px; }
 #downloadlink { text-align: center; }

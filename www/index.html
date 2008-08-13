@@ -34,9 +34,10 @@ var BASE_URL = "/listit/jv3";
 var setmsg = function(msg) {
     if (msg && msg.length > 0) {
         $("#msg").html(msg);
-	$("#msg").fadeIn("fast");				    
+	//$("#msg").fadeIn("fast");				    
     } else {
-	$("#msg").fadeOut("fast");
+       $("#msg").html("&nbsp;");
+	//$("#msg").fadeOut("fast");
     }
 };
 var setok = function(ok) {
@@ -178,11 +179,15 @@ $(document).ready(function() {
 	sendCreateRequest();
     });	
     $("#participate").click(function() {
+        var Hfudge = 5;
  	if ($("#participate")[0].checked)  {
-            $("#getit-description").animate({ height: $("#register").height() + $("#couhes").height() + $("#terms").height() }, "slow", "linear", function() { $("#couhes").fadeIn(); });
+            // then it's checked, we should expand
+            $("#register").animate({ height: $("#register").height() + $("#couhes").height() + Hfudge  }, "slow", "linear");
+            $("#getit-description").animate({ height: $("#getit-description").height() + $("#couhes").height() + Hfudge }, "slow", "linear", function() { $("#couhes").fadeIn(); });
 	} else {
             $("#couhes").fadeOut(function() {
-                $("#getit-description").animate({height: $("#register").height()  + $("#terms").height() });
+                $("#register").animate({ height: $("#register").height() - $("#couhes").height()  }, "slow", "linear");
+                $("#getit-description").animate({height: $("#getit-description").height()  - $("#couhes").height() + Hfudge });
             });
 	}
 
@@ -308,13 +313,12 @@ $(document).ready(function() {
 	      <li>
 	      <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Download now!</div>
 	      <div id="getit-description" class="feature-description">
-	    <div id="register">
-	       <h3>register for a list.it sync account</h3>
+	     <h3>register for a list.it sync account</h3>
+	    <div id="register" class="downloadboxes">
  	       <div><div class="useremail">your <b>email</b>:</div><input id="email" name="email"/></div>
 	       <div><div class="useremail">choose a <b>password</b>:</div><input id="pass1" type="password"></input></div>
  	       <div><div class="useremail">and your <b>password again</b>:</div><input id="pass2" type="password"></input></div>
 	       <div><div class="useremail">participate in our study?</div><input type="checkbox" id="participate"></input></div>
-	       <p/>
 	       <div id="couhes" style="display:none;">
 	         <p>Great! Please review <a href="couhes.html">the experiment terms</a> describing the data we are collecting and how it will be used
 		   in our study. Then please provide:</p>
@@ -325,14 +329,15 @@ $(document).ready(function() {
 	         <div><div class="useremail">date: </div><div id="consentdate" style="display:none;">)</div></div>
 	        </p>
 	        </div>
+                <div>
 	        <input id="submit" name="submit" type="button" style="hidden:true;" value="Register me"></input>
-	        <div id="msg" style="color:rgb(250,150,150);"/>
-       	    </div>
+		<div id="msg" style="color:rgb(250,150,150);">&nbsp;</div>
+		</div>
             </div>
+	     <h3>download list.it</h3>
+     	    <div class="downloadboxes">
               <div id="#terms">
-		 <p>
-		 This software is licensed under the MIT License.
- 		 </p>
+		 <p style="margin-top:0px;">This software is licensed under the MIT License.</p>
 		 <p>
 		  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS
 		  AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
@@ -354,6 +359,7 @@ $(document).ready(function() {
 	    	 <a href="../jv3.xpi" ><span style="font-size:120%; font-weight:bold; text-align:center;">install List.it!</span></a> (Requires Firefox 3.0+)
 		 </div>
    	     </div>
+	    </div>
 	   </div>
       </li> <!-- get it! -->
       </ul>	      
