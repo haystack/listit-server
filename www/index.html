@@ -11,14 +11,12 @@
     <script type="text/javascript" src="js/jquery.accordion.js"></script>
     <script type="text/javascript" src="js/plum-util-ns.js"></script> 
 
-    <script type="text/javascript">
-<![CDATA[    
+<script type="text/javascript">
 // for the background
-var resetbackground = function() {
-    $('#back').attr('width',$(window).width());
-  //$('#back').attr('height',$(window).height());      
-}
-
+    var resetbackground = function() {
+	$('#back').attr('width',$(window).width());
+	//$('#back').attr('height',$(window).height());      
+    }
 //$(window).resize(resetbackground);
 //$(document).resize(resetbackground);
 $(document).ready(resetbackground);
@@ -31,49 +29,49 @@ $(document).ready(function(){
     });	
 });
 
-    var BASE_URL = "/listit/jv3";
+var BASE_URL = "/listit/jv3";
 
-    var setmsg = function(msg) {
-	if (msg && msg.length > 0) {
-            $("#msg").html(msg);
-	    $("#msg").fadeIn("fast");				    
-	} else {
-	    $("#msg").fadeOut("fast");
-	}
-    };
-    var setok = function(ok) {
-	if (ok) {
-	    $("#submit").fadeIn("fast");
-	    $("#submit").show();
-	} else {
-	    $("#submit").fadeOut("fast");
-	}
-    };
+var setmsg = function(msg) {
+    if (msg && msg.length > 0) {
+        $("#msg").html(msg);
+	$("#msg").fadeIn("fast");				    
+    } else {
+	$("#msg").fadeOut("fast");
+    }
+};
+var setok = function(ok) {
+    if (ok) {
+	$("#submit").fadeIn("fast");
+	$("#submit").show();
+    } else {
+	$("#submit").fadeOut("fast");
+    }
+};
 
-    var validateEmail = function(cont) {
-	var emailval = $("#email").val();
-	emailval = plumutil.trim(emailval);
-	if (emailval.length == 0) {
-	    return cont(false, "Email must not be blank");
-	}
-	if (!plumutil.isValidEmail(emailval)) {
-	    return cont(false, "Not a valid e-mail address.");
-	} else {
-	    return jQuery.ajax({ type:"GET",
-			  url: BASE_URL + "/userexists?email="+encodeURIComponent(emailval),
-			  success: function(data,success, x) {
-			      //success means that there exists already such an email adddr
-			      cont(false,"Error. I already have an account for " + emailval + ".");				  
-			  },
-			  error: function(req,status) {
-			      if (req.status == 404){
-				  cont(true);
-			      } else {
-				  cont(false,"Uh oh the server seems to be down.");
-			      }
-			  }});
-	}
-    };
+var validateEmail = function(cont) {
+    var emailval = $("#email").val();
+    emailval = plumutil.trim(emailval);
+    if (emailval.length == 0) {
+	return cont(false, "Email must not be blank");
+    }
+    if (!plumutil.isValidEmail(emailval)) {
+	return cont(false, "Not a valid e-mail address.");
+    } else {
+	return jQuery.ajax({ type:"GET",
+			     url: BASE_URL + "/userexists?email="+encodeURIComponent(emailval),
+			     success: function(data,success, x) {
+				 //success means that there exists already such an email adddr
+				 cont(false,"Error. I already have an account for " + emailval + ".");				  
+			     },
+			     error: function(req,status) {
+				 if (req.status == 404){
+				     cont(true);
+				 } else {
+				     cont(false,"Uh oh the server seems to be down.");
+				 }
+			     }});
+    }
+};
 
 var validatePass = function(cont) {
     var p1 = $("#pass1").val();
@@ -99,11 +97,9 @@ var sendCreateRequest = function() {
     if (couhes) {
 	firstname = $("#firstname").val();
 	lastname = $("#lastname").val();
-    }
-    
+    }    
     setok(false);
     setmsg("Sending request...");
-
     var cont = function(success, info) {
 	if (success) {
 	    setmsg();
@@ -114,7 +110,7 @@ var sendCreateRequest = function() {
 	}
     };
     return jQuery.ajax({ type:"POST",
-			  url: BASE_URL + "/createuser/",
+			 url: BASE_URL + "/createuser/",
 			 data:({ username: emailval, password: p1, couhes:couhes, firstname: firstname, lastname: lastname }),
 			 success: function(data,success) {
 			     //success means that there exists already such an email adddr
@@ -127,87 +123,91 @@ var sendCreateRequest = function() {
     
 }
 
-    var validate = function() {
-	var cont = function(ok, msg) {
-	    if (ok) {
-		setok(true);
-		setmsg("");
-	    } else {
-		setok(false);
-		setmsg(msg);
-	    }
-	};
-	validateEmail(function(ok,msg) {
-	    if (!ok) { cont(ok,msg); }
-	    else {
-		validatePass(function(ok,msg) {
-		    if (!ok) { cont(ok,msg); }
-		    else {
-			if ($("#participate")[0].checked) {
-			    if (plumutil.trim($("#firstname").val()).length > 0 && plumutil.trim($("#lastname").val()).length > 0 ){
-				$("#consent").attr("disabled",false);
-				if ($("#consent")[0].checked) {
-				    cont(true);
-				} else {
-				    cont(false,"Please consent to participate in the study, or uncheck the Paricipate in Study check mark above.");
-				}
+var validate = function() {
+    var cont = function(ok, msg) {
+	if (ok) {
+	    setok(true);
+	    setmsg("");
+	} else {
+	    setok(false);
+	    setmsg(msg);
+	}
+    };
+    validateEmail(function(ok,msg) {
+	if (!ok) { cont(ok,msg); }
+	else {
+	    validatePass(function(ok,msg) {
+		if (!ok) { cont(ok,msg); }
+		else {
+		    if ($("#participate")[0].checked) {
+			if (plumutil.trim($("#firstname").val()).length > 0 && plumutil.trim($("#lastname").val()).length > 0 ){
+			    $("#consent").attr("disabled",false);
+			    if ($("#consent")[0].checked) {
+				cont(true);
 			    } else {
-				// names not blank
-				$("#consent").attr("disabled",true);
-				cont(false,"Please supply your first and last name and consent to participate in the study, or uncheck the Paricipate in Study check mark above.");
+				cont(false,"Please consent to participate in the study, or uncheck the Paricipate in Study check mark above.");
 			    }
 			} else {
-			    cont(true);
+			    // names not blank
+			    $("#consent").attr("disabled",true);
+			    cont(false,"Please supply your first and last name and consent to participate in the study, or uncheck the Paricipate in Study check mark above.");
 			}
-		    }});
-	    }			    
-	});
-    };
-    $(document).ready(function() {
-	setok(false);
-	setmsg("");
-	$("input:checked").attr("checked",false);
-	$("#consent").attr("disabled",true);
-
-        $("#email").keyup(function() {
-	    validate();
-	});
-	$("#pass1").keyup(function() {
-	    validate();
-	});
-	$("#pass2").keyup(function() {
-	    validate();
-	});
-	$("#submit").click(function() {
-	    sendCreateRequest();
-	});	
- 	$("#participate").click(function() {
-	    validate();
- 	    if ($("#participate")[0].checked)  {
-	     	$("#couhes").fadeIn();
-	    } else {
-	         $("#couhes").fadeOut();
-	    }
-	});
-	$("#firstname").keyup(function() {
-	   validate();	   
-	});
-	$("#lastname").keyup(function() {
-	   validate();	   
-	});
-	$("#consent").click(function() {
-	    validate();
-	    signeddate = new Date();
-	    if ($("#consent")[0].checked) {
-		$("#consentdate").html( "" + (new Date()) );
-		$("#consentdate").fadeIn();		
-	    } else {
-		$("#consentdate").fadeOut();
-	    }
-	});
+		    } else {
+			cont(true);
+		    }
+		}});
+	}			    
     });
-    </script>	
-  </head>
+};
+$(document).ready(function() {
+    setok(false);
+    setmsg("");
+    $("input:checked").attr("checked",false);
+    $("#consent").attr("disabled",true);
+
+    $("#email").keyup(function() {
+	validate();
+    });
+    $("#pass1").keyup(function() {
+	validate();
+    });
+    $("#pass2").keyup(function() {
+	validate();
+    });
+    $("#submit").click(function() {
+	sendCreateRequest();
+    });	
+    $("#participate").click(function() {
+ 	if ($("#participate")[0].checked)  {
+            $("#getit-description").animate({ height: $("#register").height() + $("#couhes").height() + $("#terms").height() }, "slow", "linear", function() { $("#couhes").fadeIn(); });
+	} else {
+            $("#couhes").fadeOut(function() {
+                $("#getit-description").animate({height: $("#register").height()  + $("#terms").height() });
+            });
+	}
+
+	validate();
+    });
+    $("#firstname").keyup(function() {
+	validate();	   
+    });
+    $("#lastname").keyup(function() {
+	validate();	   
+    });
+    $("#consent").click(function() {
+	validate();
+	signeddate = new Date();
+	if ($("#consent")[0].checked) {
+	    $("#consentdate").html( "" + (new Date()) );
+	    $("#consentdate").fadeIn();		
+	} else {
+	    $("#consentdate").fadeOut();
+	}
+    });
+});
+
+</script>	
+</head>
 
   <body style="margin: 0;">
     <div id="topbar" class="topbar">
@@ -308,35 +308,32 @@ var sendCreateRequest = function() {
 	      <li>
 	      <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Download now!</div>
 	      <div id="getit-description" class="feature-description">
-
-	      <div id="register">
+	    <div id="register">
+	       <h3>register for a list.it sync account</h3>
  	       <div><div class="useremail">your <b>email</b>:</div><input id="email" name="email"/></div>
-	       <div><div class="useremail">choose a <b>password</b>:</div><input id="pass1" type="password" style="width:100%"></input></div>
- 	       <div><div class="useremail">type your <b>password again</b>:</div><input id="pass2" type="password" style="width:100%"></input></div>
+	       <div><div class="useremail">choose a <b>password</b>:</div><input id="pass1" type="password"></input></div>
+ 	       <div><div class="useremail">and your <b>password again</b>:</div><input id="pass2" type="password"></input></div>
 	       <div><div class="useremail">participate in our study?</div><input type="checkbox" id="participate"></input></div>
+	       <p/>
 	       <div id="couhes" style="display:none;">
-	         <p>Thank you for your interest in helping us ith our research. Please review the documentbelow, which utlines what we are doing and
-  	        why, as well as important information regarding how the data we are collecting about	your note taking habits will be used and
-	        handled. <p>(You can return to the document later <a href="http://projects.csail.mit.edu/jourknow/jv3/deploy/couhes.html">here</a>)
-
-		<iframe style="width:100%;height:100px;border:1px;" src="http://projects.csail.mit.edu/jourknow/jv3/deploy/couhes.html"></iframe>
-	        <br>
-	        <p>If you agree to the terms of the document and wish to participate, please provide:</p>
-	        <div><div class="useremail"> your <b>first name</b>:</div><input type="text" id="firstname"></input></div>
-	        <div><div class="useremail"> your <b>last name</b>:</div><input type="text" id="lastname"></input></div>
-	        <div><div class="useremail"> I agree to the terms of the study</div> <input type="checkbox" id="consent" name="consent"/></div>
-	        <div><div class="useremail">date: </div><span id="consentdate" style="display:none;">)</span></div>
+	         <p>Great! Please review <a href="couhes.html">the experiment terms</a> describing the data we are collecting and how it will be used
+		   in our study. Then please provide:</p>
+  		 <!--<iframe style="width:100%;height:100px;border:1px;" src="http://projects.csail.mit.edu/jourknow/jv3/deploy/couhes.html"></iframe>-->
+		 <div><div class="useremail"> your <b>first name</b>:</div><input type="text" id="firstname"/></div>
+	         <div><div class="useremail"> your <b>last name</b>:</div><input type="text" id="lastname"/></div>
+	         <div><div class="useremail"> I read and understand<br> the terms of the study.</div> <input type="checkbox" id="consent" name="consent"/></div>
+	         <div><div class="useremail">date: </div><div id="consentdate" style="display:none;">)</div></div>
 	        </p>
-	      </div> <!-- couhes -->
-	      <input id="submit" name="submit" type="button" style="hidden:true;" value="Register me"></input>
-	      <div id="msg" style="color:rgb(250,150,150);">test<div/>
-	    </div> <!-- register -- >	    
-            <div class="terms">
-	         <p>
-	         Terms and conditions:
-		 </p><p>
+	        </div>
+	        <input id="submit" name="submit" type="button" style="hidden:true;" value="Register me"></input>
+	        <div id="msg" style="color:rgb(250,150,150);"/>
+       	    </div>
+            </div>
+              <div id="#terms">
+		 <p>
 		 This software is licensed under the MIT License.
- 		 </p><p>
+ 		 </p>
+		 <p>
 		  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS
 		  AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
 		  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -352,9 +349,12 @@ var sendCreateRequest = function() {
 		  CHOCOLATE TORTE (INCLUDING NEGLIGENCE OR OTHERWISE)
 		  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 		  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-		  </p>
-	    	    <a href="../jv3.xpi" ><span style="font-size:120%; font-weight:bold; text-align:center;">install List.it!</span></a> (Requires Firefox 3.0+)
-   	     </div>	     
+		 </p>
+		 <div id="downloadlink">
+	    	 <a href="../jv3.xpi" ><span style="font-size:120%; font-weight:bold; text-align:center;">install List.it!</span></a> (Requires Firefox 3.0+)
+		 </div>
+   	     </div>
+	   </div>
       </li> <!-- get it! -->
       </ul>	      
     </div> <!-- main panel --> 

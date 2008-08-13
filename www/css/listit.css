@@ -62,4 +62,10 @@ border-style:solid; border-color:white;
 
 .screenshot { float:right ; margin-left:10px; }
 
-#register { border-style: solid; border-width: 1px; border-color:#303030; }
+#register { border-style: solid; border-width: 1px; border-color:#505050; }
+.useremail { display:inline-block; width:200px; margin-right: 20px; text-align:right; }
+
+#submit { opacity:.5; }
+
+#msg { text-align: center; }
+#downloadlink { text-align: center; }
