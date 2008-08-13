@@ -1,14 +1,13 @@
 
 .feature-list  {
-	width: 500px;
-	font-family: verdana;
-	border: none;
-	list-style-type: none;
+   width: 320px;
+   font-family: verdana;
+   border: none;
+   list-style-type: none;
 }
 .feature-list div {
 	background-color: #252525;
 }
-
 .feature-list p {
 	margin-bottom : 10px;
 	border: none;

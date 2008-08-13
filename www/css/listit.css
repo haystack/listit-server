@@ -14,11 +14,10 @@ h2 { font-size: 14pt; font-weight: bold; color: white; margin: 0pt;}
   padding:20px;
   margin: 20px;
   background:url(../imgs/trans40.png);
-  width:600px;
   text-align:left;
 }
 
-input { width:200px; color:#3b3b3b; background:#ffffff; border-style: solid; border-width: 1px;; }
+
 
 
 .topbar { color: #dddddd; background-color: #252525; border-bottom: 1px solid #aaaaaa; padding-bottom: 5pt; width:100%;}
@@ -33,7 +32,7 @@ input { width:200px; color:#3b3b3b; background:#ffffff; border-style: solid; bor
          bottom:-0.1em; margin-left: 12px; font-variant: small-caps; }
 
 /* prose on the mainpage */
-.prose { width: 560px; margin-bottom:2em;}
+.prose { margin-bottom:2em;}
 .prose P { margin-top: 1em; margin-top: 0em;}
 
 /* sidebar   */
@@ -55,18 +54,15 @@ img.logo { width: 40px; height: 40px; margin: 0 4px 10px 0;}
 #nokcap { text-align:center; color:rgb(0,0,80); font-variant: small-caps;}
 #csailcap { text-align:center; color:rgb(0,0,0); font-variant: small-caps;}
 
-.terms {
-    font-size:70%;
-    border-style:solid; border-color:white;
-}
-
 .screenshot { float:right ; margin-left:10px; }
 
-.downloadboxes { border-style: solid; border-width: 1px; border-color:#505050; padding:15px;}
+.downloadboxes { border-style: solid; border-width: 1px; border-color:#505050; padding-top:15px; padding-bottom:15px; padding-left:4px; padding-right:4px;}
 
-.useremail { display:inline-block; width:200px; margin-right: 20px; text-align:right; }
+.useremail { font-size:90%; display:inline-block; width:120px; margin-right: 5px; text-align:right; margin-top:5px; margin-bottom:5px;}
+/*.useremail {  }*/
 
 #submit { opacity:.5; }
 
 #msg { text-align: center; margin: 6px; }
 #downloadlink { text-align: center; }
+input { width:140px; color:#3b3b3b; background:#ffffff; border-style: solid; border-width: 1px;; }

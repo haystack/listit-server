@@ -20,13 +20,14 @@
 //$(window).resize(resetbackground);
 //$(document).resize(resetbackground);
 $(document).ready(resetbackground);
+
 $(document).ready(function(){
     $(".feature-list").accordion({
 	header: "div.feature-title",
-	autoHeight:true,
+	autoheight:false,
 	alwaysOpen: false,
         active:	""
-    });	
+    });
 });
 
 var BASE_URL = "/listit/jv3";
@@ -163,9 +164,9 @@ var validate = function() {
 $(document).ready(function() {
     setok(false);
     setmsg("");
+    $("#couhes").hide();
     $("input:checked").attr("checked",false);
     $("#consent").attr("disabled",true);
-
     $("#email").keyup(function() {
 	validate();
     });
@@ -179,16 +180,24 @@ $(document).ready(function() {
 	sendCreateRequest();
     });	
     $("#participate").click(function() {
-        var Hfudge = 5;
+
+        var Hfudge = 20;
  	if ($("#participate")[0].checked)  {
+            $("#couhes").fadeIn();
+/*
             // then it's checked, we should expand
             $("#register").animate({ height: $("#register").height() + $("#couhes").height() + Hfudge  }, "slow", "linear");
-            $("#getit-description").animate({ height: $("#getit-description").height() + $("#couhes").height() + Hfudge }, "slow", "linear", function() { $("#couhes").fadeIn(); });
+            //$("#getit-description").animate({ height: $("#getit-description").height() + $("#couhes").height() + Hfudge }, "slow", "linear", function() { $("#couhes").fadeIn(); });
+            $("#getit-description").animate({ height: $("#register").height() + $("#couhes").height() + Hfudge }, "slow", "linear", function() { $("#couhes").fadeIn(); });
+*/
 	} else {
+	    $("#couhes").fadeOut();
+/*
             $("#couhes").fadeOut(function() {
                 $("#register").animate({ height: $("#register").height() - $("#couhes").height()  }, "slow", "linear");
-                $("#getit-description").animate({height: $("#getit-description").height()  - $("#couhes").height() + Hfudge });
-            });
+                ///$("#getit-description").animate({height: $("#getit-description").height()  - $("#couhes").height() + Hfudge });
+                $("#getit-description").animate({height: $("#register").height()  - $("#couhes").height() + Hfudge });
+            }); */
 	}
 
 	validate();
@@ -240,22 +249,20 @@ $(document).ready(function() {
     </div>
    <img id="back" src="imgs/postits-sm.jpg" style="z-index:-1; position:absolute; left:0px; top:1in; right:0px; bottom:0px;" alt="post-its"/>
     <center>
-    <table width="720" cellpadding="0" cellspacing="0" border="0">
-	<tr>
-	<td>
-	    <div id="main">
+    <table width="700px" cellpadding="5px" cellspacing="0" border="0" id="main">
+	<tr valign="top">
+	  <td colspan="2">
 	       <h2><span style="font-size: 24pt;">list</span><span style="font-size:16pt;"><span style="color:#fca11f">.</span>it</span>
 	         -- <span style="font-weight:normal">before you forget it!</span></h2>
 		 <p>
 	      <b>list<span style="color:#fca11f">.</span>it</b>, the <b>L</b>atitudinal <b>I</b>nformation <b>S</b>crap <b>T</b>rapper that <b>I</b>ndexes
 	      <b>T</b>hings - is a small, simple note-keeping tool for solving a big, complex task -- helping you manage all of the little
-	      bits of information you need to keep track of each day .</p>
-
-	      <p><b>list<span style="color:#fca11f">.</span>it</b> does this by focusing on <i>speed</i> and <i>simplicity</i>.  We have
+	      bits of information you need to keep track of each day. <b>list<span style="color:#fca11f">.</span>it</b> does this by focusing on  <i>speed</i> and <i>simplicity</i>.  We have
 	      gotten rid of everything except a way to get things in and out <i>quickly</i>, so that you can get things out of your head
 	      and somewhere you can access easily any time.</p>
-	      
-	      <p/>
+        </td></tr>
+	<tr valign="top">
+	  <td>	      
       	      <h2>news</h2>
                <ul class="feature-list">
 	       <li>
@@ -272,11 +279,13 @@ $(document).ready(function() {
 	      <ul id="features" class="feature-list">	      
 	      <li>
 		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Simple Browser-Sidebar interface</div>
-		  <div class="feature-description">
+		  <div class="feature-description" style="height:150px;">
 		  <div>
-  		  <img src="imgs/input.png" class="screenshot" alt="screen shot" width="100"/>
+		    <p>
+  		  <img src="imgs/input.png" class="screenshot" alt="screen shot" width="180"/>
 		    <b>list<span style="color:#fca11f">.</span>it</b> lives in your Firefox browser sidebar, which
 		    can be pulled up and pulled away using a customizable hot key.<!--    At the top is a search box and a note input box; under that are your notes. -->
+		    </p>
 		   </div>
 		  </div>
   	      </li>
@@ -284,17 +293,22 @@ $(document).ready(function() {
 	      <li>
 		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Quick input box</div>
 		  <div class="feature-description">
-		   <p>Sometimes you just need to write it down. Use the quick input box to get it in, and get on with the rest of your life.<Br>
-		   	       <img src="imgs/inputbox.png" alt="screen shot" width="400" style="margin:14px; "/>
- 	           </p> 
+		   <p>
+		    Sometimes you just need to write it down. Use the quick input box to get it in, and get on with the rest of your life.<Br>
+		   	       <img src="imgs/inputbox.png" alt="screen shot" width="300" style="margin:14px; "/>
+		    </p> 
 		  </div>
 		</li>
 
 	      <li>
 		 <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Automatic sync & backup</div>
-		 <div class="feature-description">If you register for our free sync service, your notes will be securely backed up
+		 <div class="feature-description">
+		 <p>
+		   If you register for our free sync service, your notes will be securely backed up
 		 so you don't have to worry about losing information. And, if you install list.it on multiple computers,
-		 your notes will be mirrored to all of them.  </div>
+		 your notes will be mirrored to all of them.
+		 </p>
+		 </div>
 	      </li>
 
 	      <li>
@@ -308,37 +322,58 @@ $(document).ready(function() {
 	      </li>	      	      
 	      </ul>
 	      <p/>
-     	      <h2>get.it!</h2>
-     	      <ul class="feature-list">
-	      <li>
-	      <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Download now!</div>
+        </td>
+	<td>
+     	      <h2>get it!</h2>
+	  
+	      <ul class="feature-list">
+  	      <li>
+	      <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>step 1: what you need</div>	       
 	      <div id="getit-description" class="feature-description">
-	     <h3>register for a list.it sync account</h3>
-	    <div id="register" class="downloadboxes">
+	      <p>
+		List.it	requires <a href="http://www.mozilla.com/en-US/firefox/">Firefox 3.0+.</a> and has
+		been tested under GNU/Linux, MacOS X and Windows.
+	      </p>
+	      </li>
+	      
+
+	      <li>
+	      <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>step 2: sign up for a list.it account</div>
+	      <div id="getit-description" class="feature-description">
+	      <div id="register" class="downloadboxes">
  	       <div><div class="useremail">your <b>email</b>:</div><input id="email" name="email"/></div>
 	       <div><div class="useremail">choose a <b>password</b>:</div><input id="pass1" type="password"></input></div>
- 	       <div><div class="useremail">and your <b>password again</b>:</div><input id="pass2" type="password"></input></div>
-	       <div><div class="useremail">participate in our study?</div><input type="checkbox" id="participate"></input></div>
-	       <div id="couhes" style="display:none;">
-	         <p>Great! Please review <a href="couhes.html">the experiment terms</a> describing the data we are collecting and how it will be used
+ 	       <div><div class="useremail"><b>password again</b>:</div><input id="pass2" type="password"></input></div>
+	       <div style="text-align:center;"> participate in our notes study? <input type="checkbox" id="participate"></input></div>
+	       <div id="couhes">
+
+		 <div style="padding:10px;">
+	         <p>Please review <a href="couhes.html">the experiment terms</a> describing the data we are collecting and how it will be used
 		   in our study. Then please provide:</p>
+		 </div>
   		 <!--<iframe style="width:100%;height:100px;border:1px;" src="http://projects.csail.mit.edu/jourknow/jv3/deploy/couhes.html"></iframe>-->
 		 <div><div class="useremail"> your <b>first name</b>:</div><input type="text" id="firstname"/></div>
 	         <div><div class="useremail"> your <b>last name</b>:</div><input type="text" id="lastname"/></div>
-	         <div><div class="useremail"> I read and understand<br> the terms of the study.</div> <input type="checkbox" id="consent" name="consent"/></div>
-	         <div><div class="useremail">date: </div><div id="consentdate" style="display:none;">)</div></div>
-	        </p>
-	        </div>
-                <div>
+	         <div style="padding:10px;">
+		   <p>I read and understand the terms of the study:<input type="checkbox" id="consent" name="consent"/></p>
+	           <p>date: </div><span id="consentdate" style="display:none;">)</span></p>
+		 </div>
+	       </div><!--couhes-->
+	       
+               <div style="text-align:center; padding-left:30px; padding-right:30px;">
 	        <input id="submit" name="submit" type="button" style="hidden:true;" value="Register me"></input>
 		<div id="msg" style="color:rgb(250,150,150);">&nbsp;</div>
-		</div>
-            </div>
-	     <h3>download list.it</h3>
-     	    <div class="downloadboxes">
-              <div id="#terms">
+	       </div>
+             </div>
+	     </div>
+	     </li>
+
+	     <li>
+             <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>step 3: download it!</div>
+	     <div class="feature-description">
+		<div class="terms">
 		 <p style="margin-top:0px;">This software is licensed under the MIT License.</p>
-		 <p>
+		 <p >
 		  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS
 		  AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
 		  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -355,14 +390,12 @@ $(document).ready(function() {
 		  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 		  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		 </p>
+		</div> <!--terms-->
 		 <div id="downloadlink">
 	    	 <a href="../jv3.xpi" ><span style="font-size:120%; font-weight:bold; text-align:center;">install List.it!</span></a> (Requires Firefox 3.0+)
-		 </div>
+  	      </div>
    	     </div>
-	    </div>
-	   </div>
-      </li> <!-- get it! -->
-      </ul>	      
+	     </li>
     </div> <!-- main panel --> 
  </td>
 </tr>
