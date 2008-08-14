@@ -39,92 +39,61 @@ class NoteCollection(Collection):
         print "request user is %s " % repr(request_user)
         qs_user = Note.objects.filter(owner=request_user).exclude(deleted=True)
         return self.responder.list(request, qs_user)
-    
-    def create(self,request):
-        """
-        Creates a Note with attributes given by POST, then  redirects to the resource URI.
 
-        Uses 'jid' field as (client side) primary key, so does not permit the creation
-        of a note with matching jid -- throwing an error 400 if this happens.        
-        """
-        # Create form filled with POST data
+    def create(self,request):
+        
+        # MERGED create and update method for server, so that we don't have to do a PUT
         ResourceForm = forms.form_for_model(self.queryset.model, form=self.form_class)
         data = self.receiver.get_post_data(request)
         form = ResourceForm(data)
 
-        request_user = basicauth_get_user(request);        
-        print "request user is  %s " % repr(request_user)
-        print "form data before %s " % repr(form.data);
+        # get user being authenticated
+        request_user = basicauth_get_user(request);
+        if request_user == None:  return self.responder.error(request, 405, "Incorrect user/password combination")
+
         form.data['owner'] = request_user;                 ## clobber this whole-sale from authenticating user
-        print "form data after %s " % repr(form.data);
-        
-        matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)
-        if len(matching_notes) > 0:
-            return self.responder.error(request, 400,
-                                        ErrorDict({"jid":"A note with jid %d already exists. Use Update/Delete (PUT, not POST)" % form.data["jid"]}));
-        
-        # If the data contains no errors, save the model,
-        if form.is_valid() :
-            new_model = form.save()
-            model_entry = self.entry_class(self, new_model)
-            response = model_entry.read(request)
-            response.status_code = 201
-            response['Location'] = model_entry.get_url()
-            return response
-
-        ## something didn't pass form validation
-        return self.responder.error(request, 400, form.errors);
-    
-    def update(self,request):
-        """
-        Commit changes to an existing note in the DB. it Must already exist in the
-        DB or we'll issue a 404. A commit is only permitted if the version being
-        committed has merged (on the client side) the latest version of the note
-        we're talking about.
-        Once the note's changes have been committed, increment the version #.
-        """
-        
-        ResourceForm = forms.form_for_model(Note, form=self.form_class)
-        data = self.receiver.get_put_data(request)
-        form = ResourceForm(data)
-
-        request_user = basicauth_get_user(request);        
-        form.data['owner'] = request_user;  ## clobber owner id whole-sale from authenticating user
-        
         matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)
         
         if len(matching_notes) == 0:
-            return self.responder.error(request,
-                                        404,
-                                        ErrorDict({"jid": "Note with jid %d not found"  % form.data["jid"]}));
+            ## CREATE a new note
+            # If the data contains no errors, save the model,
+            if form.is_valid() :
+                new_model = form.save()
+                model_entry = self.entry_class(self, new_model)
+                response = model_entry.read(request)
+                response.status_code = 201
+                response['Location'] = model_entry.get_url()
+                return response
+            ## something didn't pass form validation
+            return self.responder.error(request, 400, form.errors);
+        else:
+            ## UPDATE an existing note
+            ## check if the client version needs updating
+            if (matching_notes[0].version != form.data['version']):
+                errormsg = "Versions for jid %d not compatible (local:%d, received: %d). Do you need to update? "  % (form.data["jid"],matching_notes[0].version,form.data["version"])
+                return self.responder.error(request, 400, ErrorDict({"jid":errormsg}))
+            
+            # If the data contains no errors, migrate the changes over to
+            # the version of the note in the db, increment the version number
+            # and announce success
+            if form.is_valid() :
+                for key in Note.update_fields:
+                    matching_notes[0].__setattr__(key,form.data[key])
+                # increment version number
+                matching_notes[0].version = matching_notes[0].version + 1;
+                # save!
+                matching_notes[0].save()
+                response = self.read(request)
+                response.status_code = 200
+                response['Location'] = self.get_url()
+                # announce success
+                return response
+            # Otherwise return a 400 Bad Request error.
+            return self.responder.error(request, 400, form.errors);
+        pass
 
-        if (matching_notes[0].version != form.data['version']):
-            return self.responder.error(request,
-                                        400,
-                                        ErrorDict({"jid":"Versions for jid %d not compatible (local:%d, received: %d). Do you need to update? "  % (form.data["jid"],
-                                                                                                                                                    matching_notes[0].version,
-                                                                                                                                                    form.data["version"])}))        
-
-        # If the data contains no errors, migrate the changes over to
-        # the version of the note in the db, increment the version number
-        # and announce success
-        if form.is_valid() :
-            for key in Note.update_fields:
-                matching_notes[0].__setattr__(key,form.data[key])
-
-            #matching_notes[0]['deleted'] = form.data.get('deleted',False) 
-            # increment version number
-            matching_notes[0].version = matching_notes[0].version + 1;
-            # save!
-            matching_notes[0].save()
-            response = self.read(request)
-            response.status_code = 200
-            response['Location'] = self.get_url()
-            # announce success
-            return response
-        
-        # Otherwise return a 400 Bad Request error.
-        return self.responder.error(request, 400, form.errors);
+    def update(self,request):
+        assert False, "Internal error: You are using an outdated client."
 
     def delete(self, request):
         """
