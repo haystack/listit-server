@@ -7,22 +7,20 @@ from django.utils.translation.trans_null import _
 from django.core import serializers
 from django.core.mail import send_mail
 from django.conf import settings
-
-
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 import django.contrib.auth.models as authmodels
 from django_restapi.authentication import basicauth_get_user 
-from server.django_restapi.resource import Resource
-from server.django_restapi.model_resource import InvalidModelData
-from server.jv3.models import SPO
-from server.jv3.models import Note
-from server.jv3.models import ActivityLog, UserRegistration, CouhesConsent
+from django_restapi.resource import Resource
+from django_restapi.model_resource import InvalidModelData
+from jv3.models import Note
+from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest
 import time
 
 # Create your views here.
 class SPOCollection(Resource):
     def read(self, request):
-        spos = SPO.objects.all()
+        import jv3.models
+        spos = jv3.models.SPO.objects.all()
         context = {'spos':spos}
         return render_to_response('jv3/spos.html', context)
 
@@ -246,6 +244,52 @@ def confirmuser(request):
     response.status_code = 405;
     return response
 
+def changepassword_request(request): ## GET view, parameter username
+    username = request.GET['username'];
+    matching_users = authmodels.User.objects.filter(username=username)
+    if len(matching_users) == 0:
+        response = HttpResponse("Unknown user, did you register previously for List.it under a different email address?", "text/html");    
+        response.status_code = 404;
+        return response;    
+    req = ChangePasswordRequest(username)
+    req.save();
+    send_mail('Confirm List.it change password request', gen_confirm_change_password_email(req) , 'listit@csail.mit.edu', (matching_users[0].email,), fail_silently=False)
+    response = render_to_response('jv3/confirmuser.html', {'message': "I just sent email sent email to %s " % matching_users[0].email})
+    return response;
+
+def changepassword_confirm(request): ## GET view, parameter cookie
+    cookie = request.GET['cookie'];
+    matching_requests = ChangePasswordRequest.objects.filter(cookie=cookie)
+    if len(matching_requests) == 0:
+        response = HttpResponse("Sorry, I did not know about your request to change your password.","text/html")
+        response.status_code = 405;
+        return response;    
+    reqobject = matching_requests[0];
+    response = render_to_response('jv3/changepasswordform.html', {'cookie':cookie,'username':reqobject.username})
+    return response
+
+def changepassword(request): ## POST view, parameters cookie and password
+    cookie = request.POST['cookie'];
+    password = request.POST['password'];
+    assert cookie != None and len(password) > 0, "Cookie cannot be null"
+    assert password != None and len(password) > 0, "Password cannot be null"
+    matching_requests = ChangePasswordRequest.objects.filter(cookie=cookie)
+    if len(matching_requests) == 0:
+        response = HttpResponse("Sorry, I did not know about your request to change your password.","text/html")
+        response.status_code = 405;
+        return response;    
+    reqobject = matching_requests[0];
+    matching_user = authmodels.User.objects.filter(username=reqobject.username)
+    if len(matching_user) == 0:
+        response = HttpResponse("Sorry, I did not know about the user you are asking about.","text/html")
+        response.status_code = 404;
+        return response;    
+    matching_user[0].set_password(password)
+    matching_user[0].save()
+    reqobject.delete()
+    response = render_to_response('jv3/confirmuser.html', {'message': "Your password hs been updated successfully, %s." % matching_user[0].username})
+    return response;    
+
 ## utilities -- NOT views
 
 def nonblank(s):
@@ -268,6 +312,24 @@ def gen_confirm_newuser_email_body(userreg):
 
     the Listit Team at MIT CSAIL.
     """ % (userreg.email, url);
+
+## not a view
+def gen_confirm_change_password_email(userreg):
+    url = "%s/jv3/changepasswordconfirm?cookie=%s" % (settings.SERVER_URL,userreg.cookie)
+    return  """
+    Hello %s,
+
+    You or someone requested to have your list.it password changed.
+
+    If you are that person and wish to change your password, please click the link below.
+    
+    %s
+
+    Thanks,
+
+    the Listit Team at MIT CSAIL.
+    """ % (userreg.username,url);
+
 
 def gen_cookie(cookiesize=25):
     import random
@@ -344,4 +406,4 @@ class ActivityLogCollection(Collection):
         response.status_code = 200;
         return response
 
-        
+

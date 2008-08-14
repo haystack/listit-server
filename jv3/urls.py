@@ -3,8 +3,9 @@ import django.contrib.auth.views
 from django_restapi.model_resource import Collection, Entry
 from django_restapi.responder import *
 from django_restapi.receiver import *
-from server.jv3.models import SPO, SPOForm, Note, NoteForm, ActivityLog
-from server.jv3.views import SPOCollection, NoteCollection, ActivityLogCollection, userexists, createuser, confirmuser
+from jv3.models import SPO, SPOForm, Note, NoteForm, ActivityLog
+from jv3.views import SPOCollection, NoteCollection, ActivityLogCollection, userexists, createuser, confirmuser
+from jv3.views import changepassword, changepassword_request, changepassword_confirm
 from django_restapi.authentication import HttpBasicAuthentication, HttpDigestAuthentication, djangouser_auth
 
 class XMLReceiverSetOwner(XMLReceiver):
@@ -120,6 +121,12 @@ urlpatterns = patterns('server.jv3.views.',
     (r'^userexists$', userexists),
     (r'^createuser/$', createuser), ## POST
     (r'^confirmuser$', confirmuser),
+
+    
+    (r'^changepasswordrequest', changepassword_request), ## GET
+    (r'^changepasswordconfirm', changepassword_confirm), ## GET
+    (r'^changepassword/$', changepassword), ## POST
+                       
     #(r'^login$', 'django.contrib.auth.views.login', {'template_name': 'jv3/login.html', 'module_name':'jv3'}),
     #(r'^login$', login_view),                       
 )
