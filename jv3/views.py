@@ -14,7 +14,7 @@ from django_restapi.resource import Resource
 from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest
-from jv3.models import makeChangePasswordRequest
+from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent
 import time
 
 # Create your views here.
@@ -24,7 +24,6 @@ class SPOCollection(Resource):
         spos = jv3.models.SPO.objects.all()
         context = {'spos':spos}
         return render_to_response('jv3/spos.html', context)
-
 
 class NoteCollection(Collection):
 
@@ -39,6 +38,7 @@ class NoteCollection(Collection):
         request_user = basicauth_get_user(request);
         print "request user is %s " % repr(request_user)
         qs_user = Note.objects.filter(owner=request_user).exclude(deleted=True)
+        logevent(request,'Note.read',200)
         return self.responder.list(request, qs_user)
 
     def create(self,request):
@@ -64,8 +64,10 @@ class NoteCollection(Collection):
                 response = model_entry.read(request)
                 response.status_code = 201
                 response['Location'] = model_entry.get_url()
+                logevent(request,'Note.create',200,form.data['jid'])
                 return response
             ## something didn't pass form validation
+            logevent(request,'Note.create',400,form.errors)
             return self.responder.error(request, 400, form.errors);
         else:
             ## UPDATE an existing note
@@ -88,8 +90,10 @@ class NoteCollection(Collection):
                 response.status_code = 200
                 response['Location'] = self.get_url()
                 # announce success
+                logevent(request,'Note.update',200,form.data['jid'])
                 return response
             # Otherwise return a 400 Bad Request error.
+            logevent(request,'Note.create',400,form.errors)
             return self.responder.error(request, 400, form.errors);
         pass
 
@@ -158,6 +162,7 @@ def createuser(request):
     if len(authmodels.User.objects.filter(username=username)) > 0:
         response = HttpResponse("User exists", "text/html");
         response.status_code = 405;
+        logevent(request,'createuser',205,username)
         return response
     
     user = UserRegistration();
@@ -178,6 +183,7 @@ def createuser(request):
     send_mail('Did you register for Listit?', gen_confirm_newuser_email_body(user) , 'listit@csail.mit.edu', (user.email,), fail_silently=False)
     response = HttpResponse("User created successfully", "text/html");    
     response.status_code = 200;
+    logevent(request,'createuser',201,user)
     return response
 
 def confirmuser(request):
@@ -188,6 +194,7 @@ def confirmuser(request):
         newest_registration = get_most_recent(matching_registrations)
         ## check to see if already registered
         if len(authmodels.User.objects.filter(email=newest_registration.email)) > 0:
+            logevent(request,'confirmuser',201,user)
             return render_to_response('jv3/confirmuser.html', {"message":"I think already know you, %s.  You should have no trouble logging in.  Let us know if you have problems! " % newest_registration.email});
         user = authmodels.User();
         user.username = newest_registration.email;         ## intentionally a dupe, since we dont have a username
@@ -207,11 +214,13 @@ def confirmuser(request):
             cc.owner = user;
             cc.signed_date = newest_registration.when;
             cc.save()
-            
+
+        logevent(request,'confirmuser',200,user)
         return render_to_response('jv3/confirmuser.html', {'message': "Okay, thank you for confirming that you are a human, %s.  You can now synchronize with List.it. " % user.username});
     
     response = render_to_response('jv3/confirmuser.html', {'message': "Oops, could not figure out what you are talking about!"});
     response.status_code = 405;
+    logevent(request,'confirmuser',405,request)
     return response
 
 def changepassword_request(request): ## GET view, parameter username
@@ -220,10 +229,12 @@ def changepassword_request(request): ## GET view, parameter username
     if len(matching_users) == 0:
         response = HttpResponse("Unknown user, did you register previously for List.it under a different email address?", "text/html");    
         response.status_code = 404;
+        logevent(request,'changepassword_request',404,repr(request))
         return response;    
     req = makeChangePasswordRequest(username);
     send_mail('Confirm List.it change password request', gen_confirm_change_password_email(req) , 'listit@csail.mit.edu', (matching_users[0].email,), fail_silently=False)
     response = render_to_response('jv3/confirmuser.html', {'message': "I just sent email sent email to %s " % matching_users[0].email})
+    logevent(request,'changepassword_request',200,repr((username,req.cookie,)))
     return response;
 
 def changepassword_confirm(request): ## GET view, parameter cookie
@@ -232,9 +243,11 @@ def changepassword_confirm(request): ## GET view, parameter cookie
     if len(matching_requests) == 0:
         response = HttpResponse("Sorry, I did not know about your request to change your password.","text/html")
         response.status_code = 405;
+        logevent(request,'changepassword',404,repr(request))
         return response;    
     reqobject = matching_requests[0];
     response = render_to_response('jv3/changepasswordform.html', {'cookie':cookie,'username':reqobject.username})
+    logevent(request,'changepassword_confirm',200,reqobject.username)
     return response
 
 def changepassword(request): ## POST view, parameters cookie and password
@@ -246,73 +259,23 @@ def changepassword(request): ## POST view, parameters cookie and password
     if len(matching_requests) == 0:
         response = HttpResponse("Sorry, I did not know about your request to change your password.","text/html")
         response.status_code = 405;
+        logevent(request,'changepassword',405,repr(request))
         return response;
     reqobject = matching_requests[0];
     matching_user = authmodels.User.objects.filter(username=reqobject.username)
     if len(matching_user) == 0:
         response = HttpResponse("Sorry, I did not know about the user you are asking about: %s " % repr(reqobject.username),"text/html")
         response.status_code = 404;
+        logevent(request,'changepassword',404,repr(request))
         return response;    
     matching_user[0].set_password(password)
     matching_user[0].save()
     reqobject.delete()
     response = render_to_response('jv3/confirmuser.html', {'message': "Your password hs been updated successfully, %s." % matching_user[0].username})
+    logevent(request,'changepassword',200,repr(cookie))
     return response;    
 
 ## utilities -- NOT views
-
-def nonblank(s):
-    return (s != None) and (type(s) == str or type(s) == unicode) and len(s.strip()) > 0
-
-## not a view
-def gen_confirm_newuser_email_body(userreg):
-    url = "%s/jv3/confirmuser?cookie=%s" % (settings.SERVER_URL,userreg.cookie)
-    return  """
-    Hi!
-
-    You or someone tried to register for Listit (http://projects.csail.mit.edu/jourknow/listit)
-    using your the email address %s.
-
-    If you are that person, click here to get started!
-    
-    %s
-
-    Thanks,
-
-    the Listit Team at MIT CSAIL.
-    """ % (userreg.email, url);
-
-## not a view
-def gen_confirm_change_password_email(userreg):
-    url = "%s/jv3/changepasswordconfirm?cookie=%s" % (settings.SERVER_URL,userreg.cookie)
-    return  """
-    Hello %s,
-
-    You or someone requested to have your list.it password changed.
-
-    If you are that person and wish to change your password, please click the link below.
-    
-    %s
-
-    Thanks,
-
-    the Listit Team at MIT CSAIL.
-    """ % (userreg.username,url);
-
-
-def gen_cookie(cookiesize=25):
-    import random
-    randchar = lambda : chr(ord('a')+random.randint(0,25))
-    return ''.join([ randchar() for i in range(cookiesize) ])                
-             
-def get_most_recent(act):
-    if act == None or len(act) == 0:
-        return None
-    def comp(x,y):
-        if x.when >= y.when:
-            return x;
-        return y;
-    return reduce(comp,act);        
 
 class ActivityLogCollection(Collection):
 
@@ -329,7 +292,9 @@ class ActivityLogCollection(Collection):
             if most_recent_activity == None: most_recent_activity = 0;
             print "most_recent " + repr(most_recent_activity)
             if most_recent_activity:
+                logevent(request,'readActivityLog',200,repr(most_recent_activity.when))
                 return HttpResponse(JSONEncoder().encode({'value':int(most_recent_activity.when)}), self.responder.mimetype)
+            logevent(request,'readActivityLog',404)
             return self.responder.error(request, 404, ErrorDict({"value":"No activity found"}));
         else:
             ## retrieve the entire activity log            
@@ -341,7 +306,9 @@ class ActivityLogCollection(Collection):
         lets the user post new activity in a giant single array of activity log elements
         """
         request_user = basicauth_get_user(request);
-        if (not request_user): return self.responder.error(request, 405, ErrorDict({"user":"User username/password incorrect, or unknown user"}))
+        if (not request_user):
+            logevent(request,'commitActivityLog',405,repr(request))
+            return self.responder.error(request, 405, ErrorDict({"user":"User username/password incorrect, or unknown user"}))
         user_activity = ActivityLog.objects.filter(owner=request_user)
         committed = [];
 
@@ -373,6 +340,7 @@ class ActivityLogCollection(Collection):
 
         response = HttpResponse(JSONEncoder().encode({'committed':committed}), self.responder.mimetype)
         response.status_code = 200;
+        logevent(request,'commitActivityLog',200,repr(committed))
         return response
 
 

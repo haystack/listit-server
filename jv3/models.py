@@ -5,7 +5,6 @@ import django.contrib.admin.sites as sites
 from django.contrib import admin
 import time
 
-
 # Create your models here.
 class SPO(models.Model):
     owner = models.ForeignKey(authmodels.User,related_name='spo_owner',null=True)
@@ -95,25 +94,12 @@ try:
 except sites.AlreadyRegistered,r:
     pass
 
-def gen_cookie(cookiesize=25):
-    import random
-    randchar = lambda : chr(ord('a')+random.randint(0,25))
-    return ''.join([ randchar() for i in range(cookiesize) ])                
-
 class ChangePasswordRequest(models.Model):
     ## using decimal to make it easier to serialize to JSON than DateTime
     ## (and cant use Integer because it's too big!)
     when = models.DecimalField(max_digits=19,decimal_places=0)
     username = models.TextField()
     cookie = models.TextField()
-
-def makeChangePasswordRequest(username):
-    cpr = ChangePasswordRequest()
-    cpr.when = int(time.time()*1000);
-    cpr.username = username
-    cpr.cookie = gen_cookie()
-    cpr.save();
-    return cpr        
 
 try:
     admin.site.register(ChangePasswordRequest)
@@ -146,8 +132,9 @@ except sites.AlreadyRegistered,r:
 class ServerLog(models.Model):
     when = models.DecimalField(max_digits=19,decimal_places=0)
     user = models.ForeignKey(authmodels.User,null=True)
-    address = models.IPAddressField()
-    type = models.TextField()
+    host = models.TextField()
+    url = models.TextField()
+    action = models.TextField()
     request = models.TextField()
     info = models.TextField(null=True)
     # if the action is "user registration" then this is a pointer to that reg
@@ -155,12 +142,9 @@ class ServerLog(models.Model):
     # if the action is "change password requested" then this is a pointer to that reg
     changepasswordrequest = models.ForeignKey(ChangePasswordRequest,null=True)
 
-    def __init__(self,user,type,ip_address,request,info=None,changepasswdrequest=None,registration=None):
-        super(ChangePasswordRequest,self).__init__();
-        self.when = int(time.time()*1000);
-        self.user = user
-        self.ip_address = ip_address
-        self.info = info
-        self.request = request
-        self.changepasswordrequest = changepasswdrequest
-        self.registration = registration
+try:
+    admin.site.register(ServerLog)
+except sites.AlreadyRegistered,r:
+    pass
+ 
+  
