@@ -106,11 +106,19 @@ class ChangePasswordRequest(models.Model):
     when = models.DecimalField(max_digits=19,decimal_places=0)
     username = models.TextField()
     cookie = models.TextField()
-    def __init__(self,username):
-        super(ChangePasswordRequest,self).__init__();
-        self.when = int(time.time()*1000);
-        self.cookie=gen_cookie();
-        self.username = username;            
+
+def makeChangePasswordRequest(username):
+    cpr = ChangePasswordRequest()
+    cpr.when = int(time.time()*1000);
+    cpr.username = username
+    cpr.cookie = gen_cookie()
+    cpr.save();
+    return cpr        
+
+try:
+    admin.site.register(ChangePasswordRequest)
+except sites.AlreadyRegistered,r:
+    pass
 
 class CouhesConsent(models.Model):
     owner = models.ForeignKey(authmodels.User,null=True)

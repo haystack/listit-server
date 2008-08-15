@@ -14,6 +14,7 @@ from django_restapi.resource import Resource
 from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest
+from jv3.models import makeChangePasswordRequest
 import time
 
 # Create your views here.
@@ -220,8 +221,7 @@ def changepassword_request(request): ## GET view, parameter username
         response = HttpResponse("Unknown user, did you register previously for List.it under a different email address?", "text/html");    
         response.status_code = 404;
         return response;    
-    req = ChangePasswordRequest(username)
-    req.save();
+    req = makeChangePasswordRequest(username);
     send_mail('Confirm List.it change password request', gen_confirm_change_password_email(req) , 'listit@csail.mit.edu', (matching_users[0].email,), fail_silently=False)
     response = render_to_response('jv3/confirmuser.html', {'message': "I just sent email sent email to %s " % matching_users[0].email})
     return response;
@@ -246,11 +246,11 @@ def changepassword(request): ## POST view, parameters cookie and password
     if len(matching_requests) == 0:
         response = HttpResponse("Sorry, I did not know about your request to change your password.","text/html")
         response.status_code = 405;
-        return response;    
+        return response;
     reqobject = matching_requests[0];
     matching_user = authmodels.User.objects.filter(username=reqobject.username)
     if len(matching_user) == 0:
-        response = HttpResponse("Sorry, I did not know about the user you are asking about.","text/html")
+        response = HttpResponse("Sorry, I did not know about the user you are asking about: %s " % repr(reqobject.username),"text/html")
         response.status_code = 404;
         return response;    
     matching_user[0].set_password(password)
