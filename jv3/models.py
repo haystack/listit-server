@@ -124,6 +124,8 @@ class ActivityLog(models.Model):
     noteid = models.IntegerField(null=True)
     noteText = models.TextField(blank=True,null=True)
     search = models.TextField(null=True)
+    def __unicode__(self):
+        return unicode('%s @ %d [%s] %s %s' % (repr(self.owner.username),int(self.when),repr(self.noteid),self.action,self.search))
 
 try:
     admin.site.register(ActivityLog)
