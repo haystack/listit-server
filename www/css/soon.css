@@ -1,4 +1,9 @@
-
+.feature-list dl {
+   /*font-size:11pt;*/
+}
+.feature-list dt {
+   /*font-size:11pt;*/
+}
 .feature-list  {
    width: 320px;
    font-family: verdana;
@@ -13,9 +18,9 @@
 	border: none;
 	text-decoration: none;
 	font-weight: normal;
-	font-size: 12px;
+	/*font-size: 11pt;*/
 	margin: 0px;
-	padding: 10px;
+	padding-left: 10px; padding-right:10px; padding-top:5px; padding-bottom:5px;
 }
 .feature-list .feature-title {
 	cursor:pointer;
@@ -24,7 +29,8 @@
 	margin-top: 0;
 	text-decoration: none;
 	font-weight: normal;
-	font-size: 110%;
+	#font-size: 110%;
+	font-size:11pt;
 	background-color: #252525;
 	border-bottom: 1px solid #252525;
 	height: 18px;
@@ -59,7 +65,7 @@
 	border: none;
 	text-decoration: none;
 	font-weight: bold;
-	font-size: 9px;
+	font-size: 8pt;
 	margin: 0px;
 	padding: 10px;
 }
