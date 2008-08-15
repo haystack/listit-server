@@ -4,6 +4,14 @@
 .feature-list dt {
    /*font-size:11pt;*/
 }
+
+.faq-list  {
+   width: 320px;
+   font-family: verdana;
+   border: none;
+   list-style-type: none;
+}
+
 .feature-list  {
    width: 320px;
    font-family: verdana;
