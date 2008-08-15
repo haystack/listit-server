@@ -116,7 +116,7 @@ $(document).ready(function() {
         </table>
     </center>
     </div>
-   <img id="back" src="../../imgs/postits-sm.jpg" style="z-index:-1; position:absolute; left:0px; top:1in; right:0px; bottom:0px;" alt="post-its"/>
+   <img id="back" src="imgs/postits-sm.jpg" style="z-index:-1; position:absolute; left:0px; top:1in; right:0px; bottom:0px;" alt="post-its"/>
     <center>
     <table width="700px" cellpadding="5px" cellspacing="0" border="0" id="main">
 	<tr valign="top">
@@ -124,7 +124,48 @@ $(document).ready(function() {
 	  <h2>list.it frequently asked questions</h2>
 	  <ul id="faqs" class="faq-list">	      
 	      <li>
-		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>How do i use it?</div>
+		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>using it:</b> how do I get started? </div>
+		  <div class="faq-description">
+		    <P>
+		    We've designed <b>list<span style="color:#fca11f">.</span>it</b> to be simple to use.  First, follow the
+		    instructions on <a href="index.html">the main page</a> to install it.  Then, you can use list.it in two ways.
+		    </P>
+		    <P>
+		    <OL>
+		      <LI>
+		      <div>			
+			<p><b>Pulling up your list:</b> First, pull up  <b>list<span style="color:#fca11f">.</span>it</b> by selecting
+			the View -&gt; Sidebar menu in Firefox.</p>
+			<img src="...">
+			<p>This will pull up <b>list<span style="color:#fca11f">.</span>it</b> in your sidebar.  The
+			various parts are illustrated below:</p>
+			<img src="...">
+		      </div>
+		      </li>		      
+		      <LI>
+		      <P><B>Writing stuff down:</b> To create a new note, type it in the note box at the top and hit <shift><enter> or click Save: </p>
+		      <img src="...">
+		      </li>
+		      <li>
+		      <P><B>Writing stuff down (another way):</b>If you're in the middle of something and don't want to shift your attention to your sidebar,
+		      use the hot input box.  Press Cmd-Shift-I (on a Mac) Ctrl-Shift-I (on Windows) to summon the input box, type your thoughts and hit enter
+		      to send them safely to your list: </p>
+		      <img src="...">		      
+		      </li>
+		      <LI><B>Finding stuff:</b> To search your notes type in your search terms in the top.  The view will filter your notes to those
+		      that contain your search term.  To go back to your full list of notes, hit the x button or clear your terms.
+		      </li>
+		      <li><b>Changing stuff:</b>If you want to change the hotkeys or the way <b>list<span style="color:#fca11f">.</span>it</b> looks,
+		      see the "setting hotkeys", "setting background" and "synchronizing it" sections.
+		    </ol>
+		    </p>
+		    <p>
+  		      <img src="imgs/input.png" alt="screen shot" width="250"/>
+		    </p>
+		  </div>
+  	      </li>
+	      <li>
+		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>keeping it safe</b>: setting up synchronization/backup </div>
 		  <div class="faq-description">
 		    <P>
 		    <b>list<span style="color:#fca11f">.</span>it</b> lives in your Firefox browser sidebar, which
@@ -135,8 +176,20 @@ $(document).ready(function() {
 		    </p>
 		  </div>
   	      </li>
-     	      <li>
-		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Can i install it on multiple computers (and synchronize my notes)?</div>
+
+	      <li>
+	      <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>changing it:</b> remapping the hotkeys</div>
+		  <div class="faq-description">
+		    <P>
+		    <b>list<span style="color:#fca11f">.</span>it</b> lives in your Firefox browser sidebar, which
+		    can be pulled up and pulled away using a customizable hot key.<!--    At the top is a search box and a note input box; under that are your notes. -->
+		    </p>
+		    <p>
+  		      <img src="imgs/input.png" alt="screen shot" width="250"/>
+		    </p>
+		  </div>
+  	      </li>
+	      <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>making it pretty</b>: changing the default background </div>
 		  <div class="faq-description">
 		    <P>
 		    <b>list<span style="color:#fca11f">.</span>it</b> lives in your Firefox browser sidebar, which
@@ -148,7 +201,7 @@ $(document).ready(function() {
 		  </div>
   	      </li>
 	      <li>
-		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>It doesn't work! (or something weird happened...)</div>
+		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>fixing it</b>: It's broken! (or something weird happened...)</div>
 		  <div class="faq-description">
 		    <P>
 		    <b>list<span style="color:#fca11f">.</span>it</b> lives in your Firefox browser sidebar, which
@@ -160,7 +213,7 @@ $(document).ready(function() {
 		  </div>
   	      </li>
 	      <li>
-		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Do you have a mobile phone version?</div>
+		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>hacking it</B>: Where's the source?</div>
 		  <div class="faq-description">
 		    <P>
 		    <b>list<span style="color:#fca11f">.</span>it</b> lives in your Firefox browser sidebar, which
@@ -170,7 +223,13 @@ $(document).ready(function() {
   		      <img src="imgs/input.png" alt="screen shot" width="250"/>
 		    </p>
 		  </div>
-	      
+	</li>
+	<li>
+		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>it's not here! </B>unanswered questions, stuff you'd like list.it to do </div>
+		  <div class="faq-description">
+
+		  </div>
+	</li>	      
 	  </ul>
         </td></tr>
       </table>

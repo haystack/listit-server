@@ -85,7 +85,7 @@ def json_by_obj(request, obj):
 fullnotes_json_resource = NoteCollection(
     queryset = Note.objects.all(), 
     permitted_methods = ('GET', 'POST', 'PUT', 'DELETE'),
-    expose_fields = ['owner','jid','version','modified','created','contents'],
+    expose_fields = ['owner','jid','version','created','contents','edited'],
     authentication = HttpBasicAuthentication(), #HttpDigestAuthentication(djangouser_auth),
     form_class=NoteForm,
     receiver = JSONReceiver(),

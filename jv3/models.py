@@ -53,6 +53,7 @@ except sites.AlreadyRegistered,r:
 
 class Note(models.Model):
     created = models.DecimalField(max_digits=19,decimal_places=0)
+    edited = models.DecimalField(max_digits=19,decimal_places=0)
     owner = models.ForeignKey(authmodels.User,related_name='note_owner',null=True)
     jid = models.IntegerField(default=0)
     version = models.IntegerField(default=0)
@@ -60,7 +61,7 @@ class Note(models.Model):
     ## we use a nullboolean field because that simplifies validation -- 
     deleted = models.NullBooleanField()
     ## what is this for?
-    update_fields = ['contents','created','deleted'] 
+    update_fields = ['contents','created','deleted','edited'] 
 
 class NoteForm(forms.Form):
     created = forms.DecimalField()
