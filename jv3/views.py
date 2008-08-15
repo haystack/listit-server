@@ -14,7 +14,7 @@ from django_restapi.resource import Resource
 from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest
-from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent
+from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal
 import time
 
 # Create your views here.
@@ -166,7 +166,7 @@ def createuser(request):
         return response
     
     user = UserRegistration();
-    user.when = int(time.time()*1000);
+    user.when = current_time_decimal();
     user.email = username;
     user.password = passwd;
 
@@ -330,12 +330,13 @@ class ActivityLogCollection(Collection):
                     entry.owner = request_user;
                     entry.when = item['id'];
                     entry.action = item['type'];
-                    entry.noteid = item.get("obj",None);
-                    entry.noteText = item.get("objText",None);
+                    entry.noteid = item.get("noteid",None);
+                    entry.noteText = item.get("noteText",None);
+                    entry.search = item.get("search",None);
                     entry.save();
                     committed.append(item['id']);
                 except StandardError, error:
-                    print "Error with entry " % repr(entry)
+                    print "Error with entry %s " % repr(entry)
             pass
 
         response = HttpResponse(JSONEncoder().encode({'committed':committed}), self.responder.mimetype)
@@ -344,3 +345,19 @@ class ActivityLogCollection(Collection):
         return response
 
 
+def submit_bug_report(request):
+    username = request.POST['username']
+    description = request.POST['description']
+    if len(username.strip()) > 0 and len(description.strip()) > 0:
+        report = BugReport()
+        report.when = current_time_decimal();
+        report.username = username
+        report.description = description
+        report.save()
+        return HttpResponse('Thank you for your report.', 'text/html');
+    response = HttpResponse('Please provide your username and a description', 'text/html');
+    response.status_code = 400
+    return response
+    
+    
+    

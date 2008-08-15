@@ -65,6 +65,7 @@ class Note(models.Model):
 
 class NoteForm(forms.Form):
     created = forms.DecimalField()
+    edited = forms.DecimalField()
     contents = forms.CharField()
     owner = FixedModelChoiceField( queryset=authmodels.User.objects,  cache_choices=True  )
     jid = forms.IntegerField()
@@ -122,6 +123,7 @@ class ActivityLog(models.Model):
     action = models.TextField()
     noteid = models.IntegerField(null=True)
     noteText = models.TextField(blank=True,null=True)
+    search = models.TextField(null=True)
 
 try:
     admin.site.register(ActivityLog)
@@ -147,5 +149,8 @@ try:
     admin.site.register(ServerLog)
 except sites.AlreadyRegistered,r:
     pass
- 
-  
+   
+class BugReport(models.Model):
+    when = models.DecimalField(max_digits=19,decimal_places=0)
+    username = models.TextField()
+    description = models.TextField()

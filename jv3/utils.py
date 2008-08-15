@@ -17,6 +17,8 @@ from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePassw
 import time
 import random
 
+current_time_decimal = lambda : int(time.time()*1000);
+
 def logevent(request,action,result=None,info=None,changepasswordrequest=None,registration=None):
     event = ServerLog()
     event.action = action
