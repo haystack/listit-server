@@ -108,7 +108,7 @@ except sites.AlreadyRegistered,r:
 
 class CouhesConsent(models.Model):
     owner = models.ForeignKey(authmodels.User,null=True)
-    signed_date = models.IntegerField()
+    signed_date = models.DecimalField(max_digits=19,decimal_places=0)
 
 try:
     admin.site.register(CouhesConsent)

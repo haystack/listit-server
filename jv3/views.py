@@ -194,7 +194,7 @@ def confirmuser(request):
         newest_registration = get_most_recent(matching_registrations)
         ## check to see if already registered
         if len(authmodels.User.objects.filter(email=newest_registration.email)) > 0:
-            logevent(request,'confirmuser',201,user)
+            logevent(request,'confirmuser','alreadyregistered',cookie)
             return render_to_response('jv3/confirmuser.html', {"message":"I think already know you, %s.  You should have no trouble logging in.  Let us know if you have problems! " % newest_registration.email});
         user = authmodels.User();
         user.username = newest_registration.email;         ## intentionally a dupe, since we dont have a username
