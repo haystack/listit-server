@@ -1,0 +1,70 @@
+.faq-list dl {
+   /*font-size:11pt;*/
+}
+.faq-list dt {
+   /*font-size:11pt;*/
+}
+.faq-list  {
+   width: 600px;
+   border: none;
+   list-style-type: none;
+}
+.faq-list div {
+	background-color: #252525;
+}
+.faq-list p {
+	margin-bottom : 10px;
+	border: none;
+	text-decoration: none;
+	font-weight: normal;
+	/*font-size: 11pt;*/
+	margin: 0px;
+	padding-left: 10px; padding-right:10px; padding-top:5px; padding-bottom:5px;
+}
+.faq-list .faq-title {
+	cursor:pointer;
+	display:block;
+	padding:5px;
+	margin-top: 0;
+	text-decoration: none;
+	font-weight: normal;
+	#font-size: 110%;
+	font-size:11pt;
+	background-color: #252525;
+	border-bottom: 1px solid #252525;
+	height: 18px;
+	background-image: url("../imgs/AccordionTab0.png");
+}
+.faq-list .faq-title:hover {
+	background-color: #252525;
+	background-image: url("../imgs/AccordionTab2.png");
+}
+.faq-list .faq-title.selected {
+	color: #fca11f;
+	background-color: #252525;
+	background-image: url("../imgs/AccordionTab2.png");
+}
+.faq-description {
+    padding-left:20px;
+    padding-right:20px;
+    padding-top:5px;
+    padding-bottom:5px;    
+}
+
+.listdot {
+    height: 12px;
+    width: 12px;
+    margin-right: 4px;
+}
+
+.faq-list .terms p {
+    text-align:justify;
+    text-justify:inter-word;
+	margin-bottom : 10px;
+	border: none;
+	text-decoration: none;
+	font-weight: bold;
+	font-size: 8pt;
+	margin: 0px;
+	padding: 10px;
+}
