@@ -91,3 +91,6 @@ def get_most_recent(act):
             return x;
         return y;
     return reduce(comp,act);        
+
+def decimal_time_to_str(msecs):
+    return time.ctime(float(msecs)/1000.0)

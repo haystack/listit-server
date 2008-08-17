@@ -61,7 +61,13 @@ class Note(models.Model):
     ## we use a nullboolean field because that simplifies validation -- 
     deleted = models.NullBooleanField()
     ## what is this for?
-    update_fields = ['contents','created','deleted','edited'] 
+    update_fields = ['contents','created','deleted','edited']
+    def __unicode__(self):
+        import utils
+        return unicode('[%s-%d-v%d-%s] (%s/%s) %s' % (repr(self.owner.username), self.jid, self.version, repr(self.deleted), utils.decimal_time_to_str(self.created), utils.decimal_time_to_str(self.edited), self.contents[:30]))
+##    return unicode('[%s-%d] %s/%s v.%d d? %s %s' % (repr(self.owner.username), self.jid,utils.decimal_time_to_str(self.created), utils.decimal_time_to_str(self.edited), self.version, repr(self.deleted), repr(utils.contents)[:20]))
+#         except ValueError,e:
+#            print e
 
 class NoteForm(forms.Form):
     created = forms.DecimalField()
@@ -72,6 +78,8 @@ class NoteForm(forms.Form):
     version = forms.IntegerField()
     deleted = forms.NullBooleanField()
 
+
+    
 try:
     admin.site.register(Note)
 except sites.AlreadyRegistered,r:
@@ -90,6 +98,10 @@ class UserRegistration(models.Model):
     couhes = models.BooleanField()
     first_name = models.TextField(null=True)
     last_name = models.TextField(null=True)
+
+    def __unicode__(self):
+        import utils
+        return unicode('[%s] - %s - %s: %s %s' % (utils.decimal_time_to_str(self.when),username,repr(self.couhes),repr(self.first_name),repr(self.last_name)))
     
 try:
     admin.site.register(UserRegistration)
@@ -125,7 +137,8 @@ class ActivityLog(models.Model):
     noteText = models.TextField(blank=True,null=True)
     search = models.TextField(null=True)
     def __unicode__(self):
-        return unicode('%s @ %d [%s] %s %s' % (repr(self.owner.username),int(self.when),repr(self.noteid),self.action,self.search))
+        import utils
+        return unicode('[%s %s] - note:%s %s %s' % (repr(self.owner.username),utils.decimal_time_to_str(self.when),repr(self.noteid),self.action,self.search))
 
 try:
     admin.site.register(ActivityLog)
@@ -156,3 +169,10 @@ class BugReport(models.Model):
     when = models.DecimalField(max_digits=19,decimal_places=0)
     username = models.TextField()
     description = models.TextField()
+    def __unicode__(self):
+        import utils
+        return "[%s - %s]: %s" % (utils.decimal_time_to_str(self.when),self.username,self.description)
+try:
+    admin.site.register(BugReport)
+except sites.AlreadyRegistered,r:
+    pass

@@ -13,7 +13,7 @@ from django_restapi.authentication import basicauth_get_user
 from django_restapi.resource import Resource
 from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note
-from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest
+from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport
 from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal
 import time
 
