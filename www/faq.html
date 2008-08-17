@@ -25,8 +25,6 @@ $(document).ready(function(){
 
 
 var BASE_URL = "/listit/jv3";
-var COOKIE = "{{cookie}}";  // replaced via DJANGO template
-var USERNAME = "{{username}}";
 
 var resetbackground = function() {
     $('#back').attr('width',$(window).width());
@@ -38,56 +36,62 @@ $(document).ready(resetbackground);
 var setmsg = function(msg) {
     if (msg && msg.length > 0) {
         $("#msg").html(msg);
-	//$("#msg").fadeIn("fast");				    
     } else {
        $("#msg").html("&nbsp;");
-	//$("#msg").fadeOut("fast");
     }
 };
 var setok = function(ok) {
-    if (ok) {
-	$("#submit").fadeIn("fast");
-	$("#submit").show();
-    } else {
-	$("#submit").fadeOut("fast");
+    $("#bug_submit").attr("disabled",!ok);
+};
+var validate = function() {
+    console.log($("#bug_email").val());
+    console.log($("#bug_description").val());
+    if (plumutil.str_trim($("#bug_email").val()).length > 0 && plumutil.str_trim($("#bug_description").val()).length > 0) {
+	setok(true);
+	setmsg();
+    }	 else {
+	setok(false);
+	setmsg("please provide a message and your e-mail addr");
     }
 };
-/*    return jQuery.ajax({ type:"POST",
-			 url: BASE_URL + "/changepassword/",
-			 data:({ password: password, cookie: COOKIE}),
+$(document).ready(function() {
+    $("#bug_description").keyup(function() {
+	validate();
+    });
+    $("#bug_email").keyup(function() {
+	validate();
+    });
+    $("#bug_submit").click(function() {
+	sendBugReport();
+    });
+});
+
+var sendBugReport = function() {
+    var emailval = $("#bug_email").val();
+    var desc = $("#bug_description").val();
+    var cont = function(success, info) {
+	if (success) {
+	    $("#bug_description").attr("disabled",true);
+	    $("#bug_submit").attr("disabled",true);
+	    $("#bug_email").attr("disabled",true);
+	}
+	else {
+	    setmsg(info);
+	}
+    };
+    return jQuery.ajax({ type:"POST",
+			 url: BASE_URL + "/reportabug/",
+			 data:({ username: emailval, description: desc }),
 			 success: function(data,success) {
+			     //success means that there exists already such an email adddr
 			     cont(true);
 			 },
 			 error: function(data,status) {
 			     cont(false,data.responseText);
 			 }
 		       });
-*/
-var validate = function() {
-    validatePass(function(ok,msg) {
-    	if (!ok) {
-	    setok(false);
-	    setmsg(msg);
-	    return;
-	}
-	setok(true);
-	setmsg("");
-	return;
-    });
-};
-$(document).ready(function() {
-    setok(false);
-    setmsg("");
-    $("#pass1").keyup(function() {
-	validate();
-    });
-    $("#pass2").keyup(function() {
-	validate();
-    });
-    $("#submit").click(function() {
-	sendPasswordRequest();
-    });	
-});
+}
+
 
 </script>	
 </head>
@@ -133,34 +137,30 @@ $(document).ready(function() {
 		    <P>
 		    <OL>
 		      <LI>
-		      <div>			
 			<p><b>Pulling up your list:</b> First, pull up  <b>list<span style="color:#fca11f">.</span>it</b> by selecting
 			the View -&gt; Sidebar menu in Firefox.</p>
-			<img src="...">
 			<p>This will pull up <b>list<span style="color:#fca11f">.</span>it</b> in your sidebar.  The
 			various parts are illustrated below:</p>
-			<img src="...">
-		      </div>
+			<center><img src="imgs/faq-fullscreen.png" width="400"/></center>
 		      </li>		      
 		      <LI>
-		      <P><B>Writing stuff down:</b> To create a new note, type it in the note box at the top and hit <shift><enter> or click Save: </p>
-		      <img src="...">
+		      <P><B>Writing stuff down:</b> To create a new note, type it in the note box at the top and hit <shift><enter> or click Save. </p>
 		      </li>
 		      <li>
-		      <P><B>Writing stuff down (another way):</b>If you're in the middle of something and don't want to shift your attention to your sidebar,
-		      use the hot input box.  Press Cmd-Shift-I (on a Mac) Ctrl-Shift-I (on Windows) to summon the input box, type your thoughts and hit enter
+		      <p><B>Writing stuff down (another way):</b>If you're in the middle of something and don't want to shift your attention to your sidebar,
+		      use the hot input box.  Press Cmd-Shift-I (on a Mac) Ctrl-Shift-I (on Windows or Linux) to summon the input box, type your thoughts and hit enter
 		      to send them safely to your list: </p>
-		      <img src="...">		      
+		      
+		      <center><img src="imgs/faq-inputbox.png" width="400"/></center>
 		      </li>
 		      <LI><B>Finding stuff:</b> To search your notes type in your search terms in the top.  The view will filter your notes to those
-		      that contain your search term.  To go back to your full list of notes, hit the x button or clear your terms.
+		      that contain your search term.  To go back to your full list of notes, hit the x button in the search box or manually
+		      clear your terms.
+		      <center><img src="imgs/faq-search.png" width="300"/></center>
 		      </li>
-		      <li><b>Changing stuff:</b>If you want to change the hotkeys or the way <b>list<span style="color:#fca11f">.</span>it</b> looks,
-		      see the "setting hotkeys", "setting background" and "synchronizing it" sections.
+		      <li><b>Changing stuff:</b>If you want to change the hotkeys work, the font size, or the way <b>list<span style="color:#fca11f">.</span>it</b> looks,
+		      see the "change it: hotkeys", "change it: background" and "change it: font size" sections in the FAQ below.
 		    </ol>
-		    </p>
-		    <p>
-  		      <img src="imgs/input.png" alt="screen shot" width="250"/>
 		    </p>
 		  </div>
   	      </li>
@@ -168,68 +168,150 @@ $(document).ready(function() {
 		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>keeping it safe</b>: setting up synchronization/backup </div>
 		  <div class="faq-description">
 		    <P>
-		    <b>list<span style="color:#fca11f">.</span>it</b> lives in your Firefox browser sidebar, which
-		    can be pulled up and pulled away using a customizable hot key.<!--    At the top is a search box and a note input box; under that are your notes. -->
+		    list.it stores your list in a database inside your Firefox profile.  If you delete your firefox profile, then you will lose these notes -- you
+		    probably don't want this to happen.  We provide a free service to allow you to back up your notes on our servers ; your notes will be kept
+		    secure and backed up on a daily basis.  If something then happens to your profile, just re-install list.it, connect to our servers, and voila --
+		    you will get your notes back.
+		    </p>
+		    <p>If you have more than one computer that you use regularly (e.g., your work computer, your laptop, and your desktop at home), and want your
+		    notes available on all of them, this very same synchronization capability will keep all your notes identical by copying them to our server,
+		    and bringing down updates whenever you make them.
 		    </p>
 		    <p>
-  		      <img src="imgs/input.png" alt="screen shot" width="250"/>
+		    With respect to the security of your notes, we have tried to make every best practical precaution to keep bad guys (e.g., not you) from being able to
+		    see or mess with your notes.  However, we provide no warranty (bad guys are getting increasingly clever these days) -- so please do not use
+		    our servers to store matters of national, corporate, or extremely personal security if you plan to use our backup service.
+		    Just to remind you, our terms of service (which you must agree to to use list.it) relieve us of all liability for data that gets accidentally
+		    lost or stolen by bad guys -- so please please make efforts to keep backups of your data.  
 		    </p>
-		  </div>
-  	      </li>
-
+		    <p>
+		    With respect to data handling policies,  we use strong-grade SSL (AES-256) to encrypt all client server communications (HTTP traffic)
+		    and have signed our server with a certificate.  Firefox will warn you if someone is trying to spoof our serve; if you get one of these,
+		    <B>do not</B> connect to the server.
+		    </p>
+		    <p>
+		    <h3>setting it up</h3>
+		    <ol>
+		      <li>Make sure you're connected to the internet
+		      <li>Make sure you <a href="index.html">signed up</a> for a list.it account (step #2).
+		      <li>Pull up list.it in your sidebar and click "Options".
+		      <li>In the option window that comes up, click "Support synchronization".  Then, fill in your e-mail address and password that you signed up with.  Then, click "Accept".
+		      <li>list.it will imediately try to log into the server and fully synchronize your notes. If it wasn't able to talk to the server (e.g., if your email or password was wrong), it will ask you to try again.
+		    </ol>
+		    </p>
+		    <center>
+		    <img src="imgs/faq-sync.png" width="400"/>
+		    </center>
+		    </div>
+ 	      </li>
 	      <li>
 	      <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>changing it:</b> remapping the hotkeys</div>
 		  <div class="faq-description">
-		    <P>
-		    <b>list<span style="color:#fca11f">.</span>it</b> lives in your Firefox browser sidebar, which
-		    can be pulled up and pulled away using a customizable hot key.<!--    At the top is a search box and a note input box; under that are your notes. -->
-		    </p>
+		    
+		    <p>Being able to quickly find and input notes is a core design goal of list-it -- so to avoid
+		    making you have to remove your hands from the keyboard, list.it provides hotkeys for opening up the sidebar,
+		    the input box, and jump to search.</p>
+		    
+		    <p>Depending on what other Firefox extensions you have installed though, these hot keys might conflict
+		    with other extension hotkeys.  Or with system specific global hotkeys (such as locking your screensaver!).
+		    Therefore list.it lets you re-map its keys to others, and here's how:</p>
 		    <p>
-  		      <img src="imgs/input.png" alt="screen shot" width="250"/>
+		    <b>setting new hotkeys</b><br>
+		    <ol>
+		      <li>Bring up list.it in the firefox sidebar.
+		      <li>Click on Options
+		      <li>Click on the text area next to the hotkey you want to change, and press the new hot key you want assigned.
+		      <li>Hit accept.
+		      <li><b>Restart firefox</b> - your new key assignments will take effect when firefox restarts!
+		    </ol>
 		    </p>
+		    
+		    <center>
+		    <img src="imgs/faq-hotkey.png" width="400" style="margin-left:auto;margin-right:auto;"/>
+		    </center>
 		  </div>
   	      </li>
-	      <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>making it pretty</b>: changing the default background </div>
+	      <li>
+	      <div class="faq-title"><img class="listdot"
+	      src="imgs/orangedot.png" alt="dot"/><b>changing it:</b> setting the font size </div>
 		  <div class="faq-description">
 		    <P>
-		    <b>list<span style="color:#fca11f">.</span>it</b> lives in your Firefox browser sidebar, which
-		    can be pulled up and pulled away using a customizable hot key.<!--    At the top is a search box and a note input box; under that are your notes. -->
+		    Your <b>list<span style="color:#fca11f">.</span>it</b> is set to the default font and size of
+		    your firefox's preference pane.  If you want it bigger or smaller, go to your browser's preferences
+		    (Firefox menu -&gt; Preferences on the Mac; Tools -&gt;Options on Windows; Edit -&gt; Preferences on Linux),
+		    and set your desired font and size under Appearances.  On the mac it looks like this:
+		    </P>
+		    <center><img src="imgs/faq-fontsize.png" alt="screen shot" width="400"/></center>
+		  </div>
+  	      </li>
+
+	      <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>changing it</b>: setting up a custom background </div>
+		  <div class="faq-description">
+		    <p>
+		    Since personal information tools should be truly personal, list.it provides you a way to personalise
+		    its look.  You can set the background image list.it uses behind its glass skin to any image that you like.
+		    Here's how:
 		    </p>
 		    <p>
-  		      <img src="imgs/input.png" alt="screen shot" width="250"/>
+		    <b>Changing the background image:</b>
+		    <ol>
+		      <li>Open list.it in Firefox's sidebar
+		      <li>Click Options
+		      <li>Under "General", Background Image, click "Choose".
+		      <li>Select an image of your choice. It should be a <a href="http://en.wikipedia.org/wiki/Portable_Network_Graphics">png</a>, <a href="http://en.wikipedia.org/wiki/JPEG">jpeg</a> or gif.
+		      <li>If you want the image resized to take up the whole vertical space,, click on "Center background image".  Otherwise it will scroll and tile the image
+		    </ol>
 		    </p>
+		    <center><img src="imgs/faq-background.png" alt="screen shot" width="400"/></center>
 		  </div>
   	      </li>
 	      <li>
 		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>fixing it</b>: It's broken! (or something weird happened...)</div>
 		  <div class="faq-description">
-		    <P>
-		    <b>list<span style="color:#fca11f">.</span>it</b> lives in your Firefox browser sidebar, which
-		    can be pulled up and pulled away using a customizable hot key.<!--    At the top is a search box and a note input box; under that are your notes. -->
+		    <P>Uh oh. Sorry about that -- and good job finding our bug!  Please tell us about your problem.  You can also
+		    try following the below troubleshooting procedure if you\'d like.</P>
+		    
+		    <ul>
+		      <li>Send us email at listit at csail dot mit dot edu
+		      <li><b>OR</b> Fill out this form:
+		      <div style="padding:10px;">
+    			<textarea rows="5" id="bug_description" style="width:100%;">I was trying to list it when...</textarea><br>
+			your email: <input type="text" style="width:200px;" id="bug_email"></input> <input id="bug_submit" type="button" value="Send a bug report" disabled="true"></input>
+                        <div id="msg" style="#ff0000"/>
+		      </div>
+		    </ul>
 		    </p>
-		    <p>
-  		      <img src="imgs/input.png" alt="screen shot" width="250"/>
-		    </p>
+		    
+		    <P><b>troubleshooting procedure</b></p>
+		    <OL>
+		      <li>
+		      <p><b>Check that Javascript is enabled</b>: Open Options/Preferences (Firefox menu -&gt; Preferences on the Mac;
+		      Tools -&gt;Options on Windows; Edit -&gt; Preferences on Linux), select the <b>content</b> tab, and make sure
+		      Enabled Javascript is clicked.</p>
+		      <center><img src="imgs/faq-jsenabled.png" width="400"></center>
+		      </li>
+		      <li><b>Try opening and closing the sidebar</b> - If the error occurred once, try opening an closing the sidebar. Did it happen again?
+		      </li>
+		      <li><p><b>IF YOU ARE BRAVE ONLY</b>: follow these instructions to get details about why list.it was acting
+		      funny; if you send these to us, we will get back to you with how to fix it.</p>
+		      <p>
+		      <b>Enable javascript logging</b>: Type about:config in your Go: URL bar (tell it you will be careful)</p>
+		      <center><img src="imgs/faq-aboutconfig.png" width="200"/></center>
+		      <p>Set javascript showInConsole property to true</p>
+		      <center><img src="imgs/faq-showinconsole.png" width="400"/></center>		      
+		      <p>Then, open your error console (Tools->Error console) and look for error messages.</p>
+		      <center><img src="imgs/faq-errorconsole.png" width="400"/></center>
+		      <p>Click on any error messages that seem to be caused by list.it, hit Copy (Command+C on Mac, Ctrl+C on Windows and Linux) and paste it into the bug reporting dialog box below.  We will double plus love you!</p>
+		    </ol>
 		  </div>
   	      </li>
-	      <li>
-		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>hacking it</B>: Where's the source?</div>
+              <li>
+    <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>it's not here!</B> unanswered questions, complaints,
+suggestions, and stuff </div>
 		  <div class="faq-description">
-		    <P>
-		    <b>list<span style="color:#fca11f">.</span>it</b> lives in your Firefox browser sidebar, which
-		    can be pulled up and pulled away using a customizable hot key.<!--    At the top is a search box and a note input box; under that are your notes. -->
-		    </p>
-		    <p>
-  		      <img src="imgs/input.png" alt="screen shot" width="250"/>
-		    </p>
+                     <p> Please email us at <A href="mailto:listit@csail.mit.edu">listit at csail.mit.edu</a>.  We'd love to hear from you.</p>
 		  </div>
-	</li>
-	<li>
-		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>it's not here! </B>unanswered questions, stuff you'd like list.it to do </div>
-		  <div class="faq-description">
-
-		  </div>
-	</li>	      
+ 	     </li>	      
 	  </ul>
         </td></tr>
       </table>

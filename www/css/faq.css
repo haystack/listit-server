@@ -4,6 +4,12 @@
 .faq-list dt {
    /*font-size:11pt;*/
 }
+
+.faq-description img {
+    margin-left:0px;
+    padding-left:0px;
+}
+
 .faq-list  {
    width: 600px;
    border: none;
