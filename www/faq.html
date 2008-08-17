@@ -44,8 +44,6 @@ var setok = function(ok) {
     $("#bug_submit").attr("disabled",!ok);
 };
 var validate = function() {
-    console.log($("#bug_email").val());
-    console.log($("#bug_description").val());
     if (plumutil.str_trim($("#bug_email").val()).length > 0 && plumutil.str_trim($("#bug_description").val()).length > 0) {
 	setok(true);
 	setmsg();
