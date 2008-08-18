@@ -101,7 +101,7 @@ class UserRegistration(models.Model):
 
     def __unicode__(self):
         import utils
-        return unicode('[%s] - %s - %s: %s %s' % (utils.decimal_time_to_str(self.when),username,repr(self.couhes),repr(self.first_name),repr(self.last_name)))
+        return unicode('[%s] - %s - %s: %s %s' % (utils.decimal_time_to_str(self.when),self.username,repr(self.couhes),repr(self.first_name),repr(self.last_name)))
     
 try:
     admin.site.register(UserRegistration)
