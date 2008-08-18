@@ -63,6 +63,17 @@ $(document).ready(function() {
 	sendBugReport();
     });
 });
+$(document).ready(function() {
+		          $("#changepassword_email").keyup(function() {
+			      console.log('hai');
+			      $("#changepassword_button").attr("disabled",$("#changepassword_email").val().length == 0);
+			  });
+			   $("#changepassword_button").click(function() {
+			       var email = $("#changepassword_email").val();
+			       var url = BASE_URL + "/changepasswordrequest?username="+email;
+			       window.location = url;
+			   });
+		       });
 
 var sendBugReport = function() {
     var emailval = $("#bug_email").val();
@@ -203,6 +214,51 @@ var sendBugReport = function() {
 		    </div>
  	      </li>
 	      <li>
+		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>comparing it</b>: how does list.it compare with (stikkit/google notebook...) </div>
+		  <div class="faq-description">
+		    <P>You might be thinking -- <em>I already use (<a href="http://www.stikkit.com">Stikkit</a>,
+		    Google Reader, Yojimbo, <a href="http://www.evernote.com">Evernote</a>...)..
+		    why <u>another</u> note taking tool for the browser?</em></p>
+		    
+		    <p>We're glad you asked.  We built list.it for a couple of reasons:
+		    <ol>
+		    <li><i>List.it is open source</i> - Very few note taking tools are open source, making it difficult for
+		    developers outside the particular company to extend/modify/improve them.  We believe that community-developed
+		    software <i>leads to better software</i>, both in terms of quality and usability.
+		    <li><i>Back to basics</i> - Our studies suggested that people need very few, simple, solid features in note taking tools.
+		    So we wanted to start from scratch from the ground up.
+		    <li><i>A base platform for adding stuff</i> - We have a number of exciting extensions for list.it planned coming
+		    up soon!  There was no existing suitable note taking platform that would let us freely extend it to play with
+		    new interfaces in the way we needed.
+		    </ol>
+
+		    <p>So, we wrote a new one.   We want to know what you think.  In particular, if there was feature X in
+		    a particular note taking tool that you particularly love and miss in list.it, let us know?  Our goal,
+		    beyond making a cool tool is to do PIM research after all, and so we'd would love to hear about it.
+		    </div>
+ 	      </li>
+		      <li>
+		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>changing it</b>: I forgot my list.it password  </div>
+		  <div class="faq-description">
+		  <p>
+		       No worries. Do the following:
+		       <ol>
+		       <li> <div>
+                       Type the email address that you used to register for list.it and hit the "Let me change my password" button.:
+		       <script type="text/css">
+		       
+		       </script>
+		           <div>
+			       your e-mail:<input id="changepassword_email" type="text"
+			       style="width:200px;"></input>  <input id="changepassword_button" type="button" value="change my password:" disabled="true"></input>
+			  </div>
+	             </div>
+		     </li>
+		     <li>Check your email. You should have received an email from our server.  Click the link contained in the e-mail, and follow the instructions to set your new passowrd.
+		       </ol>		       
+		    </div>
+ 	      </li>
+	      <li>
 	      <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>changing it:</b> remapping the hotkeys</div>
 		  <div class="faq-description">
 		    
@@ -275,7 +331,7 @@ var sendBugReport = function() {
 		      <div style="padding:10px;">
     			<textarea rows="5" id="bug_description" style="width:100%;">I was trying to list it when...</textarea><br>
 			your email: <input type="text" style="width:200px;" id="bug_email"></input> <input id="bug_submit" type="button" value="Send a bug report" disabled="true"></input>
-                        <div id="msg" style="#ff0000"/>
+    <div id="msg" style="color:#ff0000"/>
 		      </div>
 		    </ul>
 		    </p>

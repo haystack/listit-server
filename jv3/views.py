@@ -233,7 +233,7 @@ def changepassword_request(request): ## GET view, parameter username
         return response;    
     req = makeChangePasswordRequest(username);
     send_mail('Confirm List.it change password request', gen_confirm_change_password_email(req) , 'listit@csail.mit.edu', (matching_users[0].email,), fail_silently=False)
-    response = render_to_response('jv3/confirmuser.html', {'message': "I just sent email sent email to %s " % matching_users[0].email})
+    response = render_to_response('jv3/changepassword_request.html', {'message': "(I just sent email to you at %s)" % matching_users[0].email})
     logevent(request,'changepassword_request',200,repr((username,req.cookie,)))
     return response;
 
