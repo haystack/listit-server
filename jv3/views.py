@@ -37,7 +37,8 @@ class NoteCollection(Collection):
         """
         request_user = basicauth_get_user(request);
         print "request user is %s " % repr(request_user)
-        qs_user = Note.objects.filter(owner=request_user).exclude(deleted=True)
+        #qs_user = Note.objects.filter(owner=request_user).exclude(deleted=True)
+        qs_user = Note.objects.filter(owner=request_user)  ## i realize this is controversial, but is necessary for sync to update !
         logevent(request,'Note.read',200)
         return self.responder.list(request, qs_user)
 
@@ -68,12 +69,15 @@ class NoteCollection(Collection):
                 return response
             ## something didn't pass form validation
             logevent(request,'Note.create',400,form.errors)
+            print "CREATE form errors %s " % repr(form.errors)
             return self.responder.error(request, 400, form.errors);
         else:
             ## UPDATE an existing note
             ## check if the client version needs updating
+
             if (matching_notes[0].version != form.data['version']):
                 errormsg = "Versions for jid %d not compatible (local:%d, received: %d). Do you need to update? "  % (form.data["jid"],matching_notes[0].version,form.data["version"])
+                print "NOT UPDATED error -- server: %d, YOU %d " % (matching_notes[0].version,form.data['version'])
                 return self.responder.error(request, 400, ErrorDict({"jid":errormsg}))
             
             # If the data contains no errors, migrate the changes over to
@@ -94,6 +98,7 @@ class NoteCollection(Collection):
                 return response
             # Otherwise return a 400 Bad Request error.
             logevent(request,'Note.create',400,form.errors)
+            print "UPDATE form errors %s " % repr(form.errors)
             return self.responder.error(request, 400, form.errors);
         pass
 
