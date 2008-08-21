@@ -91,7 +91,6 @@ var determineWhetherUserIsNewOrReturningBasedOnEmail = function(cont) {
 };
 
 var doLogin = function(username, password, cont) {
-    netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect UniversalBrowserRead");
     jQuery.ajax( {type:"GET",
        		  url:BASE_URL + "/notes/",
 		  beforeSend:function(username,password) {
