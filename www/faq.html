@@ -65,7 +65,6 @@ $(document).ready(function() {
 });
 $(document).ready(function() {
 		          $("#changepassword_email").keyup(function() {
-			      console.log('hai');
 			      $("#changepassword_button").attr("disabled",$("#changepassword_email").val().length == 0);
 			  });
 			   $("#changepassword_button").click(function() {
@@ -95,6 +94,7 @@ var sendBugReport = function() {
 			     //success means that there exists already such an email adddr
 			     cont(true);
 			 },
+			 cache:false,
 			 error: function(data,status) {
 			     cont(false,data.responseText);
 			 }

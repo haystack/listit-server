@@ -1,0 +1,518 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head><title>list.it - a place to stash your information</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta http-equiv="content-language" content="en" />
+    <link rel="stylesheet" type="text/css" href="css/listit.css" />
+    <!--<link rel="stylesheet" type="text/css" href="css/homepage.css" />-->
+    <link rel="stylesheet" type="text/css" href="css/soon.css" />
+
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/jquery.dimensions.js"></script>
+    <script type="text/javascript" src="js/jquery.accordion.js"></script>
+    <script type="text/javascript" src="js/plum-util-ns.js"></script> 
+
+<script type="text/javascript">
+// for the background
+    var resetbackground = function() {
+	$('#back').attr('width',$(window).width());
+	//$('#back').attr('height',$(window).height());      
+    }
+//$(window).resize(resetbackground);
+//$(document).resize(resetbackground);
+$(document).ready(resetbackground);
+
+$(document).ready(function(){
+    $(".feature-list").accordion({
+	header: "div.feature-title",
+	autoheight:false,
+	alwaysOpen: false,
+        active:	""
+    });
+});
+
+var BASE_URL = "/listit/jv3";
+
+var setmsg = function(msg) {
+    if (msg && msg.length > 0) {
+        $("#msg").html(msg);
+	//$("#msg").fadeIn("fast");				    
+    } else {
+       $("#msg").html("&nbsp;");
+	//$("#msg").fadeOut("fast");
+    }
+};
+var setok = function(ok) {
+    if (ok) {
+	$("#submit").fadeIn("fast");
+	$("#submit").show();
+    } else {
+	$("#submit").fadeOut("fast");
+    }
+};
+
+
+var getEmailVal = function() { return $("#email").val(); }
+var setReturningUser = function(isReturning, username) {
+   if (isReturning) {
+       $("#login").fadeIn("fast");
+       $("#login").show();
+       $("#register").fadeOut("fast");
+   } else {
+       $("#login").fadeOut("fast");
+       $("#register").fadeIn("fast");
+   }
+};
+var determineWhetherUserIsNewOrReturningBasedOnEmail = function(cont) {
+    var emailval = getEmailVal()
+    emailval = plumutil.trim(emailval);
+    if (emailval.length == 0) {
+	return cont(false, "Please type an e-mail address");
+    }
+    if (!plumutil.isValidEmail(emailval)) {
+	return cont(false, "That doesn't look like a valid e-mail address.");
+    } else {
+	return jQuery.ajax({ type:"GET",
+			     url: BASE_URL + "/userexists?email="+encodeURIComponent(emailval),
+			     success: function(data,success, x) {
+				 //success means that there exists already such an email adddr
+				 setReturningUser(true,emailval);
+				 cont(false,"I remember you. Please supply your password");
+			     },
+			     cache:false,
+			     error: function(req,status) {
+				 if (req.status == 404){
+				     setReturningUser(false);
+				     cont(true);
+				 } else {
+				     cont(false,"Uh oh the server seems to be down.");
+				 }
+			     }});
+    }
+};
+
+var doLogin = function(username, password, cont) {
+    netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect UniversalBrowserRead");
+    jQuery.ajax( {type:"GET",
+       		  url:BASE_URL + "/notes/",
+		  beforeSend:function(username,password) {
+		      return function(req) { 
+			  var header = plumutil.make_base_auth(username,password);
+			  //req.channel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
+			  req.setRequestHeader('Authorization','');
+			  req.setRequestHeader('Authorization',header);
+			  console.log("beforesend() " + username + " " + password + " " + header);
+		      };
+		  }(username,password),
+		  success: function(data,success, x) {
+		      cont(true);
+		  },
+		  cache:false,
+		  error: function(req,status) {
+		      if (req.status == 401){
+			  cont(false,"Username or password incorrect");
+		      } else {
+			  cont(false,"Uh oh the server seems to be down.");			  
+		      } 
+		  }});
+};
+var validateRegistrationPass = function(cont) {
+    var p1 = $("#pass1").val();
+    var p2 = $("#pass2").val();
+    p1 = plumutil.trim(p1);
+    p2 = plumutil.trim(p2);
+    if (p1.length > 3) {
+	if (p1 == p2) {
+	    return cont(true);
+	} else {
+	    return cont(false, "Your passwords don't seem to match. Try re-typing?");
+	}
+    }
+    cont(false, "Passwords must have more than 3 characters");    
+};
+
+var sendCreateRequest = function() {
+    var emailval = getEmailVal()
+    var p1 = $("#pass1").val();
+    var couhes  = $("#consent")[0].checked && $("#participate")[0].checked;
+    var firstname ="", lastname = "";
+    
+    if (couhes) {
+	firstname = $("#firstname").val();
+	lastname = $("#lastname").val();
+    }    
+    setok(false);
+    setmsg("Sending request...");
+    var cont = function(success, info) {
+	if (success) {
+	    setmsg();
+	    setmsg("Please check your email.<BR>I sent " + emailval + " download instructions. ");
+	} else {
+	    setmsg();
+	    setmsg(info);
+	}
+    };
+    return jQuery.ajax({ type:"POST",
+			 url: BASE_URL + "/createuser/",
+			 data:({ username: emailval, password: p1, couhes:couhes, firstname: firstname, lastname: lastname }),
+			 success: function(data,success) {
+			     //success means that there exists already such an email adddr
+			     cont(true);
+			 },
+			 cache:false,
+			 error: function(data,status) {
+			     cont(false,data.responseText);
+			 }
+		       });
+    
+}
+var validate = function() {
+    var cont = function(ok, msg) {
+	if (ok) {
+	    setok(true);
+	    setmsg("");
+	} else {
+	    setok(false);
+	    setmsg(msg);
+	}
+    };
+    determineWhetherUserIsNewOrReturningBasedOnEmail(function(doregister,msg) {
+	if (!doregister) { cont(doregister,msg); }
+	else {
+	    validateRegistrationPass(function(ok,msg) {
+		if (!ok) { cont(ok,msg); }
+		else {
+		    if ($("#participate")[0].checked) {
+			if (plumutil.trim($("#firstname").val()).length > 0 && plumutil.trim($("#lastname").val()).length > 0 ){
+			    $("#consent").attr("disabled",false);
+			    if ($("#consent")[0].checked) {
+				cont(true);
+			    } else {
+				cont(false,"Please consent to participate in the study, or uncheck the Paricipate in Study check mark above.");
+			    }
+			} else {
+			    // names not blank
+			    $("#consent").attr("disabled",true);
+			    cont(false,"Please supply your first and last name and consent to participate in the study, or uncheck the Paricipate in Study check mark above.");
+			}
+		    } else {
+			cont(true);
+		    }
+		}});
+	}			    
+    });
+};
+var enableDownload = function() {
+   $("#terms").fadeIn();
+}
+var ajax_requests = [];
+var login_success = false;
+
+$(document).ready(function() {
+    setok(false);
+    setmsg("");
+    $("#couhes").hide();
+    $("input:checked").attr("checked",false);
+    $("#consent").attr("disabled",true);
+    $("#email").keyup(function() {validate();   });
+    $("#email").blur(function() {validate();   });
+    var login_ = function() {
+	ajax_requests.push(1);
+	setmsg("Checking..");
+	console.log("submitting iwth " + getEmailVal() + "  \"" + $("#loginpassword").val()) + "\"";
+        doLogin(getEmailVal(),
+		$("#loginpassword").val(),
+		function(isLoggedIn,msg) {
+		    ajax_requests.pop();
+		    console.log("cont login? " + isLoggedIn + " " + ajax_requests.length);		    
+		    if(isLoggedIn) {
+			// login successful.
+			setmsg("Login success!");
+			login_success = true;
+			enableDownload();
+			$("#email").attr("disabled",true);
+			$("#loginpassword").attr("disabled",true);
+       			$("#submitlogin").fadeOut("fast");
+			$("#submitchangepassword").fadeOut("fast");
+		    } else {
+			if (ajax_requests.length == 0 && !login_success) {
+			    setmsg(msg);
+			}
+		    }
+		});
+    };
+    $("#loginpassword").keyup(login_);
+    $("#loginpassword").blur(login_);
+    $("#submitchangepassword").click(function() {
+	var email = getEmailVal();
+	var url = BASE_URL + "/changepasswordrequest?username="+email;
+	window.location = url;
+    });
+    $("#pass1").keyup(function() {
+	validate();
+    });
+    $("#pass2").keyup(function() {
+	validate();
+    });
+    $("#submit").click(function() {
+	sendCreateRequest();
+    });	
+    $("#participate").click(function() {
+        var Hfudge = 20;
+ 	if ($("#participate")[0].checked)  {
+            $("#couhes").fadeIn();
+	} else {
+	    $("#couhes").fadeOut();
+	}
+	validate();
+    });
+    $("#firstname").keyup(function() {
+	validate();	   
+    });
+    $("#lastname").keyup(function() {
+	validate();	   
+    });
+    $("#consent").click(function() {
+	validate();
+	signeddate = new Date();
+	if ($("#consent")[0].checked) {
+	    $("#consentdate").html( "" + (new Date()) );
+	    $("#consentdate").fadeIn();		
+	} else {
+	    $("#consentdate").fadeOut();
+	}
+    });
+});
+
+</script>	
+</head>
+
+  <body style="margin: 0;">
+    <div id="topbar" class="topbar">
+      <center>
+        <table width="720" class="normal" cellpadding="0" cellspacing="0">
+          <tr valign="bottom">
+
+            <td style="padding-top:0px; font-weight: bold; margin: 5px">
+	      <div class="topbartitle"><span style="font-size: 72px;">list<span style="font-size:36px;"><span style="color:#fca11f">.</span>it</span></span></div>
+            </td>
+
+	    <td align="right">
+	      <a target="_top" href="http://haystack.csail.mit.edu">Haystack Home</a>
+	      | list.it
+	      | <a target="_top" href="http://plum.csail.mit.edu/">jourknow</a> 
+	      | <a target="_top" href="http://plum.csail.mit.edu/">PLUM</a> 
+	      | <a target="_top" href="http://simile.mit.edu/exhibit/">Exhibit</a> 
+	      | <a target="_top" href="http://relo.csail.mit.edu/">Relo</a> 
+              | <a target="_top" href="http://groups.csail.mit.edu/haystack/">haystack</a> 
+
+            </td>
+          </tr>
+        </table>
+    </center>
+    </div>
+   <img id="back" src="imgs/postits-sm.jpg" style="z-index:-1; position:absolute; left:0px; top:1in; right:0px; bottom:0px;" alt="post-its"/>
+    <center>
+    <table width="700px" cellpadding="5px" cellspacing="0" border="0" id="main">
+	<tr valign="top">
+	  <td colspan="2">
+	       <h2><span style="font-size: 24pt;">list</span><span style="font-size:16pt;"><span style="color:#fca11f">.</span>it</span>
+	         -- <span style="font-weight:normal">before you forget it!</span></h2>
+		 <p>
+	      <b>list<span style="color:#fca11f">.</span>it</b>, the <b>L</b>atitudinal <b>I</b>nformation <b>S</b>crap <b>T</b>rapper that <b>I</b>ndexes
+	      <b>T</b>hings - is a small, simple note-keeping tool for solving a big, complex task -- helping you manage the tons of little information bits
+	      you need to keep track of each day. <b>list<span style="color:#fca11f">.</span>it</b> does this by focusing on  <i>speed</i> and <i>simplicity</i>.  We have
+	      gotten rid of everything except a way to get things in and out <i>quickly</i>, so that you can get things out of your head
+	      and somewhere you can access easily any time.</p>
+        </td></tr>
+	<tr valign="top">
+	  <td>	  
+	       <h2>about it</h2>
+	       
+               <ul class="feature-list">
+	       <li>
+	       <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>news</div>
+	       <div class="feature-description" >
+	       <p>
+		 <dl>
+		 <dt>aug.15 - list.it public alpha released</dt>
+		 <dd>
+	         We are happy to announce the availability of the first public alpha test of <b>list<span style="color:#fca11f">.</span>it</b>.  
+		 This version supports server synchronisation and a semitranslucent UI!
+		 <a target="_top" href="mailto:jourknow-dev@csail.mit.edu">Let us know</a> what you think.
+		 </dd>
+		 </dl>
+		 </p>
+	       </div>
+	       </li>
+	       <li>
+	       <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>frequently asked questions</div>
+	       <div class="feature-description">
+	       <p>Want to know  <a target="_top" href="faq.html#useit">how to use it</a> most effectively?
+	       Something  <a target="_top" href="faq.html#useit">not working</a> as you expected?  Forgot your list.it<a target="_top" href="faq.html#password"> account password</a>?
+	       </p><p><a target="_top" href="faq.html">Check our list.it FAQ</a> for more information.</p>
+	       </div>
+	       </li>
+	       <li>
+	       <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>about us</div>
+	       <div class="feature-description">
+	       <p>We are researchers at <a target="_top" href="http://www.csail.mit.edu">MIT CSAIL</a> working on 
+	       personal information management research.  The purpose of our group is to better
+	       understand how people create, manage and use information, in order to build more effective
+	       tools to serve their needs.  See our <a target="_top" href="http://groups.csail.mit.edu/haystack">research group</a> and
+	       <a target="_top" href="http://groups.csail.mit.edu/haystack/publications">publications page</a> for more information.</p>
+	       
+	       <p>list.it is a collaboration with the <a
+	       href="http://research.nokia.com/research/labs/nrc_cambridge_us_laboratory">
+	       Nokia Research Center Cambridge (NRCC)</a> which advises and supports its development; 
+	       the <a target="_top" href="http://www.iam.ecs.soton.ac.uk/">IAM Group at University of Southampton</a>, and the <a
+	       href="http://www.webscience.org">Web Science Research
+	       Initiative</a>.</p>
+
+	       <p>Student researchers: <a target="_top" href="http://people.csail.mit.edu/~emax">Max Van Kleek</a>,
+	            Greg Vargas, and <a target="_top" href="http://people.csail.mit.edu/~mbernst">Michael Bernstein</a>
+	       <p>Faculty advisors: <a target="_top" href="http://theory.csail.mit.edu/~karger">David Karger</a> and
+	       <a target="_top" href="http://users.ecs.soton.ac.uk/mc/">mc schraefel</a>
+	       <p>Nokia advisors: <a target="_top" href="http://research.nokia.com/people/jamey_hicks/index.html">Jamey Hicks</a>,
+	         <a target="_top" href="http://en.wikipedia.org/wiki/Ora_Lassila">Ora Lassila</a>
+	       
+	       </div>
+	       </li>
+	      </ul>
+	      <p/>
+	      <h2>what is it</h2>
+	      <ul id="features" class="feature-list">	      
+	      <li>
+		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Simple Browser-Sidebar interface</div>
+		  <div class="feature-description" style="height:280px;">
+		  <div>
+		    <P>
+		    <b>list<span style="color:#fca11f">.</span>it</b> lives in your Firefox browser sidebar, which
+		    can be pulled up and pulled away using a customizable hot key.<!--    At the top is a search box and a note input box; under that are your notes. -->
+		    </p>
+		    <p>
+  		      <img src="imgs/input.png" alt="screen shot" width="250"/>
+		    </p>
+		   </div>
+		  </div>
+  	      </li>
+
+	      <li>
+		  <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Quick input box</div>
+		  <div class="feature-description">
+		   <p>
+		    Sometimes you just need to write it down. Use the quick input box to get it in, and get on with the rest of your life.<Br>
+		    </p>
+		    <p>		    
+		    <img src="imgs/inputbox.png" alt="screen shot" width="250"/>
+		    </p> 
+		  </div>
+		</li>
+
+	      <li>
+		 <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Automatic sync & backup</div>
+		 <div class="feature-description">
+		 <p>
+		 If you register for our free sync service, your notes will be securely backed up
+		 so you don't have to worry about losing information. And, if you install list.it on multiple computers,
+		 your notes will be mirrored to all of them.
+		 </p>
+		 </div>
+	      </li>
+
+	      <li>
+		 <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>Contribute to science!</div>
+		 <div class="feature-description">
+		 <p>A primary reason for building list.it tool is as an instrument to study how people keep and use
+		 information, so that we can figure out ways to build better tools.</p>
+		 <p>When you sign up for list.it sync service, you can volunteer to donate your notes to science.
+		 We will in turn study them to figure out how you take notes and how to better improve List.it and other tools.
+  	      </div>
+	      </li>	      	      
+	      </ul>
+	      <p/>
+        </td>
+	<td>
+     	      <h2>get it!</h2>	  
+	      <ul class="feature-list">
+  	      <li>
+	      <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>step 1: check it: what you need</div>	       
+	      <div id="getit-description" class="feature-description">
+	      <p>
+		List.it	requires <a target="_top" href="http://www.mozilla.com/en-US/firefox/">Firefox 3.0+.</a> and has
+		been tested under GNU/Linux, MacOS X and Windows.
+	      </p>
+	      </div>
+	      </li>
+	      <li>
+	      <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>step 2: get it!</div>
+	      <div id="getit-description" class="feature-description">
+	       <P>
+	       To get.it, please supply an e-mail address that we can use to identify you. We will <b>not</b>
+	       spam you or disclose your address to anyone.
+	       </p>
+ 	       <div><div class="useremail">your <b>email</b>:</div><input id="email" name="email"/></div>
+
+	       <div id="login" style="display:none;">
+		    
+		        <div class="useremail">your <b>password</b>:</div><input id="loginpassword" type="password"></input>
+		    <p style="text-align:center"><a id="submitchangepassword" href="#" style="font-size:80%;">Reset my password.</a></p>
+	       </div>	       
+	       
+	       <div id="register" class="downloadboxes" style="display:none;">
+	         <div><div class="useremail">choose a <b>password</b>:</div><input id="pass1" type="password"></input></div>
+		 <div><div class="useremail"><b>password again</b>:</div><input id="pass2" type="password"></input></div>
+		 <div style="text-align:center;"> participate in our notes study? <input type="checkbox" id="participate"></input></div>
+		 <div id="couhes">
+		   <div style="padding:10px;">
+	             <p>Please review <a target="_top" href="couhes.html">the experiment terms</a> describing the data we are collecting and how it will be used in our study. Then please provide:</p>
+		   </div>
+  		 <!--<iframe style="width:100%;height:100px;border:1px;" src="http://projects.csail.mit.edu/jourknow/jv3/deploy/couhes.html"></iframe>-->
+		   <div><div class="useremail"> your <b>first name</b>:</div><input type="text" id="firstname"/></div>
+	           <div><div class="useremail"> your <b>last name</b>:</div><input type="text" id="lastname"/></div>
+	           <div style="padding:10px;">
+		      <p>I read and understand the terms of the study:<input type="checkbox" id="consent" name="consent"/></p>
+	              <p>date:<span id="consentdate" style="display:none;"></span></p>
+		    </div>
+	          </div><!--couhes-->
+                <div style="text-align:center; padding-left:30px; padding-right:30px;">
+       	        <input id="submit" name="submit" type="button" style="hidden:true;" value="Register me"></input>
+	        </div>
+	      </div><!--register-->
+	      
+              <div style="text-align:center; padding-left:30px; padding-right:30px;">
+		<div id="msg" style="color:rgb(250,150,150);">&nbsp;</div>		
+	      </div>
+		<div id="terms" class="terms" style="display:none;">
+		 <p style="margin-top:0px;">This software is licensed under the MIT License.</p>
+		 <p>
+		  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS
+		  AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+		  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+		  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+		  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+		  SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+		  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+		  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+		  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+		  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+		  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+		  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+		  CHOCOLATE TORTE (INCLUDING NEGLIGENCE OR OTHERWISE)
+		  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+		  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+		 </p>
+		 	 <div id="downloadlink">
+			 <a target="_top" href="releases/builds/listit.xpi" ><span style="font-size:120%; font-weight:bold; text-align:center;">install List.it!</span></a> (Requires Firefox 3.0+)
+  	      </div>	 
+		</div> <!--terms-->
+
+	      <p/>
+   	     </div>
+	     </li>
+    </div> <!-- main panel --> 
+ </td>
+</tr>
+      </table>
+      </center>
+  </body>
+</html>
