@@ -1,22 +1,34 @@
 <html>
-<head><title>list.it - new user account</title>
+<head><title>list.it - welcome!</title>
     <link rel="stylesheet" type="text/css" href="../../css/listit.css" />
     <link rel="stylesheet" type="text/css" href="../../css/soon.css" />
     <script type="text/javascript" src="../../js/jquery.js"></script>
     <script type="text/javascript" src="../../js/jquery.dimensions.js"></script>
     <script type="text/javascript" src="../../js/jquery.accordion.js"></script>
     <script type="text/javascript" src="../../js/plum-util-ns.js"></script> 
+
+<script type="text/javascript">
+var BASE_URL = "/listit/jv3";
+var COOKIE = "{{cookie}}";  // replaced via DJANGO template
+var USERNAME = "{{username}}";
+
+var resetbackground = function() {
+    $('#back').attr('width',$(window).width());
+}
+//$(window).resize(resetbackground);
+//$(document).resize(resetbackground);
+$(document).ready(resetbackground);
+</script>
 </head>
 
-<body>
-  <body style="margin: 0">
-    <div class="topbar">
+  <body style="margin: 0;">
+    <div id="topbar" class="topbar">
       <center>
-        <table width="720" height="75" class="normal" cellpadding="0" cellspacing="0">
+        <table width="720" class="normal" cellpadding="0" cellspacing="0">
           <tr valign="bottom">
 
             <td style="padding-top:0px; font-weight: bold; margin: 5px">
-	      <a href="../../index.html"><div class="topbartitle"><!--<img class="logo" src="imgs/orangedot.png"/>--><span style="font-size: 72px;">list<span style="font-size:36px;"><span style="color:#fca11f">.</span>it</span></span></div></a>
+	      <div class="topbartitle"><span style="font-size: 72px;">list<span style="font-size:36px;"><span style="color:#fca11f">.</span>it</span></span></div>
             </td>
 
 	    <td align="right">
@@ -31,20 +43,43 @@
             </td>
           </tr>
         </table>
-      </center>
+    </center>
     </div>
-    <p>&nbsp;</p>
-
+   <img id="back" src="../../imgs/postits-sm.jpg" style="z-index:-1; position:absolute; left:0px; top:1in; right:0px; bottom:0px;" alt="post-its"/>
     <center>
-      <table width="500" cellpadding="0" cellspacing="0" border="0">
-	<tr>
-	
-	  <td class="prose">
+    <table width="700px" cellpadding="5px" cellspacing="0" border="0" id="main">
+	<tr valign="top">
+	  <td colspan="2">
 	  
-	  <h2>You clicked on an email I sent you.  This is what happened:</h2>
+	  <h1>Welcome to list.it!</h1>
 	  
-	  <h3>{{ message }}</h3>
+	  <h3>The server said: {{ message }}</h3>
+
+	  <h3>Download it!</h3>
 	  
+	  <div id="terms" class="terms">
+		 <p style="margin-top:0px;">This software is licensed under the MIT License.</p>
+		 <p>
+		  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS
+		  AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+		  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+		  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+		  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+		  SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+		  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+		  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+		  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+		  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+		  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+		  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+		  CHOCOLATE TORTE (INCLUDING NEGLIGENCE OR OTHERWISE)
+		  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+		  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+		 </p>
+		 <div id="downloadlink">
+		 <a target="_top" href="../../releases/builds/listit.xpi" ><span style="font-size:120%; font-weight:bold; text-align:center;">install List.it!</span></a> (Requires Firefox 3.0+)
+  	         </div>	 
+	      </div> <!--terms-->	  
 	  </td>
 	</tr>
       </table>
