@@ -75,7 +75,7 @@ class NoteCollection(Collection):
             ## UPDATE an existing note
             ## check if the client version needs updating
 
-            if (matching_notes[0].version != form.data['version']):
+            if (matching_notes[0].version > form.data['version']):
                 errormsg = "Versions for jid %d not compatible (local:%d, received: %d). Do you need to update? "  % (form.data["jid"],matching_notes[0].version,form.data["version"])
                 print "NOT UPDATED error -- server: %d, YOU %d " % (matching_notes[0].version,form.data['version'])
                 return self.responder.error(request, 400, ErrorDict({"jid":errormsg}))
@@ -87,7 +87,7 @@ class NoteCollection(Collection):
                 for key in Note.update_fields:
                     matching_notes[0].__setattr__(key,form.data[key])
                 # increment version number
-                matching_notes[0].version = matching_notes[0].version + 1;
+                matching_notes[0].version = form.data['version'] + 1 ## matching_notes[0].version + 1;
                 # save!
                 matching_notes[0].save()
                 response = self.read(request)
