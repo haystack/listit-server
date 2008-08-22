@@ -99,7 +99,6 @@ var doLogin = function(username, password, cont) {
 			  //req.channel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
 			  req.setRequestHeader('Authorization','');
 			  req.setRequestHeader('Authorization',header);
-			  console.log("beforesend() " + username + " " + password + " " + header);
 		      };
 		  }(username,password),
 		  success: function(data,success, x) {
@@ -217,12 +216,10 @@ $(document).ready(function() {
     var login_ = function() {
 	ajax_requests.push(1);
 	setmsg("Checking..");
-	console.log("submitting iwth " + getEmailVal() + "  \"" + $("#loginpassword").val()) + "\"";
         doLogin(getEmailVal(),
 		$("#loginpassword").val(),
 		function(isLoggedIn,msg) {
 		    ajax_requests.pop();
-		    console.log("cont login? " + isLoggedIn + " " + ajax_requests.length);		    
 		    if(isLoggedIn) {
 			// login successful.
 			setmsg("Login success!");
