@@ -318,31 +318,32 @@ class ActivityLogCollection(Collection):
         committed = [];
 
         ## debug stuff
-        print "request user is  %s " % repr(request_user)
-        print "posted item is %s " % repr(request.POST);
-        print "posted raw_post_data is %s " % repr(request.raw_post_data);
+        #print "\n\n\n\n"
+        ##print "ACTLOG request user is  %s " % repr(request_user)
+        #print "ACTLOG posted items is %s %s " % (repr(type(request.POST)),repr(request.POST))
+        #print "ACTLOG posted raw_post_data is %s " % repr(request.raw_post_data)
 
-        # manually handle deserialization because 
-        for items in request.POST:            
-            # print "item is %s " % repr(items)
-            for item in JSONDecoder().decode(items): #serializers.deserialize('json',items):
-                #print "deseritem is %s " % repr(item)
-                try:
-                    if len(user_activity.filter(when=item['id'])) > 0:
-                        print "skipping committing duplicate entry %d " % item['id'];
-                        continue
-                    entry = ActivityLog();
-                    entry.owner = request_user;
-                    entry.when = item['id'];
-                    entry.action = item['type'];
-                    entry.noteid = item.get("noteid",None);
-                    entry.noteText = item.get("noteText",None);
-                    entry.search = item.get("search",None);
-                    entry.save();
-                    committed.append(item['id']);
-                except StandardError, error:
-                    print "Error with entry %s " % repr(entry)
-            pass
+        # manually handle deserialization because
+        #for items in request.POST
+        #print "ACTLOG items is [%d]:%s " % (len(items),repr(items))
+        for item in JSONDecoder().decode(request.raw_post_data): #serializers.deserialize('json',request.raw_post_data):
+            #print "item is %s " % repr(item)
+            try:
+                if len(user_activity.filter(when=item['id'])) > 0:
+                    print "skipping committing duplicate entry %d " % item['id'];
+                    continue
+                entry = ActivityLog();
+                entry.owner = request_user;
+                entry.when = item['id'];
+                entry.action = item['type'];
+                entry.noteid = item.get("noteid",None);
+                entry.noteText = item.get("noteText",None);
+                entry.search = item.get("search",None);
+                entry.save();
+                committed.append(item['id']);
+            except StandardError, error:
+                print "Error with entry %s " % repr(error)
+        pass
 
         response = HttpResponse(JSONEncoder().encode({'committed':committed}), self.responder.mimetype)
         response.status_code = 200;
