@@ -13,10 +13,9 @@ from django_restapi.resource import Resource
 from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport
-from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr
+from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username
 import time
 
-USERNAME_MAXCHARS = 30
 
 # Create your views here.
 class SPOCollection(Resource):
@@ -203,7 +202,7 @@ def confirmuser(request):
             logevent(request,'confirmuser','alreadyregistered',cookie)
             return render_to_response('jv3/confirmuser.html', {"message":"I think already know you, %s.  You should have no trouble logging in.  Let us know if you have problems! " % newest_registration.email});
         user = authmodels.User();
-        user.username = newest_registration.email[:USERNAME_MAXCHARS];  ## intentionally a dupe, since we dont have a username. WE MUST be sure not to overflow it (max_chat is default 30)
+        user.username = make_username(newest_registration.email);  ## intentionally a dupe, since we dont have a username. WE MUST be sure not to overflow it (max_chat is default 30)
         user.email = newest_registration.email;
         user.set_password(newest_registration.password);
         user.save();
@@ -222,7 +221,7 @@ def confirmuser(request):
             cc.save()
 
         logevent(request,'confirmuser',200,user)
-        return render_to_response('jv3/confirmuser.html', {'message': "Okay, thank you for confirming that you are a human, %s.  You can now synchronize with List.it. " % repr(user.email)});
+        return render_to_response('jv3/confirmuser.html', {'message': "Okay, thank you for confirming that you are a human, %s.  You can now synchronize with List.it. " % user.email});
     
     response = render_to_response('jv3/confirmuser.html', {'message': "Oops, could not figure out what you are talking about!"});
     response.status_code = 405;

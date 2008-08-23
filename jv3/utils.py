@@ -113,3 +113,14 @@ def basicauth_get_user_by_emailaddr(request):
     except User.DoesNotExist:
         pass
     return False
+
+
+
+USERNAME_MAXCHARS = 30
+
+def make_username(email):
+    proposed = email[:USERNAME_MAXCHARS]
+    while len(authmodels.User.objects.filter(username=proposed)) > 0:
+        proposed = email[:(USERNAME_MAXCHARS-10)]+gen_cookie(10)
+    return proposed
+    
