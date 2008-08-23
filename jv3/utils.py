@@ -94,3 +94,22 @@ def get_most_recent(act):
 
 def decimal_time_to_str(msecs):
     return time.ctime(float(msecs)/1000.0)
+
+def basicauth_get_user_by_emailaddr(request):
+    """
+    If we use this, then we do not have to rely on session authentication 
+    """
+    if not request.META.has_key('HTTP_AUTHORIZATION'): return False
+    (authmeth, auth) = request.META['HTTP_AUTHORIZATION'].split(' ', 1)
+    if authmeth.lower() != 'basic':
+        return False
+    auth = auth.strip().decode('base64')
+    emailaddr, password = auth.split(':', 1)
+    from django.contrib.auth.models import User
+    try:
+        user = User.objects.get(email=emailaddr)
+        if user.check_password(password):
+            return user;
+    except User.DoesNotExist:
+        pass
+    return False

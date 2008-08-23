@@ -9,13 +9,14 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 import django.contrib.auth.models as authmodels
-from django_restapi.authentication import basicauth_get_user 
 from django_restapi.resource import Resource
 from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport
-from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal
+from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr
 import time
+
+USERNAME_MAXCHARS = 30
 
 # Create your views here.
 class SPOCollection(Resource):
@@ -35,7 +36,7 @@ class NoteCollection(Collection):
         is assigned to this ModelResource instance. Usually called by a
         HTTP request to the factory URI with method GET.
         """
-        request_user = basicauth_get_user(request);
+        request_user = basicauth_get_user_by_emailaddr(request);
         print "request user is %s " % repr(request_user)
         #qs_user = Note.objects.filter(owner=request_user).exclude(deleted=True)
         qs_user = Note.objects.filter(owner=request_user)  ## i realize this is controversial, but is necessary for sync to update !
@@ -50,7 +51,7 @@ class NoteCollection(Collection):
         form = ResourceForm(data)
 
         # get user being authenticated
-        request_user = basicauth_get_user(request);
+        request_user = basicauth_get_user_by_emailaddr(request);
         if request_user == None:  return self.responder.error(request, 405, "Incorrect user/password combination")
 
         form.data['owner'] = request_user;                 ## clobber this whole-sale from authenticating user
@@ -116,7 +117,7 @@ class NoteCollection(Collection):
         ResourceForm = forms.form_for_model(Note, form=self.form_class)
         data = self.receiver.get_put_data(request)
         form = ResourceForm(data)
-        request_user = basicauth_get_user(request);
+        request_user = basicauth_get_user_by_emailaddr(request);
         matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)
         
         if len(matching_notes) == 0:
@@ -202,7 +203,7 @@ def confirmuser(request):
             logevent(request,'confirmuser','alreadyregistered',cookie)
             return render_to_response('jv3/confirmuser.html', {"message":"I think already know you, %s.  You should have no trouble logging in.  Let us know if you have problems! " % newest_registration.email});
         user = authmodels.User();
-        user.username = newest_registration.email;         ## intentionally a dupe, since we dont have a username
+        user.username = newest_registration.email[:USERNAME_MAXCHARS];  ## intentionally a dupe, since we dont have a username. WE MUST be sure not to overflow it (max_chat is default 30)
         user.email = newest_registration.email;
         user.set_password(newest_registration.password);
         user.save();
@@ -221,7 +222,7 @@ def confirmuser(request):
             cc.save()
 
         logevent(request,'confirmuser',200,user)
-        return render_to_response('jv3/confirmuser.html', {'message': "Okay, thank you for confirming that you are a human, %s.  You can now synchronize with List.it. " % user.username});
+        return render_to_response('jv3/confirmuser.html', {'message': "Okay, thank you for confirming that you are a human, %s.  You can now synchronize with List.it. " % repr(user.email)});
     
     response = render_to_response('jv3/confirmuser.html', {'message': "Oops, could not figure out what you are talking about!"});
     response.status_code = 405;
@@ -285,7 +286,7 @@ def changepassword(request): ## POST view, parameters cookie and password
 class ActivityLogCollection(Collection):
 
     def read(self,request):
-        request_user = basicauth_get_user(request);
+        request_user = basicauth_get_user_by_emailaddr(request);
         if (not request_user):
             return self.responder.error(request, 405, ErrorDict({"user":"User username/password incorrect, or unknown user"}))
             
@@ -310,7 +311,7 @@ class ActivityLogCollection(Collection):
         """
         lets the user post new activity in a giant single array of activity log elements
         """
-        request_user = basicauth_get_user(request);
+        request_user = basicauth_get_user_by_emailaddr(request);
         if (not request_user):
             logevent(request,'commitActivityLog',405,repr(request))
             return self.responder.error(request, 405, ErrorDict({"user":"User username/password incorrect, or unknown user"}))
