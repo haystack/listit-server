@@ -57,7 +57,7 @@ class Note(models.Model):
     owner = models.ForeignKey(authmodels.User,related_name='note_owner',null=True)
     jid = models.IntegerField(default=0)
     version = models.IntegerField(default=0)
-    contents = models.TextField()
+    contents = models.TextField(blank=True)
     ## we use a nullboolean field because that simplifies validation -- 
     deleted = models.NullBooleanField()
     ## what is this for?
@@ -72,7 +72,7 @@ class Note(models.Model):
 class NoteForm(forms.Form):
     created = forms.DecimalField()
     edited = forms.DecimalField()
-    contents = forms.CharField()
+    contents = forms.CharField(required=False)
     owner = FixedModelChoiceField( queryset=authmodels.User.objects,  cache_choices=True  )
     jid = forms.IntegerField()
     version = forms.IntegerField()
