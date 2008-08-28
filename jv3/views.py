@@ -74,6 +74,8 @@ class NoteCollection(Collection):
         else:
             ## UPDATE an existing note
             ## check if the client version needs updating
+            if len(matching_notes) > 1:
+                print "# of Matching Notes : %d " % len(matching_notes)
 
             if (matching_notes[0].version > form.data['version']):
                 errormsg = "Versions for jid %d not compatible (local:%d, received: %d). Do you need to update? "  % (form.data["jid"],matching_notes[0].version,form.data["version"])
@@ -89,6 +91,7 @@ class NoteCollection(Collection):
                 # increment version number
                 matching_notes[0].version = form.data['version'] + 1 ## matching_notes[0].version + 1;
                 # save!
+                # print "SAVING %s, is it deleted? %s " % (repr(matching_notes[0]),repr(matching_notes[0].deleted))
                 matching_notes[0].save()
                 response = self.read(request)
                 response.status_code = 200
