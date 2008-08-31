@@ -11,13 +11,42 @@
 var BASE_URL = "/listit/jv3";
 var COOKIE = "{{cookie}}";  // replaced via DJANGO template
 var USERNAME = "{{username}}";
+var PASSWORD = "{{password}}";
+var SERVER_URL = "{{server}}";
 
 var resetbackground = function() {
     $('#back').attr('width',$(window).width());
 }
-//$(window).resize(resetbackground);
-//$(document).resize(resetbackground);
 $(document).ready(resetbackground);
+
+function doconfig() {
+    try {
+	$("#error").fadeOut();
+	netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");    
+	var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch("listit.");
+	prefs.QueryInterface(Components.interfaces.nsIPrefBranch);
+	prefs.setCharPref("sync.username",USERNAME);
+	prefs.setCharPref("sync.password",PASSWORD);
+	prefs.setCharPref("sync.server",SERVER_URL);
+	$("#configmessage").html("Done! You are all configured for sync. Please download and install it below. ");
+	$("#configmessage").fadeIn();
+    } catch (e) {
+	$("#configmessage").html("Oops, something went wrong. Sorry! Please try again (and hit Allow when prompted)");
+	$("#configmessage").fadeIn();
+	return;
+    } 
+
+}
+
+$(document).ready(function() {
+    if (USERNAME.length > 0 && PASSWORD.length > 0 && SERVER_URL.length > 0) {
+	$("#config").fadeIn();
+	$("#configureit").click(function() {
+	    console.log('hai');
+	    doconfig();
+	});
+    }
+});
 </script>
 </head>
 
@@ -55,6 +84,19 @@ $(document).ready(resetbackground);
 	  
 	  <h3>The server said: {{ message }}</h3>
 
+    <div id="config" style="display:none;">
+	  <h3> Pre-Configure it! </h3>
+	  <p>
+    Optional: To save you the hassle of setting up your listit
+preferences, click the following button, which will add your personal
+synchronization settings (username and password) to your Firefox
+preferences.  You can also manually set these parameters after you
+install list.it in list.it's Options menu.
+	  </p>	  
+          <center><button id="configureit">Configure it!</button></center>
+          <h3 id="configmessage"></h3>
+    </div>
+	  
 	  <h3>Download it!</h3>
 	  
 	  <div id="terms" class="terms">
@@ -79,7 +121,8 @@ $(document).ready(resetbackground);
 		 <div id="downloadlink">
 		 <a target="_top" href="../../releases/builds/listit.xpi" ><span style="font-size:120%; font-weight:bold; text-align:center;">install List.it!</span></a> (Requires Firefox 3.0+)
   	         </div>	 
-	      </div> <!--terms-->	  
+	      </div> <!--terms-->
+
 	  </td>
 	</tr>
       </table>

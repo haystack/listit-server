@@ -189,9 +189,9 @@ def createuser(request):
     
     print "New user registration is %s " % repr(user);
     send_mail('Did you register for Listit?', gen_confirm_newuser_email_body(user) , 'listit@csail.mit.edu', (user.email,), fail_silently=False)
-    response = HttpResponse("User created successfully", "text/html");    
+    response = HttpResponse("UserRegistration created successfully", "text/html");    
     response.status_code = 200;
-    logevent(request,'createuser',201,user)
+    logevent(request,'createusr',201,user)
     return response
 
 def confirmuser(request):
@@ -202,8 +202,11 @@ def confirmuser(request):
         newest_registration = get_most_recent(matching_registrations)
         ## check to see if already registered
         if len(authmodels.User.objects.filter(email=newest_registration.email)) > 0:
+            user = authmodels.User.objects.filter(email=newest_registration.email)[0]
             logevent(request,'confirmuser','alreadyregistered',cookie)
-            return render_to_response('jv3/confirmuser.html', {"message":"I think already know you, %s.  You should have no trouble logging in.  Let us know if you have problems! " % newest_registration.email});
+            return render_to_response('jv3/confirmuser.html', {"message": "I think already know you, %s.  You should have no trouble logging in.  Let us know if you have problems! " % newest_registration.email,
+                                                               'username':user.email, 'password':newest_registration.password, 'server':settings.SERVER_URL});
+        
         user = authmodels.User();
         user.username = make_username(newest_registration.email);  ## intentionally a dupe, since we dont have a username. WE MUST be sure not to overflow it (max_chat is default 30)
         user.email = newest_registration.email;
@@ -224,7 +227,8 @@ def confirmuser(request):
             cc.save()
 
         logevent(request,'confirmuser',200,user)
-        return render_to_response('jv3/confirmuser.html', {'message': "Okay, thank you for confirming that you are a human, %s.  You can now synchronize with List.it. " % user.email});
+        return render_to_response('jv3/confirmuser.html', {'message': "Okay, thank you for confirming that you are a human, %s.  You can now synchronize with List.it. " % user.email,
+                                                           'username':user.email, 'password':newest_registration.get_password(), 'server':settings.SERVER_URL});
     
     response = render_to_response('jv3/confirmuser.html', {'message': "Oops, could not figure out what you are talking about!"});
     response.status_code = 405;
