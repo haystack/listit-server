@@ -228,7 +228,7 @@ def confirmuser(request):
 
         logevent(request,'confirmuser',200,user)
         return render_to_response('jv3/confirmuser.html', {'message': "Okay, thank you for confirming that you are a human, %s.  You can now synchronize with List.it. " % user.email,
-                                                           'username':user.email, 'password':newest_registration.get_password(), 'server':settings.SERVER_URL});
+                                                           'username':user.email, 'password':newest_registration.password, 'server':settings.SERVER_URL});
     
     response = render_to_response('jv3/confirmuser.html', {'message': "Oops, could not figure out what you are talking about!"});
     response.status_code = 405;
