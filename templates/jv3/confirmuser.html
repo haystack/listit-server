@@ -28,6 +28,7 @@ function doconfig() {
 	prefs.setCharPref("sync.username",USERNAME);
 	prefs.setCharPref("sync.password",PASSWORD);
 	prefs.setCharPref("sync.server",SERVER_URL);
+	prefs.setBoolPref("sync.support",true);
 	$("#configmessage").html("Done! You are all configured for sync. Please download and install it below. ");
 	$("#configmessage").fadeIn();
     } catch (e) {
