@@ -114,8 +114,6 @@ def basicauth_get_user_by_emailaddr(request):
         pass
     return False
 
-
-
 USERNAME_MAXCHARS = 30
 
 def make_username(email):
@@ -123,4 +121,22 @@ def make_username(email):
     while len(authmodels.User.objects.filter(username=proposed)) > 0:
         proposed = email[:(USERNAME_MAXCHARS-10)]+gen_cookie(10)
     return proposed
-    
+
+def get_newest_registration_for_user_by_email(email):
+    return get_most_recent(UserRegistration.objects.filter(email=email))
+
+def get_consenting_users(userset=None):
+    ## gets users who have in their most _recent_ consent agreed to couhes
+    if userset == None: userset = authmodels.User.objects.all()
+    return [u for u in userset if get_newest_registration_for_user_by_email(u.email) and get_newest_registration_for_user_by_email(u.email).couhes]
+
+def get_emails_of_users(users):
+    return [u.email for u in users]
+
+def get_consenting_users_emails(userset=None):
+    return get_emails_of_users(get_consenting_users(userset=userset))
+
+def email_users(userset,subject,body):
+    for u in userset:
+        userparams = {'email':u.email,'server_url':settings.SERVER_URL}
+        send_mail(subject % userparams, body % userparams, 'listit@csail.mit.edu', (u.email,'listit@csail.mit.edu'), fail_silently=False)
