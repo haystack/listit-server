@@ -4,7 +4,7 @@ from django_restapi.model_resource import Collection, Entry
 from django_restapi.responder import *
 from django_restapi.receiver import *
 from jv3.models import SPO, SPOForm, Note, NoteForm, ActivityLog
-from jv3.views import SPOCollection, NoteCollection, ActivityLogCollection, userexists, createuser, confirmuser, submit_bug_report
+from jv3.views import SPOCollection, NoteCollection, ActivityLogCollection, userexists, createuser, confirmuser, submit_bug_report, reconsent
 from jv3.views import changepassword, changepassword_request, changepassword_confirm
 from django_restapi.authentication import HttpBasicAuthentication, HttpDigestAuthentication, djangouser_auth
 
@@ -122,6 +122,7 @@ urlpatterns = patterns('server.jv3.views.',
     (r'^createuser/$', createuser), ## POST
     (r'^confirmuser$', confirmuser),
 
+    (r'^reconsent$', reconsent),
     
     (r'^changepasswordrequest', changepassword_request), ## GET
     (r'^changepasswordconfirm', changepassword_confirm), ## GET
