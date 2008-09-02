@@ -241,6 +241,7 @@ def reconsent(request):
     if not newest_registration is None:
         logevent(request,'reconsent',200,newest_registration)
         newest_registration.couhes = True
+        newest_registration.when = current_time_decimal() ## update time 
         newest_registration.save()
         return render_to_response('jv3/confirmuser.html',
                                   {'message': "Great! Thank you for signing back up for our study. If you would like to set up your client or re-install list it, use the links below. ",

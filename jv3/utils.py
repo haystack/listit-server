@@ -15,6 +15,7 @@ from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, ServerLog
 import time
+import datetime
 import random
 
 current_time_decimal = lambda : int(time.time()*1000);
@@ -125,10 +126,12 @@ def make_username(email):
 def get_newest_registration_for_user_by_email(email):
     return get_most_recent(UserRegistration.objects.filter(email=email))
 
-def get_consenting_users(userset=None):
+def get_consenting_users(userset=None,newerthan=time.mktime(datetime.date(2008,9,1).timetuple())*1000):
     ## gets users who have in their most _recent_ consent agreed to couhes
     if userset == None: userset = authmodels.User.objects.all()
-    return [u for u in userset if get_newest_registration_for_user_by_email(u.email) and get_newest_registration_for_user_by_email(u.email).couhes]
+    return [u for u in userset if get_newest_registration_for_user_by_email(u.email) and
+            get_newest_registration_for_user_by_email(u.email).couhes and
+            (newerthan is None or float(get_newest_registration_for_user_by_email(u.email).when) > newerthan)]
 
 def get_emails_of_users(users):
     return [u.email for u in users]
