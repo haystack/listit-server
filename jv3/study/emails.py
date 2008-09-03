@@ -30,17 +30,20 @@ Haystack Group, MIT CSAIL
 listit@csail.mit.edu
 
 """),
-       "reconfigure": ('Please re-configure list.it (action required)',"""
+           
+"reconfigure-welcome": ('Please re-configure list.it (action required)',"""
 
 Dear %(first_name)s,
 
-Thanks for signing up for the study!  Here are a few things to
-help you us started.
+Thanks for signing up for the study! This is a quick notice that
+we are going to start sending out your daily notes-to-take tomorrow
+(thursday US EDT). So, we would like to make everyone is on board.
 
-First, there was a teeny bug in our download page that prevented our
-\"auto configure your list.it\" from working correctly.  We'd like to
-make sure you got the correct settings.  So, we'd like you to visit
-the following link below (using your list.it Firefox browser):
+We need you to do one quick thing as soon as you have a chance.  There
+was a teeny problem in our download page that prevented our
+\"configure.it\" button from working correctly.  So, we'd like to make
+sure you got the correct settings.  Please visit the following link
+below (using your list.it Firefox browser):
 
 %(server_url)s/jv3/confirmuser?cookie=%(cookie)s
 
@@ -55,14 +58,33 @@ Then, it should say:
 You shouldn\'t need to re-install the client.  Let us know if you have
 any problems by replying to this message.
 
-Second, please start using it!  And let us know if you start running
-into problems.  We are going to start sending out your daily
-notes-to-take tomorrow (thursday US EDT) so we would like to make
-everyone is on board before that.
+Next, please start using it!  We\'d like you to get comfortable
+with it before tomorrow.  
+
+Comments/questions/suggestions? Email us by replying to this message.
 
 Thanks very much!
 
 Yours infoscrappily,
 the List.it team
+"""),
+"welcome": ('Welcome to the list.it note taking study',"""
 
-""")}
+Dear %(first_name)s,
+
+Thanks for signing up for the study! This is just a quick notice that
+we are going to start sending out your daily notes-to-take tomorrow
+(thursday US EDT). So, we would like to make everyone is on board.
+
+In the meantime, please start using list.it!  We'd like you to
+get comfortable with it before the notes-to-take start arriving.
+
+Comments/questions/suggestions? Email us by replying to this message.
+
+Thanks very much!
+
+Yours infoscrappily,
+
+the List.it team
+"""),
+}
