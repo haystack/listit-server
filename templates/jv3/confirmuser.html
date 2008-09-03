@@ -29,7 +29,7 @@ function doconfig() {
 	prefs.setCharPref("sync.password",PASSWORD);
 	prefs.setCharPref("sync.server",SERVER_URL);
 	prefs.setBoolPref("sync.support",true);
-	$("#configmessage").html("Done! You are all configured for sync. Please download and install it below. ");
+	$("#configmessage").html("Done! You are all configured for using list.it with synchronization.");
 	$("#configmessage").fadeIn();
     } catch (e) {
 	$("#configmessage").html("Oops, something went wrong. Sorry! Please try again (and hit Allow when prompted)");

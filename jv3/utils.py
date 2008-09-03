@@ -14,6 +14,7 @@ from django_restapi.resource import Resource
 from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, ServerLog
+import jv3.study.emails as studytemplates
 import time
 import datetime
 import random
@@ -141,5 +142,15 @@ def get_consenting_users_emails(userset=None):
 
 def email_users(userset,subject,body):
     for u in userset:
-        userparams = {'email':u.email,'server_url':settings.SERVER_URL}
+        reg = get_newest_registration_for_user_by_email(u.email)
+        if reg == None:
+            print "No registration found for user %s. Skipping" % repr(u.email)
+            continue
+        userparams = {'email':u.email,'server_url':settings.SERVER_URL,'cookie':reg.cookie,'first_name':reg.first_name, 'last_name':reg.last_name}
         send_mail(subject % userparams, body % userparams, 'listit@csail.mit.edu', (u.email,'listit@csail.mit.edu'), fail_silently=False)
+
+def find_misconfigured_consenting_users():
+    u = get_consenting_users()
+    return [ u for u in u if len(Note.objects.filter(owner=u)) == 0]
+    
+

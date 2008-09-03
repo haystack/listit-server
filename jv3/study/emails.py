@@ -29,4 +29,40 @@ electronic Max, Michael Bernstein, Greg Vargas, Professor David Karger
 Haystack Group, MIT CSAIL
 listit@csail.mit.edu
 
+"""),
+       "reconfigure": ('Please re-configure list.it (action required)',"""
+
+Dear %(first_name)s,
+
+Thanks for signing up for the study!  Here are a few things to
+help you us started.
+
+First, there was a teeny bug in our download page that prevented our
+\"auto configure your list.it\" from working correctly.  We'd like to
+make sure you got the correct settings.  So, we'd like you to visit
+the following link below (using your list.it Firefox browser):
+
+%(server_url)s/jv3/confirmuser?cookie=%(cookie)s
+
+AND click on \"Configure it\".  When it asks you: \"A script from
+listit . nrcc . noklab . com  is requesting enhanced abilities that
+are UNSAFE and could be used to compromise your machine or data:
+Run or install software on your machine", hit \"Allow\".
+Then, it should say:
+
+\"Done. You are all configured for list.it\".
+
+You shouldn\'t need to re-install the client.  Let us know if you have
+any problems by replying to this message.
+
+Second, please start using it!  And let us know if you start running
+into problems.  We are going to start sending out your daily
+notes-to-take tomorrow (thursday US EDT) so we would like to make
+everyone is on board before that.
+
+Thanks very much!
+
+Yours infoscrappily,
+the List.it team
+
 """)}
