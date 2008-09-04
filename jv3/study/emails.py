@@ -89,6 +89,38 @@ Yours infoscrappily,
 the List.it team
 """),
 
-"p1-1-o" : ("Test probe ODD", "TEST of list.it distribution system (ODD) please ignore me."),
-"p1-1-e" : ("Test probe EVEN", "TEST of list.it distribution system (EVEN) please ignore me."),
+"p1-1-o" : ("List.it Note to Take, Day One Morning", """
+
+Twice a day we're going to send an e-mail with a link to a web page
+describing a note we'd like you to create in list.it. You have 12 hours
+from when we send the email before we take the web page down. 
+Get $1 for each of these notes you record.
+
+Here's the link: https://listit.nrcc.noklab.com/study/p1-1-o.html
+
+List.it tip of the day: Change that dull grey background!  
+Go to the Options pane, select "Choose" next to "Background Image:" 
+and select an image of your choice. (Your image won't be shared 
+with us. We promise not to peek.)
+
+Don't forget to use list.it in your everyday life as well!
+- The list.it team
+"""),
+
+"p1-1-e" : ("List.it Note to Take, Day One Morning", """
+Twice a day we're going to send an e-mail with a link to a web page
+describing a note we'd like you to create in list.it. You have 12 hours
+from when we send the email before we take the web page down. 
+Get $1 for each of these notes you record.
+
+Here's the link: https://listit.nrcc.noklab.com/study/p1-1-e.html
+
+List.it tip of the day: Change that dull grey background!  
+Go to the Options pane, select "Choose" next to "Background Image:" 
+and select an image of your choice. (Your image won't be shared 
+with us. We promise not to peek.)
+
+Don't forget to use list.it in your everyday life as well!
+- The list.it team
+"""),
 }
