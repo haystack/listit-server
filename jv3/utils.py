@@ -157,4 +157,11 @@ def find_properly_configured_consenting_users():
     u = get_consenting_users()
     return [ u for u in u if len(Note.objects.filter(owner=u)) > 0]
     
-
+def find_even_id_consenting_users():
+    u = get_consenting_users()
+    return [ u for u in u if (u.id % 2 == 0)]
+    
+def find_odd_id_consenting_users():
+    u = get_consenting_users()
+    return [ u for u in u if (u.id % 2 == 1)]
+    
