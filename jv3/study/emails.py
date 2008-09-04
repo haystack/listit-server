@@ -68,6 +68,7 @@ Thanks very much!
 Yours infoscrappily,
 the List.it team
 """),
+
 "welcome": ('Welcome to the list.it note taking study',"""
 
 Dear %(first_name)s,
@@ -87,4 +88,7 @@ Yours infoscrappily,
 
 the List.it team
 """),
+
+"p1-1-o" : ("Test probe ODD", "TEST of list.it distribution system (ODD) please ignore me."),
+"p1-1-e" : ("Test probe EVEN", "TEST of list.it distribution system (EVEN) please ignore me."),
 }
