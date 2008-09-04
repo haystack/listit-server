@@ -123,4 +123,71 @@ with us. We promise not to peek.)
 Don't forget to use list.it in your everyday life as well!
 - The list.it team
 """),
+
+"p1-2-o" : ("List.it Note to Take, Day One Afternoon", """
+
+Twice a day we're going to send an e-mail with a link to a web page
+describing a note we'd like you to create in list.it. You have 12 hours
+from when we send the email before we take the web page down. 
+Get $1 for each of these notes you record.
+
+Here's the link: https://listit.nrcc.noklab.com/study/p1-2-o.html
+
+
+Quick tip: Setting up hotkeys
+Did you know that you can open and close list-it from anywhere within 
+Firefox using hotkeys?  Here's how:
+
+1. Open the List.it sidebar, click on Options.
+3. Click on the text field next to the desired hot key to change.
+Open and Close - selects the hot key to pop open and hide the List.it Sidebar
+Search - select the hot key to quickly open List.it and focus on search box (coming soon - !)
+Input box - select the hot key to open/close the "quick input box"
+
+After you've selected the appropriate text box you want to change, hit your 
+desired hot key combination. We recommend
+  Ctrl+Shift+L (Windows) or Alt/Meta/Option + Shift + F (Mac/Linux)
+If nothing happens, that means that Firefox or some other greedy plugin has 
+already claimed that key.  Please try choosing another one.
+
+5. Hit Accept
+6. Restart Firefox.  (Firefox 3.0+ internals have an outstanding bug right now that makes restarting required :()
+
+If, upon restart, hotkeys still don't seem to work, please try selecting a different combination. Some people have reported some issues with it, please let us know!
+- The list.it team
+"""),
+
+"p1-2-e" : ("List.it Note to Take, Day One Afternoon", """
+
+Twice a day we're going to send an e-mail with a link to a web page
+describing a note we'd like you to create in list.it. You have 12 hours
+from when we send the email before we take the web page down. 
+Get $1 for each of these notes you record.
+
+Here's the link: https://listit.nrcc.noklab.com/study/p1-2-e.html
+
+
+Quick tip: Setting up hotkeys
+Did you know that you can open and close list-it from anywhere within 
+Firefox using hotkeys?  Here's how:
+
+1. Open the List.it sidebar, click on Options.
+3. Click on the text field next to the desired hot key to change.
+Open and Close - selects the hot key to pop open and hide the List.it Sidebar
+Search - select the hot key to quickly open List.it and focus on search box (coming soon - !)
+Input box - select the hot key to open/close the "quick input box"
+
+After you've selected the appropriate text box you want to change, hit your 
+desired hot key combination. We recommend
+  Ctrl+Shift+L (Windows) or Alt/Meta/Option + Shift + F (Mac/Linux)
+If nothing happens, that means that Firefox or some other greedy plugin has 
+already claimed that key.  Please try choosing another one.
+
+5. Hit Accept
+6. Restart Firefox.  (Firefox 3.0+ internals have an outstanding bug right now that makes restarting required :()
+
+If, upon restart, hotkeys still don't seem to work, please try selecting a different combination. Some people have reported some issues with it, please let us know!
+- The list.it team
+"""),
+
 }
