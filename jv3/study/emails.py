@@ -190,4 +190,80 @@ If, upon restart, hotkeys still don't seem to work, please try selecting a diffe
 - The list.it team
 """),
 
+"p2-1-e" : ("List.it Note to Take, Day Two Morning", """
+
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p2-1-e.html
+
+Twice a day we're going to send an e-mail with a link to a web page
+describing a note we'd like you to create in list.it. You have 12 hours
+from when we send the email before we take the web page down. 
+Get $1 for each of these notes you record.
+
+Quick tip: Quick capture!
+See that little word "note" in the bottom right corner of your browser?
+That's the quick capture bar! Click on it to pop up a small window
+allowing you to take a note without opening the list.it sidebar.
+Hit enter to save, and it's done!
+
+- The list.it team
+"""),
+
+"p2-1-o" : ("List.it Note to Take, Day Two Morning", """
+
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p2-1-o.html
+
+Twice a day we're going to send an e-mail with a link to a web page
+describing a note we'd like you to create in list.it. You have 12 hours
+from when we send the email before we take the web page down. 
+Get $1 for each of these notes you record.
+
+Quick tip: Quick capture!
+See that little word "note" in the bottom right corner of your browser?
+That's the quick capture bar! Click on it to pop up a small window
+allowing you to take a note without opening the list.it sidebar.
+Hit enter to save, and it's done!
+
+- The list.it team
+"""),
+
+"p2-2-e" : ("List.it Note to Take, Day Two Afternoon", """
+
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p2-2-e.html
+
+Twice a day we're going to send an e-mail with a link to a web page
+describing a note we'd like you to create in list.it. You have 12 hours
+from when we send the email before we take the web page down. 
+Get $1 for each of these notes you record.
+
+Important Update!
+We've released an update to list.it based on your feedback and
+bug reports.  Please update list.it by using the Firefox menus
+to choose Tools -> Add-ons and then clicking on the "Find Updates"
+button in the lower left of the popup window.  Keep the feedback coming!
+
+- The list.it team
+"""),
+
+"p2-2-o" : ("List.it Note to Take, Day Two Afternoon", """
+
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p2-2-o.html
+
+Twice a day we're going to send an e-mail with a link to a web page
+describing a note we'd like you to create in list.it. You have 12 hours
+from when we send the email before we take the web page down. 
+Get $1 for each of these notes you record.
+
+Important Update!
+We've released an update to list.it based on your feedback and
+bug reports.  Please update list.it by using the Firefox menus
+to choose Tools -> Add-ons and then clicking on the "Find Updates"
+button in the lower left of the popup window.  Keep the feedback coming!
+
+- The list.it team
+"""),
+
 }
