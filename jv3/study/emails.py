@@ -231,6 +231,7 @@ Hit enter to save, and it's done!
 "p2-2-e" : ("List.it Note to Take, Day Two Afternoon", """
 
 Here's the next note we'd like you to take:
+
 https://listit.nrcc.noklab.com/study/p2-2-e.html
 
 Twice a day we're going to send an e-mail with a link to a web page
@@ -239,10 +240,17 @@ from when we send the email before we take the web page down.
 Get $1 for each of these notes you record.
 
 Important Update!
-We've released an update to list.it based on your feedback and
-bug reports.  Please update list.it by using the Firefox menus
-to choose Tools -> Add-ons and then clicking on the "Find Updates"
-button in the lower left of the popup window.  Keep the feedback coming!
+
+This morning (Fri 9/5) we released an update to list.it to improve its
+stability and syncing reliability.  If you haven't already, please
+update list.it by going to Firefox's Tools Menu, selecting \"Add-ons\"
+and then clicking on the \"Find Updates\" (in the lower left corner).
+This patch will fix some of the problems people reported yesterday.
+
+Also, thank you for all the great feedback on the client! Please
+keep it coming!
+
+Yours,
 
 - The list.it team
 """),
@@ -250,6 +258,7 @@ button in the lower left of the popup window.  Keep the feedback coming!
 "p2-2-o" : ("List.it Note to Take, Day Two Afternoon", """
 
 Here's the next note we'd like you to take:
+
 https://listit.nrcc.noklab.com/study/p2-2-o.html
 
 Twice a day we're going to send an e-mail with a link to a web page
@@ -258,12 +267,19 @@ from when we send the email before we take the web page down.
 Get $1 for each of these notes you record.
 
 Important Update!
-We've released an update to list.it based on your feedback and
-bug reports.  Please update list.it by using the Firefox menus
-to choose Tools -> Add-ons and then clicking on the "Find Updates"
-button in the lower left of the popup window.  Keep the feedback coming!
 
-- The list.it team
+This morning (Fri 9/5) we released an update to list.it to improve its
+stability and syncing reliability.  If you haven't already, please
+update list.it by going to Firefox's Tools Menu, selecting \"Add-ons\"
+and then clicking on the \"Find Updates\" (in the lower left corner).
+This patch will fix some of the problems people reported yesterday.
+
+Also, thank you for all the great feedback on the client! Please
+keep it coming!
+
+Yours,
+
+- list.it team
 """),
 
 }
