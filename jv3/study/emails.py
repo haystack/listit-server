@@ -282,7 +282,7 @@ Yours,
 - list.it team
 """),
 
-"deadping": ("How are things going?","""
+"deadping": ("List.it: How are things going?","""
 
 Hi %(first_name)s,
 
