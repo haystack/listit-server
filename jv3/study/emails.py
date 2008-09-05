@@ -314,4 +314,51 @@ Ps > If you want to set up synchronization, please do the following :
 
 That\'s it! Thanks.
 """),
+
+"p3-1-e" : ("List.it Note to Take, Day Three Morning", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p3-1-e.html
+
+Make sure you're using list.it for your own notes as well!
+These e-mails we send you are partially to give you some ideas
+for things you can capture in list.it.  Be creative! 
+
+- The list.it team
+"""),
+
+"p3-1-o" : ("List.it Note to Take, Day Three Morning", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p3-1-o.html
+
+Make sure you're using list.it for your own notes as well!
+These e-mails we send you are partially to give you some ideas
+for things you can capture in list.it.  Be creative! 
+
+- The list.it team
+"""),
+
+"p3-2-e" : ("List.it Note to Take, Day Three Afternoon", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p3-2-e.html
+
+Don't forget! The person who uses list.it the most for his 
+or her own notes gets $50, and the two runners-up get $25 each.
+Who knew that helping science could buy you a nice dinner for 
+two on the town?
+
+- The list.it team
+"""),
+
+"p3-2-o" : ("List.it Note to Take, Day Three Afternoon", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p3-2-o.html
+
+Don't forget! The person who uses list.it the most for his 
+or her own notes gets $50, and the two runners-up get $25 each.
+Who knew that helping science could buy you a nice dinner for 
+two on the town?
+
+- The list.it team
+"""),
+
 }
