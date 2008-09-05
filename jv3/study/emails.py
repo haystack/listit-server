@@ -282,4 +282,36 @@ Yours,
 - list.it team
 """),
 
+"deadping": ("How are things going?","""
+
+Hi %(first_name)s,
+
+This is a quick note to see how things are going for you with list.it.
+We noticed you haven\'t yet set up your synchronization with the
+server, so we wanted to explicitly ask you whether everything was going
+okay.
+
+1. Were you able to get the client installed okay (and is it working)?
+2. Are you receiving note probes (e.g., "write down a reminder..") We sent two today.
+3. Do you have any questions/comments?
+
+Please let us know!
+
+Thanks in advance,
+Max and Michael (the list.it team)
+
+
+Ps > If you want to set up synchronization, please do the following :
+
+1. Open your List.it,
+2. Click on "Options"
+3. Make sure "Enable synchronization" and "Save login information" are enabled.
+4. Fill in the following:
+   email: (your email address you used for registering with listit)
+   password: (your password you used for registering)
+   and leave the server as it is.
+5. Hit "Accept"
+
+That\'s it! Thanks.
+"""),
 }

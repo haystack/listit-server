@@ -151,11 +151,11 @@ def email_users(userset,subject,body):
 
 def find_misconfigured_consenting_users():
     u = get_consenting_users()
-    return [ u for u in u if len(Note.objects.filter(owner=u)) == 0]
+    return [ u for u in u if len(ActivityLog.objects.filter(owner=u)) == 0]
     
 def find_properly_configured_consenting_users():
     u = get_consenting_users()
-    return [ u for u in u if len(Note.objects.filter(owner=u)) > 0]
+    return [ u for u in u if len(ActivityLog.objects.filter(owner=u)) > 0]
     
 def find_even_id_consenting_users():
     u = get_consenting_users()
