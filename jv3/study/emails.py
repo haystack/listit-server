@@ -361,4 +361,98 @@ two on the town?
 - The list.it team
 """),
 
+"p4-1-e" : ("List.it Note to Take, Day Four Morning", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p4-1-e.html
+
+Keep on using list.it for your own thoughts and notes!
+
+This should be the seventh note prompt you're receiving.
+Let us know if some of them didn't make it to you.
+
+- The list.it team
+"""),
+
+"p4-1-o" : ("List.it Note to Take, Day Four Morning", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p4-1-o.html
+
+Keep on using list.it for your own thoughts and notes!
+
+This should be the seventh note prompt you're receiving.
+Let us know if some of them didn't make it to you.
+
+- The list.it team
+"""),
+
+"p4-2-e" : ("List.it Note to Take, Day Four Afternoon", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p4-2-e.html
+
+This note requires you to go to a web link -- just click
+on the prompt text to open the link.
+
+- The list.it team
+"""),
+
+"p4-2-o" : ("List.it Note to Take, Day Four Afternoon", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p4-2-o.html
+
+This note requires you to go to a web link -- just click
+on the prompt text to open the link.
+
+- The list.it team
+"""),
+
+"p5-1-e" : ("List.it Note to Take, Day Five Morning", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p5-1-e.html
+
+Quick tip: tagging and organization
+Though list.it doesn't explicitly support folders or tagging,
+it's very easy to do using just text search. A simple way to
+accomplish this is by using a special character like '@' in front
+of any tag, for example: @tag. Then use the search bar to search for
+'@tag' and you'll find all the notes you tagged!
+
+- The list.it team
+"""),
+
+"p5-1-o" : ("List.it Note to Take, Day Five Morning", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p5-1-o.html
+
+Quick tip: tagging and organization
+Though list.it doesn't explicitly support folders or tagging,
+it's very easy to do using just text search. A simple way to
+accomplish this is by using a special character like '@' in front
+of any tag, for example: @tag. Then use the search bar to search for
+'@tag' and you'll find all the notes you tagged!
+
+- The list.it team
+"""),
+
+"p5-2-e" : ("List.it Note to Take, Day Five Afternoon", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p5-2-e.html
+
+Keep using list.it to manage your own notes and thoughts!
+That's fully half of what we're interested in learning from
+this study. :) 
+
+- The list.it team
+"""),
+
+"p5-2-o" : ("List.it Note to Take, Day Five Afternoon", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p5-2-o.html
+
+Keep using list.it to manage your own notes and thoughts!
+That's fully half of what we're interested in learning from
+this study. :)
+
+- The list.it team
+"""),
+
 }
