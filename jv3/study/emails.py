@@ -455,4 +455,60 @@ this study. :)
 - The list.it team
 """),
 
+"p6-1-e" : ("List.it Note to Take, Day Six Morning", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p6-1-e.html
+
+Yesterday we released a new version of list.it that hopefully
+fixed problems some of you were seeing with notes disappearing
+during synchronization. Please let us know if you continue to
+experience problems with the client!
+
+You should get the list.it upgrade the next time you start Firefox;
+If you haven't gotten it already, please update list.it by going to 
+Firefox's Tools Menu, selecting \"Add-ons\" and then clicking on  
+\"Find Updates\" (in the lower left corner).
+
+- The list.it team
+"""),
+
+"p6-1-o" : ("List.it Note to Take, Day Six Morning", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p6-1-o.html
+
+Yesterday we released a new version of list.it that hopefully
+fixed problems some of you were seeing with notes disappearing
+during synchronization. Please let us know if you continue to
+experience problems with the client!
+
+You should get the list.it upgrade the next time you start Firefox;
+If you haven't gotten it already, please update list.it by going to 
+Firefox's Tools Menu, selecting \"Add-ons\" and then clicking on  
+\"Find Updates\" (in the lower left corner).
+
+- The list.it team
+"""),
+
+"p6-2-e" : ("List.it Note to Take, Day Six Morning", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p6-2-e.html
+
+Don't forget that we're giving away a $50 and two $25 prizes to the 
+top three users of list.it during the 10-day study! Keep using the client
+to manage your own thoughts and notes. :) 
+
+- The list.it team
+"""),
+
+"p6-2-o" : ("List.it Note to Take, Day Six Morning", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p6-2-o.html
+
+Don't forget that we're giving away a $50 and two $25 prizes to the 
+top three users of list.it during the 10-day study! Keep using the client
+to manage your own thoughts and notes. :) 
+
+- The list.it team
+"""),
+
 }
