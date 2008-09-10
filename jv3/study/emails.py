@@ -489,7 +489,7 @@ Firefox's Tools Menu, selecting \"Add-ons\" and then clicking on
 - The list.it team
 """),
 
-"p6-2-e" : ("List.it Note to Take, Day Six Morning", """
+"p6-2-e" : ("List.it Note to Take, Day Six Afternoon", """
 Here's the next note we'd like you to take:
 https://listit.nrcc.noklab.com/study/p6-2-e.html
 
@@ -500,7 +500,7 @@ to manage your own thoughts and notes. :)
 - The list.it team
 """),
 
-"p6-2-o" : ("List.it Note to Take, Day Six Morning", """
+"p6-2-o" : ("List.it Note to Take, Day Six Afternoon", """
 Here's the next note we'd like you to take:
 https://listit.nrcc.noklab.com/study/p6-2-o.html
 
@@ -511,4 +511,65 @@ to manage your own thoughts and notes. :)
 - The list.it team
 """),
 
+"p7-1-e" : ("List.it Note to Take, Day Seven Morning", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p7-1-e.html
+
+A correction: yesterday afternoon's note had a subject line that read
+"List.it Note to Take, Day Six Morning."  It should have read
+"List.it Note to Take, Day Six Afternoon."  If you missed the note because
+you thought it was a re-send of the previous email, please let us know.
+We will apologize profusely, buy you a pony, and set things straight.
+
+Quick tip:
+Have you been using the list.it search box to re-find notes?  
+Open up the list.it sidebar and type into the search box
+to filter your notes down just to the ones matching your text search.
+
+
+- The list.it team
+"""),
+
+"p7-1-o" : ("List.it Note to Take, Day Seven Morning", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p7-1-o.html
+
+A correction: yesterday afternoon's note had a subject line that read
+"List.it Note to Take, Day Six Morning."  It should have read
+"List.it Note to Take, Day Six Afternoon."  If you missed the note because
+you thought it was a re-send of the previous email, please let us know.
+We will apologize profusely, buy you a pony, and set things straight.
+
+Quick tip:
+Have you been using the list.it search box to re-find notes?  
+Open up the list.it sidebar and type into the search box
+to filter your notes down just to the ones matching your text search.
+
+
+- The list.it team
+"""),
+
+"p7-2-e" : ("List.it Note to Take, Day Seven Afternoon", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p7-2-e.html
+
+Quick tip: Wiki syntax
+List.it provides syntax similar to Wiki sytax for simple text markup.
+Try enclosing a word in *asterisks* to make it appear bold in list.it.
+Other such tricks exist -- collect 'em all!
+
+- The list.it team
+"""),
+
+"p7-2-o" : ("List.it Note to Take, Day Seven Afternoon", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p7-2-o.html
+
+Quick tip: Wiki syntax
+List.it provides syntax similar to Wiki sytax for simple text markup.
+Try enclosing a word in *asterisks* to make it appear bold in list.it.
+Other such tricks exist -- collect 'em all!
+
+- The list.it team
+"""),
 }
