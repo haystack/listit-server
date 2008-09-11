@@ -605,9 +605,9 @@ time with list.it to help us learn about notetaking tools and practice.
 Here's the next note we'd like you to take:
 https://listit.nrcc.noklab.com/study/p8-2-e.html
 
-This is note sixteen out of twenty! The last
-note prompt will come Saturday afternoon, and then
-we'll wrap up the study with you. 
+If you joined the study late, we'll be contacting you 
+in the next couple days about how you can make up the notes
+you missed at the beginning. 
 
 - The list.it team
 """),
@@ -616,9 +616,9 @@ we'll wrap up the study with you.
 Here's the next note we'd like you to take:
 https://listit.nrcc.noklab.com/study/p8-2-o.html
 
-This is note sixteen out of twenty! The last
-note prompt will come Saturday afternoon, and then
-we'll wrap up the study with you. 
+If you joined the study late, we'll be contacting you 
+in the next couple days about how you can make up the notes
+you missed at the beginning.
 
 - The list.it team
 """),
