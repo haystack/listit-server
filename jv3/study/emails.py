@@ -572,4 +572,54 @@ Other such tricks exist -- collect 'em all!
 
 - The list.it team
 """),
+
+"p8-1-e" : ("List.it Note to Take, Day Eight Morning", """
+Only a couple more days left to use list.it!  Please keep 
+using the client to manage your own thoughts and notes.
+
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p8-1-e.html
+
+Quick tip: You Rock.
+Seriously, we appreciate your time and effort spending
+time with list.it to help us learn about notetaking tools and practice.
+
+- The list.it team
+"""),
+
+"p8-1-o" : ("List.it Note to Take, Day Eight Morning", """
+Only a couple more days left to use list.it!  Please keep 
+using the client to manage your own thoughts and notes.
+
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p8-1-o.html
+
+Quick tip: You Rock.
+Seriously, we appreciate your time and effort spending
+time with list.it to help us learn about notetaking tools and practice.
+
+- The list.it team
+"""),
+
+"p8-2-e" : ("List.it Note to Take, Day Eight Afternoon", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p8-2-e.html
+
+This is note sixteen out of twenty! The last
+note prompt will come Saturday afternoon, and then
+we'll wrap up the study with you. 
+
+- The list.it team
+"""),
+
+"p8-2-o" : ("List.it Note to Take, Day Eight Afternoon", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p8-2-o.html
+
+This is note sixteen out of twenty! The last
+note prompt will come Saturday afternoon, and then
+we'll wrap up the study with you. 
+
+- The list.it team
+"""),
 }
