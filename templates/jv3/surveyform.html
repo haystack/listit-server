@@ -21,6 +21,7 @@ var resetbackground = function() {
  
 var populateSurvey = function(parent) {
     var result = "";
+    var handlers = [];
     for (var i = 0; i < SURVEY_ELEMENTS.length; i++)  {
 	var question = SURVEY_ELEMENTS[i];
 	// render question text
@@ -29,40 +30,88 @@ var populateSurvey = function(parent) {
   	    // most likely just a label
 	    result += question.text;
 	} else {
-	    // a real question: must be of type [freeresponse, multiplechoice, multipleselect]
+	    // a real question: must be of type [freeresponse, multiplechoice, checkbox]
 	    result += "<div id=\""+question.qid+"_text\" class=\"question_text\">"+question.text+"</div>";
 	    result += "<div id=\""+question.qid+"_response\" class=\"question_response\">";
-	    if (question.type == 'freeresponse') {
+	    console.log('question type is ' + question.type);
+	    if (question.type == 'textfield') {
+		result += "<input id=\""+ question.qid +"_input\" type=\"text\" value=\""+(question.response !== undefined ? question.response:"") + "></input>";
+		question.getValue = function(question) { return function() { return $("#"+question.qid+"_input").val(); } }(question);	    
+	    } else if (question.type == 'textarea') {
 		result += "<textarea id=\""+ question.qid + "_input\">" + (question.response !== undefined ? question.response : "") + "</textarea>";
 		question.getValue = function(question) { return function() { return $("#"+question.qid+"_input").val(); } }(question);	    
-	    } else if (question.type == 'multiplechoice') {
+	    } else if (question.type == 'radio') {
 		// lets the user choose one of a set of mutually exclusive options
 		var group = question.qid+"_choice";
 		var responses = question.response !== undefined ? question.response.split("\n") : [];
 		var ischecked_fns = [];
+		var other_fn = undefined;
 		for (var vi = 0; vi < question.values.length; vi++) {
 		    var val = question.values[vi];
 		    var id =  group + "_val_" + vi;
 		    var defaultchecked = responses.indexOf(val) >= 0 ? "checked=\"true\"" : "";
-		    result += "<span class=\"radio\"><input type=\"radio\" name=\""+group+"\" id=\""+id+"\" value=\""+val+"\""+defaultchecked+">"+val+"</span>"
-		    ischecked_fns.push(function(id,val) { return function() { if ($("#"+id)[0].checked) return val; } }(id,val) ); 
+		    result += "<span class=\"radio\"><input type=\"radio\" name=\""+group+"\" id=\""+id+"\" value=\""+val+"\""+defaultchecked+">"+val+"</input></span>"
+		    ischecked_fns.push(function(id,val) { return function() { if ($("#"+id)[0].checked) return val; } }(id,val) );
 		}
-		question.getValue = function(val_fns) {
+		if (question.other) {
+		    // add an "other" field
+		    var other_response =
+			(responses && responses.length == 1 && question.values.indexOf(responses[0]) < 0) ? responses[0] : "";
+		    console.log("other_response " + other_response);
+		    var other_id = group + "_val_" + question.values.length;
+		    var defaultchecked = other_response.length > 0 ? "checked=\"true\"" : "";
+		    result += "<span class=\"radio\"><input type=\"radio\" name=\""+group+"\" id=\""+other_id+"\" value=\"Other\" "+defaultchecked+"> Other </input>";
+		    var other_text_id = question.qid +"_other_input"
+		    result += "<input id=\""+other_text_id +"\" type=\"text\" value=\""+other_response+"\"></input>";
+		    result +="</span>"		    
+		    handlers.push(function(question,other_id,other_text_id) {
+			/* enables/disables "other" text field */
+			return function() {
+			    var cfn = function() {
+				if ($("#"+other_id)[0].checked)
+				    $("#"+other_text_id).attr("disabled",false);
+				else
+				    $("#"+other_text_id).attr("disabled",true);
+			    };
+			    for (var q_i = 0; q_i < question.values.length; q_i++) {
+				var q_id =  group + "_val_" + q_i;
+				$("#"+q_id).click(function() {
+				    $("#"+other_text_id).attr("disabled",true);
+				});
+			    };
+			    $("#"+other_id).click(cfn);
+			    $("#"+other_id).ready(cfn)
+			};
+		    }(question,other_id,other_text_id));
+		    other_fn = function(other_id,other_text_id) {
+			return function() {
+			    console.log("other_fn");
+			    if ($("#"+other_id)[0].checked) {
+				return $("#"+other_text_id).val();
+			    }
+			};
+		    }(other_id,other_text_id);
+		}
+		question.getValue = function(val_fns,other_fn) {
 		    return function() {
+			// first check if other checked
+			if (other_fn && other_fn())
+			    return other_fn();
+			// otherwise, it's one of the choices
 			var results = [];
 			for (var vi = 0; vi < val_fns.length; vi++) {
 			    if (val_fns[vi]() !== undefined) {
 				results.push(val_fns[vi]());
 			    }
-			};
-			console.log("multiplechoice.getValues() returning " + results.join("\n"));
+			};			
 			return results.join("\n");
 		    };
-		}(ischecked_fns);
-	    } else if (question.type == 'multipleselect') {
+		}(ischecked_fns,other_fn);
+	    } else if (question.type == 'checkbox') {
 	    	// lets the user choose one of a set of mutually exclusive options
 		var group_name = question.qid+"_check_";
 		var ischecked_fns = [];
+		var other_fn = undefined;
 		var responses = question.response !== undefined ? question.response.split("\n") : [];
 		for (var vi = 0; vi < question.values.length; vi++) {
 		    var val = question.values[vi];
@@ -71,7 +120,48 @@ var populateSurvey = function(parent) {
 		    result += "<span class=\"checkbox\"><input type=\"checkbox\" name=\""+id+"\" id=\""+id+"\" value=\""+val+"\""+defaultchecked+">"+val+"</span>"
 		    ischecked_fns.push(function(id,val) { return function() { if ($("#"+id)[0].checked) return val; } }(id,val) ); 
 		}
-		question.getValue = function(val_fns) {
+
+		if (question.other) {
+		    // add an "other" field
+		    var other_response =
+			responses && find_non_elements(responses,question.values).length > 0 ? find_non_elements(responses,question.values)[0] : "";
+		    var other_id = group_name + "_val_" + question.values.length;
+		    var defaultchecked = other_response ? "checked=\"true\"" : "";
+			 
+		    result += "<span class=\"checkbox\"><input type=\"checkbox\" name=\""+other_id+"\" id=\""+other_id+"\" value=\"Other\" "+defaultchecked+"> Other </input>";
+		    var other_text_id = question.qid +"_other_input"
+		    result += "<input id=\""+other_text_id +"\" type=\"text\" value=\""+other_response+"\"></input>";
+		    result +="</span>"
+			 
+		    handlers.push(function(group_name,question,other_id,other_text_id) {
+			/* enables/disables "other" text field */
+			return function() {
+			    var cfn = function() {
+				if ($("#"+other_id)[0].checked)
+				    $("#"+other_text_id).attr("disabled",false);
+				else
+				    $("#"+other_text_id).attr("disabled",true);
+			    };
+			    for (var q_i = 0; q_i < question.values.length; q_i++) {
+				var id =  group_name + "_" + q_i;
+				$("#"+id).click(function() {
+				    $("#"+other_text_id).attr("disabled",true);
+				});
+			    };
+			    $("#"+other_id).click(cfn);
+			    $("#"+other_id).ready(cfn)
+			};
+		    }(group_name,question,other_id,other_text_id));				  
+		    other_fn = function(other_id,other_text_id) {
+			return function() {
+			    if ($("#"+other_id)[0].checked) {
+				return $("#"+other_text_id).val();
+			    }
+			};
+		    }(other_id,other_text_id);
+		}
+		
+		question.getValue = function(val_fns,other_fn) {
 		    return function() {
 			var results = [];
 			for (var vi = 0; vi < val_fns.length; vi++) {
@@ -79,17 +169,29 @@ var populateSurvey = function(parent) {
 				results.push(val_fns[vi]());
 			    }
 			};
-			console.log("multipleselect.getValues() returning " + results.join("\n"));
+			if (other_fn && other_fn()) results.push(other_fn());
 			return results.join("\n");
 		    };
-		}(ischecked_fns);
+		}(ischecked_fns,other_fn);
 	    }
 	    result += "</div>"; // question response
 	}
 	result += "</div>"; // question
     }
     parent.html(result);
+    // run the handlers, which register event callbacks
+    for (var hi = 0; hi < handlers.length; hi++) { handlers[hi](); } 
     return SURVEY_ELEMENTS;
+}
+
+function find_non_elements(lst, target) {
+    // returns the elements of lst that is not in target
+    var results = [];
+    for (var ii = 0; ii < lst.length; ii++) {
+	var el = lst[ii];
+	if (target.indexOf(el) < 0) results.push(el);
+    }
+    return results;
 }
 
 var resetfloat = function() {
