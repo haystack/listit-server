@@ -1,0 +1,186 @@
+<html>
+<head><title>list.it - welcome!</title>
+    <link rel="stylesheet" type="text/css" href="../../css/listit.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/soon.css" />
+    <script src="http://yui.yahooapis.com/2.5.2/build/yahoo/yahoo-min.js"></script>
+    <script src="http://yui.yahooapis.com/2.5.2/build/json/json-min.js"></script>
+    <script type="text/javascript" src="../../js/jquery.js"></script>
+    <script type="text/javascript" src="../../js/jquery.dimensions.js"></script>
+    <script type="text/javascript" src="../../js/jquery.accordion.js"></script>
+    <script type="text/javascript" src="../../js/plum-util-ns.js"></script> 
+
+<script type="text/javascript">
+BASE_URL = "/listit/jv3";
+var COOKIE = "%(cookie)s";  // replaced via DJANGO template
+var SERVER_URL = "%(server)s";
+var SURVEY_ELEMENTS = %(questions)s;
+
+var resetbackground = function() {
+    $('#back').attr('width',$(window).width());
+}
+ 
+var populateSurvey = function(parent) {
+    var result = "";
+    for (var i = 0; i < SURVEY_ELEMENTS.length; i++)  {
+	var question = SURVEY_ELEMENTS[i];
+	// render question text
+	result += "<div class=\"question\">"
+	if (question.type === undefined) {
+  	    // most likely just a label
+	    result += question.text;
+	} else {
+	    // a real question: must be of type [freeresponse, multiplechoice, multipleselect]
+	    result += "<div id=\""+question.qid+"_text\" class=\"question_text\">"+question.text+"</div>";
+	    result += "<div id=\""+question.qid+"_response\" class=\"question_response\">";
+	    if (question.type == 'freeresponse') {
+		result += "<textarea id=\""+ question.qid + "_input\">" + (question.response !== undefined ? question.response : "") + "</textarea>";
+		question.getValue = function(question) { return function() { return $("#"+question.qid+"_input").val(); } }(question);	    
+	    } else if (question.type == 'multiplechoice') {
+		// lets the user choose one of a set of mutually exclusive options
+		var group = question.qid+"_choice";
+		var responses = question.response !== undefined ? question.response.split("\n") : [];
+		var ischecked_fns = [];
+		for (var vi = 0; vi < question.values.length; vi++) {
+		    var val = question.values[vi];
+		    var id =  group + "_val_" + vi;
+		    var defaultchecked = responses.indexOf(val) >= 0 ? "checked=\"true\"" : "";
+		    result += "<span class=\"radio\"><input type=\"radio\" name=\""+group+"\" id=\""+id+"\" value=\""+val+"\""+defaultchecked+">"+val+"</span>"
+		    ischecked_fns.push(function(id,val) { return function() { if ($("#"+id)[0].checked) return val; } }(id,val) ); 
+		}
+		question.getValue = function(val_fns) {
+		    return function() {
+			var results = [];
+			for (var vi = 0; vi < val_fns.length; vi++) {
+			    if (val_fns[vi]() !== undefined) {
+				results.push(val_fns[vi]());
+			    }
+			};
+			console.log("multiplechoice.getValues() returning " + results.join("\n"));
+			return results.join("\n");
+		    };
+		}(ischecked_fns);
+	    } else if (question.type == 'multipleselect') {
+	    	// lets the user choose one of a set of mutually exclusive options
+		var group_name = question.qid+"_check_";
+		var ischecked_fns = [];
+		var responses = question.response !== undefined ? question.response.split("\n") : [];
+		for (var vi = 0; vi < question.values.length; vi++) {
+		    var val = question.values[vi];
+		    var id =  group_name + "_" + vi;
+		    var defaultchecked = responses.indexOf(val) >= 0 ? "checked=\"true\"" : "";
+		    result += "<span class=\"checkbox\"><input type=\"checkbox\" name=\""+id+"\" id=\""+id+"\" value=\""+val+"\""+defaultchecked+">"+val+"</span>"
+		    ischecked_fns.push(function(id,val) { return function() { if ($("#"+id)[0].checked) return val; } }(id,val) ); 
+		}
+		question.getValue = function(val_fns) {
+		    return function() {
+			var results = [];
+			for (var vi = 0; vi < val_fns.length; vi++) {
+			    if (val_fns[vi]() !== undefined) {
+				results.push(val_fns[vi]());
+			    }
+			};
+			console.log("multipleselect.getValues() returning " + results.join("\n"));
+			return results.join("\n");
+		    };
+		}(ischecked_fns);
+	    }
+	    result += "</div>"; // question response
+	}
+	result += "</div>"; // question
+    }
+    parent.html(result);
+    return SURVEY_ELEMENTS;
+}
+
+var resetfloat = function() {
+    $("#toolbar").css("left", ($(window).width()-$("#toolbar").width())/2);
+    $("#toolbar").css("right", "auto");
+};
+
+$(document).resize(resetfloat);
+$(window).resize(resetfloat);
+$(document).ready(resetfloat);
+$(document).ready(resetbackground);
+$(document).ready(function() {
+    SURVEY_ELEMENTS = populateSurvey($("#questions"));
+    
+    $("#submit_button").click(function() {
+        var questions = [];
+	for (var q_i = 0; q_i < SURVEY_ELEMENTS.length; q_i++) {
+            var question = SURVEY_ELEMENTS[q_i];
+	    if (question.qid && question.getValue)
+		questions.push({qid: question.qid, response: question.getValue()});
+	}
+        var vals = { cookie: COOKIE, questions: YAHOO.lang.JSON.stringify(questions) };
+	// submit query
+	jQuery.ajax({ type:"POST",
+		      url: SERVER_URL +"/jv3/post_survey/",
+		      data:vals,
+		      success: function(data,success) {
+			  setMessage('Your survey has been successfully saved'); 
+		      },
+		      error: function(data,status) {
+			  setMessage(data.responseText);		      
+		      }
+		    });
+    });
+});
+var setMessage = function(s) {
+    $("#message").hide();
+    $("#message").html(s);
+    $("#message").show();
+    if (s.length > 0) $("#message").fadeIn();    
+}
+
+</script>
+</head>
+
+  <body style="margin: 0;">
+    <div id="topbar" class="topbar">
+      <center>
+        <table width="720" class="normal" cellpadding="0" cellspacing="0">
+          <tr valign="bottom">
+
+            <td style="padding-top:0px; font-weight: bold; margin: 5px">
+	      <div class="topbartitle"><span style="font-size: 72px;">list<span style="font-size:36px;"><span style="color:#fca11f">.</span>it</span></span></div>
+            </td>
+
+	    <td align="right">
+	      <a href="http://haystack.csail.mit.edu">Haystack Home</a>
+	      | list.it
+	      | <a href="http://plum.csail.mit.edu/">jourknow</a> 
+	      | <a href="http://plum.csail.mit.edu/">PLUM</a> 
+	      | <a href="http://simile.mit.edu/exhibit/">Exhibit</a> 
+	      | <a href="http://relo.csail.mit.edu/">Relo</a> 
+              | <a href="http://groups.csail.mit.edu/haystack/">haystack</a> 
+
+            </td>
+          </tr>
+        </table>
+    </center>
+    </div>
+   <img id="back" src="../../imgs/postits-sm.jpg" style="z-index:-1; position:absolute; left:0px; top:1in; right:0px; bottom:0px;" alt="post-its"/>
+    <center>
+    <table width="700px" cellpadding="5px" cellspacing="0" border="0" id="main">
+	<tr valign="top">
+	<td>
+	  <h1>list.it study exit survey</h1>
+	  	  
+	  <P>Please fill out the following survey.  You can save it using the save button below and resume it later at any time.</p
+
+          <p>Your name: %(first_name)s %(last_name)s</p>
+          <p>Your email: %(email)s </p>
+
+          <div id="questions">
+          
+          </div>
+	  </td>
+	  </tr>
+	  <div style="position:fixed;bottom:10px;top:auto;height:40px;width:200px;right:auto;text-align:center;background:#202020;opacity:0.8;padding:3px" id="toolbar">
+              <div id="message" style="color:#ff0000"></div>
+              <button id="submit_button">Save survey</button>
+          </div>
+      </table>
+    </center>
+</body>
+</html>

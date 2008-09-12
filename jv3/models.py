@@ -3,6 +3,7 @@ import django.contrib.auth.models as authmodels
 import django.forms as forms
 import django.contrib.admin.sites as sites
 from django.contrib import admin
+from django.conf import settings
 import time
 
 # Create your models here.
@@ -176,3 +177,16 @@ try:
     admin.site.register(BugReport)
 except sites.AlreadyRegistered,r:
     pass
+
+
+if hasattr(settings, 'DEFINE_SURVEY') and settings.DEFINE_SURVEY:
+    class SurveyQuestion(models.Model):
+        user = models.ForeignKey(authmodels.User)
+        qid = models.TextField()
+        response = models.TextField(blank=True)
+    
+    try:
+        admin.site.register(SurveyQuestion)
+    except sites.AlreadyRegistered,r:
+        pass
+

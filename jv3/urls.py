@@ -7,6 +7,7 @@ from jv3.models import SPO, SPOForm, Note, NoteForm, ActivityLog
 from jv3.views import SPOCollection, NoteCollection, ActivityLogCollection, userexists, createuser, confirmuser, submit_bug_report, reconsent
 from jv3.views import changepassword, changepassword_request, changepassword_confirm
 from django_restapi.authentication import HttpBasicAuthentication, HttpDigestAuthentication, djangouser_auth
+from jv3.views import get_survey, post_survey
 
 class XMLReceiverSetOwner(XMLReceiver):
     def __init__(self, user):
@@ -86,7 +87,7 @@ fullnotes_json_resource = NoteCollection(
     queryset = Note.objects.all(), 
     permitted_methods = ('GET', 'POST', 'PUT', 'DELETE'),
     expose_fields = ['owner','jid','version','created','contents','edited', 'deleted'],
-    authentication = HttpBasicAuthentication(), #HttpDigestAuthentication(djangouser_auth),
+    #authentication = HttpBasicAuthentication(), #HttpDigestAuthentication(djangouser_auth),
     form_class=NoteForm,
     receiver = JSONReceiver(),
     responder = JSONResponder(),
@@ -128,6 +129,9 @@ urlpatterns = patterns('server.jv3.views.',
     (r'^changepasswordconfirm', changepassword_confirm), ## GET
     (r'^changepassword/$', changepassword), ## POST
     (r'^reportabug/$', submit_bug_report), ## POST
+
+    (r'^get_survey$', get_survey), ## POST
+    (r'^post_survey/$', post_survey), ## POST
                        
     #(r'^login$', 'django.contrib.auth.views.login', {'template_name': 'jv3/login.html', 'module_name':'jv3'}),
     #(r'^login$', login_view),                       

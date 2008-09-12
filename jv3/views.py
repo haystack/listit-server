@@ -12,9 +12,12 @@ import django.contrib.auth.models as authmodels
 from django_restapi.resource import Resource
 from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note
+import jv3.utils
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport
 from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username
 import time
+from django.conf import settings
+from django.template.loader import get_template
 
 
 # Create your views here.
@@ -35,7 +38,13 @@ class NoteCollection(Collection):
         is assigned to this ModelResource instance. Usually called by a
         HTTP request to the factory URI with method GET.
         """
-        request_user = basicauth_get_user_by_emailaddr(request);
+        request_user = basicauth_get_user_by_emailaddr(request);        
+        if not request_user:
+            print  "request user is none"
+            logevent(request,'Note.read',401,{"requesting user:":jv3.utils.decode_emailaddr(request)})
+            return self.responder.error(request, 401, "Incorrect user/password combination")
+        
+        print "fooo!"
         print "request user is %s " % repr(request_user)
         #qs_user = Note.objects.filter(owner=request_user).exclude(deleted=True)
         qs_user = Note.objects.filter(owner=request_user)  ## i realize this is controversial, but is necessary for sync to update !
@@ -51,7 +60,9 @@ class NoteCollection(Collection):
 
         # get user being authenticated
         request_user = basicauth_get_user_by_emailaddr(request);
-        if request_user == None:  return self.responder.error(request, 405, "Incorrect user/password combination")
+        if not request_user:
+            logevent(request,'Note.create POST',401, jv3.utils.decode_emailaddr(request))
+            return self.responder.error(request, 401, "Incorrect user/password combination")
 
         form.data['owner'] = request_user;                 ## clobber this whole-sale from authenticating user
         matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)
@@ -120,6 +131,10 @@ class NoteCollection(Collection):
         data = self.receiver.get_put_data(request)
         form = ResourceForm(data)
         request_user = basicauth_get_user_by_emailaddr(request);
+        if not request_user:
+            logevent(request,'Note.delete',401, jv3.utils.decode_emailaddr(request))
+            return self.responder.error(request, 401, "Incorrect user/password combination")
+        
         matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)
         
         if len(matching_notes) == 0:
@@ -238,7 +253,7 @@ def confirmuser(request):
 def reconsent(request):
     email = request.GET['email']
     newest_registration  = get_most_recent(UserRegistration.objects.filter(email=email))
-    if not newest_registration is None:
+    if not newest_registration == None:
         logevent(request,'reconsent',200,newest_registration)
         newest_registration.couhes = True
         newest_registration.when = current_time_decimal() ## update time 
@@ -310,8 +325,9 @@ class ActivityLogCollection(Collection):
 
     def read(self,request):
         request_user = basicauth_get_user_by_emailaddr(request);
-        if (not request_user):
-            return self.responder.error(request, 405, ErrorDict({"user":"User username/password incorrect, or unknown user"}))
+        if not request_user:
+            logevent(request,'ActivityLog.read',401,{"requesting user:":jv3.utils.decode_emailaddr(request)})
+            return self.responder.error(request, 401, "Incorrect user/password combination")
             
         user_activity = ActivityLog.objects.filter(owner=request_user)
         if (request.GET['type'] == 'get_max_log_id'):
@@ -321,9 +337,9 @@ class ActivityLogCollection(Collection):
             if most_recent_activity == None: most_recent_activity = 0;
             print "most_recent " + repr(most_recent_activity)
             if most_recent_activity:
-                logevent(request,'readActivityLog',200,repr(most_recent_activity.when))
+                logevent(request,'ActivityLog.read',200,{"data":repr(most_recent_activity.when)})
                 return HttpResponse(JSONEncoder().encode({'value':int(most_recent_activity.when)}), self.responder.mimetype)
-            logevent(request,'readActivityLog',404)
+            logevent(request,'ActivityLog.,read',404,{"data":"no log entries"})
             return self.responder.error(request, 404, ErrorDict({"value":"No activity found"}));
         else:
             ## retrieve the entire activity log            
@@ -335,9 +351,10 @@ class ActivityLogCollection(Collection):
         lets the user post new activity in a giant single array of activity log elements
         """
         request_user = basicauth_get_user_by_emailaddr(request);
-        if (not request_user):
-            logevent(request,'commitActivityLog',405,repr(request))
-            return self.responder.error(request, 405, ErrorDict({"user":"User username/password incorrect, or unknown user"}))
+        if not request_user:
+            logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
+            return self.responder.error(request, 401, "Incorrect user/password combination")
+
         user_activity = ActivityLog.objects.filter(owner=request_user)
         committed = [];
 
@@ -390,4 +407,67 @@ def submit_bug_report(request):
     return response
     
     
+def get_survey(request):
+    # generates a personalized survey based on the contents of survey
+    import jv3.study.survey
+    cookie = request.GET['cookie']
+    registration = get_most_recent(UserRegistration.objects.filter(cookie=cookie))
+
+    # user not found?
+    if (not registration or len(UserRegistration.objects.filter(cookie=cookie)) == 0):
+        print "no such user registration for cookie %s " % repr(cookie)
+        response = render_to_response('/500.html');
+        response.status_code = 500;
+        return response
+    user = authmodels.User.objects.filter(email=registration.email)[0]
+    questions = [];
+
+    # personal survey not found?
+    if not jv3.study.survey.questions_by_user.has_key(user.email):
+        print "no survey for user %s " % repr(user)
+        response = render_to_response('/404.html');
+        response.status_code = 404;
+        return response
     
+    for q in jv3.study.survey.questions_by_user[user.email]:
+        questions.append(q);
+        if q.has_key("qid") and len(jv3.models.SurveyQuestion.objects.filter(user=user,qid=q["qid"])) == 0:
+            ## allocate a placeholder in the database to store our result
+            q_model = jv3.models.SurveyQuestion()
+            q_model.qid = q["qid"]
+            q_model.user = user
+            q_model.response = ""
+            q_model.save()               
+        elif q.has_key("qid"):            
+            for sq in jv3.models.SurveyQuestion.objects.filter(user=user,qid=q["qid"]):
+                q['response'] = sq.response
+        else:
+            ## textual
+            pass
+
+    return HttpResponse(get_template("jv3/surveyform.html").render({}) % {'email':user.email,
+                                                                          'cookie':registration.cookie,
+                                                                          'first_name':registration.first_name,
+                                                                          'last_name':registration.last_name,
+                                                                          'server':settings.SERVER_URL,
+                                                                          'questions': unicode(JSONEncoder().encode(questions)) },"text/html")
+
+def post_survey(request):
+    cookie = request.POST['cookie']
+    registration = get_most_recent(UserRegistration.objects.filter(cookie=cookie))
+    if (not registration):
+        print "no such user registration for cookie %s " % repr(cookie)
+        response = render_to_response('/500.html');
+        response.status_code = 500;
+        return response
+
+    ## save result
+    for q in JSONDecoder().decode(request.POST['questions']):
+        question_model = jv3.models.SurveyQuestion.objects.filter(qid = q["qid"])
+        assert len(question_model) == 1, "Survey questions matching qid %s %d " % (repr(q["qid"]),len(question_model))
+        question_model[0].response = q["response"]
+        question_model[0].save()
+
+    response = HttpResponse('Successful', 'text/html');
+    response.status_code = 200
+    return response        

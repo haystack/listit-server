@@ -14,6 +14,7 @@ from django_restapi.resource import Resource
 from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, ServerLog
+import jv3.models
 import jv3.study.emails as studytemplates
 import time
 import datetime
@@ -24,8 +25,8 @@ current_time_decimal = lambda : int(time.time()*1000);
 def logevent(request,action,result=None,info=None,changepasswordrequest=None,registration=None):
     event = ServerLog()
     event.action = action
-    event.result = repr(result)
-    event.info = repr(info)
+    ##event.result = repr(result)
+    event.info = repr(result) + "/" + repr(info)
     event.when = int(time.time()*1000);
     event.url = request.get_full_path()
     event.host = request.get_host()
@@ -34,6 +35,7 @@ def logevent(request,action,result=None,info=None,changepasswordrequest=None,reg
     event.changepasswordrequest = changepasswordrequest
     event.registration = registration
     event.save()
+    return event
 
 def gen_cookie(cookiesize=25):
     randchar = lambda : chr(ord('a')+random.randint(0,25))
@@ -104,7 +106,7 @@ def basicauth_get_user_by_emailaddr(request):
     if not request.META.has_key('HTTP_AUTHORIZATION'): return False
     (authmeth, auth) = request.META['HTTP_AUTHORIZATION'].split(' ', 1)
     if authmeth.lower() != 'basic':
-        return False
+        return None
     auth = auth.strip().decode('base64')
     emailaddr, password = auth.split(':', 1)
     from django.contrib.auth.models import User
@@ -114,7 +116,19 @@ def basicauth_get_user_by_emailaddr(request):
             return user;
     except User.DoesNotExist:
         pass
-    return False
+    return None
+
+def decode_emailaddr(request):
+    """
+    If we use this, then we do not have to rely on session authentication 
+    """
+    if not request.META.has_key('HTTP_AUTHORIZATION'): return False
+    (authmeth, auth) = request.META['HTTP_AUTHORIZATION'].split(' ', 1)
+    if authmeth.lower() != 'basic':
+        return False
+    auth = auth.strip().decode('base64')
+    emailaddr, password = auth.split(':', 1)
+    return emailaddr
 
 USERNAME_MAXCHARS = 30
 
@@ -165,3 +179,12 @@ def find_odd_id_consenting_users():
     u = get_consenting_users()
     return [ u for u in u if (u.id % 2 == 1)]
     
+def get_note_by_email_and_jid(email,jid):
+    u = authmodels.User.objects.filter(email=email)
+    if len(u) == 0:
+        print "no such user %s " % email
+        return None
+    n = jv3.models.Note.objects.filter(jid=jid,owner=u[0])
+    if len(n) == 0:
+        return None
+    return n[0]
