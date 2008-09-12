@@ -622,4 +622,48 @@ you missed at the beginning.
 
 - The list.it team
 """),
+
+"p9-1-e" : ("List.it Note to Take, Day Nine Morning", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p9-1-e.html
+
+We'll be rolling out a closing survey soon so that we can
+learn a few more things about your experiences with list.it
+during the study. We'd really appreciate you taking the time
+to fill it out -- another chance to make a few bucks!
+
+- The list.it team
+"""),
+
+"p9-1-o" : ("List.it Note to Take, Day Nine Morning", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p9-1-o.html
+
+We'll be rolling out a closing survey soon so that we can
+learn a few more things about your experiences with list.it
+during the study. We'd really appreciate you taking the time
+to fill it out -- another chance to make a few bucks!
+
+- The list.it team
+"""),
+
+"p9-2-e" : ("List.it Note to Take, Day Nine Afternoon", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p9-2-e.html
+
+Don't forget to use list.it to keep track of your own
+notes and thoughts!
+
+- The list.it team
+"""),
+
+"p9-2-o" : ("List.it Note to Take, Day Nine Afternoon", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p9-2-o.html
+
+Don't forget to use list.it to keep track of your own
+notes and thoughts!
+
+- The list.it team
+"""),
 }
