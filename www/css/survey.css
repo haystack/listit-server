@@ -1,24 +1,31 @@
 
 .question .question_response {
-  padding-left: 5px;
 }
 
 .question {
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.note {
+  font-style:italic;
+  text-align:center;
 }
 
 .question_response textarea {
   width:100%;
+  display:block;
+}
+
+div.block {
+ display:block;
 }
 
 .question_response input {
-  width:150px;
+  width:200px;
 }
-
 .question_response span {
   padding-left:8px;
 }
-
 textarea {
   color:white;
   background:#000000;
@@ -27,6 +34,7 @@ input {
   color:white;
   background:#000000;
 }
+
 .question_response input:disabled {
   color:#909090;
 }

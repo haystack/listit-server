@@ -1,5 +1,5 @@
 <html>
-<head><title>list.it - welcome!</title>
+<head><title>list.it - the light at the end of the notebook</title>
     <link rel="stylesheet" type="text/css" href="../../css/listit.css" />
     <link rel="stylesheet" type="text/css" href="../../css/soon.css" />
     <link rel="stylesheet" type="text/css" href="../../css/survey.css" />
@@ -32,10 +32,12 @@ var populateSurvey = function(parent) {
 	    result += question.text;
 	} else {
 	    // a real question: must be of type [freeresponse, multiplechoice, checkbox]
-	    result += "<div id=\""+question.qid+"_text\" class=\"question_text\">"+question.text+"</div>";
-	    result += "<div id=\""+question.qid+"_response\" class=\"question_response\">";
+	    var sep_el = 'div';
+	    if (question.type == 'textfield') sep_el = 'span';
+	    result += "<"+sep_el+" id=\""+question.qid+"_text\" class=\"question_text\">"+question.text+"</"+sep_el+">";
+	    result += "<"+sep_el+" id=\""+question.qid+"_response\" class=\"question_response\">";
 	    if (question.type == 'textfield') {
-		result += "<input id=\""+ question.qid +"_input\" type=\"text\" value=\""+(question.response !== undefined ? question.response:"") + "></input>";
+		result += "<input id=\""+ question.qid +"_input\" type=\"text\" value=\""+(question.response !== undefined ? question.response:"") + "\"></input>";
 		question.getValue = function(question) { return function() { return $("#"+question.qid+"_input").val(); } }(question);	    
 	    } else if (question.type == 'textarea') {
 		result += "<textarea id=\""+ question.qid + "_input\">" + (question.response !== undefined ? question.response : "") + "</textarea>";
@@ -174,7 +176,7 @@ var populateSurvey = function(parent) {
 		    };
 		}(ischecked_fns,other_fn);
 	    }
-	    result += "</div>"; // question response
+	    result += "</"+sep_el+">"; // question response
 	}
 	result += "</div>"; // question
     }
@@ -274,7 +276,7 @@ var setMessage = function(s) {
 	  </td>
 	  </tr>
 	  <div id="toolbar">
-              <span id="message" style="color:#ff0000"></span> <span class="savebutton">Click here periodially ->  <button id="submit_button">Save survey</span></div>
+              <span id="message" style="color:#ff0000"></span> <span class="savebutton">Click here often ->  <button id="submit_button">Save survey</span></div>
           </div>
       </table>
     </center>
