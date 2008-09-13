@@ -666,4 +666,81 @@ notes and thoughts!
 
 - The list.it team
 """),
+
+"p10-1-e" : ("List.it Note to Take, Day Ten Morning", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p10-1-e.html
+
+If you began the list.it study on the first day, today should
+mark your last day of note prompts. If you started later than
+the first day, we'll be in contact with you so you can complete
+the rest. :) 
+
+Try using list.it to capture some types of information you
+haven't before today! What do you do with your shopping lists?
+Useful snippits of e-mails? Temporary scratch space?
+
+- The list.it team
+"""),
+
+"p10-1-o" : ("List.it Note to Take, Day Ten Morning", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p10-1-o.html
+
+If you began the list.it study on the first day, today should
+mark your last day of note prompts. If you started later than
+the first day, we'll be in contact with you so you can complete
+the rest. :) 
+
+Try using list.it to capture some types of information you
+haven't before today! What do you do with your shopping lists?
+Useful snippits of e-mails? Temporary scratch space?
+
+- The list.it team
+"""),
+
+"p10-2-e" : ("List.it Note to Take, Day Ten Afternoon", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p10-2-e.html
+
+Keep your eyes open for the list.it closing survey! You'll have
+a day or to to respond to that one.
+
+- The list.it team
+"""),
+
+"p10-2-o" : ("List.it Note to Take, Day Ten Afternoon", """
+Here's the next note we'd like you to take:
+https://listit.nrcc.noklab.com/study/p10-2-o.html
+
+Keep your eyes open for the list.it closing survey! You'll have
+a day or to to respond to that one.
+
+- The list.it team
+"""),
+
+"sync-the-damn-notes" : ("ACTION REQUIRED: Need your list.it notes to get you $$$", """
+Dear faithful list.it user,
+We've noticed that you never synchronized your notes with our server,
+even though you signed up for our study and indicated that we could
+use your notes as part of our study sample. In order to pay you for
+your highly appreciated services, we need to get a hold of your notes.
+
+The easiest way to do this is to just set up list.it to synchronize with
+our server:
+1. Open your List.it by going View --> Sidebar --> list.it
+2. Click on "Options"
+3. Make sure "Enable synchronization" and "Save login information" are enabled.
+4. Fill in the following:
+   email: (your email address you used for registering with listit)
+   password: (your password you used for registering)
+   and leave the server as it is.
+5. Hit "Accept"
+
+If you'd rather not send your notes to the server, we can also provide instructions
+for how you can e-mail your notes directly to us.
+
+Thanks,
+The list.it team
+"""),
 }
