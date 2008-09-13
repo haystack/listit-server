@@ -2,6 +2,7 @@
 <head><title>list.it - welcome!</title>
     <link rel="stylesheet" type="text/css" href="../../css/listit.css" />
     <link rel="stylesheet" type="text/css" href="../../css/soon.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/survey.css" />
     <script src="http://yui.yahooapis.com/2.5.2/build/yahoo/yahoo-min.js"></script>
     <script src="http://yui.yahooapis.com/2.5.2/build/json/json-min.js"></script>
     <script type="text/javascript" src="../../js/jquery.js"></script>
@@ -33,7 +34,6 @@ var populateSurvey = function(parent) {
 	    // a real question: must be of type [freeresponse, multiplechoice, checkbox]
 	    result += "<div id=\""+question.qid+"_text\" class=\"question_text\">"+question.text+"</div>";
 	    result += "<div id=\""+question.qid+"_response\" class=\"question_response\">";
-	    console.log('question type is ' + question.type);
 	    if (question.type == 'textfield') {
 		result += "<input id=\""+ question.qid +"_input\" type=\"text\" value=\""+(question.response !== undefined ? question.response:"") + "></input>";
 		question.getValue = function(question) { return function() { return $("#"+question.qid+"_input").val(); } }(question);	    
@@ -57,9 +57,9 @@ var populateSurvey = function(parent) {
 		    // add an "other" field
 		    var other_response =
 			(responses && responses.length == 1 && question.values.indexOf(responses[0]) < 0) ? responses[0] : "";
-		    console.log("other_response " + other_response);
 		    var other_id = group + "_val_" + question.values.length;
 		    var defaultchecked = other_response.length > 0 ? "checked=\"true\"" : "";
+		    result +="<br>";
 		    result += "<span class=\"radio\"><input type=\"radio\" name=\""+group+"\" id=\""+other_id+"\" value=\"Other\" "+defaultchecked+"> Other </input>";
 		    var other_text_id = question.qid +"_other_input"
 		    result += "<input id=\""+other_text_id +"\" type=\"text\" value=\""+other_response+"\"></input>";
@@ -85,7 +85,6 @@ var populateSurvey = function(parent) {
 		    }(question,other_id,other_text_id));
 		    other_fn = function(other_id,other_text_id) {
 			return function() {
-			    console.log("other_fn");
 			    if ($("#"+other_id)[0].checked) {
 				return $("#"+other_text_id).val();
 			    }
@@ -127,7 +126,8 @@ var populateSurvey = function(parent) {
 			responses && find_non_elements(responses,question.values).length > 0 ? find_non_elements(responses,question.values)[0] : "";
 		    var other_id = group_name + "_val_" + question.values.length;
 		    var defaultchecked = other_response ? "checked=\"true\"" : "";
-			 
+
+		    result +="<br>"
 		    result += "<span class=\"checkbox\"><input type=\"checkbox\" name=\""+other_id+"\" id=\""+other_id+"\" value=\"Other\" "+defaultchecked+"> Other </input>";
 		    var other_text_id = question.qid +"_other_input"
 		    result += "<input id=\""+other_text_id +"\" type=\"text\" value=\""+other_response+"\"></input>";
@@ -145,7 +145,7 @@ var populateSurvey = function(parent) {
 			    for (var q_i = 0; q_i < question.values.length; q_i++) {
 				var id =  group_name + "_" + q_i;
 				$("#"+id).click(function() {
-				    $("#"+other_text_id).attr("disabled",true);
+				    cfn();
 				});
 			    };
 			    $("#"+other_id).click(cfn);
@@ -194,14 +194,7 @@ function find_non_elements(lst, target) {
     return results;
 }
 
-var resetfloat = function() {
-    $("#toolbar").css("left", ($(window).width()-$("#toolbar").width())/2);
-    $("#toolbar").css("right", "auto");
-};
 
-$(document).resize(resetfloat);
-$(window).resize(resetfloat);
-$(document).ready(resetfloat);
 $(document).ready(resetbackground);
 $(document).ready(function() {
     SURVEY_ELEMENTS = populateSurvey($("#questions"));
@@ -219,7 +212,8 @@ $(document).ready(function() {
 		      url: SERVER_URL +"/jv3/post_survey/",
 		      data:vals,
 		      success: function(data,success) {
-			  setMessage('Your survey has been successfully saved'); 
+			  setMessage('Your survey has been saved.');
+			  setTimeout(function() { setMessage('');  },10000);
 		      },
 		      error: function(data,status) {
 			  setMessage(data.responseText);		      
@@ -228,10 +222,12 @@ $(document).ready(function() {
     });
 });
 var setMessage = function(s) {
-    $("#message").hide();
-    $("#message").html(s);
-    $("#message").show();
-    if (s.length > 0) $("#message").fadeIn();    
+    if (!s) { $("#message").fadeOut("slow") ; }
+    else {
+	$("#message").hide();
+	$("#message").html(s);
+	if (s.length > 0) $("#message").fadeIn("fast");    
+    }
 }
 
 </script>
@@ -270,17 +266,15 @@ var setMessage = function(s) {
 	  	  
 	  <P>Please fill out the following survey.  You can save it using the save button below and resume it later at any time.</p
 
-          <p>Your name: %(first_name)s %(last_name)s</p>
-          <p>Your email: %(email)s </p>
-
-          <div id="questions">
-          
+          <p>Your name: %(first_name)s %(last_name)s<br>
+             Your email: %(email)s </p>
+    
+          <div id="questions">          
           </div>
 	  </td>
 	  </tr>
-	  <div style="position:fixed;bottom:10px;top:auto;height:40px;width:200px;right:auto;text-align:center;background:#202020;opacity:0.8;padding:3px" id="toolbar">
-              <div id="message" style="color:#ff0000"></div>
-              <button id="submit_button">Save survey</button>
+	  <div id="toolbar">
+              <span id="message" style="color:#ff0000"></span> <span class="savebutton">Click here periodially ->  <button id="submit_button">Save survey</span></div>
           </div>
       </table>
     </center>
