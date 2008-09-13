@@ -668,53 +668,95 @@ notes and thoughts!
 """),
 
 "p10-1-e" : ("List.it Note to Take, Day Ten Morning", """
+
+Dear %(first_name)s,
+
 Here's the next note we'd like you to take:
+
 https://listit.nrcc.noklab.com/study/p10-1-e.html
 
-If you began the list.it study on the first day, today should
-mark your last day of note prompts. If you started later than
-the first day, we'll be in contact with you so you can complete
-the rest. :) 
+If you began our study on the first day, today is the last day of
+us prompting you to write specific things down. You've made it
+to the end!  Thanks for hanging in there. 
 
-Try using list.it to capture some types of information you
-haven't before today! What do you do with your shopping lists?
-Useful snippits of e-mails? Temporary scratch space?
+For those who joined us after Sept 3, we'll continue to send
+exercises until you have a full set.  Please don't go away yet!
 
-- The list.it team
+Even for those of you for whom the study is winding to a close,
+please keep trying to use list.it for your own purposes.  For example,
+try writing something down that you've been keeping in the back of your
+mind, or some information you've needed to keep track of but didn't
+have a good place for. What do you do with your shopping lists?
+Cool/inspirational quotes? Web comics?  Pick up lines?
+Yoga exercises? Large hadron collider operating instructions?
+
+Thanks and have a good Saturday morning,
+
+- The list.it-ers
 """),
 
 "p10-1-o" : ("List.it Note to Take, Day Ten Morning", """
+
+Dear %(first_name)s,
+
 Here's the next note we'd like you to take:
+
 https://listit.nrcc.noklab.com/study/p10-1-o.html
 
-If you began the list.it study on the first day, today should
-mark your last day of note prompts. If you started later than
-the first day, we'll be in contact with you so you can complete
-the rest. :) 
+If you began our study on the first day, today is the last day of
+us prompting you to write specific things down. You've made it
+to the end!  Thanks for hanging in there. 
 
-Try using list.it to capture some types of information you
-haven't before today! What do you do with your shopping lists?
-Useful snippits of e-mails? Temporary scratch space?
+For those who joined us after Sept 3, we'll continue to send
+exercises until you have a full set.  Please don't go away yet.
 
-- The list.it team
+Even for those of you for whom the study is winding to a close,
+please keep trying to use list.it for your own purposes.  For example,
+try writing something down that you've been keeping in the back of your
+mind, or some information you've needed to keep track of but didn't
+have a good place for. What do you do with your shopping lists?
+Cool/inspirational quotes? Web comics?  Pick up lines?
+Yoga exercises? Large hadron collider operating instructions?
+
+Thanks and have a good Saturday morning,
+
+- The list.it-ers
 """),
 
 "p10-2-e" : ("List.it Note to Take, Day Ten Afternoon", """
+
+Dear %(first_name)s,
+
 Here's the next note we'd like you to take:
+
 https://listit.nrcc.noklab.com/study/p10-2-e.html
 
-Keep your eyes open for the list.it closing survey! You'll have
-a day or to to respond to that one.
+And this marks the last note-taking probe for those of you who joined
+us on or before Sept 3.  For those of you wrapping up, final thing we
+need from you now is the list.it exit survey-- which we will be
+distributing to you shortly. Please keep your eyes peeled for this
+one; we need it completed in a hurry.
+
+Thanks!
 
 - The list.it team
 """),
 
 "p10-2-o" : ("List.it Note to Take, Day Ten Afternoon", """
+
+Dear %(first_name)s,
+
 Here's the next note we'd like you to take:
+
 https://listit.nrcc.noklab.com/study/p10-2-o.html
 
-Keep your eyes open for the list.it closing survey! You'll have
-a day or to to respond to that one.
+And this marks the last note-taking probe for those of you who joined
+us on or before Sept 3.  For those of you wrapping up, final thing we
+need from you now is the list.it exit survey-- which we will be
+distributing to you shortly. Please keep your eyes peeled for this
+one; we need it completed in a hurry.
+
+Thanks!
 
 - The list.it team
 """),
