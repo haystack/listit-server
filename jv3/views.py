@@ -405,24 +405,31 @@ def submit_bug_report(request):
     response = HttpResponse('Please provide your username and a description', 'text/html');
     response.status_code = 400
     return response
-    
+
+def get_user_and_registration_from_cookie(cookie,request):
+    registration = get_most_recent(UserRegistration.objects.filter(cookie=cookie))
+    # user not found?
+    if (not registration or len(UserRegistration.objects.filter(cookie=cookie)) == 0):
+        return None
+    if len(authmodels.User.objects.filter(email=registration.email)) == 0:
+        return None
+    return (authmodels.User.objects.filter(email=registration.email)[0], registration)
     
 def get_survey(request):
     # generates a personalized survey based on the contents of survey
     import jv3.study.survey
     cookie = request.GET['cookie']
-    registration = get_most_recent(UserRegistration.objects.filter(cookie=cookie))
-
-    # user not found?
-    if (not registration or len(UserRegistration.objects.filter(cookie=cookie)) == 0):
-        print "no such user registration for cookie %s " % repr(cookie)
+    (user,registration) = get_user_and_registration_from_cookie( cookie, request )
+    
+    if not user:
+        print "no such user from cookie %s " % request.GET['cookie']
         response = render_to_response('/500.html');
         response.status_code = 500;
         return response
-    user = authmodels.User.objects.filter(email=registration.email)[0]
+    
     questions = [];
-
-    # personal survey not found?
+    
+    # get-survey : personal survey not found?
     if not jv3.study.survey.questions_by_user.has_key(user.email):
         print "no survey for user %s " % repr(user)
         response = render_to_response('/404.html');
@@ -446,24 +453,24 @@ def get_survey(request):
             pass
 
     return HttpResponse(get_template("jv3/surveyform.html").render({}) % {'email':user.email,
-                                                                          'cookie':registration.cookie,
                                                                           'first_name':registration.first_name,
                                                                           'last_name':registration.last_name,
                                                                           'server':settings.SERVER_URL,
+                                                                          'cookie': cookie,
                                                                           'questions': unicode(JSONEncoder().encode(questions)) },"text/html")
 
 def post_survey(request):
-    cookie = request.POST['cookie']
-    registration = get_most_recent(UserRegistration.objects.filter(cookie=cookie))
-    if (not registration):
+    (user,registration) = get_user_and_registration_from_cookie(request.POST['cookie'],request)
+    
+    if (not user):
         print "no such user registration for cookie %s " % repr(cookie)
         response = render_to_response('/500.html');
         response.status_code = 500;
         return response
-
+    
     ## save result
     for q in JSONDecoder().decode(request.POST['questions']):
-        question_model = jv3.models.SurveyQuestion.objects.filter(qid = q["qid"])
+        question_model = jv3.models.SurveyQuestion.objects.filter(user=user,qid=q["qid"])
         assert len(question_model) == 1, "Survey questions matching qid %s %d " % (repr(q["qid"]),len(question_model))
         question_model[0].response = q["response"]
         question_model[0].save()

@@ -2,12 +2,13 @@
 import jv3.utils
 import jv3.study.exporter
 import django.contrib.auth.models as authmodels
+import re
+import base64
 
 TXT = "textfield"
 FR = "textarea"
 MC = "radio"
 MS = "checkbox"
-
 
 def show_probe_note(email,jid):
     n = jv3.utils.get_note_by_email_and_jid(email,jid)
@@ -40,7 +41,7 @@ common_questions = [
     make_question("b2", "Your occupation", FR),
     make_question("b3", "Approximately how much time per day do you spend at a computer?", MC, ["< 1hr", "1-5 hrs", "5-10hrs", "> 10hrs"]),
     make_question("b4", "Approximately how many computers do you use during the course of your typical day?", MC, ["0", "1", "2", "3", "4+"]),
-    make_question("b5", "Are you a touch typist??", MC, ["Yes", "No"]),
+    make_question("b6", "Are you fast a typist are you (compared to others) ?", MC, ["1 (Not very)", "2", "3", "4", "5", "6", "7 (Very)"]),
     make_header("Section 2. About your personal information practice"),
     make_text("What are the 2 or 3 most important tools you use to manage your personal information?  This includes items like to-do lists, shopping lists, notes, and e-mail."),
     make_question("pip1", "Paper (i.e., sticky notes, sketchbooks, calendars:  ", TXT),
@@ -67,12 +68,14 @@ def generate_non_probe_note_questions(n) :
     In the remainder of this section, we are going to ask you some specific questions about the notes you took with list.it during the study.
     <p>
     You wrote the following note:
-    <div class=\"note\">%(note)s</div>
+    <div class=\"note\" id=\"%(note_div_id)s\">%(note)s</div>
     </p>
+    <!--<script type=\"text/javascript\">$(\"#%(note_div_id)s\").html(Wiky.toHtml(plumutil.Base64.decode(\"%(note)s\")));</script>-->
     """
-    make_qid = lambda note,qnum: "probe_%d_%d" % (n.jid,qnum)    
+    make_qid = lambda note,qnum: "probe_%d_%d" % (n.jid,qnum)
+    print probe_header % {"note":base64.b64encode(n.contents), "note_div_id" : "probe_note_text_%d"%n. jid}
     qs = [
-        make_text(probe_header % {"note":n.contents}),
+        make_text(probe_header % {"note":re.escape(n.contents), "note_div_id" : "probe_note_text_%d"%n.jid}),
         make_question(make_qid(n,0), "What is this note? (e.g., a to-do, reminder, information for later rerference, draft e-mail, etc?)", FR),
         make_question(make_qid(n,1), "What does this note mean?", FR),
         make_question(make_qid(n,2), "Why did you write this note, i.e., what is its purpose?", FR),

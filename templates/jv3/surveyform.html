@@ -8,7 +8,8 @@
     <script type="text/javascript" src="../../js/jquery.js"></script>
     <script type="text/javascript" src="../../js/jquery.dimensions.js"></script>
     <script type="text/javascript" src="../../js/jquery.accordion.js"></script>
-    <script type="text/javascript" src="../../js/plum-util-ns.js"></script> 
+    <script type="text/javascript" src="../../js/plum-util-ns.js"></script>
+    <script type="text/javascript" src="../../js/wiky.js"></script> 
 
 <script type="text/javascript">
 BASE_URL = "/listit/jv3";
@@ -16,10 +17,6 @@ var COOKIE = "%(cookie)s";  // replaced via DJANGO template
 var SERVER_URL = "%(server)s";
 var SURVEY_ELEMENTS = %(questions)s;
 
-var resetbackground = function() {
-    $('#back').attr('width',$(window).width());
-}
- 
 var populateSurvey = function(parent) {
     var result = "";
     var handlers = [];
@@ -32,12 +29,13 @@ var populateSurvey = function(parent) {
 	    result += question.text;
 	} else {
 	    // a real question: must be of type [freeresponse, multiplechoice, checkbox]
-	    var sep_el = 'div';
-	    if (question.type == 'textfield') sep_el = 'span';
-	    result += "<"+sep_el+" id=\""+question.qid+"_text\" class=\"question_text\">"+question.text+"</"+sep_el+">";
-	    result += "<"+sep_el+" id=\""+question.qid+"_response\" class=\"question_response\">";
+	    var flowstyle = 'blockinline';
+	    if (question.type == 'textarea') { flowstyle = "block"; }
+	    
+	    result += "<div id=\""+question.qid+"_text\" class=\"question_text " + flowstyle + "\">"+question.text+"</div>";
+	    result += "<div id=\""+question.qid+"_response\" class=\"question_response "+flowstyle+"\">";
 	    if (question.type == 'textfield') {
-		result += "<input id=\""+ question.qid +"_input\" type=\"text\" value=\""+(question.response !== undefined ? question.response:"") + "\"></input>";
+		result += "<input id=\""+ question.qid +"_input\" type=\"text\" class=\"textfield\" value=\""+(question.response !== undefined ? question.response:"") + "\"></input>";
 		question.getValue = function(question) { return function() { return $("#"+question.qid+"_input").val(); } }(question);	    
 	    } else if (question.type == 'textarea') {
 		result += "<textarea id=\""+ question.qid + "_input\">" + (question.response !== undefined ? question.response : "") + "</textarea>";
@@ -52,7 +50,7 @@ var populateSurvey = function(parent) {
 		    var val = question.values[vi];
 		    var id =  group + "_val_" + vi;
 		    var defaultchecked = responses.indexOf(val) >= 0 ? "checked=\"true\"" : "";
-		    result += "<span class=\"radio\"><input type=\"radio\" name=\""+group+"\" id=\""+id+"\" value=\""+val+"\""+defaultchecked+">"+val+"</input></span>"
+		    result += "<span class=\"choice\"><input type=\"radio\" name=\""+group+"\" id=\""+id+"\" value=\""+val+"\""+defaultchecked+">"+val+"</input></span>"
 		    ischecked_fns.push(function(id,val) { return function() { if ($("#"+id)[0].checked) return val; } }(id,val) );
 		}
 		if (question.other) {
@@ -61,8 +59,7 @@ var populateSurvey = function(parent) {
 			(responses && responses.length == 1 && question.values.indexOf(responses[0]) < 0) ? responses[0] : "";
 		    var other_id = group + "_val_" + question.values.length;
 		    var defaultchecked = other_response.length > 0 ? "checked=\"true\"" : "";
-		    result +="<br>";
-		    result += "<span class=\"radio\"><input type=\"radio\" name=\""+group+"\" id=\""+other_id+"\" value=\"Other\" "+defaultchecked+"> Other </input>";
+		    result += "<span class=\"choice\"><input type=\"radio\" name=\""+group+"\" id=\""+other_id+"\" value=\"Other\" "+defaultchecked+"> Other </input>";
 		    var other_text_id = question.qid +"_other_input"
 		    result += "<input id=\""+other_text_id +"\" type=\"text\" value=\""+other_response+"\"></input>";
 		    result +="</span>"		    
@@ -98,7 +95,7 @@ var populateSurvey = function(parent) {
 			// first check if other checked
 			if (other_fn && other_fn())
 			    return other_fn();
-			// otherwise, it's one of the choices
+ 			// otherwise, it's one of the choices
 			var results = [];
 			for (var vi = 0; vi < val_fns.length; vi++) {
 			    if (val_fns[vi]() !== undefined) {
@@ -118,7 +115,7 @@ var populateSurvey = function(parent) {
 		    var val = question.values[vi];
 		    var id =  group_name + "_" + vi;
 		    var defaultchecked = responses.indexOf(val) >= 0 ? "checked=\"true\"" : "";
-		    result += "<span class=\"checkbox\"><input type=\"checkbox\" name=\""+id+"\" id=\""+id+"\" value=\""+val+"\""+defaultchecked+">"+val+"</span>"
+		    result += "<span class=\"choice\"><input type=\"checkbox\" name=\""+id+"\" id=\""+id+"\" value=\""+val+"\""+defaultchecked+">"+val+"</span>"
 		    ischecked_fns.push(function(id,val) { return function() { if ($("#"+id)[0].checked) return val; } }(id,val) ); 
 		}
 
@@ -129,8 +126,7 @@ var populateSurvey = function(parent) {
 		    var other_id = group_name + "_val_" + question.values.length;
 		    var defaultchecked = other_response ? "checked=\"true\"" : "";
 
-		    result +="<br>"
-		    result += "<span class=\"checkbox\"><input type=\"checkbox\" name=\""+other_id+"\" id=\""+other_id+"\" value=\"Other\" "+defaultchecked+"> Other </input>";
+		    result += "<span class=\"choice\"><input type=\"checkbox\" name=\""+other_id+"\" id=\""+other_id+"\" value=\"Other\" "+defaultchecked+"> Other </input>";
 		    var other_text_id = question.qid +"_other_input"
 		    result += "<input id=\""+other_text_id +"\" type=\"text\" value=\""+other_response+"\"></input>";
 		    result +="</span>"
@@ -176,15 +172,16 @@ var populateSurvey = function(parent) {
 		    };
 		}(ischecked_fns,other_fn);
 	    }
-	    result += "</"+sep_el+">"; // question response
+	    result += "</div>"; // question response
 	}
 	result += "</div>"; // question
     }
+    //console.log("result is " + result);
     parent.html(result);
     // run the handlers, which register event callbacks
     for (var hi = 0; hi < handlers.length; hi++) { handlers[hi](); } 
     return SURVEY_ELEMENTS;
-}
+};
 
 function find_non_elements(lst, target) {
     // returns the elements of lst that is not in target
@@ -194,10 +191,8 @@ function find_non_elements(lst, target) {
 	if (target.indexOf(el) < 0) results.push(el);
     }
     return results;
-}
+};
 
-
-$(document).ready(resetbackground);
 $(document).ready(function() {
     SURVEY_ELEMENTS = populateSurvey($("#questions"));
     
@@ -223,6 +218,7 @@ $(document).ready(function() {
 		    });
     });
 });
+
 var setMessage = function(s) {
     if (!s) { $("#message").fadeOut("slow") ; }
     else {
@@ -230,36 +226,12 @@ var setMessage = function(s) {
 	$("#message").html(s);
 	if (s.length > 0) $("#message").fadeIn("fast");    
     }
-}
+};
 
 </script>
 </head>
 
   <body style="margin: 0;">
-    <div id="topbar" class="topbar">
-      <center>
-        <table width="720" class="normal" cellpadding="0" cellspacing="0">
-          <tr valign="bottom">
-
-            <td style="padding-top:0px; font-weight: bold; margin: 5px">
-	      <div class="topbartitle"><span style="font-size: 72px;">list<span style="font-size:36px;"><span style="color:#fca11f">.</span>it</span></span></div>
-            </td>
-
-	    <td align="right">
-	      <a href="http://haystack.csail.mit.edu">Haystack Home</a>
-	      | list.it
-	      | <a href="http://plum.csail.mit.edu/">jourknow</a> 
-	      | <a href="http://plum.csail.mit.edu/">PLUM</a> 
-	      | <a href="http://simile.mit.edu/exhibit/">Exhibit</a> 
-	      | <a href="http://relo.csail.mit.edu/">Relo</a> 
-              | <a href="http://groups.csail.mit.edu/haystack/">haystack</a> 
-
-            </td>
-          </tr>
-        </table>
-    </center>
-    </div>
-   <img id="back" src="../../imgs/postits-sm.jpg" style="z-index:-1; position:absolute; left:0px; top:1in; right:0px; bottom:0px;" alt="post-its"/>
     <center>
     <table width="700px" cellpadding="5px" cellspacing="0" border="0" id="main">
 	<tr valign="top">

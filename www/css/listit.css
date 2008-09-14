@@ -75,5 +75,8 @@ img.logo { width: 40px; height: 40px; margin: 0 4px 10px 0;}
 
 #msg { text-align: center; margin: 6px; }
 #downloadlink { text-align: center; }
-input { width:140px; color:#3b3b3b; background:#ffffff; border-style: solid; border-width: 1px;; }
+input { color:#3b3b3b; background:#ffffff; border-style: solid; border-width: 1px; }
+.force140 { width:140px; }
+
 #terms { border-style:solid; border-width:1px; border-color:white; padding:10px; font-size:8pt;}
+

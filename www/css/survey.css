@@ -1,39 +1,21 @@
-
-.question .question_response {
+body {
+  background-image: url(../../imgs/postits-sm.jpg);
+  background-repeat: repeat-y;
+  color: white;
 }
 
-.question {
-  margin-bottom: 15px;
-}
 
-.note {
-  font-style:italic;
-  text-align:center;
-}
+textarea {  color:white;  background:#000000;}
+input {  color:white;  background:#000000;}
 
-.question_response textarea {
-  width:100%;
-  display:block;
-}
+.blockinline { display:inline-block; }
+.block       { display:block; }
 
-div.block {
- display:block;
-}
-
-.question_response input {
-  width:200px;
-}
-.question_response span {
-  padding-left:8px;
-}
-textarea {
-  color:white;
-  background:#000000;
-}
-input {
-  color:white;
-  background:#000000;
-}
+.question {  margin-bottom: 15px;  }
+.question_response .textfield {  width:200px; }
+.question_response .choice {  padding-left:5px; }
+.question_response textarea { width:100%;  }
+.note { width: 300px; text-align:center; border: solid; border-width: 1px; padding:20px;}
 
 .question_response input:disabled {
   color:#909090;
@@ -64,3 +46,4 @@ input {
    float:left;
    margin-left:20px;
 }
+
