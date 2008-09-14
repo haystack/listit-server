@@ -90,16 +90,16 @@ def generate_type_question(notes) :
         <h4>Categorize your notes</h4>
         <P> Choose among the following categories (or write in your own) that best describe the type of each of the notes you took below: </p>
         <DL>
-        <DT>Todo</DT>
+        <DT>To-do</DT>
         <DD>A reminder for something you have to to do</DD>
         <DT>Meeting</DT>
         <DD>Meeting notes</DD>
         <DT>Contact</DT>
         <DD>Personal contact information, such as someone's email address, phone number</DD>
-        <DT>Howto</DT>
+        <DT>How-to</DT>
         <DD>Instructions on how to do something written for yourself or someone else</DD>
-        <DT>Bkmark</DT>
-        <DD>A web bookmark , or file/directory path or reference to some document or resource</DD>
+        <DT>Bookmark</DT>
+        <DD>A web bookmark, or file/directory path or reference to some document or resource</DD>
         <DT>Wishlist</DT>
         <DD>One or a list of things you want (to see, do, hear, have, experience) \"some day\"</DD>
         <DT>Login</DT>
@@ -107,7 +107,7 @@ def generate_type_question(notes) :
         </DL>        
         """)
     ]
-    qs += [ make_question(make_qid(n), note_qtext(n), MS, ["todo", "meeting", "contact", "howto", "draft", "bkmark", "wishlist", "login"], choice_other=True) for n in notes ]    
+    qs += [ make_question(make_qid(n), note_qtext(n), MS, ["to-do", "meeting", "contact", "how-to", "draft", "bookmark", "wishlist", "login"], choice_other=True) for n in notes ]    
     return qs
 
 def generate_role_question(notes) :
@@ -123,7 +123,7 @@ def generate_role_question(notes) :
         <DT>Temporary Storage</DT>
         <DD>I needed a place to hold onto the information for just a moment</DD>
         <DT>Cognitive Support: I was brainstorming or thinking through something 'on paper'</DT>
-        <DD>Reminding: I wanted this note to remind me to do something later</DD>
+        <DT>Reminding: I wanted this note to remind me to do something later</DT>
         <DT>Unusual Information:</DT>
         <DD>I couldn't fit this into any other applications I have</DD>  """)
     ]
