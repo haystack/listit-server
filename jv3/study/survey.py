@@ -68,14 +68,13 @@ def generate_non_probe_note_questions(n) :
     In the remainder of this section, we are going to ask you some specific questions about the notes you took with list.it during the study.
     <p>
     You wrote the following note:
-    <div class=\"note\" id=\"%(note_div_id)s\">%(note)s</div>
+    <div class=\"note\" id=\"%(note_div_id)s\"></div>
     </p>
-    <!--<script type=\"text/javascript\">$(\"#%(note_div_id)s\").html(Wiky.toHtml(plumutil.Base64.decode(\"%(note)s\")));</script>-->
+    <script type=\"text/javascript\">$(\"#%(note_div_id)s\").html(toWiky(plumutil.Base64.decode(\"%(note)s\")));</script>
     """
     make_qid = lambda note,qnum: "probe_%d_%d" % (n.jid,qnum)
-    print probe_header % {"note":base64.b64encode(n.contents), "note_div_id" : "probe_note_text_%d"%n. jid}
     qs = [
-        make_text(probe_header % {"note":re.escape(n.contents), "note_div_id" : "probe_note_text_%d"%n.jid}),
+        make_text(probe_header % {"note":base64.b64encode(n.contents), "note_div_id" : "probe_note_text_%d"%n.jid}),
         make_question(make_qid(n,0), "What is this note? (e.g., a to-do, reminder, information for later rerference, draft e-mail, etc?)", FR),
         make_question(make_qid(n,1), "What does this note mean?", FR),
         make_question(make_qid(n,2), "Why did you write this note, i.e., what is its purpose?", FR),
