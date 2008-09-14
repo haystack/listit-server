@@ -8,6 +8,7 @@
     <script type="text/javascript" src="../../js/jquery.js"></script>
     <script type="text/javascript" src="../../js/jquery.dimensions.js"></script>
     <script type="text/javascript" src="../../js/jquery.accordion.js"></script>
+    <script type="text/javascript" src="../../js/jquery-ui-personalized-1.6b.min.js"></script>
     <script type="text/javascript" src="../../js/plum-util-ns.js"></script>
     <script type="text/javascript" src="../../js/wiky.js"></script> 
 
@@ -17,6 +18,43 @@ var COOKIE = "%(cookie)s";  // replaced via DJANGO template
 var SERVER_URL = "%(server)s";
 var SURVEY_ELEMENTS = %(questions)s;
 
+var toWiky = function(s) {
+    return Wiky.toHtml(s).replace(/\n/g,'<br>');
+}
+var toWikyNoBR = function(s) {
+    return Wiky.toHtml(s).replace(/\n/g,'');
+}
+var showDivWithContents = function(c){
+    //$("#note_shower").dialog("close");
+    //console.log("setting note shower contents to be " + c);
+    //$("#note_shower").html(c);
+    //$("#note_shower").dialog("open");
+}
+/*$(document).ready(function() {
+    $("#note_shower").dialog({
+	autoOpen: false,
+	buttons: { close: function() { $("#note_shower").dialog("close"); } },
+	overlay: { background: "black", opacity: 0.9 },
+	draggable:true,
+	resizable:false,
+	dialogClass:"note_shower_class"
+    });
+    $("#note_shower").dialog("close");
+});
+*/
+
+var makeInlineNoteShower = function(b64s,divname) {
+    var s = plumutil.Base64.decode(b64s);
+    var wikis = Wiky.toHtml(s);
+    var notetext = wikis.replace(/\n/g,'<br>');
+    var excerpt = s.substring(0,80);
+    var divshower = divname + "_shower";
+    var htmls = "<div class=\"note_excerpt blockinline\">"+excerpt +"...</div>  "+"<div id=\""+divshower+"\" class=\"note_shower\ blockinline\">"+notetext+"</div>";
+    $("#"+divname).html(htmls);
+    $("#"+divname).click(function() {
+	$("#"+divshower).slideToggle();
+    });
+}
 var populateSurvey = function(parent) {
     var result = "";
     var handlers = [];
@@ -29,9 +67,9 @@ var populateSurvey = function(parent) {
 	    result += question.text;
 	} else {
 	    // a real question: must be of type [freeresponse, multiplechoice, checkbox]
-	    var flowstyle = 'blockinline';
-	    if (question.type == 'textarea') { flowstyle = "block"; }
-	    
+	    var flowstyle = (question.type == 'textfield')  ? "blockinline" : 'block';
+	    if (question.type == 'textfield') { flowstyle += " force300w"; }
+
 	    result += "<div id=\""+question.qid+"_text\" class=\"question_text " + flowstyle + "\">"+question.text+"</div>";
 	    result += "<div id=\""+question.qid+"_response\" class=\"question_response "+flowstyle+"\">";
 	    if (question.type == 'textfield') {
@@ -50,7 +88,7 @@ var populateSurvey = function(parent) {
 		    var val = question.values[vi];
 		    var id =  group + "_val_" + vi;
 		    var defaultchecked = responses.indexOf(val) >= 0 ? "checked=\"true\"" : "";
-		    result += "<span class=\"choice\"><input type=\"radio\" name=\""+group+"\" id=\""+id+"\" value=\""+val+"\""+defaultchecked+">"+val+"</input></span>"
+		    result += "<div class=\"choice\"><input type=\"radio\" name=\""+group+"\" id=\""+id+"\" value=\""+val+"\""+defaultchecked+">"+val+"</input></div>"
 		    ischecked_fns.push(function(id,val) { return function() { if ($("#"+id)[0].checked) return val; } }(id,val) );
 		}
 		if (question.other) {
@@ -59,10 +97,10 @@ var populateSurvey = function(parent) {
 			(responses && responses.length == 1 && question.values.indexOf(responses[0]) < 0) ? responses[0] : "";
 		    var other_id = group + "_val_" + question.values.length;
 		    var defaultchecked = other_response.length > 0 ? "checked=\"true\"" : "";
-		    result += "<span class=\"choice\"><input type=\"radio\" name=\""+group+"\" id=\""+other_id+"\" value=\"Other\" "+defaultchecked+"> Other </input>";
+		    result += "<div class=\"choice\"><input type=\"radio\" name=\""+group+"\" id=\""+other_id+"\" value=\"Other\" "+defaultchecked+"> Other </input>";
 		    var other_text_id = question.qid +"_other_input"
-		    result += "<input id=\""+other_text_id +"\" type=\"text\" value=\""+other_response+"\"></input>";
-		    result +="</span>"		    
+		    result += "<input class=\"othertextfield\" id=\""+other_text_id +"\" type=\"text\" value=\""+other_response+"\"></input>";
+		    result +="</div>"		    
 		    handlers.push(function(question,other_id,other_text_id) {
 			/* enables/disables "other" text field */
 			return function() {
@@ -115,7 +153,7 @@ var populateSurvey = function(parent) {
 		    var val = question.values[vi];
 		    var id =  group_name + "_" + vi;
 		    var defaultchecked = responses.indexOf(val) >= 0 ? "checked=\"true\"" : "";
-		    result += "<span class=\"choice\"><input type=\"checkbox\" name=\""+id+"\" id=\""+id+"\" value=\""+val+"\""+defaultchecked+">"+val+"</span>"
+		    result += "<div class=\"choice\"><input type=\"checkbox\" name=\""+id+"\" id=\""+id+"\" value=\""+val+"\""+defaultchecked+">"+val+"</div>"
 		    ischecked_fns.push(function(id,val) { return function() { if ($("#"+id)[0].checked) return val; } }(id,val) ); 
 		}
 
@@ -126,10 +164,10 @@ var populateSurvey = function(parent) {
 		    var other_id = group_name + "_val_" + question.values.length;
 		    var defaultchecked = other_response ? "checked=\"true\"" : "";
 
-		    result += "<span class=\"choice\"><input type=\"checkbox\" name=\""+other_id+"\" id=\""+other_id+"\" value=\"Other\" "+defaultchecked+"> Other </input>";
+		    result += "<div class=\"choice other\"><input type=\"checkbox\" name=\""+other_id+"\" id=\""+other_id+"\" value=\"Other\" "+defaultchecked+"> Other </input>";
 		    var other_text_id = question.qid +"_other_input"
-		    result += "<input id=\""+other_text_id +"\" type=\"text\" value=\""+other_response+"\"></input>";
-		    result +="</span>"
+		    result += "<input class=\"othertextfield\" id=\""+other_text_id +"\" type=\"text\" value=\""+other_response+"\"></input>";
+		    result +="</div>"
 			 
 		    handlers.push(function(group_name,question,other_id,other_text_id) {
 			/* enables/disables "other" text field */
@@ -252,5 +290,6 @@ var setMessage = function(s) {
           </div>
       </table>
     </center>
+    <div id="note_shower"></div>
 </body>
 </html>

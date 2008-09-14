@@ -430,13 +430,13 @@ def get_survey(request):
     questions = [];
     
     # get-survey : personal survey not found?
-    if not jv3.study.survey.questions_by_user.has_key(user.email):
+    if not jv3.study.survey.questions_by_user.has_key(user.id):
         print "no survey for user %s " % repr(user)
         response = render_to_response('/404.html');
         response.status_code = 404;
         return response
     
-    for q in jv3.study.survey.questions_by_user[user.email]:
+    for q in jv3.study.survey.questions_by_user[user.id]:
         questions.append(q);
         if q.has_key("qid") and len(jv3.models.SurveyQuestion.objects.filter(user=user,qid=q["qid"])) == 0:
             ## allocate a placeholder in the database to store our result
