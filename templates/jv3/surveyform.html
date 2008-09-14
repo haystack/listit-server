@@ -44,16 +44,21 @@ var showDivWithContents = function(c){
 */
 
 var makeInlineNoteShower = function(b64s,divname) {
+    var maxidx = 120;
     var s = plumutil.Base64.decode(b64s);
     var wikis = Wiky.toHtml(s);
     var notetext = wikis.replace(/\n/g,'<br>');
-    var excerpt = s.substring(0,80);
+    var excerpt = s.substring(0,maxidx);
     var divshower = divname + "_shower";
-    var htmls = "<div class=\"note_excerpt blockinline\">"+excerpt +"...</div>  "+"<div id=\""+divshower+"\" class=\"note_shower\ blockinline\">"+notetext+"</div>";
+    var expando = (notetext.length > maxidx) ? "<img src=\"../../imgs/expando.gif\" style=\"width:12px;\">" : "";
+    var ellipses = (notetext.length > maxidx) ? "..." : "";
+    var htmls = "<div class=\"note_excerpt blockinline\">"+ excerpt + ellipses + expando + "</div>  "+"<div id=\""+divshower+"\" class=\"note_shower\ blockinline\">"+notetext+"</div>";
     $("#"+divname).html(htmls);
-    $("#"+divname).click(function() {
-	$("#"+divshower).slideToggle();
-    });
+    if (notetext.length > maxidx) {
+	$("#"+divname).click(function() {
+	    $("#"+divshower).slideToggle();
+	});
+    }
 }
 var populateSurvey = function(parent) {
     var result = "";
