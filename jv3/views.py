@@ -477,3 +477,22 @@ def post_survey(request):
     response = HttpResponse('Successful', 'text/html');
     response.status_code = 200
     return response        
+
+def done_survey(request):
+    (user,registration) = get_user_and_registration_from_cookie(request.POST['cookie'],request)
+    if (not user):
+        print "no such user registration for cookie %s " % repr(cookie)
+        response = render_to_response('/500.html');
+        response.status_code = 500;
+        return response
+    
+    done = jv3.models.SurveyDoneDeclaration()
+    done.user = user
+    done.when = current_time_decimal();
+    done.save()
+    
+    response = HttpResponse('Successful', 'text/html');
+    response.status_code = 200
+    return response        
+    
+    

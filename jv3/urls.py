@@ -7,7 +7,7 @@ from jv3.models import SPO, SPOForm, Note, NoteForm, ActivityLog
 from jv3.views import SPOCollection, NoteCollection, ActivityLogCollection, userexists, createuser, confirmuser, submit_bug_report, reconsent
 from jv3.views import changepassword, changepassword_request, changepassword_confirm
 from django_restapi.authentication import HttpBasicAuthentication, HttpDigestAuthentication, djangouser_auth
-from jv3.views import get_survey, post_survey
+from jv3.views import get_survey, post_survey, done_survey
 
 class XMLReceiverSetOwner(XMLReceiver):
     def __init__(self, user):
@@ -132,6 +132,7 @@ urlpatterns = patterns('server.jv3.views.',
 
     (r'^get_survey$', get_survey), ## POST
     (r'^post_survey/$', post_survey), ## POST
+    (r'^done_survey/$', done_survey), ## POST
                        
     #(r'^login$', 'django.contrib.auth.views.login', {'template_name': 'jv3/login.html', 'module_name':'jv3'}),
     #(r'^login$', login_view),                       

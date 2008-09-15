@@ -236,29 +236,55 @@ function find_non_elements(lst, target) {
     return results;
 };
 
-$(document).ready(function() {
-    SURVEY_ELEMENTS = populateSurvey($("#questions"));
-    
-    $("#submit_button").click(function() {
-        var questions = [];
-	for (var q_i = 0; q_i < SURVEY_ELEMENTS.length; q_i++) {
-            var question = SURVEY_ELEMENTS[q_i];
-	    if (question.qid && question.getValue)
-		questions.push({qid: question.qid, response: question.getValue()});
+
+function post_save(success_cont,error_cont ) {
+    if (error_cont == undefined) {
+	error_cont = function(data,status) {
+	    setMessage(data.responseText);
 	}
-        var vals = { cookie: COOKIE, questions: YAHOO.lang.JSON.stringify(questions) };
-	// submit query
-	jQuery.ajax({ type:"POST",
-		      url: SERVER_URL +"/jv3/post_survey/",
-		      data:vals,
-		      success: function(data,success) {
-			  setMessage('Your survey has been saved.');
-			  setTimeout(function() { setMessage('');  },10000);
-		      },
-		      error: function(data,status) {
-			  setMessage(data.responseText);		      
-		      }
-		    });
+    }    
+    var questions = [];
+    for (var q_i = 0; q_i < SURVEY_ELEMENTS.length; q_i++) {
+        var question = SURVEY_ELEMENTS[q_i];
+	if (question.qid && question.getValue)
+	    questions.push({qid: question.qid, response: question.getValue()});
+    }
+    var vals = { cookie: COOKIE, questions: YAHOO.lang.JSON.stringify(questions) };
+    // submit query
+    jQuery.ajax({ type:"POST",
+		  url: SERVER_URL +"/jv3/post_survey/",
+		  data:vals,
+		  success: success_cont,
+		  error: error_cont
+		});
+    
+}
+$(document).ready(function() {
+    self.SURVEY_ELEMENTS = populateSurvey($("#questions"));
+    $("#submit_button").click(function() {
+        post_save(function(data,success) {
+				  setMessage('Your survey has been saved. (' + new Date() + ')');
+				  setTimeout(function() { setMessage('');  },10000);
+	});
+    });
+    $("#donebutton").click(function() {
+	function cont() {
+	    var vals = { cookie: COOKIE };
+	    jQuery.ajax({ type:"POST",
+			  url: SERVER_URL +"/jv3/done_survey/",
+			  data:vals,
+			  success: function() {
+			      $("#donebutton").fadeOut();
+			      $("#submit_button").fadeOut();
+			      setMessage("Survey saved! Thank you for participating in the study! You may now close this window.");
+			      setTimeout(function() { window.document.location.href = "https://listit.nrcc.noklab.com"; },10000);
+			  },
+			  error: function(data,status) {
+			      setMessage(data.responseText);
+			  }
+			});
+	}
+	post_save(cont,function(data,status) { setMessage(data.responseText); } );	
     });
 });
 
@@ -270,7 +296,6 @@ var setMessage = function(s) {
 	if (s.length > 0) $("#message").fadeIn("fast");    
     }
 };
-
 </script>
 </head>
 
@@ -286,8 +311,10 @@ var setMessage = function(s) {
           <p>Your name: %(first_name)s %(last_name)s<br>
              Your email: %(email)s </p>
     
-          <div id="questions">          
-          </div>
+          <div id="questions"></div>
+
+	     <P><h3>That's it!</h3>  <button name="donebutton" id="donebutton">Done! Save + close the survey</button></p>
+
 	  </td>
 	  </tr>
 	  <div id="toolbar">

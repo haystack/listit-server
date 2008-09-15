@@ -187,9 +187,17 @@ if hasattr(settings, 'DEFINE_SURVEY') and settings.DEFINE_SURVEY:
         def __unicode__(self):
             import utils
             return "[%s - %s]: %s" % (self.user.email,self.qid,self.response or "")
-    
+
+    class SurveyDoneDeclaration(models.Model):
+        user = models.ForeignKey(authmodels.User)
+        when = models.DecimalField(max_digits=19,decimal_places=0)
+        def __unicode__(self):
+            import utils
+            return "[%s - %s]: %s" % (self.user.email,self.when)
+
     try:
         admin.site.register(SurveyQuestion)
+        admin.site.register(SurveyDoneDeclaration)
     except sites.AlreadyRegistered,r:
         pass
 

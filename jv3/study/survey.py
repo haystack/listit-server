@@ -151,11 +151,11 @@ def generate_whylistit_question(notes) :
         return u"<div id=\"%(note_div_id)s\"></div> <script type=\"text/javascript\">makeInlineNoteShower(\"%(note)s\",\"%(note_div_id)s\")</script>" % {"note":base64.b64encode(c),"note_div_id":make_qid(n)};
     qs = [
         make_text("""
-        <h4>Choice of using list.it</h4>
+        <h4>Choosing list.it to manage your note</h4>
         <h5>What is the single most important reason you chose list.it for this note rather than another tool?</h5>
         """)
     ]
-    qs += [ make_question(make_qid(n), note_qtext(n), MS, ["quick input", "note visibility", "quick searchability", "in the browser", "nowhere else to put it"], choice_other=True) for n in notes ]    
+    qs += [ make_question(make_qid(n), note_qtext(n), MC, ["quick input", "note visibility", "quick searchability", "in the browser", "nowhere else to put it"], choice_other=True) for n in notes ]    
     return qs
 
 def generate_referenced_question(notes) :
