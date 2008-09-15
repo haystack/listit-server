@@ -77,7 +77,7 @@ questions_by_user = {}
 
 def generate_type_question(notes) :
 
-    make_qid = lambda n: "pimtype_nonprobe_%d" % (n.jid)
+    make_qid = lambda n: "pimtype_jid_%d" % (n.jid)
     
     def note_qtext(n):
         c = n.contents.encode('utf-8','ignore').decode('utf-8')
@@ -112,7 +112,7 @@ def generate_type_question(notes) :
     return qs
 
 def generate_role_question(notes) :
-    make_qid = lambda n: "role_nonprobe_%d" % (n.jid)
+    make_qid = lambda n: "role_jid_%d" % (n.jid)
     def note_qtext(n):
         c = n.contents.decode('utf-8','ignore')
         return u"<div id=\"%(note_div_id)s\"></div> <script type=\"text/javascript\">makeInlineNoteShower(\"%(note)s\",\"%(note_div_id)s\")</script>" % {"note":base64.b64encode(c),"note_div_id":make_qid(n)};
@@ -145,7 +145,7 @@ def generate_role_question(notes) :
 
 
 def generate_whylistit_question(notes) :
-    make_qid = lambda n: "whylistit_nonprobe_%d" % (n.jid)
+    make_qid = lambda n: "whylistit_jid_%d" % (n.jid)
     def note_qtext(n):
         c = n.contents.decode('utf-8','ignore')
         return u"<div id=\"%(note_div_id)s\"></div> <script type=\"text/javascript\">makeInlineNoteShower(\"%(note)s\",\"%(note_div_id)s\")</script>" % {"note":base64.b64encode(c),"note_div_id":make_qid(n)};
@@ -159,7 +159,7 @@ def generate_whylistit_question(notes) :
     return qs
 
 def generate_referenced_question(notes) :
-    make_qid = lambda n: "refed_nonprobe_%d" % (n.jid)
+    make_qid = lambda n: "refer_jid_%d" % (n.jid)
     def note_qtext(n):
         c = n.contents.encode('utf-8','ignore').decode('utf-8')
         return u"<div id=\"%(note_div_id)s\"></div> <script type=\"text/javascript\">makeInlineNoteShower(\"%(note)s\",\"%(note_div_id)s\")</script>" % {"note":base64.b64encode(c),"note_div_id":make_qid(n)};
@@ -210,7 +210,7 @@ def generate_referenced_question(notes) :
 
 def generate_explicitly_chosen_notes_questions(notes):
     qs = [];
-    make_qid = lambda n,q: "explicit_%d_%d" % (n.jid,q)
+    make_qid = lambda n,q: "FR_questions_jid_%d_q_%d" % (n.jid,q)
 
     qs.append(make_header("A few more questions..."))
     qs.append(make_text("<P>We need to ask you a few more questions about specific notes that you took.</P>"));
@@ -263,6 +263,7 @@ def get_white_notes(u,limit):
         return get_notes(u,notelist)
     idxs = range(0,len(notelist))
     import random
+    random.seed(u.id) # seed it with user's id # so we will get the same every time
     random.shuffle(idxs)
     return get_notes(u,[notelist[idx] for idx in idxs[:limit]])
 
@@ -271,7 +272,7 @@ def get_white_FR_notes(u):
     whitelist = load_whitelist_csv(settings.SURVEY_FR_NOTELIST)
     return get_notes(u,whitelist[u.email])
 
-def get_survey_for_user(u,limit=None):    
+def get_survey_for_user(u,limit=10):    
     white_notes = get_white_notes(u,limit)
     fr_notes = get_white_FR_notes(u)    
     return background_questions() + \

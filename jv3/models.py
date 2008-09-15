@@ -184,6 +184,9 @@ if hasattr(settings, 'DEFINE_SURVEY') and settings.DEFINE_SURVEY:
         user = models.ForeignKey(authmodels.User)
         qid = models.TextField()
         response = models.TextField(blank=True)
+        def __unicode__(self):
+            import utils
+            return "[%s - %s]: %s" % (self.user.email,self.qid,self.response or "")
     
     try:
         admin.site.register(SurveyQuestion)
