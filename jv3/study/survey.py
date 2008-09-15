@@ -291,7 +291,7 @@ def get_survey_for_user(u,limit=settings.SURVEY_MAX_NOTES_PER_QUESTION):
 def get_survey_takers():
     whitelist = load_whitelist_csv(settings.SURVEY_FR_NOTELIST)
     incomplete_users = []
-    consenting = get_consenting_users()
+    consenting = jv3.utils.get_consenting_users()
     for e in whitelist.iterkeys():
         u = authmodels.User.objects.filter(email=e)
         if not u: continue
