@@ -312,7 +312,7 @@ def get_survey_takers_urls():
 
 def export_survey_as_spreadsheet(users):
     results = {}
-    qset = {} ## all questions
+    qset = [] ## all questions
     for u in users:
         survey = get_survey_for_user(u)
         if not results.has_key(u.email): results[u.email] = {}
@@ -323,14 +323,14 @@ def export_survey_as_spreadsheet(users):
                 results[u.email][q["qid"]] = jv3.study.exporter.defangcsv(qmodel[0].response) or ""
             else:
                 results[u.email][q["qid"]] = ""
-            qset[q['qid']] = 1
+            if not q['qid'] in qset: qset.append(q['qid'])
 
     def get_response(u,qid):
         if results[u.email].has_key(qid): return results[u.email][qid]
         return ""
 
-    result = "\t".join([q for q in qset.iterkeys()]) + "\n"
-    result +=  "\n".join([ "\t".join([get_response(u,qid) for qid in qset.iterkeys()]) for u in users ])
+    result = "\t".join([q for q in qset]) + "\n"
+    result +=  "\n".join([ "\t".join([get_response(u,qid) for qid in qset]) for u in users ])
     return result
     
         
