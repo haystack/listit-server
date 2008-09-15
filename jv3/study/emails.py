@@ -785,4 +785,26 @@ for how you can e-mail your notes directly to us.
 Thanks,
 The list.it team
 """),
+"exit": ("Exit survey - Action required", """
+
+Dear %(first_name)s,
+
+Thank you for your participation in our study.  We had a great turn out, and are excited to start compiling some results for our paper (which is due in only a few days. eeks!)
+
+We need you to do one last thing for us: an exit survey that asks for your feedback on the list.it client and questions about the notes you took in list.it.
+
+This survey is super important because it contains questions we need about you to understand how different people take notes in different ways.
+
+Moreover, we only have 24 hours for you to complete this.  In return for your quick help, we're offering you an extra $10 for your ten (to fifteen) minutes.
+                      
+  https://listit.nrcc.noklab.com/listit/jv3/get_survey?cookie=%(cookie)s
+
+Please click the link above to proceed to the study. You can return to the page as many times as you want by Tuesday at 9am.
+
+Thank you for participating in the study!  We'd love to hear from you about your questions/comments about how it went.  Feel free to reply to us and tell us your thoughts.
+
+Yours,
+Max, Michael and the list.it team
+
+""")
 }
