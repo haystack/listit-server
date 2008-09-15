@@ -16,7 +16,6 @@ import jv3.utils
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport
 from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username
 import time
-from django.conf import settings
 from django.template.loader import get_template
 
 
@@ -428,15 +427,15 @@ def get_survey(request):
         return response
     
     questions = [];
+    survey = jv3.study.survey.get_survey_for_user(user)
     
-    # get-survey : personal survey not found?
-    if not jv3.study.survey.questions_by_user.has_key(user.id):
+    if not survey:
         print "no survey for user %s " % repr(user)
         response = render_to_response('/404.html');
         response.status_code = 404;
         return response
     
-    for q in jv3.study.survey.questions_by_user[user.id]:
+    for q in survey:
         questions.append(q);
         if q.has_key("qid") and len(jv3.models.SurveyQuestion.objects.filter(user=user,qid=q["qid"])) == 0:
             ## allocate a placeholder in the database to store our result

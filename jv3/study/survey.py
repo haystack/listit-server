@@ -4,6 +4,7 @@ import jv3.study.exporter
 import django.contrib.auth.models as authmodels
 import re
 import base64
+from django.conf import settings
 
 TXT = "textfield"
 FR = "textarea"
@@ -73,16 +74,13 @@ def background_questions() :
 
 questions_by_user = {}
 
-def get_non_probe_notes(user):
-    print "get non probe notes %d " % len(jv3.models.Note.objects.filter(owner=user))
-    return [ n for n in jv3.models.Note.objects.filter(owner=user) if not jv3.study.exporter.note_is_probe_response(n)]
 
 def generate_type_question(notes) :
 
     make_qid = lambda n: "pimtype_nonprobe_%d" % (n.jid)
     
     def note_qtext(n):
-        c = n.contents.decode('utf-8','ignore')
+        c = n.contents.encode('utf-8','ignore').decode('utf-8')
         return u"<div id=\"%(note_div_id)s\"></div> <script type=\"text/javascript\">makeInlineNoteShower(\"%(note)s\",\"%(note_div_id)s\")</script>" % {"note":base64.b64encode(c),"note_div_id":make_qid(n)};
     
     qs = [
@@ -125,6 +123,7 @@ def generate_role_question(notes) :
         <P>Select the role that best describes why you took each of your notes from the following categories (or specify your own):</h4>
 
         <P>Categories:</p>
+ 
         <div style=\"margin-left:auto; margin-right:auto; width: 90%\">
         <DL>
         <DT>Archiving</DT>
@@ -162,52 +161,70 @@ def generate_whylistit_question(notes) :
 def generate_referenced_question(notes) :
     make_qid = lambda n: "refed_nonprobe_%d" % (n.jid)
     def note_qtext(n):
-        c = n.contents.decode('utf-8','ignore')
+        c = n.contents.encode('utf-8','ignore').decode('utf-8')
         return u"<div id=\"%(note_div_id)s\"></div> <script type=\"text/javascript\">makeInlineNoteShower(\"%(note)s\",\"%(note_div_id)s\")</script>" % {"note":base64.b64encode(c),"note_div_id":make_qid(n)};
     qs = [
         make_text("""
-        <h4>How much did you refer to your notes?</h4>
-        <P>Rate your agreement with the following statement for each of your notes below:</p>
-        <h5> I referenced the information in this note at some point after capturing it.</h5>
+        <h4>Past and future use</h4>
+        <P>For each of your notes, check on the following that reflect whether you used
+        the note or likely to use it in the future</p>
+        
+        <div style=\"margin-left:auto; margin-right:auto; width: 90%\">
+
+        <P><B>The past:</B></P>
+        <DL>
+        <DT>Used it before</DT>
+        <DD>You looked for the note at least once in the past.</DD>
+        <DT>Ran across it before</DT>
+        <DD>You came across it at least once in the past while browsing/looking for something else</DD>
+        </DL>
+
+        <P><B>The future:</B></P>
+        <DL>
+        <DT>Will use it later</DT>
+        <DD>You certain/it is highly likely that you will look for it. </DD>
+        <DT>May use it later</DT>
+        <DD>You might use it in the future but you're not sure. </DD>
+        </DL>
+        </div>
         """)
     ]
-    qs += [ make_question(make_qid(n), note_qtext(n), MC, ["1 (Strongly Disagree)", "2", "3", "4", "5", "6", "7 (Strongly Agree)"]) for n in notes ]    
+    qs += [ make_question(make_qid(n), note_qtext(n), MS, ["Used it before", "Ran across it before", "Will use it later", "May use it later"]) for n in notes ]    
     return qs
 
-def generate_futured_question(notes) :
-    make_qid = lambda n: "future_nonprobe_%d" % (n.jid)
-    
-    def note_qtext(n):
-        c = n.contents.decode('utf-8','ignore')
-        return u"<div id=\"%(note_div_id)s\"></div> <script type=\"text/javascript\">makeInlineNoteShower(\"%(note)s\",\"%(note_div_id)s\")</script>" % {"note":base64.b64encode(c),"note_div_id":make_qid(n)};
-    qs = [
-        make_text("""
-        <h4>How much will you refer to your notes in the future?</h4>
-        <P>Rate your agreement with the following statement for each of your notes below:</p>
-        <h5>I expect that I will need the information in this note some time in the future.</h5>
-        """)
-    ]
-    qs += [ make_question(make_qid(n), note_qtext(n), MC, ["1 (Strongly Disagree)", "2", "3", "4", "5", "6", "7 (Strongly Agree)"]) for n in notes ]    
-    return qs
+# def generate_futured_question(notes) :
+#     make_qid = lambda n: "future_nonprobe_%d" % (n.jid)
+#     def note_qtext(n):
+#         c = n.contents.decode('utf-8','ignore')
+#         return u"<div id=\"%(note_div_id)s\"></div> <script type=\"text/javascript\">makeInlineNoteShower(\"%(note)s\",\"%(note_div_id)s\")</script>" % {"note":base64.b64encode(c),"note_div_id":make_qid(n)};
+#     qs = [
+#         make_text("""
+#         <h4>How much will you refer to your notes in the future?</h4>
+#         <P>Rate your agreement with the following statement for each of your notes below:</p>
+#         <h5>I expect that I will need the information in this note some time in the future.</h5>
+#         """)
+#     ]
+#     qs += [ make_question(make_qid(n), note_qtext(n), MC, ["1 (Strongly Disagree)", "2", "3", "4", "5", "6", "7 (Strongly Agree)"]) for n in notes ]    
+#     return qs
 
 
 def generate_explicitly_chosen_notes_questions(notes):
     qs = [];
-    make_qid = lambda n: "explicit_%d" % (n.jid)
+    make_qid = lambda n,q: "explicit_%d_%d" % (n.jid,q)
 
     qs.append(make_header("A few more questions..."))
     qs.append(make_text("<P>We need to ask you a few more questions about specific notes that you took.</P>"));
     
-    def note_qtext(n):
+    def note_qtext(n,q):
         c = n.contents.decode('utf-8','ignore')
-        return u"<div id=\"%(note_div_id)s\"></div> <script type=\"text/javascript\">makeInlineNoteShower(\"%(note)s\",\"%(note_div_id)s\")</script>" % {"note":base64.b64encode(c),"note_div_id":make_qid(n)};
+        return u"<div id=\"%(note_div_id)s\"></div> <script type=\"text/javascript\">makeInlineNoteShower(\"%(note)s\",\"%(note_div_id)s\")</script>" % {"note":base64.b64encode(c),"note_div_id":make_qid(n,q)};
     
     for n in notes:
-        qs.append(make_text("<P>You wrote the note:</P><P>"+note_qtext(n)+"</P>"))
-        qs.append(make_question(make_qid(n),"<h4>Could you translate this note into a few sentences so its meaning would be clear to another person reading it who does not know you or the people involved?</h4>",FR))
-        qs.append(make_question(make_qid(n),"<h4>If you didn't have list.it, where would you have taken this note, if at all?  How would the content have been any different?</h4>",FR))
+        qs.append(make_text("<P>You wrote the note:</P><P>"+note_qtext(n,0)+"</P>"))
+        qs.append(make_question(make_qid(n,1),"<h4>Could you translate this note into a few sentences so its meaning would be clear to another person reading it who does not know you or the people involved?</h4>",FR))
+        qs.append(make_question(make_qid(n,2),"<h4>If you didn't have list.it, where would you have taken this note, if at all?  How would the content have been any different?</h4>",FR))
         if n.deleted:
-            qs.append(make_question( make_qid(n),
+            qs.append(make_question( make_qid(n,3),
                 "<h4>Why did you delete this note? Did this note serve its purpose before you removed it?</h4>",FR))
         qs.append(make_text("<hr>"));
         
@@ -217,12 +234,49 @@ def get_explicitly_chosen_notes(user):
     ## TODO replace with spreadsheet stuff
     return jv3.models.Note.objects.filter(owner=user)[0:3]
 
-for u in authmodels.User.objects.filter(email="msbernst@mit.edu"): ##all() : #filter(email=u)[0]['msbernst@mit.edu']:
-    questions_by_user[u.id] = background_questions() + \
-                              generate_type_question(get_non_probe_notes(u)) + \
-                              generate_role_question(get_non_probe_notes(u)) + \
-                              generate_whylistit_question(get_non_probe_notes(u)) + \
-                              generate_referenced_question(get_non_probe_notes(u)) + \
-                              generate_futured_question(get_non_probe_notes(u)) + \
-                              generate_explicitly_chosen_notes_questions(get_explicitly_chosen_notes(u))
+def load_whitelist_csv(filename):
+    per_person = [x.split(",") for x in open(filename, 'rU').readlines()]
 
+    def process_email(x):
+        if x.index('u\'') == 0 or x.index('u\"')==0:
+            return x[2:-1]
+        return x
+    
+    # now email is in first column
+    toreturn = {}
+    for row in per_person:
+        email = process_email(row[0])
+        toreturn[email] = [long(x.strip()[:-1]) for x in row[1:] if len(x.strip()) > 0]
+
+    return toreturn        
+
+
+def get_notes(u,nids):
+    return [jv3.models.Note.objects.filter(owner=u,jid=nid)[0] for nid in nids if jv3.models.Note.objects.filter(owner=u,jid=nid)]
+
+def get_white_notes(u,limit):
+    assert settings.SURVEY_NOTE_WHITELIST, "No whitelist configuration directive in settings.py"
+    whitelist = load_whitelist_csv(settings.SURVEY_NOTE_WHITELIST)
+    if not whitelist.has_key(u.email): return []
+    notelist = whitelist[u.email]
+    if not limit or limit and len(notelist) < limit:
+        return get_notes(u,notelist)
+    idxs = range(0,len(notelist))
+    import random
+    random.shuffle(idxs)
+    return get_notes(u,[notelist[idx] for idx in idxs[:limit]])
+
+def get_white_FR_notes(u):
+    assert settings.SURVEY_FR_NOTELIST, "No FR NOTELIST configuration directive in settings.py"
+    whitelist = load_whitelist_csv(settings.SURVEY_FR_NOTELIST)
+    return get_notes(u,whitelist[u.email])
+
+def get_survey_for_user(u,limit=None):    
+    white_notes = get_white_notes(u,limit)
+    fr_notes = get_white_FR_notes(u)    
+    return background_questions() + \
+           generate_type_question(white_notes) + \
+           generate_role_question(white_notes) + \
+           generate_whylistit_question(white_notes) + \
+           generate_referenced_question(white_notes) + \
+           generate_explicitly_chosen_notes_questions(fr_notes)
