@@ -79,7 +79,7 @@ def generate_type_question(notes) :
     make_qid = lambda n: "pimtype_jid_%d" % (n.jid)
     
     def note_qtext(n):
-        c = n.contents.encode('utf-8','ignore').decode('utf-8')
+        c = n.contents.encode('iso-8859-1','ignore').decode('iso-8859-1')
         return u"<div id=\"%(note_div_id)s\"></div> <script type=\"text/javascript\">makeInlineNoteShower(\"%(note)s\",\"%(note_div_id)s\")</script>" % {"note":base64.b64encode(c),"note_div_id":make_qid(n)};
     
     qs = [
@@ -114,7 +114,7 @@ def generate_role_question(notes) :
     if len(notes) == 0: return []
     make_qid = lambda n: "role_jid_%d" % (n.jid)
     def note_qtext(n):
-        c = n.contents.decode('utf-8','ignore')
+        c = n.contents.encode('iso-8859-1','ignore').decode('iso-8859-1')
         return u"<div id=\"%(note_div_id)s\"></div> <script type=\"text/javascript\">makeInlineNoteShower(\"%(note)s\",\"%(note_div_id)s\")</script>" % {"note":base64.b64encode(c),"note_div_id":make_qid(n)};
     qs = [
         make_text("""
@@ -148,7 +148,7 @@ def generate_whylistit_question(notes) :
     if len(notes) == 0: return []
     make_qid = lambda n: "whylistit_jid_%d" % (n.jid)
     def note_qtext(n):
-        c = n.contents.decode('utf-8','ignore')
+        c = n.contents.encode('iso-8859-1','ignore').decode('iso-8859-1')
         return u"<div id=\"%(note_div_id)s\"></div> <script type=\"text/javascript\">makeInlineNoteShower(\"%(note)s\",\"%(note_div_id)s\")</script>" % {"note":base64.b64encode(c),"note_div_id":make_qid(n)};
     qs = [
         make_text("""
@@ -163,7 +163,7 @@ def generate_referenced_question(notes) :
     if len(notes) == 0: return []
     make_qid = lambda n: "refer_jid_%d" % (n.jid)
     def note_qtext(n):
-        c = n.contents.encode('utf-8','ignore').decode('utf-8')
+        c = n.contents.encode('iso-8859-1','ignore').decode('iso-8859-1')
         return u"<div id=\"%(note_div_id)s\"></div> <script type=\"text/javascript\">makeInlineNoteShower(\"%(note)s\",\"%(note_div_id)s\")</script>" % {"note":base64.b64encode(c),"note_div_id":make_qid(n)};
     qs = [
         make_text("""
@@ -197,6 +197,7 @@ def generate_referenced_question(notes) :
 # def generate_futured_question(notes) :
 #     make_qid = lambda n: "future_nonprobe_%d" % (n.jid)
 #     def note_qtext(n):
+#         c = n.contents.encode('iso-8859-1','ignore').decode('iso-8859-1')
 #         c = n.contents.decode('utf-8','ignore')
 #         return u"<div id=\"%(note_div_id)s\"></div> <script type=\"text/javascript\">makeInlineNoteShower(\"%(note)s\",\"%(note_div_id)s\")</script>" % {"note":base64.b64encode(c),"note_div_id":make_qid(n)};
 #     qs = [
@@ -220,7 +221,7 @@ def generate_explicitly_chosen_notes_questions(notes):
     qs.append(make_text("<P>We need to ask you a few more questions about specific notes that you took.</P>"));
     
     def note_qtext(n,q):
-        c = n.contents.decode('utf-8','ignore')
+        c = n.contents.encode('iso-8859-1','ignore').decode('iso-8859-1')
         return u"<div id=\"%(note_div_id)s\"></div> <script type=\"text/javascript\">makeInlineNoteShower(\"%(note)s\",\"%(note_div_id)s\")</script>" % {"note":base64.b64encode(c),"note_div_id":make_qid(n,q)};
     
     for n in notes:
