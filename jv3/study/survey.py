@@ -85,7 +85,7 @@ def generate_type_question(notes) :
     qs = [
         make_text("""
         <h4>Categorize your notes</h4>
-        <P> Please choose a category that best describes the type of each of your notes below. </p>
+        <P> Please choose the category that best describes the type of each of your notes below. </p>
         <p>Categories:</p>
         <div style=\"margin-left:auto; margin-right:auto; width: 90%\">
         <DL>
@@ -120,7 +120,7 @@ def generate_role_question(notes) :
         make_text("""
         <h4>Categorize by purpose</h4>
 
-        <P>Select the role that best describes why you took each of your notes from the following categories (or specify your own):</h4>
+        <P>Select the role that best describes why you took each of your notes from the following categories (or specify your own).
 
         <P>Categories:</p>
  
@@ -140,7 +140,7 @@ def generate_role_question(notes) :
         </div>
         """)
     ]
-    qs += [ make_question(make_qid(n), note_qtext(n), MS, ["archiving", "temp store", "cog support", "reminding", "unusual info"], choice_other=True) for n in notes ]    
+    qs += [ make_question(make_qid(n), note_qtext(n), MC, ["archiving", "temp store", "cog support", "reminding", "unusual info"], choice_other=True) for n in notes ]    
     return qs
 
 
@@ -153,7 +153,7 @@ def generate_whylistit_question(notes) :
     qs = [
         make_text("""
         <h4>Choosing list.it to manage your note</h4>
-        <h5>What is the single most important reason you chose list.it for this note rather than another tool?</h5>
+        <P>What is the single most important reason you chose list.it for this note rather than another tool?</P>
         """)
     ]
     qs += [ make_question(make_qid(n), note_qtext(n), MC, ["quick input", "note visibility", "quick searchability", "in the browser", "nowhere else to put it"], choice_other=True) for n in notes ]    

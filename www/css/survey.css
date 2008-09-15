@@ -24,7 +24,7 @@ input {  color:white;  background:#000000;}
   color:#909090;
 }
 
-.othertextfield {width : 100px; }
+.othertextfield {width : 180px; }
 
 #toolbar {
    position:fixed;
