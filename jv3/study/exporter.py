@@ -8,7 +8,10 @@ import re
 def printf(x):
     print x
 
-defang = lambda x : x.replace('\n','\\n')
+def defang(x) :
+    if x is not None:
+        x.replace('\n','\\n')
+    return None
 
 TEST_STRING = """daisy daisy
 give me your answer do,
