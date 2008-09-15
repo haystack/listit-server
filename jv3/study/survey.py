@@ -74,9 +74,8 @@ def background_questions() :
 
 questions_by_user = {}
 
-
 def generate_type_question(notes) :
-
+    if len(notes) == 0: return []
     make_qid = lambda n: "pimtype_jid_%d" % (n.jid)
     
     def note_qtext(n):
@@ -112,6 +111,7 @@ def generate_type_question(notes) :
     return qs
 
 def generate_role_question(notes) :
+    if len(notes) == 0: return []
     make_qid = lambda n: "role_jid_%d" % (n.jid)
     def note_qtext(n):
         c = n.contents.decode('utf-8','ignore')
@@ -145,6 +145,7 @@ def generate_role_question(notes) :
 
 
 def generate_whylistit_question(notes) :
+    if len(notes) == 0: return []
     make_qid = lambda n: "whylistit_jid_%d" % (n.jid)
     def note_qtext(n):
         c = n.contents.decode('utf-8','ignore')
@@ -159,6 +160,7 @@ def generate_whylistit_question(notes) :
     return qs
 
 def generate_referenced_question(notes) :
+    if len(notes) == 0: return []
     make_qid = lambda n: "refer_jid_%d" % (n.jid)
     def note_qtext(n):
         c = n.contents.encode('utf-8','ignore').decode('utf-8')
@@ -209,6 +211,8 @@ def generate_referenced_question(notes) :
 
 
 def generate_explicitly_chosen_notes_questions(notes):
+    if len(notes) == 0: return []
+    
     qs = [];
     make_qid = lambda n,q: "FR_questions_jid_%d_q_%d" % (n.jid,q)
 
@@ -270,6 +274,7 @@ def get_white_notes(u,limit):
 def get_white_FR_notes(u):
     assert settings.SURVEY_FR_NOTELIST, "No FR NOTELIST configuration directive in settings.py"
     whitelist = load_whitelist_csv(settings.SURVEY_FR_NOTELIST)
+    if not whitelist.has_key(u.email):  return []
     return get_notes(u,whitelist[u.email])
 
 def get_survey_for_user(u,limit=10):    
