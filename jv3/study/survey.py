@@ -312,7 +312,7 @@ def get_survey_takers_urls():
 
 def export_survey_as_spreadsheet(users):
     results = {}
-    qset = [] ## all questions
+    qset = ['email'] ## all questions
     for u in users:
         survey = get_survey_for_user(u)
         if not results.has_key(u.email): results[u.email] = {}
@@ -330,7 +330,7 @@ def export_survey_as_spreadsheet(users):
         return ""
 
     result = "\t".join([q for q in qset]) + "\n"
-    result +=  "\n".join([ "\t".join([get_response(u,qid) for qid in qset]) for u in users ])
+    result +=  "\n".join([ "\t".join([u.email]+[get_response(u,qid) for qid in qset]) for u in users ])
     return result
     
         
