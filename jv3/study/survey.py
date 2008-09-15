@@ -320,7 +320,7 @@ def export_survey_as_spreadsheet(users):
             if not q.has_key('qid'): continue ## text
             qmodel  = jv3.models.SurveyQuestion.objects.filter(user=u,qid=q['qid'])
             if len(qmodel) > 0:
-                results[u.email][q["qid"]] = jv3.study.exporter.defang(qmodel[0].response) or ""
+                results[u.email][q["qid"]] = jv3.study.exporter.defangcsv(qmodel[0].response) or ""
             else:
                 results[u.email][q["qid"]] = ""
             qset[q['qid']] = 1
@@ -329,8 +329,8 @@ def export_survey_as_spreadsheet(users):
         if results[u.email].has_key(qid): return results[u.email][qid]
         return ""
 
-    result = ",".join([q for q in qset.iterkeys()]) + "\n"
-    result +=  "\n".join([ ",".join([get_response(u,qid) for qid in qset.iterkeys()]) for u in users ])
+    result = "\t".join([q for q in qset.iterkeys()]) + "\n"
+    result +=  "\n".join([ "\t".join([get_response(u,qid) for qid in qset.iterkeys()]) for u in users ])
     return result
     
         

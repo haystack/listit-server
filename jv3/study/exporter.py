@@ -12,6 +12,10 @@ def defang(x) :
     if x is not None:
         return x.replace('\n','\\n')
     return None
+def defangcsv(x) :
+    if x is not None:
+        return x.replace('\n','\\n').replace('\t','')
+    return None
 
 TEST_STRING = """daisy daisy
 give me your answer do,
