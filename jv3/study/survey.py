@@ -295,7 +295,7 @@ def get_survey_takers():
     for e in whitelist.iterkeys():
         u = authmodels.User.objects.filter(email=e)
         if not u: continue
-        if u in consenting and len(jv3.models.SurveyDoneDeclaration.objects.filter(user=u[0])) == 0:
+        if u[0] in consenting and len(jv3.models.SurveyDoneDeclaration.objects.filter(user=u[0])) == 0:
             incomplete_users.append(u)
     return incomplete_users
             
