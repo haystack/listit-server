@@ -276,7 +276,7 @@ $(document).ready(function() {
 			  success: function() {
 			      $("#donebutton").fadeOut();
 			      $("#submit_button").fadeOut();
-			      setMessage("Survey saved! Thank you for participating in the study! You may now close this window.");
+			      setMessage("<B>Thank you for participating in the study! You may now close this window.</B>");
 			      setTimeout(function() { window.document.location.href = "https://listit.nrcc.noklab.com"; },10000);
 			  },
 			  error: function(data,status) {
@@ -313,7 +313,7 @@ var setMessage = function(s) {
     
           <div id="questions"></div>
 
-	     <P><h3>That's it!</h3>  <button name="donebutton" id="donebutton">Done! Save + close the survey</button></p>
+	     <P><b>You're done!</b><button name="donebutton" id="donebutton">  Save and exit the survey.</button></p>
 
 	  </td>
 	  </tr>
