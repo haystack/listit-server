@@ -183,15 +183,15 @@ def generate_referenced_question(notes) :
 
         <P><B>The future:</B></P>
         <DL>
-        <DT>Will use it later</DT>
-        <DD>It is likely that you will need to look for it later. </DD>
         <DT>May use it later</DT>
         <DD>It is possible that you'll need it in the future but you're not sure. </DD>
+        <DT>Will use it later</DT>
+        <DD>It is likely that you will need to look for it later. </DD>
         </DL>
         </div>
         """)
     ]
-    qs += [ make_question(make_qid(n), note_qtext(n), MS, ["Used it before", "Ran across it before", "Will use it later", "May use it later"]) for n in notes ]    
+    qs += [ make_question(make_qid(n), note_qtext(n), MS, ["Used it before", "Ran across it before", "May use it later", "Will use it later"]) for n in notes ]    
     return qs
 
 # def generate_futured_question(notes) :
@@ -286,3 +286,17 @@ def get_survey_for_user(u,limit=settings.SURVEY_MAX_NOTES_PER_QUESTION):
            generate_whylistit_question(white_notes) + \
            generate_referenced_question(white_notes) + \
            generate_explicitly_chosen_notes_questions(fr_notes)
+
+def get_survey_takers():
+    whitelist = load_whitelist_csv(settings.SURVEY_FR_NOTELIST)
+    incomplete_users = []
+    for e in whitelist.iterkeys():
+        u = authmodels.User.objects.filter(email=e)
+        if not u: continue
+        if len(jv3.models.SurveyDoneDeclaration.objects.filter(user=u[0])) == 0:
+            incomplete_users.append(u)
+    return incomplete_users
+            
+        
+        
+    
