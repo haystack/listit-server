@@ -318,10 +318,11 @@ def export_survey_as_spreadsheet(users):
         if not results.has_key(u.email): results[u.email] = {}
         for q in survey:
             if not q.has_key('qid'): continue ## text
-            if q.has_key('response'):
-                results[u.email][q['qid']] = q['response']
+            qmodel  = jv3.models.SurveyQuestion.objects.filter(user=u,qid=q['qid'])
+            if len(qmodel) > 0:
+                results[u.email][q["qid"]] = qmodel[0].response or ""
             else:
-                results[u.email][q['qid']] = ''
+                results[u.email][q["qid"]] = ""
             qset[q['qid']] = 1
 
     def get_response(u,qid):
