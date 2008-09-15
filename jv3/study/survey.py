@@ -13,8 +13,8 @@ MS = "checkbox"
 
 def defang_text(s):
     if isinstance(s,unicode):
-        return s.encode('iso-8859-1','ignore')
-    return s.decode('utf-8','ignore')    
+        return s.encode('utf-8','ignore')
+    return s.decode('iso-8859-1','ignore')    
 
 def show_probe_note(email,jid):
     n = jv3.utils.get_note_by_email_and_jid(email,jid)
