@@ -295,15 +295,48 @@ def get_survey_for_user(u,limit=settings.SURVEY_MAX_NOTES_PER_QUESTION):
 
 def get_survey_takers():
     whitelist = load_whitelist_csv(settings.SURVEY_FR_NOTELIST)
-    incomplete_users = []
+    users = []
     consenting = jv3.utils.get_consenting_users()
     for e in whitelist.iterkeys():
         u = authmodels.User.objects.filter(email=e)
         if not u: continue
-        if u[0] in consenting and len(jv3.models.SurveyDoneDeclaration.objects.filter(user=u[0])) == 0:
-            incomplete_users.append(u[0])
-    return incomplete_users
-            
+        if u[0] in consenting : users.append(u[0])
+    return users
+
+def get_incomplete_survey_takers():
+    users = get_survey_takers()
+    return [u for u in users if len(jv3.models.SurveyDoneDeclaration.objects.filter(user=u)) == 0 ]
+
+def get_survey_takers_urls():
+    return "\n".join(["%(email)s : %(server_url)s/jv3/get_survey?cookie=%(cookie)s" % {'server_url':settings.SERVER_URL,'cookie':jv3.utils.get_newest_registration_for_user_by_email(u.email).cookie, 'email':u.email} for u in get_survey_takers()])
+
+def export_survey_as_spreadsheet(users):
+    results = {}
+    qset = {} ## all questions
+    for u in users:
+        survey = get_survey_for_user(u)
+        if not results.has_key(u.email): results[u.email] = {}
+        for q in survey:
+            if not q.has_key('qid'): continue ## text
+            if q.has_key('response'):
+                results[u.email][q['qid']] = q['response']
+            else:
+                results[u.email][q['qid']] = ''
+            qset[q['qid']] = 1
+
+    def get_response(u,qid):
+        if results[u.email].has_key(qid): return results[u.email][qid]
+        return ""
+
+    result = ",".join([q for q in qset.iterkeys()]) + "\n"
+    result +=  "\n".join([ ",".join([get_response(u,qid) for qid in qset.iterkeys()]) for u in users ])
+    return result
+    
         
+        
+        
+    
+
+
         
     
