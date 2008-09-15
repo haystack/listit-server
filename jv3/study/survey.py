@@ -296,7 +296,7 @@ def get_survey_takers():
         u = authmodels.User.objects.filter(email=e)
         if not u: continue
         if u[0] in consenting and len(jv3.models.SurveyDoneDeclaration.objects.filter(user=u[0])) == 0:
-            incomplete_users.append(u)
+            incomplete_users.append(u[0])
     return incomplete_users
             
         
