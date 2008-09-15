@@ -184,9 +184,9 @@ def generate_referenced_question(notes) :
         <P><B>The future:</B></P>
         <DL>
         <DT>Will use it later</DT>
-        <DD>You certain/it is highly likely that you will look for it. </DD>
+        <DD>It is likely that you will need to look for it later. </DD>
         <DT>May use it later</DT>
-        <DD>You might use it in the future but you're not sure. </DD>
+        <DD>It is possible that you'll need it in the future but you're not sure. </DD>
         </DL>
         </div>
         """)
@@ -277,7 +277,7 @@ def get_white_FR_notes(u):
     if not whitelist.has_key(u.email):  return []
     return get_notes(u,whitelist[u.email])
 
-def get_survey_for_user(u,limit=10):    
+def get_survey_for_user(u,limit=settings.SURVEY_MAX_NOTES_PER_QUESTION):    
     white_notes = get_white_notes(u,limit)
     fr_notes = get_white_FR_notes(u)    
     return background_questions() + \
