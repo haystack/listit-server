@@ -37,6 +37,7 @@ var showDivWithContents = function(c){
 	overlay: { background: "black", opacity: 0.9 },
 	draggable:true,
 	resizable:false,
+        
 	dialogClass:"note_shower_class"
     });
     $("#note_shower").dialog("close");
@@ -260,6 +261,14 @@ function post_save(success_cont,error_cont ) {
     
 }
 $(document).ready(function() {
+    $("#thankyou").dialog({
+	autoOpen:false,
+	modal:true,
+	overlay: { background: "black", opacity :0.8, },
+	resizable:false,
+	draggable:false,
+	dialogClass:"thankyouclass",
+    });			      
     self.SURVEY_ELEMENTS = populateSurvey($("#questions"));
     $("#submit_button").click(function() {
         post_save(function(data,success) {
@@ -276,8 +285,9 @@ $(document).ready(function() {
 			  success: function() {
 			      $("#donebutton").fadeOut();
 			      $("#submit_button").fadeOut();
-			      setMessage("<B>Thank you for participating in the study! You may now close this window.</B>");
-			      setTimeout(function() { window.document.location.href = "https://listit.nrcc.noklab.com"; },10000);
+			      $("#thankyou").dialog("open");			      
+			      //setMessage("<B>Thank you for participating in the study! You may now close this window.</B>");
+			      //setTimeout(function() { window.document.location.href = "https://listit.nrcc.noklab.com"; },5000);
 			  },
 			  error: function(data,status) {
 			      setMessage(data.responseText);
@@ -313,13 +323,30 @@ var setMessage = function(s) {
     
           <div id="questions"></div>
 
-	     <P><b>You're done!</b><button name="donebutton" id="donebutton">  Save and exit the survey.</button></p>
+	     <P><button name="donebutton" id="donebutton">  Save and exit the survey.</button></p>
 
 	  </td>
 	  </tr>
 	  <div id="toolbar">
               <span id="message" style="color:#ff0000"></span> <span class="savebutton">Click here often ->  <button id="submit_button">Save survey</span></div>
           </div>
+	  <div id="thankyou">
+             <h2>Thank you!</h2>
+               <P>
+	      Thank you for participating in the study and supporting our
+	      investigation of note taking practices!
+	      </P>
+	      <P>
+	      We will get back to you within 2 weeks with your compensation.
+	      Let us know at listit at csail dot mit dot edu if you have any
+	      qustions or comments, and feel free to continue to use the
+	      software if you like (we'll continue to be making it better!).
+	      </P>
+    <P> Yours,<BR>
+        the list.it team
+</P>
+
+	  </div>
       </table>
     </center>
     <div id="note_shower"></div>
