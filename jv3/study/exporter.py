@@ -168,7 +168,7 @@ def search_statistics(users=None):
         actions = [action for action in jv3.models.ActivityLog.objects.filter(owner=u,action='search')]
         actions.sort(key=lambda x : long(x.when))
         prev = None
-        for a in actions: rows.append([u.email, a.action, a.when, replaceNone(a.search)])
+        for a in actions: rows.append([u.email, a.action, makedate_usec(a.when), replaceNone(a.search)])
     return rows
 
        
