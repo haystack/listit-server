@@ -8,12 +8,19 @@ import re
 def printf(x):
     print x
 
+# def defang(x) :
+#     if x is not None:
+#         return x.replace('\n','\\n')
+#     return None
+
+def defang_unicode(s):
+    if isinstance(s,unicode):
+        return s.encode('utf-8','ignore')
+    return s.decode('iso-8859-1','ignore')    
+
 def defang(x) :
     if x is not None:
-        return x.replace('\n','\\n')
-    return None
-def defangcsv(x) :
-    if x is not None:
+        x = defang_unicode(x)
         return x.replace('\n','\\n').replace('\t','')
     return None
 
@@ -95,9 +102,9 @@ def note_lifetime(n):
 
 def makestr(v):
     if isinstance(v,str):
-        return v
+        return defang(v)
     if isinstance(v,unicode):
-        return v
+        return defang(v)
     if isinstance(v,long):
         return "%d" % v
     return repr(v)
