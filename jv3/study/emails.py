@@ -806,5 +806,29 @@ Thank you for participating in the study!  We'd love to hear from you about your
 Yours,
 Max, Michael and the list.it team
 
+"""),
+
+"exit2" : ("Incomplete Exit survey - closing at Noon", """
+
+Dear %(first_name)s,
+
+According to our records, you have not yet completed the exit survey
+for the list.it study.  This survey is super important to our study,
+and we would very much appreciate it if you could fill it out.
+
+Remember, we're offering you $10 for its completion.
+
+We are extending the deadline from 9am to 1pm TODAY (Tuesday Sept 16).
+                      
+https://listit.nrcc.noklab.com/listit/jv3/get_survey?cookie=%(cookie)s
+
+Please click the link above to proceed to the study and fill it out
+for us.  
+
+Once again, thanks and thank you for participating in the study.
+
+Yours,
+Max, Michael and the list.it team
+
 """)
 }
