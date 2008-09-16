@@ -240,15 +240,11 @@ def generate_explicitly_chosen_notes_questions(notes):
         
     return qs
 
-def get_explicitly_chosen_notes(user):
-    ## TODO replace with spreadsheet stuff
-    return jv3.models.Note.objects.filter(owner=user)[0:3]
-
 def load_whitelist_csv(filename):
     per_person = [x.split(",") for x in open(filename, 'rU').readlines()]
 
     def process_email(x):
-        if x.index('u\'') == 0 or x.index('u\"')==0:
+        if x.find('u\'') == 0 or x.find('u\"')==0:
             return x[2:-1]
         return x
     
@@ -259,7 +255,6 @@ def load_whitelist_csv(filename):
         toreturn[email] = [long(x.strip()[:-1]) for x in row[1:] if len(x.strip()) > 0]
 
     return toreturn        
-
 
 def get_notes(u,nids):
     return [jv3.models.Note.objects.filter(owner=u,jid=nid)[0] for nid in nids if jv3.models.Note.objects.filter(owner=u,jid=nid)]
@@ -310,7 +305,7 @@ def get_incomplete_survey_takers():
 def get_survey_takers_urls():
     return "\n".join(["%(email)s : %(server_url)s/jv3/get_survey?cookie=%(cookie)s" % {'server_url':settings.SERVER_URL,'cookie':jv3.utils.get_newest_registration_for_user_by_email(u.email).cookie, 'email':u.email} for u in get_survey_takers()])
 
-def export_survey_as_spreadsheet(users):
+def export_survey_as_spreadsheet_row_per_user(users):
     results = {}
     qset = ['email'] ## all questions
     for u in users:
@@ -332,9 +327,49 @@ def export_survey_as_spreadsheet(users):
     result = "\t".join([q for q in qset]) + "\n"
     result +=  "\n".join([ "\t".join([u.email]+[get_response(u,qid) for qid in qset]) for u in users ])
     return result
+
+
+def export_note_questions_responses_row_per_note(users):
     
-        
-        
+    def get_question_response(u,qid):
+        if len(jv3.models.SurveyQuestion.objects.filter(user=u,qid=qid)) > 0:
+            return jv3.models.SurveyQuestion.objects.filter(user=u,qid=qid)[0].response
+        return None
+    
+    def get_qname_jid_from_qid(qid):
+        import re
+        name = ''
+        result = re.findall('(\w+)_jid_(\d+)(_(\w+))?',qid)
+        if result:
+            return (result[0][0]+result[0][3],int(result[0][1]))
+
+    questionnames = []
+    peruser = {}
+    for u in users:
+        survey = get_survey_for_user(u)
+        responses = {}
+        for q in survey:
+            if q.has_key('qid') and q['qid'].find('_jid_') >= 0:
+                ## then it is a notey question
+                qid = q['qid']
+                (qname,jid) = get_qname_jid_from_qid(qid)
+                if not qname in questionnames : questionnames.append(qname)
+                if responses.get(jid,None) is None: responses[jid] = {}
+                response = get_question_response(u,qid)
+                if response is not None : responses[jid][qname] = response
+                
+        peruser[u.email] = responses
+
+    results = []
+    for u in users:
+        if not peruser.has_key(u.email): continue
+        for jid in peruser[u.email].iterkeys():
+            noterow = [u.email, jid, jv3.study.exporter.defang(get_notes(u,[jid])[0].contents)]
+            for qname in questionnames:                
+                noterow.append(peruser[u.email][jid].get(qname, ""))
+            results.append( noterow )
+
+    return [['email', 'noteid', 'note'] + questionnames] + results
         
     
 
