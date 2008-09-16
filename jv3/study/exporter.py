@@ -51,7 +51,7 @@ def note_total_edit_time(note):
 
 def note_deleted_time(note):
     d = delete_log_for_note(note)
-    if len(d) > 0: return time.ctime(long(d[0].when)/1000)
+    if len(d) > 0: return makedate_usec(long(d[0].when))
     return None
 
 def note_avg_edit_time(note):
@@ -77,11 +77,11 @@ def str_average_word_length(s):
 note_guid = lambda note: note.id
 note_jid = lambda note: note.jid
 note_owner_email = lambda note: note.owner.email
-note_owner_joindate = lambda note: time.ctime(jv3.utils.get_newest_registration_for_user_by_email(note.owner.email).when/1000)
+note_owner_joindate = lambda note: makedate_usec(long(jv3.utils.get_newest_registration_for_user_by_email(note.owner.email).when))
 note_owner_id = lambda note: note.owner.id
 note_deleted = lambda note: repr(bool(note.deleted))
-note_created = lambda note: time.ctime(long(note.created)/1000)
-note_modified = lambda note: time.ctime(long(note.edited)/1000)
+note_created = lambda note: makedate_usec(long(note.created))
+note_modified = lambda note: makedate_usec(long(note.edited))
 note_version = lambda note: repr(int(note.version))
 note_contents = lambda note: defang(note.contents)
 note_contents_length = lambda note: len(note.contents)
@@ -108,6 +108,9 @@ def makestr(v):
     if isinstance(v,long):
         return "%d" % v
     return repr(v)
+
+def makedate_usec(v):
+    return time.strftime("%D %H:%M", time.localtime(v/1000.0))    
 
 note_statistic_fns = [
     ('guid',note_guid),
