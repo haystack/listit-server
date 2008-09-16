@@ -4,6 +4,7 @@ import jv3.utils
 import time,datetime
 import jv3.models
 import re
+from jv3.utils import levenshtein
 
 def printf(x):
     print x
@@ -151,6 +152,23 @@ def notes_statistics(users=None, cols=None, stat_fns=note_statistic_fns):
     for u in users:
         for n in jv3.models.Note.objects.filter(owner=u):
             rows.append( [ f[1](n) for f in stat_fns ] )
+    return rows
+
+def search_statistics(users=None):
+    if not users: users = authmodels.User.objects.all()
+    rows = []
+    unique_searches = []
+    
+    def replaceNone(s):
+        if s is None:
+            return ""
+        return s.encode('iso-8859-1','ignore')
+        
+    for u in users:
+        actions = [action for action in jv3.models.ActivityLog.objects.filter(owner=u,action='search')]
+        actions.sort(key=lambda x : long(x.when))
+        prev = None
+        for a in actions: rows.append([u.email, a.action, a.when, replaceNone(a.search)])
     return rows
 
        
