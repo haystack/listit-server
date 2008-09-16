@@ -111,7 +111,10 @@ class NoteCollection(Collection):
                 return response
             # Otherwise return a 400 Bad Request error.
             logevent(request,'Note.create',400,form.errors)
+            ## debug
+            formerrors = form.errors
             print "UPDATE form errors %s " % repr(form.errors)
+            ## end debug
             return self.responder.error(request, 400, form.errors);
         pass
 
