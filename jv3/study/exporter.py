@@ -96,6 +96,10 @@ def note_lifetime(n):
 def makestr(v):
     if isinstance(v,str):
         return v
+    if isinstance(v,unicode):
+        return v
+    if isinstance(v,long):
+        return "%d" % v
     return repr(v)
 
 note_statistic_fns = [
