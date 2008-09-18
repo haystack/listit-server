@@ -19,6 +19,7 @@ import jv3.study.emails as studytemplates
 import time
 import datetime
 import random
+from os import listdir
 
 current_time_decimal = lambda : int(time.time()*1000);
 
@@ -210,3 +211,22 @@ def levenshtein(a,b):
             
     return current[n]
 
+def get_user_by_email(email):
+    hits = authmodels.User.objects.filter(email=email)
+    if len(hits) > 0:
+        return hits[0]
+    return None
+
+def actlogfix(dirname,server):
+    results = []
+    for uemail in listdir(dirname):
+        filename = "%s.plum.store.sqlite" % (uemail)
+        email = uemail.lower()
+        if not get_user_by_email(email): continue;
+        password = get_newest_registration_for_user_by_email(email).password
+        results.append('_sync_uploadAllActLog("%s","%s","%s","%s")' % (server,filename, email, password))
+    return "\n".join(results)
+
+
+                     
+        

@@ -375,6 +375,7 @@ class ActivityLogCollection(Collection):
                 if len(user_activity.filter(when=item['id'])) > 0:
                     print "skipping committing duplicate entry %d " % item['id'];
                     continue
+                ##print "Committing %s item %s " % (entry.owner.email,repr(item))
                 entry = ActivityLog();
                 entry.owner = request_user;
                 entry.when = item['id'];
@@ -385,7 +386,7 @@ class ActivityLogCollection(Collection):
                 entry.save();
                 committed.append(item['id']);
             except StandardError, error:
-                print "Error with entry %s " % repr(error)
+                print "Error with entry %s item %s " % (repr(error),repr(item))
         pass
 
         response = HttpResponse(JSONEncoder().encode({'committed':committed}), self.responder.mimetype)
