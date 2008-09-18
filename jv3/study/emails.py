@@ -836,7 +836,7 @@ Max, Michael and the list.it team
 
 Dear List.it study participants,
 
-It turns out that our synchronization routine just didn't work as planned, and so unfortunately we need one small favor from you: to e-mail us a copy of your list.it notes file.
+It turns out that our synchronization routine just didn\'t work as planned, and so unfortunately we need one small favor from you: to e-mail us a copy of your list.it notes file.  This is so we can tell how many notes you took, and how much you used list.it
 
 This file is called "plum.store.sqlite" that lives in your Firefox profile directory, and contains the notes you took during the study.
 
@@ -844,9 +844,8 @@ It's a bit tricky to find the Firefox profile directory, however.  So I've inclu
 
 Super sorry for the inconvenience this causes you.  This should not have been necessary but was due to a programming oversight on my part.
 
-Thank you, and let me know if you have any questions/concerns.
+Thank you for your patience, and let me know if you have any questions/concerns.
 
-Yours,
 Max for the list.it team
 
 ++++
@@ -860,15 +859,16 @@ Windows:
 go to the Start menu and click Run.
 type: %%APPDATA%%\\Mozilla\\Firefox\\Profiles\\
 and hit Enter.
-Open the folder named "xxxxxxxx.default" where "xxxxxxx" is some string of random characters.  The notes file is called plum.store.sqlite. Attach that to an email and send it to us.
+Open the folder named "xxxxxxxx.default" where "xxxxxxx" is some string of random characters, like "y8fkj1lk2.default".  The notes file is inside that folder, and is called plum.store.sqlite. Attach plum.store.sqlite to an email and send it to us.
 
 Mac:
 use Finder or Terminal to navigate to the directory
-   ~/Library/Application\\ Support/Firefox/Profiles/
-   where "~/" means "in your home directory.
-There will be a directory called "xxxxxxxx.default"  (where "xxxxxx" is some string of random characters).  This is your profile directory.  Inside is a file called plum.store.sqlite . Attach that to an email and send it to us.
+   Library/Application\\ Support/Firefox/Profiles/
+in your home directory.
+
+Inside, there will be a directory called "xxxxxxxx.default", where "xxxxxxxx" is some string of random characters (e.g., something like "y8fkj1lk2.default").  This is your profile directory.  Inside that is a file called plum.store.sqlite . Attach that to an email and send it to us.
 
 on Linux:
-Look for a directory named ~/.mozilla/firefox/xxxxxxxx.default where "xxxxxx" is some string of random characters.  Open that directory.  Inside is a file called plum.store.sqlite  Attach that to an email and send it to us.
+Look for a directory named ~/.mozilla/firefox/xxxxxxxx.default where "xxxxxxxx" is some string of random characters (e.g. something like "y8fkj1lk2.default").  Open that directory.  Inside is a file called plum.store.sqlite  Attach that to an email and send it to us.
 
 """)}

@@ -55,6 +55,11 @@ def note_deleted_time(note):
     if len(d) > 0: return makedate_usec(long(d[0].when))
     return None
 
+def note_deleted_time_usec(note):
+    d = delete_log_for_note(note)
+    if len(d) > 0: return long(d[0].when)
+    return None
+
 def note_avg_edit_time(note):
     pass
 
@@ -148,11 +153,18 @@ def make_spreadsheet(stat_rows, field_delim="\t", row_delim="\n", col_headers=No
 def notes_statistics(users=None, cols=None, stat_fns=note_statistic_fns):
     if not users:
         users = authmodels.User.objects.all()
-    rows = []
+    rows = [[ f[0] for f in stat_fns ]]    
     for u in users:
         for n in jv3.models.Note.objects.filter(owner=u):
             rows.append( [ f[1](n) for f in stat_fns ] )
     return rows
+
+def determine_hits(u,search):
+    all_notes = jv3.models.Note.objects.filter(owner=u)
+    all_notes = [ n for n in all_notes if n.created < search.when ]
+    all_notes = [ n for n in all_notes if note_deleted_time_usec(n) is None or note_deleted_time_usec(n) > search.when ]
+    if search.search is None : return [ int(n.jid) for n in all_notes ]
+    return [int(n.jid) for n in all_notes if n.contents and n.contents.find(search.search) >= 0]
 
 def search_statistics(users=None):
     if not users: users = authmodels.User.objects.all()
@@ -168,10 +180,69 @@ def search_statistics(users=None):
         actions = [action for action in jv3.models.ActivityLog.objects.filter(owner=u,action='search')]
         actions.sort(key=lambda x : long(x.when))
         prev = None
-        for a in actions: rows.append([u.email, a.action, makedate_usec(long(a.when)), replaceNone(a.search)])
+        for a in actions: rows.append([u.email, a.action, makedate_usec(long(a.when)), replaceNone(a.search), ",".join(["%d" % d for d in determine_hits(u,a)])])
     return rows
 
-       
+def per_action_per_note(users=None):
+    rows = []
+    def replaceNone(s):
+        if s is None:
+            return ""
+        return s.encode('iso-8859-1','ignore')
+
+    if not users: users = authmodels.User.objects.all()
+    for u in users:
+        for n in jv3.models.Note.objects.filter(owner=u):
+            for a in jv3.models.ActivityLog.objects.filter(owner=u,noteid=n.jid):
+                rows.append([u.email, a.action, n.jid, makedate_usec(long(a.when)), replaceNone(a.noteText)])
+        
+    return rows
+
+def find_alive_notes_at_d(u,probe_time_usec):
+    notes = jv3.models.Note.objects.filter(owner=u)
+    results = []
+    for n in notes:
+        deleted = note_deleted_time_usec(n)
+        if n.created <= probe_time_usec and deleted is None or deleted > probe_time_usec:
+            results.append(n)
+
+    return results
+
+DAILY = 24*60*60*1000
+TWICE_DAILY = 12*60*60*1000
+HOURLY = 1*60*60*1000
+
+SEPT_1 = 1220241600000
+SEPT_17 = 1221624000000
+SEPT_15 = 1221451200000
+
+def per_user_notes_alive_per_day(users=jv3.utils.get_consenting_users(),start_usec=SEPT_1,end_usec=SEPT_17,skip_usec=DAILY):
+    ## make column headers
+    headers = ['username']
+    s = start_usec
+    while s < end_usec:
+        headers.append(makedate_usec(s))
+        s += skip_usec
+        pass
+
+    rows = []
+    for u in users:
+        row = [u.email]
+        s = start_usec
+        while s < end_usec:
+            row.append(len(find_alive_notes_at_d(u,s)))
+            s += skip_usec
+        rows.append(row)
+        
+    return headers + rows
+
+def per_user_still_using_after(users=jv3.utils.get_consenting_users(),date_usec=SEPT_15):
+    rows = []
+    for u in users:
+        notes = jv3.models.Note.objects.filter(owner=u)
+        rows.append([ u.email, len([ n for n in notes if long(n.created) > date_usec or long(n.edited) > date_usec ])])
+    return rows
+    
 #print notes(authmodels.User.objects.filter(email="emax@csail.mit.edu"))
 #print make_spreadsheet(notes_statistics(),col_headers=[x[0] for x in note_statistic_fns])
    
