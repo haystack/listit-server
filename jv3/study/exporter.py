@@ -203,7 +203,7 @@ def find_alive_notes_at_d(u,probe_time_usec):
     results = []
     for n in notes:
         deleted = note_deleted_time_usec(n)
-        if n.created <= probe_time_usec and deleted is None or deleted > probe_time_usec:
+        if not note_is_probe_response(n) and (long(n.created) <= probe_time_usec) and (deleted is None or deleted > probe_time_usec):
             results.append(n)
 
     return results
@@ -234,13 +234,83 @@ def per_user_notes_alive_per_day(users=jv3.utils.get_consenting_users(),start_us
             s += skip_usec
         rows.append(row)
         
-    return headers + rows
+    return [headers] + rows
 
 def per_user_still_using_after(users=jv3.utils.get_consenting_users(),date_usec=SEPT_15):
     rows = []
     for u in users:
         notes = jv3.models.Note.objects.filter(owner=u)
         rows.append([ u.email, len([ n for n in notes if long(n.created) > date_usec or long(n.edited) > date_usec ])])
+    return rows
+
+def per_note_edit_duration(users=jv3.utils.get_consenting_users(),edits=True,adds=True):
+    rows = []
+    for u in users:
+        actlogs = jv3.models.ActivityLog.objects.filter(owner=u)        
+        for i in range(1,len(actlogs)):
+            a = actlogs[i]
+            last_a = actlogs[i-1]
+            if adds and a.action == 'note-add' and last_a.action == 'notecapture-focus':
+                rows.append([ u.email, a.noteid, a.noteText, long(a.when) - long(last_a.when) ])
+            if edits and a.action == 'note-save' and last_a.action == 'note-edit' and a.noteid ==last_a.noteid :
+                rows.append([ u.email, a.noteid, a.noteText, long(a.when) - long(last_a.when) ])
+        
+    return rows
+
+def per_action_per_user(users=jv3.utils.get_consenting_users()):
+    rows = []
+    def replaceNone(s):
+        if s is None:
+            return ""
+        if isinstance(s,int) or isinstance(s,long) or isinstance(s,float):
+            return repr(s)
+        return s.encode('iso-8859-1','ignore')
+
+    if not users: users = authmodels.User.objects.all()
+    for u in users:
+        for a in jv3.models.ActivityLog.objects.filter(owner=u):
+            rows.append([u.email, makedate_usec(long(a.when)), a.action, replaceNone(a.noteid), replaceNone(a.noteText), replaceNone(a.search)])
+        
+    return rows
+
+
+def client_usage_open_close(users=jv3.utils.get_consenting_users()):
+    opens = {}
+    rows = []
+    for u in users:
+        actlogs = jv3.models.ActivityLog.objects.filter(owner=u)
+        for a in actlogs:
+            if a.action == 'sidebar-open':
+                opens[a.search] = long(a.when)
+            if a.action == 'sidebar-close' and opens.has_key(a.search):
+                rows.append([u.email, makedate_usec(opens[a.search]), makedate_usec(long(a.when)), long(a.when)-opens[a.search]])
+                del opens[a.search]
+    return rows
+
+
+def client_usage_open_close_intervening_actions(users=jv3.utils.get_consenting_users()):
+    rows = []
+    for u in users:
+        actlogs = jv3.models.ActivityLog.objects.filter(owner=u,action='sidebar-open')
+        print "actlogs: %s " % repr(actlogs)
+        for a in actlogs:
+            closelog = jv3.models.ActivityLog.objects.filter(owner=u,action='sidebar-close',search=a.search)
+            if len(closelog) == 0:
+                ## fall back
+                print "fall back for user %s " % u.email
+                closelog = jv3.models.ActivityLog.objects.filter(owner=u,action='sidebar-open',when__gt=a.when)
+                if len(closelog) == 0: print "couldnt even find a second sidebar open %s " % u.email
+                continue
+            
+            closelog = closelog[len(closelog)-1]
+            print "start %s end %s - %s " % (repr(float(a.when)),repr(float(closelog.when)),float(closelog.when)-float(a.when))
+            note_add = jv3.models.ActivityLog.objects.filter(owner=u,action='note-add',when__lte=long(closelog.when),when__gte=long(a.when))
+            note_save = jv3.models.ActivityLog.objects.filter(owner=u,action='note-save',when__lte=long(closelog.when),when__gte=long(a.when))
+            note_del = jv3.models.ActivityLog.objects.filter(owner=u,action='note-delete',when__lte=long(closelog.when),when__gte=long(a.when))
+            note_search = jv3.models.ActivityLog.objects.filter(owner=u,action='search',when__lte=long(closelog.when),when__gte=long(a.when))
+            row = [u.email, makedate_usec(long(a.when)), makedate_usec(long(closelog.when)), long(closelog.when)-long(a.when), len(note_add), len(note_save), len(note_del), len(note_search)]
+            print "row %s " % repr(row)
+            rows.append(row)
     return rows
     
 #print notes(authmodels.User.objects.filter(email="emax@csail.mit.edu"))
