@@ -84,6 +84,7 @@ note_guid = lambda note: note.id
 note_jid = lambda note: note.jid
 note_owner_email = lambda note: note.owner.email
 note_owner_joindate = lambda note: makedate_usec(long(jv3.utils.get_newest_registration_for_user_by_email(note.owner.email).when))
+user_joindate = lambda user: makedate_usec(long(jv3.utils.get_newest_registration_for_user_by_email(user.email).when))
 note_owner_id = lambda note: note.owner.id
 note_deleted = lambda note: repr(bool(note.deleted))
 note_created = lambda note: makedate_usec(long(note.created))
@@ -312,6 +313,22 @@ def client_usage_open_close_intervening_actions(users=jv3.utils.get_consenting_u
             print "row %s " % repr(row)
             rows.append(row)
     return rows
+
+
+def probes_taken_by_user(users=jv3.utils.get_consenting_users(),probe_range=range(1,20)):
+    rows = []
+    for u in users:
+        notes = jv3.models.Note.objects.filter(owner=u)
+        by_probe = {}
+        for n in notes:
+            if note_is_probe_response(n) is not False and int(note_is_probe_response(n)) in probe_range:
+                by_probe[int(note_is_probe_response(n))] = n.contents
+        row = [ u.email, len(by_probe), user_joindate(u) ]
+        row.append([ by_probe.get(x, "") for x in probe_range ])
+        rows.append(row)
+    return rows                
+        
+        
     
 #print notes(authmodels.User.objects.filter(email="emax@csail.mit.edu"))
 #print make_spreadsheet(notes_statistics(),col_headers=[x[0] for x in note_statistic_fns])
