@@ -302,6 +302,9 @@ def get_incomplete_survey_takers():
     users = get_survey_takers()
     return [u for u in users if len(jv3.models.SurveyDoneDeclaration.objects.filter(user=u)) == 0 ]
 
+def is_survey_complete(u):
+    return len(jv3.models.SurveyDoneDeclaration.objects.filter(user=u)) > 0
+
 def get_survey_takers_urls():
     return "\n".join(["%(email)s : %(server_url)s/jv3/get_survey?cookie=%(cookie)s" % {'server_url':settings.SERVER_URL,'cookie':jv3.utils.get_newest_registration_for_user_by_email(u.email).cookie, 'email':u.email} for u in get_survey_takers()])
 

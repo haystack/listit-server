@@ -315,7 +315,8 @@ def client_usage_open_close_intervening_actions(users=jv3.utils.get_consenting_u
     return rows
 
 
-def probes_taken_by_user(users=jv3.utils.get_consenting_users(),probe_range=range(1,20)):
+def probes_taken_by_user(users=jv3.utils.get_consenting_users(),probe_range=range(1,21)):
+    import survey
     rows = []
     for u in users:
         notes = jv3.models.Note.objects.filter(owner=u)
@@ -323,8 +324,8 @@ def probes_taken_by_user(users=jv3.utils.get_consenting_users(),probe_range=rang
         for n in notes:
             if note_is_probe_response(n) is not False and int(note_is_probe_response(n)) in probe_range:
                 by_probe[int(note_is_probe_response(n))] = n.contents
-        row = [ u.email, len(by_probe), user_joindate(u) ]
-        row.append([ by_probe.get(x, "") for x in probe_range ])
+        row = [ u.email, len(by_probe), user_joindate(u), survey.is_survey_complete(u) ]
+        row = row + [ defang(by_probe.get(x, "")) for x in probe_range ]
         rows.append(row)
     return rows                
         

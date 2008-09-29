@@ -193,7 +193,7 @@ if hasattr(settings, 'DEFINE_SURVEY') and settings.DEFINE_SURVEY:
         when = models.DecimalField(max_digits=19,decimal_places=0)
         def __unicode__(self):
             import utils
-            return "[%s - %s]: %s" % (self.user.email,self.when)
+            return "[%s]: %s" % (self.user.email,self.when)
 
     try:
         admin.site.register(SurveyQuestion)
