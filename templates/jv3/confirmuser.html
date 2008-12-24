@@ -32,7 +32,7 @@ function doconfig() {
 	$("#configmessage").html("Done! You are all configured for using list.it with synchronization.");
 	$("#configmessage").fadeIn();
     } catch (e) {
-	$("#configmessage").html("Oops, something went wrong. Sorry! Please try again (and hit Allow when prompted)");
+	$("#configmessage").html("Oops, something went wrong. Sorry! Please try again (and hit Allow when prompted).  If that doesn't work, your Firefox has unusual security settings -- but fear not!  Open up list.it by going into Firefox's menu View --> Sidebars --> list.it.  Then press the 'Options' button and enter your username and password in the synchronization settings.");
 	$("#configmessage").fadeIn();
 	return;
     } 

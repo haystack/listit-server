@@ -221,7 +221,7 @@ def confirmuser(request):
         if len(authmodels.User.objects.filter(email=newest_registration.email)) > 0:
             user = authmodels.User.objects.filter(email=newest_registration.email)[0]
             logevent(request,'confirmuser','alreadyregistered',cookie)
-            return render_to_response('jv3/confirmuser.html', {"message": "I think already know you, %s.  You should have no trouble logging in.  Let us know if you have problems! " % newest_registration.email,
+            return render_to_response('jv3/confirmuser.html', {"message": "I think I already know you, %s.  You should have no trouble logging in.  Let us know if you have problems! " % newest_registration.email,
                                                                'username':user.email, 'password':newest_registration.password, 'server':settings.SERVER_URL});
         
         user = authmodels.User();
