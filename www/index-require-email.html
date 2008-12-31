@@ -21,13 +21,35 @@
 //$(document).resize(resetbackground);
 $(document).ready(resetbackground);
 
-$(document).ready(function(){
+var init_accordion = function() {
     $(".feature-list").accordion({
 	header: "div.feature-title",
 	autoheight:false,
 	alwaysOpen: false,
         active:	""
     });
+};
+
+$(document).ready( function() {
+    // checks navigator version and stuff.    
+    $(".feature-list").accordion({
+	header: "div.feature-title",
+	autoheight:false,
+	alwaysOpen: false,
+        active:	""
+    });
+    try {
+	var browser=navigator.appName;
+	var b_version=navigator.appVersion;
+	var version=parseFloat(b_version);
+	if ((browser=="Netscape" && version >= 5 && navigator.userAgent.match("rv:1\.9"))) {
+	    $("#main-content").fadeIn();
+	    init_accordion();	
+	    return;
+	} 
+    } catch(e) { }
+    $("#browser-version-problem").fadeIn();
+    $("#main-info").hide();
 });
 
 var BASE_URL = "/listit/jv3";
@@ -323,12 +345,40 @@ $(document).ready(function() {
 	      10 days and earn a $20 gift certificate - and a chance to win $50 or $25 more!    To learn more <A target="_new" href="couhes.html">check out the details</a>
 	      and click "participate in the study" after you type in your e-mail in step 2 (get.it!).-->
 	      </p>
+
 	      <p></p>
         </td></tr>
-	<tr valign="top">
+	<tr valign="top" colspan="2">
+	  <td>
+	  <noscript>
+          <h2>getting.it</h2>
+          <h3>oops! javascript not enabled</h3>
+	  <P>We have detected that you seem to have Javascript turned off in your browser or a script blocker such as NOSCRIPT installed.
+	     list.it is written in Javascript and needs it  to be enabled in order to be installed.
+
+          <P>Please enable Javascript in your Firefox Preferences (Mac) or Options menu in Windows.</p>
+	  <P><center> <img src="imgs/enable-js.png"></center></p>
+	  </noscript>
+       
+          <div id="browser-version-problem" style="display:none;">
+
+          <h2>getting.it</h2>
+          <h3>oops! listit needs firefox 3 and above</h3>
+          <p>
+          We have detected that you are running a browser other than Firefox 3.
+          Currently list.it is an Add-on for only Firefox 3 and newer.  Please either try switching
+          to Firefox or stay tuned for support for other browsers
+	  </p>
+          <p>
+    (And sorry for the inconvenience!) Write us at <a href="mailto:listit@csail.mit.edu">listit at csail dot mit dot edu</a> to tell us how you feel.
+	  </p>    
+          </div>
+	  </td>
+	</tr>
+
+	<tr id="main-content" valign="top" style="display:none">
 	  <td>	  
-	       <h2>about it</h2>
-	       
+	       <h2>about it</h2>	       
                <ul class="feature-list">
 	       <li>
 	       <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>news</div>
@@ -446,7 +496,6 @@ $(document).ready(function() {
 	      <li>
 	      <div class="feature-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>step 2: get it (and sign up!)</div>
 	      <div id="getit-description" class="feature-description">
-	       <noscript><p>You appear to have Javascript disabled.  Please enable Javascript or the sign-up process will not work.</p></noscript>
 	       <P>
 	       To get.it, please supply an e-mail address that we can use to identify you. We will <b>not</b>
 	       spam you or disclose your address to anyone.
