@@ -1,0 +1,25 @@
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html> <head>
+<title></title>
+</head>
+
+<script type="text/javascript">
+    function run() {
+	var browser=navigator.appName;
+	var b_version=navigator.appVersion;
+	var version=parseFloat(b_version);
+	document.getElementById("result").
+	    innerHTML = " browser : " + browser + "<br> version: " + version + "<br>" + navigator.userAgent ;
+    }
+</script>
+
+<body onload="run()">
+<h2></h2>
+
+Your browser version:<br>
+<span id="result"/>
+
+
+
+</body> </html>
