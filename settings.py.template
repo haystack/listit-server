@@ -64,15 +64,21 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.doc.XViewMiddleware',
 )
 
-ROOT_URLCONF = 'urls'
+# REMOTE DEPLOYMENT
+ROOT_URLCONF = 'server.urls'
+
+## LOCAL DEPLOYMENTS:
+## Only for local deployments
+## SERVER_URL = "http://localhost:8000/listit"
+## ROOT_URLCONF = 'server.urls-debug'
+
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    # SET ME to an absolute path like:
     #'/work/connectingme/plum/server/templates'
-    #'/afs/csail.mit.edu/u/e/emax/plum_www/workspace/trunk/server/templates'
+    '/Users/emax/Desktop/projects/workspace/plum/server/templates'
 )
 
 INSTALLED_APPS = (
@@ -81,8 +87,10 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    'jv3',
+    'server.jv3',
 )
+
+
 
 SERVER_HOSTNAME = "<csail server>"
 SERVER_PORT = 12345
