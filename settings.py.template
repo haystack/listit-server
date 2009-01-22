@@ -1,5 +1,6 @@
 # Django settings for plum server project.
 
+DEVELOPMENT = True # Set this to True to run a local development deployment
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
