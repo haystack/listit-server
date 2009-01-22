@@ -70,8 +70,9 @@ ROOT_URLCONF = 'server.urls'
 
 ## LOCAL DEPLOYMENTS:
 ## Only for local deployments
+## STATIC_ROOT = "/home/masont/dev/haystack/server/www"
 ## SERVER_URL = "http://localhost:8000/listit"
-## ROOT_URLCONF = 'server.urls-debug'
+## DEVELOPMENT = True
 
 
 TEMPLATE_DIRS = (
