@@ -1,4 +1,0 @@
-{% extends "error.html" %}
-{% block title %}500 Internal Server Error{% endblock %}
-{% block headline %}500 Internal Server Error{% endblock %}
-{% block content %}{{ debug }}{% endblock %}
