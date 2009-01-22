@@ -12,7 +12,7 @@ INSTALLED_APPS = (
     'django_restapi_tests.polls',
     'django_restapi_tests.people'
 )
-
+SITE_ID=1
 ROOT_URLCONF = 'django_restapi_tests.urls'
 
 DATABASE_NAME = realpath('testdata')

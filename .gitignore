@@ -1,3 +1,4 @@
 jv3.db
 *.pyc
-settings.py
+/settings.py
+
