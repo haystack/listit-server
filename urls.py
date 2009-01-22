@@ -15,7 +15,7 @@ if settings.DEVELOPMENT:
         (r'^listit/jv3/', include('jv3.urls')),
         (r'^listit/plum/', include('plum.urls')),
         (r'^(?P<path>.*)$', 'django.views.static.serve', 
-                            {'document_root': 'www'})
+                            {'document_root': settings.STATIC_ROOT})
     )
 else:
     urlpatterns += patterns('',
