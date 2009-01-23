@@ -33,11 +33,18 @@ var init_accordion = function() {
 $(document).ready( function() {
     // checks navigator version and stuff.    
     $(".feature-list").accordion({
-	header: "div.feature-title",
-	autoheight:false,
-	alwaysOpen: false,
+	      header: "div.feature-title",
+	      autoheight:false,
+	      alwaysOpen: false,
         active:	""
     });
+    // Allow users to override a faulty browser version detection
+    $("#ff3-continue").click(function() {
+        $("#browser-version-problem").slideUp();
+        $("#main-content").slideDown();
+        return false;
+    });
+
     try {
 	var browser=navigator.appName;
 	var b_version=navigator.appVersion;
@@ -49,7 +56,7 @@ $(document).ready( function() {
 	} 
     } catch(e) { }
     $("#browser-version-problem").fadeIn();
-    $("#main-info").hide();
+    $("#main-content").hide();
 });
 
 var BASE_URL = "/listit/jv3";
@@ -369,6 +376,11 @@ $(document).ready(function() {
           Currently list.it is an Add-on for only Firefox 3 and newer.  Please either try switching
           to Firefox or stay tuned for support for other browsers
 	  </p>
+          <p>
+            If we have incorrectly identified your browser and you are sure you
+            are running Firefox 3, click <a href="#" id="ff3-continue">here</a> 
+            to continue.
+          </p>
           <p>
     (And sorry for the inconvenience!) Write us at <a href="mailto:listit@csail.mit.edu">listit at csail dot mit dot edu</a> to tell us how you feel.
 	  </p>    
