@@ -70,17 +70,23 @@ class Note(models.Model):
 #         except ValueError,e:
 #            print e
 
-class NoteForm(forms.Form):
-    created = forms.DecimalField()
-    edited = forms.DecimalField()
-    contents = forms.CharField(required=False)
-    owner = FixedModelChoiceField( queryset=authmodels.User.objects,  cache_choices=True  )
-    jid = forms.IntegerField()
-    version = forms.IntegerField()
-    deleted = forms.NullBooleanField()
-
 
     
+# class NoteForm(forms.Form):
+#     created = forms.DecimalField()
+#     edited = forms.DecimalField()
+#     contents = forms.CharField(required=False)
+#     owner = FixedModelChoiceField( queryset=authmodels.User.objects,  cache_choices=True  )
+#     jid = forms.IntegerField()
+#     version = forms.IntegerField()
+#     deleted = forms.NullBooleanField()
+
+class NoteForm(forms.ModelForm):
+    class Meta:
+        model = Note
+        pass
+    pass
+
 try:
     admin.site.register(Note)
 except sites.AlreadyRegistered,r:

@@ -11,7 +11,7 @@ from django.utils.simplejson import JSONEncoder, JSONDecoder
 import django.contrib.auth.models as authmodels
 from django_restapi.resource import Resource
 from django_restapi.model_resource import InvalidModelData
-from jv3.models import Note
+from jv3.models import Note, NoteForm
 import jv3.utils
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport
 from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username
@@ -39,13 +39,9 @@ class NoteCollection(Collection):
         """
         request_user = basicauth_get_user_by_emailaddr(request);        
         if not request_user:
-            print  "request user is none"
             logevent(request,'Note.read',401,{"requesting user:":jv3.utils.decode_emailaddr(request)})
-            return self.responder.error(request, 401, "Incorrect user/password combination")
-        
-        print "fooo!"
-        print "request user is %s " % repr(request_user)
-        #qs_user = Note.objects.filter(owner=request_user).exclude(deleted=True)
+            return self.responder.error(request, 401, "Incorrect user/password combination")        
+
         qs_user = Note.objects.filter(owner=request_user)  ## i realize this is controversial, but is necessary for sync to update !
         logevent(request,'Note.read',200)
         return self.responder.list(request, qs_user)
@@ -53,9 +49,9 @@ class NoteCollection(Collection):
     def create(self,request):
         
         # MERGED create and update method for server, so that we don't have to do a PUT
-        ResourceForm = forms.form_for_model(self.queryset.model, form=self.form_class)
+        #  forms.form_for_model(self.queryset.model, form=self.form_class)
         data = self.receiver.get_post_data(request)
-        form = ResourceForm(data)
+        form = NoteForm(data)
 
         # get user being authenticated
         request_user = basicauth_get_user_by_emailaddr(request);
@@ -63,7 +59,7 @@ class NoteCollection(Collection):
             logevent(request,'Note.create POST',401, jv3.utils.decode_emailaddr(request))
             return self.responder.error(request, 401, "Incorrect user/password combination")
 
-        form.data['owner'] = request_user;                 ## clobber this whole-sale from authenticating user
+        form.data['owner'] = request_user.id;                 ## clobber this whole-sale from authenticating user
         matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)
         
         if len(matching_notes) == 0:
@@ -74,7 +70,7 @@ class NoteCollection(Collection):
                 model_entry = self.entry_class(self, new_model)
                 response = model_entry.read(request)
                 response.status_code = 201
-                response['Location'] = model_entry.get_url()
+                ## response['Location'] ## = model_entry.get_url()
                 logevent(request,'Note.create',200,form.data['jid'])
                 return response
             ## something didn't pass form validation
@@ -105,7 +101,7 @@ class NoteCollection(Collection):
                 matching_notes[0].save()
                 response = self.read(request)
                 response.status_code = 200
-                response['Location'] = self.get_url()
+                ## this BREAKS with 1.0 ## response['Location'] = self.get_url()
                 # announce success
                 logevent(request,'Note.update',200,form.data['jid'])
                 return response
@@ -129,9 +125,10 @@ class NoteCollection(Collection):
         If a note with such a JID does not exist, return 404.
         Called with HTTP DELETE
         """
-        ResourceForm = forms.form_for_model(Note, form=self.form_class)
+        #ResourceForm = forms.form_for_model(Note, form=self.form_class)
         data = self.receiver.get_put_data(request)
-        form = ResourceForm(data)
+        #form = ResourceForm(data)
+        form = NoteForm(data)
         request_user = basicauth_get_user_by_emailaddr(request);
         if not request_user:
             logevent(request,'Note.delete',401, jv3.utils.decode_emailaddr(request))
@@ -171,7 +168,7 @@ class NoteCollection(Collection):
 ## a view new user/user management
 def userexists(request):
     userid = request.GET['email'];
-    print " userid is %s " % repr(userid)
+    ## print " userid is %s " % repr(userid)
     if len(authmodels.User.objects.filter(username=userid)) > 0:
         response = HttpResponse("User exists", "text/html");
         response.status_code = 200;
@@ -183,7 +180,7 @@ def userexists(request):
 def createuser(request):
     username = request.POST['username'];
     passwd = request.POST['password'];
-    print " userid is %s, password is %s " % (repr(username),repr(passwd))
+    ## print " userid is %s, password is %s " % (repr(username),repr(passwd))
     if len(authmodels.User.objects.filter(username=username)) > 0:
         response = HttpResponse("User exists", "text/html");
         response.status_code = 405;
@@ -200,7 +197,7 @@ def createuser(request):
     user.first_name = request.POST['firstname']; 
     user.last_name = request.POST['lastname']; 
     
-    print "user couhes is %s " % repr(type(user.couhes))
+    ## print "user couhes is %s " % repr(type(user.couhes))
     user.cookie = gen_cookie();
     user.save();
     
