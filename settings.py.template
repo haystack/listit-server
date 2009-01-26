@@ -89,7 +89,7 @@ INSTALLED_APPS = (
     'server.jv3',
 )
 
-EMAIL_HOST = "outgoing.csail.mit.edu"
-EMAIL_HOST_USER = "emax"
-EMAIL_HOST_PASSWORD = "ep1cvrvs"
+EMAIL_HOST = "<imap hostname>"
+EMAIL_HOST_USER = "<imap user name>"
+EMAIL_HOST_PASSWORD = "<imap password>"
 EMAIL_TLS = True
