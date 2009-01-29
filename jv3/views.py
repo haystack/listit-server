@@ -14,7 +14,7 @@ from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note, NoteForm
 import jv3.utils
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport
-from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username
+from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username, get_user_by_email
 import time
 from django.template.loader import get_template
 
@@ -164,33 +164,31 @@ class NoteCollection(Collection):
 #             pass        
 #     return HttpResponse(_("Login unsuccessful."));
 
-
 ## a view new user/user management
 def userexists(request):
-    userid = request.GET['email'];
-    ## print " userid is %s " % repr(userid)
-    if len(authmodels.User.objects.filter(username=userid)) > 0:
+    email = request.GET['email'];
+    if get_user_by_email(email) :
         response = HttpResponse("User exists", "text/html");
         response.status_code = 200;
-        return response
+        return response    
     response = HttpResponse("User does not exist", "text/html");
     response.status_code = 404;
     return response
 
 def createuser(request):
-    username = request.POST['username'];
+    email = request.POST['username'];
     passwd = request.POST['password'];
-    ## print " userid is %s, password is %s " % (repr(username),repr(passwd))
-    if len(authmodels.User.objects.filter(username=username)) > 0:
+    
+    if get_user_by_email(email) :
         response = HttpResponse("User exists", "text/html");
         response.status_code = 405;
-        logevent(request,'createuser',205,username)
+        logevent(request,'createuser',205,email)
         return response
     
     user = UserRegistration();
     user.when = current_time_decimal();
-    user.email = username;
-    user.password = passwd;
+    user.email = email;
+    user.password = passwd;  ## this is unfortunate.
 
     ## couhes handling: couhes requires first & last name 
     user.couhes = (request.POST['couhes'] == 'true'); ## assume this is boolean
@@ -214,12 +212,14 @@ def confirmuser(request):
     if len(matching_registrations) > 0:
         ## create user
         newest_registration = get_most_recent(matching_registrations)
+        
         ## check to see if already registered
-        if len(authmodels.User.objects.filter(email=newest_registration.email)) > 0:
-            user = authmodels.User.objects.filter(email=newest_registration.email)[0]
+        if get_user_by_email(newest_registration.email):
+            user = get_user_by_email(newest_registration.email)
             logevent(request,'confirmuser','alreadyregistered',cookie)
-            return render_to_response('jv3/confirmuser.html', {"message": "I think I already know you, %s.  You should have no trouble logging in.  Let us know if you have problems! " % newest_registration.email,
-                                                               'username':user.email, 'password':newest_registration.password, 'server':settings.SERVER_URL});
+            return render_to_response('jv3/confirmuser.html',
+                                      {"message": "I think I already know you, %s.  You should have no trouble logging in.  Let us know if you have problems! " % newest_registration.email,
+                                       'username':user.email, 'password':newest_registration.password, 'server':settings.SERVER_URL});
         
         user = authmodels.User();
         user.username = make_username(newest_registration.email);  ## intentionally a dupe, since we dont have a username. WE MUST be sure not to overflow it (max_chat is default 30)
@@ -251,8 +251,8 @@ def confirmuser(request):
 
 def reconsent(request):
     email = request.GET['email']
-    newest_registration  = get_most_recent(UserRegistration.objects.filter(email=email))
-    if not newest_registration == None:
+    newest_registration  = get_most_recent(UserRegistration.objects.filter(email__iexact=email))
+    if newest_registration:
         logevent(request,'reconsent',200,newest_registration)
         newest_registration.couhes = True
         newest_registration.when = current_time_decimal() ## update time 
@@ -267,17 +267,17 @@ def reconsent(request):
                            
 
 def changepassword_request(request): ## GET view, parameter username
-    username = request.GET['username'];
-    matching_users = authmodels.User.objects.filter(username=username)
-    if len(matching_users) == 0:
+    email = request.GET['username'];
+    matching_user = get_user_by_email(email)
+    if matching_user:
         response = HttpResponse("Unknown user, did you register previously for List.it under a different email address?", "text/html");    
         response.status_code = 404;
         logevent(request,'changepassword_request',404,repr(request))
         return response;    
-    req = makeChangePasswordRequest(username);
-    send_mail('Confirm List.it change password request', gen_confirm_change_password_email(req) , 'listit@csail.mit.edu', (matching_users[0].email,), fail_silently=False)
-    response = render_to_response('jv3/changepassword_request.html', {'message': "(I just sent email to you at %s)" % matching_users[0].email})
-    logevent(request,'changepassword_request',200,repr((username,req.cookie,)))
+    req = makeChangePasswordRequest(email)
+    send_mail('Confirm List.it change password request', gen_confirm_change_password_email(req) , 'listit@csail.mit.edu', (matching_user.email,), fail_silently=False)
+    response = render_to_response('jv3/changepassword_request.html', {'message': "(I just sent email to you at %s)" % matching_user.email})
+    logevent(request,'changepassword_request',200,repr((email,req.cookie,)))
     return response;
 
 def changepassword_confirm(request): ## GET view, parameter cookie
@@ -305,16 +305,16 @@ def changepassword(request): ## POST view, parameters cookie and password
         logevent(request,'changepassword',405,repr(request))
         return response;
     reqobject = matching_requests[0];
-    matching_user = authmodels.User.objects.filter(username=reqobject.username)
-    if len(matching_user) == 0:
-        response = HttpResponse("Sorry, I did not know about the user you are asking about: %s " % repr(reqobject.username),"text/html")
+    matching_user = get_user_by_email(reqobject.email)
+    if not matching_user:
+        response = HttpResponse("Sorry, I did not know about the user you are asking about: %s " % repr(reqobject.email),"text/html")
         response.status_code = 404;
         logevent(request,'changepassword',404,repr(request))
         return response;    
-    matching_user[0].set_password(password)
-    matching_user[0].save()
+    matching_user.set_password(password)
+    matching_user.save()
     reqobject.delete()
-    response = render_to_response('jv3/confirmuser.html', {'message': "Your password hs been updated successfully, %s." % matching_user[0].username})
+    response = render_to_response('jv3/confirmuser.html', {'message': "Your password hs been updated successfully, %s." % matching_user.email})
     logevent(request,'changepassword',200,repr(cookie))
     return response;    
 
@@ -411,9 +411,10 @@ def get_user_and_registration_from_cookie(cookie,request):
     # user not found?
     if (not registration or len(UserRegistration.objects.filter(cookie=cookie)) == 0):
         return None
-    if len(authmodels.User.objects.filter(email=registration.email)) == 0:
+    matching_user = get_user_by_email(registration.email)
+    if not matching_user:
         return None
-    return (authmodels.User.objects.filter(email=registration.email)[0], registration)
+    return (matching_user, registration)
     
 def get_survey(request):
     # generates a personalized survey based on the contents of survey

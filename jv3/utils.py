@@ -73,6 +73,7 @@ def gen_confirm_newuser_email_body(userreg):
 
 ## not a view
 def gen_confirm_change_password_email(userreg):
+    ## userreg is a changepasswordrequest not a user registration!
     url = "%s/jv3/changepasswordconfirm?cookie=%s" % (settings.SERVER_URL,userreg.cookie)
     return  """
     Hello %s,
@@ -100,6 +101,12 @@ def get_most_recent(act):
 def decimal_time_to_str(msecs):
     return time.ctime(float(msecs)/1000.0)
 
+def get_user_by_email(email):
+    matches = authmodels.User.objects.filter(email__iexact=email)
+    if len(matches) > 0:
+        return matches[0]
+    return None    
+
 def basicauth_get_user_by_emailaddr(request):
     """
     If we use this, then we do not have to rely on session authentication 
@@ -112,8 +119,8 @@ def basicauth_get_user_by_emailaddr(request):
     emailaddr, password = auth.split(':', 1)
     from django.contrib.auth.models import User
     try:
-        user = User.objects.get(email=emailaddr)
-        if user.check_password(password):
+        user = get_user_by_email(emailaddr)
+        if user and user.check_password(password):
             return user;
     except User.DoesNotExist:
         pass
