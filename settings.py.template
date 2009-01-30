@@ -71,6 +71,7 @@ ROOT_URLCONF = 'server.urls'
 ## STATIC_ROOT = "/home/masont/dev/haystack/server/www"
 ## SERVER_URL = "http://localhost:8000/listit"
 ## DEVELOPMENT = True
+DEVELOPMENT = False
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
