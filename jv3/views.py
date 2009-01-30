@@ -40,7 +40,7 @@ class NoteCollection(Collection):
         request_user = basicauth_get_user_by_emailaddr(request);        
         if not request_user:
             logevent(request,'Note.read',401,{"requesting user:":jv3.utils.decode_emailaddr(request)})
-            return self.responder.error(request, 401, "Incorrect user/password combination")        
+            return self.responder.error(request, 401, ErrorDict({"autherror":"Incorrect user/password combination"}))
 
         qs_user = Note.objects.filter(owner=request_user)  ## i realize this is controversial, but is necessary for sync to update !
         logevent(request,'Note.read',200)
@@ -57,7 +57,7 @@ class NoteCollection(Collection):
         request_user = basicauth_get_user_by_emailaddr(request);
         if not request_user:
             logevent(request,'Note.create POST',401, jv3.utils.decode_emailaddr(request))
-            return self.responder.error(request, 401, "Incorrect user/password combination")
+            return self.responder.error(request, 401, ErrorDict({"autherror":"Incorrect user/password combination"}))
 
         form.data['owner'] = request_user.id;                 ## clobber this whole-sale from authenticating user
         matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)
@@ -132,7 +132,7 @@ class NoteCollection(Collection):
         request_user = basicauth_get_user_by_emailaddr(request);
         if not request_user:
             logevent(request,'Note.delete',401, jv3.utils.decode_emailaddr(request))
-            return self.responder.error(request, 401, "Incorrect user/password combination")
+            return self.responder.error(request, 401, ErrorDict({"autherror":"Incorrect user/password combination"}))
         
         matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)
         
@@ -269,7 +269,7 @@ def reconsent(request):
 def changepassword_request(request): ## GET view, parameter username
     email = request.GET['username'];
     matching_user = get_user_by_email(email)
-    if matching_user:
+    if not matching_user:
         response = HttpResponse("Unknown user, did you register previously for List.it under a different email address?", "text/html");    
         response.status_code = 404;
         logevent(request,'changepassword_request',404,repr(request))
@@ -305,9 +305,9 @@ def changepassword(request): ## POST view, parameters cookie and password
         logevent(request,'changepassword',405,repr(request))
         return response;
     reqobject = matching_requests[0];
-    matching_user = get_user_by_email(reqobject.email)
+    matching_user = get_user_by_email(reqobject.username)
     if not matching_user:
-        response = HttpResponse("Sorry, I did not know about the user you are asking about: %s " % repr(reqobject.email),"text/html")
+        response = HttpResponse("Sorry, I did not know about the user you are asking about: %s " % repr(reqobject.username),"text/html")
         response.status_code = 404;
         logevent(request,'changepassword',404,repr(request))
         return response;    
@@ -326,15 +326,17 @@ class ActivityLogCollection(Collection):
         request_user = basicauth_get_user_by_emailaddr(request);
         if not request_user:
             logevent(request,'ActivityLog.read',401,{"requesting user:":jv3.utils.decode_emailaddr(request)})
-            return self.responder.error(request, 401, "Incorrect user/password combination")
+            return self.responder.error(request, 401, ErrorDict({"autherror":"Incorrect user/password combination"}))
             
         user_activity = ActivityLog.objects.filter(owner=request_user)
         if (request.GET['type'] == 'get_max_log_id'):
             ## return the max id (used by the client to determine which records
             ## need to be retrieved.
             most_recent_activity = get_most_recent(user_activity);
-            if most_recent_activity == None: most_recent_activity = 0;
-            print "most_recent " + repr(most_recent_activity)
+            using_max = user_activity.when__max
+            
+            if most_recent_activity == None: most_recent_activity = 0;            
+            print "most_recent activity log: " + repr(most_recent_activity.when) + " MAX version " + using_max
             if most_recent_activity:
                 logevent(request,'ActivityLog.read',200,{"data":repr(most_recent_activity.when)})
                 return HttpResponse(JSONEncoder().encode({'value':int(most_recent_activity.when)}), self.responder.mimetype)
@@ -352,7 +354,7 @@ class ActivityLogCollection(Collection):
         request_user = basicauth_get_user_by_emailaddr(request);
         if not request_user:
             logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
-            return self.responder.error(request, 401, "Incorrect user/password combination")
+            return self.responder.error(request, 401, ErrorDict({"autherror":"Incorrect user/password combination"}))
 
         user_activity = ActivityLog.objects.filter(owner=request_user)
         committed = [];
