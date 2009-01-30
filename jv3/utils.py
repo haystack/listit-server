@@ -59,8 +59,9 @@ def gen_confirm_newuser_email_body(userreg):
     return  """
     Hi!
 
-    You or someone tried to register for Listit (http://projects.csail.mit.edu/jourknow/listit)
+    You or someone tried to register for listit the note-taking tool listit
     using your the email address %s.
+
 
     If you are that person, click here to get started!
     
@@ -69,6 +70,8 @@ def gen_confirm_newuser_email_body(userreg):
     Thanks,
 
     the Listit Team at MIT CSAIL.
+    http://groups.csail.mit.edu/haystack/listit
+
     """ % (userreg.email, url);
 
 ## not a view
