@@ -333,9 +333,8 @@ class ActivityLogCollection(Collection):
             ## return the max id (used by the client to determine which records
             ## need to be retrieved.            
             most_recent_activity = get_most_recent(user_activity);            
-            if most_recent_activity == None: most_recent_activity = 0;            
-            print "___ most_recent ___  activity log: " + repr(most_recent_activity.when)
             if most_recent_activity:
+                print "___ most_recent ___  activity log: " + repr(most_recent_activity.when)
                 logevent(request,'ActivityLog.read',200,{"data":repr(most_recent_activity.when)})
                 return HttpResponse(JSONEncoder().encode({'value':int(most_recent_activity.when)}), self.responder.mimetype)
             logevent(request,'ActivityLog.read',404,{"data":"no log entries"})
