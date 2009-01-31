@@ -331,16 +331,14 @@ class ActivityLogCollection(Collection):
         user_activity = ActivityLog.objects.filter(owner=request_user)
         if (request.GET['type'] == 'get_max_log_id'):
             ## return the max id (used by the client to determine which records
-            ## need to be retrieved.
-            most_recent_activity = get_most_recent(user_activity);
-            using_max = user_activity.when__max
-            
+            ## need to be retrieved.            
+            most_recent_activity = get_most_recent(user_activity);            
             if most_recent_activity == None: most_recent_activity = 0;            
-            print "most_recent activity log: " + repr(most_recent_activity.when) + " MAX version " + using_max
+            print "___ most_recent ___  activity log: " + repr(most_recent_activity.when)
             if most_recent_activity:
                 logevent(request,'ActivityLog.read',200,{"data":repr(most_recent_activity.when)})
                 return HttpResponse(JSONEncoder().encode({'value':int(most_recent_activity.when)}), self.responder.mimetype)
-            logevent(request,'ActivityLog.,read',404,{"data":"no log entries"})
+            logevent(request,'ActivityLog.read',404,{"data":"no log entries"})
             return self.responder.error(request, 404, ErrorDict({"value":"No activity found"}));
         else:
             ## retrieve the entire activity log            

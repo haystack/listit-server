@@ -95,11 +95,12 @@ def gen_confirm_change_password_email(userreg):
 def get_most_recent(act):
     if act == None or len(act) == 0:
         return None
-    def comp(x,y):
-        if x.when >= y.when:
-            return x;
-        return y;
-    return reduce(comp,act);        
+    return act.order_by("-when")[0];    
+    # def comp(x,y):
+    #         if x.when >= y.when:
+    #             return x;
+    #         return y;
+    # return reduce(comp,act);        
 
 def decimal_time_to_str(msecs):
     return time.ctime(float(msecs)/1000.0)
