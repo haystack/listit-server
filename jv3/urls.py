@@ -5,7 +5,7 @@ from django_restapi.responder import *
 from django_restapi.receiver import *
 from jv3.models import SPO, SPOForm, Note, NoteForm, ActivityLog
 from jv3.views import SPOCollection, NoteCollection, ActivityLogCollection, userexists, createuser, confirmuser, submit_bug_report, reconsent
-from jv3.views import changepassword, changepassword_request, changepassword_confirm
+from jv3.views import changepassword, changepassword_request, changepassword_confirm, notes_post_multi
 from django_restapi.authentication import HttpBasicAuthentication, HttpDigestAuthentication, djangouser_auth
 from jv3.views import get_survey, post_survey, done_survey
 
@@ -116,6 +116,7 @@ urlpatterns = patterns('server.jv3.views.',
     (r'^obj/(.+)/json$', json_by_obj),
     (r'^notes$', fullnotes_json_resource),   # GET
     (r'^notes/$', fullnotes_json_resource), ## POST
+    (r'^notespostmulti/$', notes_post_multi), ## updated protocol for listit 0.4.0, much faster
     (r'^notelog$', actlog_view),
     (r'^notelog/$', actlog_view),
     (r'^newuser$', lambda request: render_to_response('jv3/newuser.html')),

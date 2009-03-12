@@ -47,6 +47,8 @@ class NoteCollection(Collection):
         return self.responder.list(request, qs_user)
 
     def create(self,request):
+        ## THIS CODE IS DEPRECATED // the SLOW method. IF YOU MAKE ANY CHANGES HERE
+        ## MAKE SURE THE CHANGES ARE REFLECTED in note_update_batch below
         
         # MERGED create and update method for server, so that we don't have to do a PUT
         #  forms.form_for_model(self.queryset.model, form=self.form_class)
@@ -145,6 +147,74 @@ class NoteCollection(Collection):
         return HttpResponse(_("Object successfully deleted."), self.responder.mimetype)
     
 
+def notes_post_multi(request):
+    ## mirrored from NoteCollections.create upstairs but updated to handle
+    ## new batch sync protocol from listit 0.4.0 and newer.
+    
+    ## changes to protocol:
+    ## call it with a list of notes { [ {id: 123981231, text:"i love you"..} ...  ] )
+    ## returns a success with a list { committed: [{ success: <code>, jid: <id> }] ... } unless something really bad happened
+
+    request_user = basicauth_get_user_by_emailaddr(request);
+    if not request_user:
+        logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
+        response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
+        response.status_code = 401;
+        return response
+    
+    responses = []        
+    for datum in JSONDecoder().decode(request.raw_post_data):
+        ## print datum
+        form = NoteForm(datum)
+        form.data['owner'] = request_user.id;                 ## clobber this whole-sale from authenticating user
+        matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)        
+        if len(matching_notes) == 0:
+            ## CREATE a new note
+            # If the data contains no errors, save the model,
+            if form.is_valid() :
+                new_model = form.save()
+                responses.append({"jid":form.data['jid'],"status":201})
+                logevent(request,'Note.create',200,form.data['jid'])
+                continue
+            ## something didn't pass form validation
+            logevent(request,'Note.create',400,form.errors)
+            responses.append({"jid":form.data['jid'],"status":400})
+            print "CREATE form errors %s " % repr(form.errors)
+            continue
+        else:
+            ## UPDATE an existing note
+            ## check if the client version needs updating
+            if len(matching_notes) > 1:  print "# of Matching Notes : %d " % len(matching_notes)
+
+            if (matching_notes[0].version > form.data['version']):
+                errormsg = "Versions for jid %d not compatible (local:%d, received: %d). Do you need to update? "  % (form.data["jid"],matching_notes[0].version,form.data["version"])
+                print "NOT UPDATED error -- server: %d, YOU %d " % (matching_notes[0].version,form.data['version'])
+                responses.append({"jid":form.data['jid'],"status":400})
+                continue            
+            # If the data contains no errors, migrate the changes over to
+            # the version of the note in the db, increment the version number
+            # and announce success
+            if form.is_valid() :
+                for key in Note.update_fields:
+                    matching_notes[0].__setattr__(key,form.data[key])
+                # increment version number
+                matching_notes[0].version = form.data['version'] + 1 ## matching_notes[0].version + 1;
+                # save!
+                # print "SAVING %s, is it deleted? %s " % (repr(matching_notes[0]),repr(matching_notes[0].deleted))
+                matching_notes[0].save()
+                responses.append({"jid":form.data['jid'],"status":201})
+            else:                    
+                # Otherwise return a 400 Bad Request error.
+                responses.append({"jid":form.data['jid'],"status":400})
+                logevent(request,'Note.create',400,form.errors)
+                pass
+        pass
+    print responses
+    response = HttpResponse(JSONEncoder().encode({'committed':responses}), "text/json")
+    response.status_code = 200;
+    return response
+
+    
 # no longer necessary since we are no longer using session auth--
 # 
 # from django.contrib.auth import authenticate, login
