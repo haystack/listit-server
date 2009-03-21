@@ -15,14 +15,11 @@ h2 { font-size: 16pt; font-weight: bold; color: white; margin: 0pt;}
 h2 { font-size: 14pt; font-weight: bold; color: white; margin: 0pt;} 
 
 #main {
-  padding:20px;
   background:url(../imgs/trans40.png);
   text-align:left;
   margin: 20px auto;
 }
-
-dl dt {
-}
+dl dt {}
 dl dd {
    margin-top: 5px;
    margin-left: 0px; margin-right:0px;
@@ -97,3 +94,10 @@ input { color:#3b3b3b; background:#ffffff; border-style: solid; border-width: 1p
 
 #terms { border-style:solid; border-width:1px; border-color:white; padding:10px; font-size:8pt;}
 
+#main-content {  }
+#main-content td { padding:25px;  }
+
+.feature-listinalist {  margin-left:0px; padding-left:20px; }
+.feature-listinalist li {  margin-left:0px; padding-left:0px; padding-top:0.2em; padding-bottom:0.2em; }
+
+.fakehyperlink { color: #fca11f; background: transparent; text-decoration: none; }

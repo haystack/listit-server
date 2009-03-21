@@ -107,7 +107,6 @@ var determineWhetherUserIsNewOrReturningBasedOnEmail = function(cont) {
 			     }});
     }
 };
-
 var doLogin = function(username, password, cont) {
     jQuery.ajax( {type:"GET",
        		  url:BASE_URL + "/notes/",
@@ -217,12 +216,8 @@ var validate = function() {
 	}			    
     });
 };
-var enableDownload = function() {
-   $("#terms").fadeIn();
-}
 var ajax_requests = [];
 var login_success = false;
-
 $(document).ready(function() {
     $("#email").val("");
     setok(false);
@@ -241,9 +236,9 @@ $(document).ready(function() {
 		    ajax_requests.pop();
 		    if(isLoggedIn) {
 			// login successful.
-			setmsg("Login success!");
+			setmsg("You are already registered. Thanks!");
 			login_success = true;
-			enableDownload();
+			// enableDownload();
 			$("#email").attr("disabled",true);
 			$("#loginpassword").attr("disabled",true);
        			$("#submitlogin").fadeOut("fast");
@@ -296,5 +291,11 @@ $(document).ready(function() {
 	    $("#consentdate").fadeOut();
 	}
     });
+    $("#tandc").click(function() {
+	$("#terms").fadeIn();
+    });
+    $("#showtroubleshooting").click(function() {
+	$("#troubleshooting").fadeIn();
+    });    
 });
 
