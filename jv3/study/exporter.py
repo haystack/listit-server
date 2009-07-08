@@ -9,21 +9,23 @@ from jv3.utils import levenshtein
 def printf(x):
     print x
 
-# def defang(x) :
-#     if x is not None:
-#         return x.replace('\n','\\n')
-#     return None
-
-def defang_unicode(s):
-    if isinstance(s,unicode):
-        return s.encode('utf-8','ignore')
-    return s.decode('iso-8859-1','ignore')    
-
 def defang(x) :
     if x is not None:
-        x = defang_unicode(x)
-        return x.replace('\n','\\n').replace('\t','')
+        return x.replace('\n','\\n').replace('\t','\\t')
     return None
+
+def defang_unicode(s):
+   if isinstance(s,unicode):
+       return s.encode('utf-16','ignore')
+   return s.decode('iso-8859-1','ignore')
+
+# def defang(x) :
+#     if x is not None:
+#         x = defang_unicode(x)
+#         return x.replace('\n','\\n').replace('\t','')
+#     return None
+#def defang(x): 
+#    return x
 
 TEST_STRING = """daisy daisy
 give me your answer do,
@@ -107,13 +109,19 @@ def note_lifetime(n):
             endtime = long(d[0].when)/1000
     return endtime - long(n.created)/1000
 
+
+# def makestr(v):
+#     if isinstance(v,str):
+#         return defang(v)
+#     if isinstance(v,unicode):
+#         return defang(v)
+#     if isinstance(v,long):
+#         return "%d" % v
+#     return repr(v)
+
 def makestr(v):
-    if isinstance(v,str):
-        return defang(v)
-    if isinstance(v,unicode):
-        return defang(v)
-    if isinstance(v,long):
-        return "%d" % v
+    if isinstance(v,str) or isinstance(v,unicode):
+         return v
     return repr(v)
 
 def makedate_usec(v):
@@ -158,6 +166,15 @@ def notes_statistics(users=None, cols=None, stat_fns=note_statistic_fns):
     for u in users:
         for n in jv3.models.Note.objects.filter(owner=u):
             rows.append( [ f[1](n) for f in stat_fns ] )
+    return rows
+
+def notes_statistics_given_notes(notes, cols=None, stat_fns=note_statistic_fns):
+    rows = [[ f[0] for f in stat_fns ]]    
+    for n in notes:
+        try:
+            rows.append( [ f[1](n) for f in stat_fns ] )
+        except ValueError, x:
+            print x            
     return rows
 
 def determine_hits(u,search):
@@ -217,8 +234,10 @@ SEPT_1 = 1220241600000
 SEPT_17 = 1221624000000
 SEPT_15 = 1221451200000
 
-def per_user_notes_alive_per_day(users=jv3.utils.get_consenting_users(),start_usec=SEPT_1,end_usec=SEPT_17,skip_usec=DAILY):
+def per_user_notes_alive_per_day(users,start_usec=SEPT_1,end_usec=SEPT_17,skip_usec=DAILY):
     ## make column headers
+    if users is None :
+        users=jv3.utils.get_consenting_users()
     headers = ['username']
     s = start_usec
     while s < end_usec:
@@ -237,14 +256,18 @@ def per_user_notes_alive_per_day(users=jv3.utils.get_consenting_users(),start_us
         
     return [headers] + rows
 
-def per_user_still_using_after(users=jv3.utils.get_consenting_users(),date_usec=SEPT_15):
+def per_user_still_using_after(users,date_usec=SEPT_15):
+    if users is None:
+        users=jv3.utils.get_consenting_users()
     rows = []
     for u in users:
         notes = jv3.models.Note.objects.filter(owner=u)
         rows.append([ u.email, len([ n for n in notes if long(n.created) > date_usec or long(n.edited) > date_usec ])])
     return rows
 
-def per_note_edit_duration(users=jv3.utils.get_consenting_users(),edits=True,adds=True):
+def per_note_edit_duration(users,edits=True,adds=True):
+    if users is None:
+        users=jv3.utils.get_consenting_users()    
     rows = []
     for u in users:
         actlogs = jv3.models.ActivityLog.objects.filter(owner=u)        
@@ -258,7 +281,9 @@ def per_note_edit_duration(users=jv3.utils.get_consenting_users(),edits=True,add
         
     return rows
 
-def per_action_per_user(users=jv3.utils.get_consenting_users()):
+def per_action_per_user(users):
+    if users is None:
+        users=jv3.utils.get_consenting_users()
     rows = []
     def replaceNone(s):
         if s is None:
@@ -275,7 +300,9 @@ def per_action_per_user(users=jv3.utils.get_consenting_users()):
     return rows
 
 
-def client_usage_open_close(users=jv3.utils.get_consenting_users()):
+def client_usage_open_close(users):
+    if users is None:
+        users=jv3.utils.get_consenting_users()
     opens = {}
     rows = []
     for u in users:
@@ -289,7 +316,9 @@ def client_usage_open_close(users=jv3.utils.get_consenting_users()):
     return rows
 
 
-def client_usage_open_close_intervening_actions(users=jv3.utils.get_consenting_users()):
+def client_usage_open_close_intervening_actions(users):
+    if users is None:
+        users=jv3.utils.get_consenting_users()
     rows = []
     for u in users:
         actlogs = jv3.models.ActivityLog.objects.filter(owner=u,action='sidebar-open')
@@ -315,7 +344,9 @@ def client_usage_open_close_intervening_actions(users=jv3.utils.get_consenting_u
     return rows
 
 
-def probes_taken_by_user(users=jv3.utils.get_consenting_users(),probe_range=range(1,21)):
+def probes_taken_by_user(users,probe_range=range(1,21)):
+    if not users:
+        users=jv3.utils.get_consenting_users()    
     import survey
     rows = []
     for u in users:
