@@ -42,7 +42,13 @@ class NoteCollection(Collection):
             logevent(request,'Note.read',401,{"requesting user:":jv3.utils.decode_emailaddr(request)})
             return self.responder.error(request, 401, ErrorDict({"autherror":"Incorrect user/password combination"}))
 
-        qs_user = Note.objects.filter(owner=request_user)  ## i realize this is controversial, but is necessary for sync to update !
+        qs_user = None
+        if request.GET.has_key("jid"):
+            ## user has asked for only one note, yo.
+            qs_user = Note.objects.filter(owner=request_user,jid=int(request.GET["jid"]))
+        else:
+            qs_user = Note.objects.filter(owner=request_user)
+            
         logevent(request,'Note.read',200)
         return self.responder.list(request, qs_user)
 

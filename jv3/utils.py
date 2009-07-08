@@ -109,38 +109,47 @@ def get_user_by_email(email):
     matches = authmodels.User.objects.filter(email__iexact=email)
     if len(matches) > 0:
         return matches[0]
-    return None    
+    return None
 
-def basicauth_get_user_by_emailaddr(request):
-    """
-    If we use this, then we do not have to rely on session authentication 
-    """
-    if not request.META.has_key('HTTP_AUTHORIZATION'): return False
-    (authmeth, auth) = request.META['HTTP_AUTHORIZATION'].split(' ', 1)
-    if authmeth.lower() != 'basic':
-        return None
-    auth = auth.strip().decode('base64')
-    emailaddr, password = auth.split(':', 1)
-    from django.contrib.auth.models import User
+def _authenticate_user(emailaddr,password):
     try:
         user = get_user_by_email(emailaddr)
         if user and user.check_password(password):
             return user;
-    except User.DoesNotExist:
+    except authmodels.User.DoesNotExist:
         pass
-    return None
+    return None        
+
+def basicauth_get_user_by_emailaddr(request):
+    decoded = basicauth_decode_email_password(request)
+    if decoded is not None:
+        return _authenticate_user(decoded[0],decoded[1])
+
+def basicauth_decode_email_password(request):
+    """
+    If we use this, then we do not have to rely on session authentication 
+    """
+    ## it's either in the META or the GET
+    authblob = request.META.get('HTTP_AUTHORIZATION', request.GET.has_key("HTTP_AUTHORIZATION"))
+    if authblob:
+        (authmeth, auth) = authblob.split(' ', 1)
+        if authmeth.lower() != 'basic':
+            return None
+        auth = auth.strip().decode('base64')
+        emailaddr, password = auth.split(':', 1)        
+        return (emailaddr,password)
+    return None    
 
 def decode_emailaddr(request):
     """
     If we use this, then we do not have to rely on session authentication 
     """
-    if not request.META.has_key('HTTP_AUTHORIZATION'): return False
-    (authmeth, auth) = request.META['HTTP_AUTHORIZATION'].split(' ', 1)
-    if authmeth.lower() != 'basic':
-        return False
-    auth = auth.strip().decode('base64')
-    emailaddr, password = auth.split(':', 1)
-    return emailaddr
+    ## it's either in the META or the GET
+    decoded = basicauth_decode_email_password(request)
+    if decoded is not None:
+        return decoded[0]
+    return None
+
 
 USERNAME_MAXCHARS = 30
 
