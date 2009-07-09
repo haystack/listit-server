@@ -4,8 +4,8 @@
 	$('#back').attr('width',$(window).width());
 	//$('#back').attr('height',$(window).height());      
     }
-//$(window).resize(resetbackground);
-//$(document).resize(resetbackground);
+$(window).resize(resetbackground);
+$(document).resize(resetbackground);
 $(document).ready(resetbackground);
 
 var init_accordion = function() {

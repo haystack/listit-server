@@ -19,6 +19,7 @@ import jv3.study.emails as studytemplates
 import time
 import datetime
 import random
+import urllib
 from os import listdir
 
 current_time_decimal = lambda : int(time.time()*1000);
@@ -115,6 +116,7 @@ def _authenticate_user(emailaddr,password):
     try:
         user = get_user_by_email(emailaddr)
         if user and user.check_password(password):
+            print "User authenticated : " + user.email
             return user;
     except authmodels.User.DoesNotExist:
         pass
@@ -124,13 +126,17 @@ def basicauth_get_user_by_emailaddr(request):
     decoded = basicauth_decode_email_password(request)
     if decoded is not None:
         return _authenticate_user(decoded[0],decoded[1])
+    return None
 
 def basicauth_decode_email_password(request):
     """
     If we use this, then we do not have to rely on session authentication 
     """
     ## it's either in the META or the GET
-    authblob = request.META.get('HTTP_AUTHORIZATION', request.GET.has_key("HTTP_AUTHORIZATION"))
+    authblob = request.META.get('HTTP_AUTHORIZATION', None)
+    if authblob is None:
+        authblob = urllib.unquote(request.GET.get("HTTP_AUTHORIZATION"))
+        
     if authblob:
         (authmeth, auth) = authblob.split(' ', 1)
         if authmeth.lower() != 'basic':
@@ -138,7 +144,8 @@ def basicauth_decode_email_password(request):
         auth = auth.strip().decode('base64')
         emailaddr, password = auth.split(':', 1)        
         return (emailaddr,password)
-    return None    
+    
+    return None        
 
 def decode_emailaddr(request):
     """
