@@ -116,7 +116,7 @@ def _authenticate_user(emailaddr,password):
     try:
         user = get_user_by_email(emailaddr)
         if user and user.check_password(password):
-            print "User authenticated : " + user.email
+            ## print "User authenticated : " + user.email
             return user;
     except authmodels.User.DoesNotExist:
         pass
