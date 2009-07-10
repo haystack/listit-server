@@ -40,6 +40,18 @@ def overall_non_deleted_note_counts_per_user(users=None):
         counts[n_notes] = counts.get(n_notes,0)+1
     return counts
 
+def notes_by_users_created_between(starttime_secs,endtime_secs,users=None):
+    if users is None:
+        users = non_stop_consenting_users()
+    return Note.objects.filter(created__gte=int(starttime_secs*1000.0),created__lte=int(endtime_secs*1000.0),owner__in=users)
+
+def notes_by_users_edited_between(starttime_secs,endtime_secs,users=None):
+    if users is None:
+        users = non_stop_consenting_users()
+    return Note.objects.filter(edited__gte=int(starttime_secs*1000.0),edited__lte=int(endtime_secs*1000.0),owner__in=users)
+
+
+
 def notes_by_users_posted_n_days_ago(users=None,ndays=7):
     start = int(time.mktime((datetime.datetime.today() - datetime.timedelta(ndays)).timetuple())*1000.0)
     if users is None:
@@ -52,9 +64,17 @@ def users_whove_posted_at_least_since_n_days_ago(users=None,ndays=7):
         users = non_stop_consenting_users()
     return set([x.owner for x in Note.objects.filter(created__gte=start,owner__in=users)])
 
+def users_with_less_than_n_notes(n=0,users=None):
+    if users is None:
+        users = non_stop_consenting_users()
+    return [u for u in users if u.note_owner.count() <= n]
+
 def consenting_users_with_less_than_n_notes(n=0):
     users = non_stop_consenting_users()
     return [u for u in users if u.note_owner.count() <= n]
+
+def users_active_during(start_secs,end_secs):
+    return list(set( [a.owner for a in jv3.models.ActivityLog.objects.filter(when__gte=int(start_secs*1000.0),when__lte=int(end_secs*1000.0))]))
 
 def relevant_notes(users=None):
     if users is None:
