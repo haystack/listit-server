@@ -18,6 +18,7 @@ var resetbackground = function() {
     $('#back').attr('width',$(window).width());
 }
 $(document).ready(resetbackground);
+$(window).resize(resetbackground);
 
 function doconfig() {
     try {
@@ -76,14 +77,39 @@ $(document).ready(function() {
     </div>
    <img id="back" src="../../imgs/postits-sm.jpg" style="z-index:-1; position:absolute; left:0px; top:1in; right:0px; bottom:0px;" alt="post-its"/>
     <center>
-    <table width="700px" cellpadding="5px" cellspacing="0" border="0" id="main">
+    <table width="700px" cellpadding="15px" cellspacing="0" border="0" id="main">
 	<tr valign="top">
 	  <td colspan="2">
 	  
 	  <h1>Welcome to list.it!</h1>
-	  
-	  <h3>The server said: {{ message }}</h3>
 
+	  <h2>Getting started</h2>
+
+    <ul id="gettingstarted">
+
+
+    
+    <li>Launch <a href="../../web/index.html">List.it Web Edition</a> (for IE, Chrome, Safari, iPhone, G1, Opera, and Firefox)
+    <li>List.it Deluxe for Firefox users:
+<ul>
+    <li>  <a target="_top" href="../../releases/builds/listit.xpi" >Install list.it Deluxe for Firefox (3.0+)</a>
+    <li>  If you have it installed already, click on the yellow note icon in your status bar</li>
+    <li>  Watch this intro video:
+    <br>
+    <div style="padding:20px;">
+    <object width="325" height="244"><param name="movie" value="http://www.youtube.com/v/aKEzH-4Poog&hl=en&fs=1"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/aKEzH-4Poog&hl=en&fs=1&fmt=22" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="325" height="244"></embed></object>
+    </div>
+    </ul>
+          <li> See the <a href="../../faq.html">Frequently Asked Questions</a>.
+          <li> Visit the <a href="http://groups.google.com/group/list-it">List.it Support Forum</a>.
+    
+     </ul>
+
+<!-- Not necessary  <h3>The server said: {{ message }}</h3> -->
+<!--
+   This has been commented out because it fails for users who
+   are running FF for windows, which locks down priviolege escalation
+	    
     <div id="config">
 	  <h3> Pre-Configure it! </h3>
 	  <p>
@@ -96,8 +122,9 @@ install list.it in list.it's Options menu.
           <center><button id="configureit">Configure it!</button></center>
           <h3 id="configmessage"></h3>
     </div>
+
 	  
-	  <h3>Download it!</h3>
+	  <h3>Download firefox plugin</h3>
 	  
 	  <div id="terms" class="terms">
 		 <p style="margin-top:0px;">This software is licensed under the MIT License.</p>
@@ -128,12 +155,14 @@ install list.it in list.it's Options menu.
        <img src="../../imgs/allow-screenshot.png" alt="Screenshot of Allow button"/>
      </p>
 
-	      </div> <!--terms-->
+	      </div> 
 	      
 	      <h3>Open it!</h3>
 	      <p>To open list.it for the first time, open the View menu in Firefox, 
 	      click Sidebar, and then click list.it.  You can then use the Options dialog
 	      to set up a hotkey to open the client if you'd like.</p>
+
+-->
 
 	  </td>
 	</tr>

@@ -101,3 +101,7 @@ input { color:#3b3b3b; background:#ffffff; border-style: solid; border-width: 1p
 .feature-listinalist li {  margin-left:0px; padding-left:0px; padding-top:0.2em; padding-bottom:0.2em; }
 
 .fakehyperlink { color: #fca11f; background: transparent; text-decoration: none; }
+
+#gettingstarted li {
+    margin-top:5px;
+}
