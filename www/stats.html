@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<title>listit::statistics</title>
+</head>
+
+<link href="js/flot-read-only/examples/layout.css" rel="stylesheet" type="text/css"></link>
+<style type="text/css">
+    body { font-face: "Helvetica Neue Ultralight", "Helvetica Neue", "Helvetica"; font-weight: 100; font-size: 10pt; }
+</style>
+    
+<script type="application/javascript;version=1.8" src="js/plum-util-ns.js"></script>
+<script type="text/javascript" src="js/jquery-1.3.2.js"></script>
+<script type="text/javascript" src="js/flot-read-only/jquery.flot.js"></script>
+<script type="text/javascript">
+
+function plotCumulativeNotes() {
+    jQuery.get("listit/stats/cumulativeNotes",undefined,
+	       function(data) {
+		   var options = { xaxis: { mode: "time" } };
+		   console.log(data);
+		   data = plumutil.objmap(function(x) { return parseInt(x); },
+				   function(y) { return y; },
+				   data);
+		   data = plumutil.unzipdict(data);
+		   data.sort(function(x,y) { return x[0] - y[0]; });
+		   var plot = $.plot($("#cumulativeNotes"), [data], options);
+	       },"json");		
+}
+function plotCumulativeRegistratios() {
+    jQuery.get("listit/stats/cumulativeUserRegistrations",undefined,
+	       function(data) {
+		   var options = { xaxis: { mode: "time" } };
+		   console.log(data);
+		   data = plumutil.objmap(function(x) { return parseInt(x); },
+				   function(y) { return y; },
+				   data);
+		   data = plumutil.unzipdict(data);
+		   data.sort(function(x,y) { return x[0] - y[0]; });
+		   var plot = $.plot($("#cumulativeUserRegistrations"), [data], options);
+	       },"json");		
+}
+
+jQuery(document).ready(function() {
+    plotCumulativeNotes();
+    plotCumulativeRegistratios();
+});
+
+</script>
+<body>
+    listit:stats
+    <div id="cumulativeNotes" style="width:100%;height:500px;"></div>
+    <div id="cumulativeUserRegistrations" style="width:100%;height:500px;"></div>
+
+</body>
+</html>
