@@ -71,6 +71,7 @@ ROOT_URLCONF = 'server.urls'
 ## STATIC_ROOT = "/home/masont/dev/haystack/server/www"
 ## SERVER_URL = "http://localhost:8000/listit"
 ## DEVELOPMENT = True
+STAT_SERVER = False # enable only for stat server
 DEVELOPMENT = False
 
 TEMPLATE_DIRS = (
