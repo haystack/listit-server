@@ -23,8 +23,6 @@ def serial_stats(stats):
 
 def summary(request, **kwargs): ## startyear=2009, startmonth=1, startday=1, endyear=2009, endmonth=1, endday=1, dst=-1):
     ## returns total and by-day statistics for
-
-    print kwargs
     for (k,v) in kwargs.iteritems():
         kwargs[k] = int(v)
 
