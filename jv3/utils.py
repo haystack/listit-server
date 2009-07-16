@@ -135,7 +135,10 @@ def basicauth_decode_email_password(request):
     ## it's either in the META or the GET
     authblob = request.META.get('HTTP_AUTHORIZATION', None)
     if authblob is None:
-        authblob = urllib.unquote(request.GET.get("HTTP_AUTHORIZATION"))
+        auth_get = request.GET.get("HTTP_AUTHORIZATION",None)
+        if auth_get is None:
+            return None
+        authblob = urllib.unquote(auth_get)
         
     if authblob:
         (authmeth, auth) = authblob.split(' ', 1)

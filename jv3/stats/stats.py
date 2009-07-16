@@ -33,23 +33,24 @@ def summary(request, **kwargs): ## startyear=2009, startmonth=1, startday=1, end
 
     start_secs = time.mktime( (kwargs['startyear'],kwargs['startmonth'],kwargs['startday'],00,00,00,00,00,kwargs.get('dst',-1)))
     stats = []
+    nonstopconsentingusers = study.non_stop_consenting_users()
     stats.append( ('start time', time.ctime(start_secs)))
     stats.append( ('end time', time.ctime(end_secs) ))
     stats.append( ('start time msecs' , int(start_secs*1000) ) )
     stats.append( ('end time msecs', int(end_secs*1000) ))
                   
     stats.append(('total users', User.objects.all().count()))
-    stats.append(('total consenting users',len(study.non_stop_consenting_users())))
+    stats.append(('total consenting users',len(nonstopconsentingusers)))
 
     stats.append(('total notes',Note.objects.all().count()))    
-    stats.append(('total notes (from consenting users)',len(study.non_stop_consenting_users())))
+    stats.append(('total notes (from consenting users)',len(Note.objects.filter(owner__in=nonstopconsentingusers)))
 
     stats.append(('users who have not synced', len(study.users_with_less_than_n_notes(1,User.objects.all()))))
     stats.append(('consenting users who have not synced', len(study.users_with_less_than_n_notes(1))))
 
     stats.append(('users active during time', len(study.users_active_during(start_secs,end_secs))))
-    stats.append(('total notes created during time',len(study.notes_by_users_created_between(start_secs,end_secs,users=User.objects.all()))))
-    stats.append(('total notes modified during time',len(study.notes_by_users_edited_between(start_secs,end_secs,users=User.objects.all()))))
+#    stats.append(('total notes created during time',len(study.notes_by_users_created_between(start_secs,end_secs,users=User.objects.all()))))
+#    stats.append(('total notes modified during time',len(study.notes_by_users_edited_between(start_secs,end_secs,users=User.objects.all()))))
     
     response = HttpResponse(serial_stats(stats), "text/plain")
     response.status_code = 200;
