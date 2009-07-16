@@ -12,7 +12,7 @@ users = None
 notes = None
 problem = []
 
-def non_stop_consenting_users(stoplist=None):
+def non_stop_consenting_users_slow(stoplist=None):
     if stoplist is None:
         stoplist = ['emax@csail.mit.edu', 'karger@mit.edu', 'kp@csail.mit.edu',
                     'gvargas@mit.edu', 'karger@csail.mit.edu', 'msbernst@mit.edu',
@@ -20,6 +20,13 @@ def non_stop_consenting_users(stoplist=None):
     stopusers = map(lambda x : User.objects.filter(email=x), stoplist)
     stopusers = [u[0] for u in stopusers if len(u) > 0]
     return filter(lambda u: u not in stopusers, get_consenting_users());
+
+def non_stop_consenting_users(stoplist=None):
+    if stoplist is None:
+        stoplist = ['emax@csail.mit.edu', 'karger@mit.edu', 'kp@csail.mit.edu',
+                    'gvargas@mit.edu', 'karger@csail.mit.edu', 'msbernst@mit.edu',
+                    'wstyke@gmail.com']
+    return get_consenting_users().exclude(email__in=stoplist)
 
 def filter_stop_users(ulist):
     stopusers = map(lambda x : User.objects.filter(email=x),stoplist)
@@ -50,8 +57,6 @@ def notes_by_users_edited_between(starttime_secs,endtime_secs,users=None):
         users = non_stop_consenting_users()
     return Note.objects.filter(edited__gte=int(starttime_secs*1000.0),edited__lte=int(endtime_secs*1000.0),owner__in=users)
 
-
-
 def notes_by_users_posted_n_days_ago(users=None,ndays=7):
     start = int(time.mktime((datetime.datetime.today() - datetime.timedelta(ndays)).timetuple())*1000.0)
     if users is None:
@@ -67,14 +72,21 @@ def users_whove_posted_at_least_since_n_days_ago(users=None,ndays=7):
 def users_with_less_than_n_notes(n=0,users=None):
     if users is None:
         users = non_stop_consenting_users()
-    return [u for u in users if u.note_owner.count() <= n]
-
-def consenting_users_with_less_than_n_notes(n=0):
-    users = non_stop_consenting_users()
-    return [u for u in users if u.note_owner.count() <= n]
+    ret = []
+    for u in range(users.count()):
+        if users[u].note_owner.count() <= n:
+            ret.append(users[u])
+    return ret
 
 def users_active_during(start_secs,end_secs):
-    return list(set( [a.owner for a in jv3.models.ActivityLog.objects.filter(when__gte=int(start_secs*1000.0),when__lte=int(end_secs*1000.0))]))
+    ret = []
+    aloghits = jv3.models.ActivityLog.objects.filter(when__gte=int(start_secs*1000.0),when__lte=int(end_secs*1000.0))
+    for i in range(aloghits.count()):
+        a = aloghits[i]
+        if a.owner not in ret:
+            ret.append(a.owner)
+    return ret
+
 
 def relevant_notes(users=None):
     if users is None:
