@@ -5,6 +5,7 @@ import time,datetime
 import jv3.models
 import re
 from jv3.utils import levenshtein
+import jv3.study.study
 
 def printf(x):
     print x
@@ -359,7 +360,82 @@ def probes_taken_by_user(users,probe_range=range(1,21)):
         row = row + [ defang(by_probe.get(x, "")) for x in probe_range ]
         rows.append(row)
     return rows                
-        
+
+
+# command line utiltieis
+
+def _map_messages(users,Nperuser,randomized,fn):
+    for u_i in range(users.count()):
+        user = users[u_i]
+        notes_owned = jv3.models.Note.objects.filter(owner=user)
+        notes_owned_count = notes_owned.count()        
+        if not randomized or Nperuser is not None and notes_owned_count < Nperuser:
+            if Nperuser is None:
+                Nperuser = notes_owned_count
+            for n in range(min(notes_owned_count,Nperuser)):
+                fn( notes_owned[n] )
+        else: ## randomized
+            import random
+            noteids = {}
+            while len(noteids) < Nperuser:
+                index = random.randint(0,notes_owned_count)
+                if not noteids.has_key(index):
+                    noteids[index] = notes_owned[index]
+                    fn( noteids[index] )
+    pass
+
+def _serialize_and_print(note,stat_fns=note_statistic_fns):
+    print make_spreadsheet( [ [ f[1](note) for f in stat_fns ]  ] )
+    pass
+
+def export_cmd():
+    # Function for command line exporting of notes
+    # example:
+    usage = """
+python2.5 jv3.study.exporter [-u <useremail1>,<useremail2>..] -N <max_notes_per_user> -r -c
+  Exports notes from db, writing output to stdout
+    -u = restrict to only users with provided email addresses
+    -N = restrict to max N notes per user
+    -r = randomize selection of notes
+    -c = (if -u is not specified:) restrict to only COUHES consent users
+    -h = this help message
+
+  If you don't specify any command line options then it will export all the notes
+"""
+    
+    import sys
+    import getopt
+    args = sys.argv[1:]    
+    optlist, args = getopt.getopt(args, 'hcN:ru:')
+    optlist = dict(optlist)
+    if optlist.has_key('-h'):
+        print usage
+        return
+    maxmsgs = optlist.get('-N',None)
+    
+    if maxmsgs is not None:
+        maxmsgs = int(maxmsgs)
+
+    randomized = optlist.has_key('-r')
+    consenting = optlist.has_key('-c')
+
+    ## select notes by user
+    if optlist.has_key('-u'):
+        usernames = optlist['-u'].split(',')
+        users = authmodels.User.objects.filter(email__in=usernames)    
+    else:
+        if consenting:
+            users = authmodels.User.objects.all()
+        else:
+            users = jv3.study.study.non_stop_consenting_users()
+        pass
+
+
+    return _map_messages(users,maxmsgs,randomized,lambda x: _serialize_and_print(x)); 
+
+
+if __name__ == "__main__":
+    print export_cmd()
         
     
 #print notes(authmodels.User.objects.filter(email="emax@csail.mit.edu"))

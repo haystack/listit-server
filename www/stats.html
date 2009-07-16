@@ -13,8 +13,9 @@
 <script type="text/javascript" src="js/flot-read-only/jquery.flot.js"></script>
 <script type="text/javascript">
 
-function plotCumulativeNotes() {
-    jQuery.get("listit/stats/cumulativeNotes",undefined,
+function dailyNotesModified() {
+    var databack = {};
+    jQuery.get("listit/stats/dailyNotesModified",undefined,
 	       function(data) {
 		   var options = { xaxis: { mode: "time" } };
 		   console.log(data);
@@ -23,11 +24,11 @@ function plotCumulativeNotes() {
 				   data);
 		   data = plumutil.unzipdict(data);
 		   data.sort(function(x,y) { return x[0] - y[0]; });
-		   var plot = $.plot($("#cumulativeNotes"), [data], options);
+		   var plot = $.plot($("#dailyNotesModified"), [data], options);
 	       },"json");		
 }
-function plotCumulativeRegistratios() {
-    jQuery.get("listit/stats/cumulativeUserRegistrations",undefined,
+function dailyNotesCreated() {
+    jQuery.get("listit/stats/dailyNotesCreated",undefined,
 	       function(data) {
 		   var options = { xaxis: { mode: "time" } };
 		   console.log(data);
@@ -36,20 +37,42 @@ function plotCumulativeRegistratios() {
 				   data);
 		   data = plumutil.unzipdict(data);
 		   data.sort(function(x,y) { return x[0] - y[0]; });
-		   var plot = $.plot($("#cumulativeUserRegistrations"), [data], options);
+		   var plot = $.plot($("#dailyNotesCreated"), [data], options);
+	       },"json");		
+}
+
+function dailyRegistrations() {
+    jQuery.get("listit/stats/dailyUserRegistrations",undefined,
+	       function(data) {
+		   var options = { xaxis: { mode: "time" } };
+		   console.log(data);
+		   data = plumutil.objmap(function(x) { return parseInt(x); },
+				   function(y) { return y; },
+				   data);
+		   data = plumutil.unzipdict(data);
+		   data.sort(function(x,y) { return x[0] - y[0]; });
+		   var plot = $.plot($("#dailyUserRegistrations"), [data], options);
 	       },"json");		
 }
 
 jQuery(document).ready(function() {
-    plotCumulativeNotes();
-    plotCumulativeRegistratios();
+    dailyNotesCreated();
+    dailyNotesModified();
+    dailyRegistrations();
 });
 
 </script>
 <body>
     listit:stats
-    <div id="cumulativeNotes" style="width:100%;height:500px;"></div>
-    <div id="cumulativeUserRegistrations" style="width:100%;height:500px;"></div>
+
+    <h4>notes created daily::</h4>
+    <div id="dailyNotesCreated" style="width:100%;height:500px;"></div>
+
+    <h4>notes modified daily::</h4>
+    <div id="dailyNotesModified" style="width:100%;height:500px;"></div>
+
+    <h4>signups daily::</h4>
+    <div id="dailyUserRegistrations" style="width:100%;height:500px;"></div>
 
 </body>
 </html>

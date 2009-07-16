@@ -21,6 +21,7 @@ import datetime
 import random
 import urllib
 from os import listdir
+from decimal import Decimal        
 
 current_time_decimal = lambda : int(time.time()*1000);
 
@@ -172,12 +173,31 @@ def make_username(email):
 def get_newest_registration_for_user_by_email(email):
     return get_most_recent(UserRegistration.objects.filter(email=email))
 
-def get_consenting_users(userset=None,newerthan=time.mktime(datetime.date(2008,9,1).timetuple())*1000):
+def get_consenting_users_old(userset=None,newerthan=time.mktime(datetime.date(2008,9,1).timetuple())*1000):
     ## gets users who have in their most _recent_ consent agreed to couhes
     if userset == None: userset = authmodels.User.objects.all()
     return [u for u in userset if get_newest_registration_for_user_by_email(u.email) and
             get_newest_registration_for_user_by_email(u.email).couhes and
             (newerthan is None or float(get_newest_registration_for_user_by_email(u.email).when) > newerthan)]
+
+def get_consenting_users(userset=None,newerthan=time.mktime(datetime.date(2008,9,1).timetuple())*1000):
+    ## gets users who have in their most _recent_ consent agreed to couhes
+    if newerthan is None: newerthan = 0
+    # this could be done more easily if we had group_by
+    # select pk,max(when),email where couhes="true" from UserRegistration group by email
+    newerthan = Decimal("%d"%newerthan)
+    # UserRegistration.objects.extra(select={'unique_latest': 'select id,max(when),email,couhes where couhes="true" from jv3_userregistration group by email'});
+
+    if userset == None:
+        consented_at_some_time = list(set([ro.email for ro in UserRegistration.objects.filter(couhes=True,when__gt=newerthan)]))
+    else:
+        emails = [n.email for u in userset]
+        consented_at_some_time = list(set([ro.email for ro in UserRegistration.objects.filter(couhes=True,email__in=emails,when__gt=newerthan)]))
+    
+    ## prune this set for users that didn't consent their second time and for those not in userset
+    emails = [email for email in consented_at_some_time if UserRegistration.objects.filter(email=email).order_by("-when")[0].couhes]
+    #return (authmodels.User.objects.filter(email__in=consented_at_some_time), authmodels.User.objects.filter(email__in=emails))
+    return authmodels.User.objects.filter(email__in=emails)
 
 def get_emails_of_users(users):
     return [u.email for u in users]
