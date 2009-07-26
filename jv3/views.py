@@ -168,8 +168,11 @@ def notes_post_multi(request):
         response.status_code = 401;
         return response
     
-    responses = []        
+    responses = []
+    print "raw post data: %s " % repr(request.raw_post_data)
+    
     for datum in JSONDecoder().decode(request.raw_post_data):
+        ## print "datum : %s "% repr(datum)
         ## print datum
         form = NoteForm(datum)
         form.data['owner'] = request_user.id;                 ## clobber this whole-sale from authenticating user
@@ -396,6 +399,8 @@ def changepassword(request): ## POST view, parameters cookie and password
 
 ## utilities -- NOT views
 
+
+
 class ActivityLogCollection(Collection):
 
     def read(self,request):
@@ -406,19 +411,33 @@ class ActivityLogCollection(Collection):
             
         user_activity = ActivityLog.objects.filter(owner=request_user)
         if (request.GET['type'] == 'get_max_log_id'):
-            ## return the max id (used by the client to determine which records
-            ## need to be retrieved.            
-            most_recent_activity = get_most_recent(user_activity);            
-            if most_recent_activity:
-                print "___ most_recent ___  activity log: " + repr(most_recent_activity.when)
-                logevent(request,'ActivityLog.read',200,{"data":repr(most_recent_activity.when)})
-                return HttpResponse(JSONEncoder().encode({'value':int(most_recent_activity.when)}), self.responder.mimetype)
-            logevent(request,'ActivityLog.read',404,{"data":"no log entries"})
-            return self.responder.error(request, 404, ErrorDict({"value":"No activity found"}));
+            return self._handle_max_log_request(user_activity,request);
         else:
             ## retrieve the entire activity log            
             return self.responder.list(request, qs_user)
+        
 
+    def _handle_max_log_request(self,user_activity, request):
+        ## return the max id (used by the client to determine which recordsneed to be retrieved.)
+        if request.GET.has_key('client'):
+            ## is it a new client? if so, we've got the client tag and we restrict to those entries
+            user_activity_filtered_to_client = user_activity.filter(client=request.GET['client'])
+        else:
+            user_activity_filtered_to_client = user_activity.filter(client=None)
+            print "client is none, filtering to null client %d " % len(user_activity_filtered_to_client)
+                                                                    
+#            if len(user_activity_filtered_to_client) > 0:
+#                ## we have transitioned to the new client, start differentiating by client id
+#                user_activity = user_activity_filtered_to_client
+
+        
+
+        most_recent_activity = get_most_recent(user_activity);
+        if most_recent_activity:
+            logevent(request,'ActivityLog.read',200,{"data":repr(most_recent_activity.when)})
+            return HttpResponse(JSONEncoder().encode({'value':int(most_recent_activity.when)}), self.responder.mimetype)
+        logevent(request,'ActivityLog.read',404,{"data":"no log entries"})
+        return self.responder.error(request, 404, ErrorDict({"value":"No activity found"}));
 
     def create(self,request):
         """
@@ -431,16 +450,6 @@ class ActivityLogCollection(Collection):
 
         user_activity = ActivityLog.objects.filter(owner=request_user)
         committed = [];
-
-        ## debug stuff
-        #print "\n\n\n\n"
-        ##print "ACTLOG request user is  %s " % repr(request_user)
-        #print "ACTLOG posted items is %s %s " % (repr(type(request.POST)),repr(request.POST))
-        #print "ACTLOG posted raw_post_data is %s " % repr(request.raw_post_data)
-
-        # manually handle deserialization because
-        #for items in request.POST
-        #print "ACTLOG items is [%d]:%s " % (len(items),repr(items))
         for item in JSONDecoder().decode(request.raw_post_data): #serializers.deserialize('json',request.raw_post_data):
             #print "item is %s " % repr(item)
             try:
@@ -455,6 +464,7 @@ class ActivityLogCollection(Collection):
                 entry.noteid = item.get("noteid",None);
                 entry.noteText = item.get("noteText",None);
                 entry.search = item.get("search",None);
+                entry.client = item.get("client",None); ## added in new rev
                 entry.save();
                 committed.append(item['id']);
             except StandardError, error:
@@ -465,7 +475,6 @@ class ActivityLogCollection(Collection):
         response.status_code = 200;
         logevent(request,'commitActivityLog',200,repr(committed))
         return response
-
 
 def submit_bug_report(request):
     username = request.POST['username']

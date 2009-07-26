@@ -138,6 +138,7 @@ except sites.AlreadyRegistered,r:
     
 class ActivityLog(models.Model):
     owner = models.ForeignKey(authmodels.User,null=True)
+    client = models.CharField(max_length=255,null=True)
     when = models.DecimalField(max_digits=19,decimal_places=0)
     action = models.TextField()
     noteid = models.IntegerField(null=True)
