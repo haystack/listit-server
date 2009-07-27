@@ -186,6 +186,19 @@ except sites.AlreadyRegistered,r:
     pass
 
 
+## i want to move this guy to another file but i really don't have any idea
+## how to point django to a file other than models.py
+if hasattr(settings, "ACTIVITY_CONTEXT_MODELS") and settings.ACTIVITY_CONTEXT_MODELS:
+    class Event(models.Model):
+        owner = models.ForeignKey(authmodels.User)
+        client = models.CharField(max_length=255,null=True)
+        type = models.CharField(max_length=255)
+        start = models.DecimalField(max_digits=19,decimal_places=0)
+        end = models.DecimalField(max_digits=19,decimal_places=0)
+        entityid = models.TextField()
+        entitytype = models.CharField(max_length=255)
+        entitydata = models.TextField()        
+
 if hasattr(settings, 'DEFINE_SURVEY') and settings.DEFINE_SURVEY:
     class SurveyQuestion(models.Model):
         user = models.ForeignKey(authmodels.User)

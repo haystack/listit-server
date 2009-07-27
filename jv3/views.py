@@ -17,7 +17,7 @@ from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePassw
 from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username, get_user_by_email
 import time
 from django.template.loader import get_template
-
+import sys
 
 # Create your views here.
 class SPOCollection(Resource):
@@ -169,7 +169,7 @@ def notes_post_multi(request):
         return response
     
     responses = []
-    print "raw post data: %s " % repr(request.raw_post_data)
+    ## print "raw post data: %s " % repr(request.raw_post_data)
     
     for datum in JSONDecoder().decode(request.raw_post_data):
         ## print "datum : %s "% repr(datum)
@@ -411,33 +411,27 @@ class ActivityLogCollection(Collection):
             
         user_activity = ActivityLog.objects.filter(owner=request_user)
         if (request.GET['type'] == 'get_max_log_id'):
+            ## "what is the last thing i sent?"
             return self._handle_max_log_request(user_activity,request);
         else:
             ## retrieve the entire activity log            
             return self.responder.list(request, qs_user)
-        
 
-    def _handle_max_log_request(self,user_activity, request):
+    def _handle_max_log_request(self,user_activity,request):
         ## return the max id (used by the client to determine which recordsneed to be retrieved.)
+        try:
+            most_recent_activity = get_most_recent(user_activity.filter(client=self._get_client(request)))
+            if most_recent_activity:
+                print "MOST RECENT ACTIVITY %s " % most_recent_activity.when
+                return HttpResponse(JSONEncoder().encode({'value':int(most_recent_activity.when)}), self.responder.mimetype)
+            return self.responder.error(request, 404, ErrorDict({"value":"No activity found"}));
+        except:
+            print sys.exc_info()
+    
+    def _get_client(self,request):
         if request.GET.has_key('client'):
-            ## is it a new client? if so, we've got the client tag and we restrict to those entries
-            user_activity_filtered_to_client = user_activity.filter(client=request.GET['client'])
-        else:
-            user_activity_filtered_to_client = user_activity.filter(client=None)
-            print "client is none, filtering to null client %d " % len(user_activity_filtered_to_client)
-                                                                    
-#            if len(user_activity_filtered_to_client) > 0:
-#                ## we have transitioned to the new client, start differentiating by client id
-#                user_activity = user_activity_filtered_to_client
-
-        
-
-        most_recent_activity = get_most_recent(user_activity);
-        if most_recent_activity:
-            logevent(request,'ActivityLog.read',200,{"data":repr(most_recent_activity.when)})
-            return HttpResponse(JSONEncoder().encode({'value':int(most_recent_activity.when)}), self.responder.mimetype)
-        logevent(request,'ActivityLog.read',404,{"data":"no log entries"})
-        return self.responder.error(request, 404, ErrorDict({"value":"No activity found"}));
+            return request.GET['client']
+        return None                
 
     def create(self,request):
         """
@@ -448,7 +442,7 @@ class ActivityLogCollection(Collection):
             logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
             return self.responder.error(request, 401, ErrorDict({"autherror":"Incorrect user/password combination"}))
 
-        user_activity = ActivityLog.objects.filter(owner=request_user)
+        user_activity = ActivityLog.objects.filter(owner=request_user,client=self._get_client(request))
         committed = [];
         for item in JSONDecoder().decode(request.raw_post_data): #serializers.deserialize('json',request.raw_post_data):
             #print "item is %s " % repr(item)

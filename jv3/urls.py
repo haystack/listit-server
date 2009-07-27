@@ -8,6 +8,7 @@ from jv3.views import SPOCollection, NoteCollection, ActivityLogCollection, user
 from jv3.views import changepassword, changepassword_request, changepassword_confirm, notes_post_multi
 from django_restapi.authentication import HttpBasicAuthentication, HttpDigestAuthentication, djangouser_auth
 from jv3.views import get_survey, post_survey, done_survey
+from django.conf import settings
 
 class XMLReceiverSetOwner(XMLReceiver):
     def __init__(self, user):
@@ -93,11 +94,10 @@ fullnotes_json_resource = NoteCollection(
     responder = JSONResponder(),
 )
 
-
 actlog_view = ActivityLogCollection(
     queryset=ActivityLog.objects.all(),
     permitted_methods= ('GET','POST',),
-    expose_fields = ['when','action','noteid','noteText'],
+    expose_fields = ['when','action','client','noteid','noteText', 'search'], # this is ONLY used for READ now (see view/create - it encodes manually)
     responder=JSONResponder(),
     receiver=JSONReceiver())
 
@@ -137,3 +137,17 @@ urlpatterns = patterns('server.jv3.views.',
     #(r'^login$', 'django.contrib.auth.views.login', {'template_name': 'jv3/login.html', 'module_name':'jv3'}),
     #(r'^login$', login_view),                       
 )
+
+if hasattr(settings,'ACTIVITY_CONTEXT_MODELS') and settings.ACTIVITY_CONTEXT_MODELS:
+    from jv3.eventlog_view import EventLogCollection
+    from jv3.models import Event
+    
+    contextlog_view = EventLogCollection(
+        queryset=Event.objects.all(),
+        permitted_methods= ('GET','POST',),
+        expose_fields = ['client','type','start','end','entityid','entitytype','entitydata'], # this is ONLY used for READ now (see view/create - it encodes manually)
+        responder=JSONResponder(),
+        receiver=JSONReceiver())
+    
+    urlpatterns += patterns('server.jv3.views.', (r'^eventlog/$', contextlog_view))
+
