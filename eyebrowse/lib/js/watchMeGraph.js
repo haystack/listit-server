@@ -30,6 +30,7 @@ var evtHandlers = ({
         this.OGstartTime = this.startTime;
         this.OGendTime = this.endTime;
         this.dragBeginX = 0;
+	this.isStatic = viz.isStatic; // does not make more calls
         this._ev_handlers();
     },
     _ev_handlers: function(){
@@ -77,7 +78,7 @@ var evtHandlers = ({
             }
         });
         jQuery(canvas).mouseup(function(){
-            if (this_.viz.drag) {
+            if (this_.viz.drag && !this_.isStatic) {
                 this_.viz.drag = false;
                 var p = -(1200 * (this_.mouse.x - this_.dragBeginX)); // "p is weird." - brenn
 
@@ -759,7 +760,8 @@ var lineGraphFactory = ({
 var statusFactory = ({
     initialize: function(viz, params){
         this.viz = viz;
-        this.canvas = viz.getCanvas();
+	if (params.canvas) { this.canvas = params.canvas; }
+        else { this.canvas = viz.canvas;}
         this.windowHeight = viz.windowHeight;
         this.windowWidth = viz.windowWidth;
         this.startTime = params.startTime;

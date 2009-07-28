@@ -49,8 +49,25 @@
                     
                     var statusArray = [];
                     this.drawArray = [];
-                    this.data = this.formatData(this.listit.CMS.event_store.getEvents("www-viewed", [this.startTime, this.endTime]));
-                    this.sortByTime();
+		    //  this.data = this.formatData(this.listit.CMS.event_store.getEvents("www-viewed", [this.startTime, this.endTime]));
+		    this.data = function getViews(startTime, endTime) {
+		      // uses the django model get_views to return www viewed events between start and end times
+		      try {
+			jQuery.get("http://localhost:8000/get_views", {from: startTime, to: endTime},
+				   function(data) {
+				     if (data.code == 200) {			       
+				       return data.results;
+				       //createTheWorld(data.results, startTime, endTime, viz);
+				     } else {
+				       console.log("yaaaa!!!H!H!H!" + data.code + " ");
+				     }
+				   }, "json");
+		      } catch(e) {
+			console.log(e);
+		      }
+		    }(this.startTime, this.endTime); // passing this around like a hot tomalie       
+
+                    //this.getTopPages(this.endTime - zoom, this.endTime);
                     
                     // this part should be done by the server
                     this.drawLiteGraph();
@@ -125,10 +142,24 @@
                         return objArray;
                     }();
                 },
-                sortByTime: function(){
-                    var newData = this.data.objSort("value", -1, "id");
-                    newData.length = 10;
-                    this.draw(newData);
+                getTopPages: function(startTime, endTime){
+		  var newData = function getTopPages(startTime, endTime) {
+		    // uses the django model get_top_pages to return www viewed events between start and end times
+		    try {
+		      // something is wrong with how i am calling this
+		      jQuery.get("http://localhost:8000/get_top_pages", {from: startTime, to: endTime},
+				 function(data) {
+				   if (data.code == 200) {			       
+				     return data.results;
+				   } else {
+				     console.log("yaaaa!!!H!H!H!" + data.code + " ");
+				   }
+				 }, "json");
+		    } catch(e) {
+		      console.log(e);
+		    }
+		  }(startTime, endTime); 
+		  this.draw(newData);
                 },
                 drawLiteGraph: function(){
                     var this_ = this;
@@ -163,20 +194,20 @@
 		    */
                     for (var i = 0; i < newData.length; i++) {
                         // oh man this is ineffecient hrm
-                        for (var j = 0; j < count; j++) {
-                                                if (j >= count) {
-                                if (newData[i].start.valueOf() > dateArray[j]) {
-                                    ttData[j] += newData[i].end - newData[i].start;
-                                    avgDataNum[j] += 1;
-                                }
-                            }
-                            else {
-                                if ((newData[i].start.valueOf() > dateArray[j]) && (newData[i].start.valueOf() < dateArray[j + 1])) {
-                                    ttData[j] += newData[i].end - newData[i].start;
-                                    avgDataNum[j] += 1;
-                                }
-                            }
-                        }
+		      for (var j = 0; j < count; j++) {
+			if (j >= count) {
+			  if (newData[i].start.valueOf() > dateArray[j]) {
+			    ttData[j] += newData[i].end - newData[i].start;
+			    avgDataNum[j] += 1;
+			  }
+			}
+			else {
+			  if ((newData[i].start.valueOf() > dateArray[j]) && (newData[i].start.valueOf() < dateArray[j + 1])) {
+			    ttData[j] += newData[i].end - newData[i].start;
+			    avgDataNum[j] += 1;
+			  }
+			}
+		      }
                     }
                     
                     var avgData = function(){
@@ -209,7 +240,7 @@
                     });
                 }
             };
-                        jQuery(document).ready(function(){
+            jQuery(document).ready(function(){
                 var myWidth = undefined;
                 var myHeight = undefined;
                 
@@ -221,7 +252,7 @@
                 document.getElementById("avgTimeGraph").setAttribute("width", 450);
                 document.getElementById("avgTimeGraph").setAttribute("height", 200);
                 
-                self.viz = newify(WatchmeVisualisation, document.getElementById("main"), myWidth, myHeight, 0, 1296000000); //604800000); //1296000000);
+                self.viz = newify(WatchmeVisualisation, document.getElementById("main"), myWidth, myHeight, 0, 604800000); // 1 week //1296000000); // 2 weeks
             });
         </script>
 {% endblock %}
