@@ -1,5 +1,4 @@
-import re
-import sys
+import re,sys,time
 from django.template import loader, Context
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
@@ -16,6 +15,7 @@ from PIL import Image
 from os.path import splitext
 from django.db.models.signals import post_save
 from jv3.models import Event ## from listit, ya.
+from django.utils.simplejson import JSONEncoder, JSONDecoder
 
 def index(request):
     if request.method == 'POST':
@@ -387,6 +387,8 @@ def user_search_page(request):
         return render_to_response('search.html', variables)
 
 
+## hook for creating relevant Page objects when new jv3.Event objects get created
+## by the listit server (which answers calls from listit)    
 def create_www_pages_for_each_event(sender, created=None, instance=None, **kwargs):
     print "post-save event for sender %s : %s " % (repr(sender),repr(instance.entityid)) ## debug!!
     if (created and instance is not None):
@@ -398,4 +400,32 @@ def create_www_pages_for_each_event(sender, created=None, instance=None, **kwarg
                 p.save()
                 
 post_save.connect(create_www_pages_for_each_event, sender=Event)
+
+def json_response(dict_obj):
+    return HttpResponse(JSONEncoder().encode(dict_obj), "text/json")
+                        
+## ajax views for graphs, etc.
+@login_required
+def get_web_page_views(request):
+    
+    # if username != request.user.username:
+    #         ## the person is asking us for access to another user's activity log.
+    #         return json_response({"code":401,"message":"Access to another user's profile forbidden"})
+
+    if request.user is None:
+          ## the person is asking us for access to another user's activity log.
+        return json_response({"code":401,"message":"Access forbidden, please log in first"})
+
+    from_msec = request.GET.get('from',0)
+    to_msec = request.GET.get('to',int(time.mktime(time.localtime())*1000))
+
+    defang_event = lambda evt : {"start" : int(evt.start), "end" : int(evt.end), "url" : evt.entityid }
+    
+    return json_response({ "code":200, "results": [ defang_event(evt) for evt in Event.objects.filter(owner=request.user,type="www-viewed",start__gte=from_msec,end__lte=to_msec) ] })
+                          
+                        
+    
+        
+
+
         

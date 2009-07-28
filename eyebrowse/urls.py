@@ -45,6 +45,9 @@ urlpatterns = patterns('',
                        # search
                        (r'^search/$', user_search_page),
 
+                       # ajax
+                       (r'^get_views$', get_web_page_views),
+
                        # home
                        (r'^faq/$', faq),
 

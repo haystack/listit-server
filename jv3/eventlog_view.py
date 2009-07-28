@@ -67,6 +67,7 @@ class EventLogCollection(Collection):
                 entry.owner = request_user
                 entry.start = item['start']
                 entry.end = item['end']
+                entry.type = item['type']
                 entry.entityid = item['entityid']
                 entry.entitytype = item['entitytype']
                 entry.entitydata = item.get('entitydata',"")
