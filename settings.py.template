@@ -1,16 +1,14 @@
-# Django settings for plum server project.
-
-DEBUG = True
-TEMPLATE_DEBUG = DEBUG
+import os
+# combined listit/watchme/plum server
 
 ADMINS = (
-    ('Your Name', 'Your.Name@csail.mit.edu'),
+    ('Admin User', 'admin@csail.mit.edu'),
 )
 
 MANAGERS = ADMINS
 
 DATABASE_ENGINE = 'sqlite3'    # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-DATABASE_NAME = 'jv3.db'       # Or path to database file if using sqlite3.
+DATABASE_NAME = 'listit.sqlite'       # Or path to database file if using sqlite3.
 DATABASE_USER = ''             # Not used with sqlite3.
 DATABASE_PASSWORD = ''     # Not used with sqlite3.
 DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
@@ -68,18 +66,15 @@ ROOT_URLCONF = 'server.urls'
 
 ## LOCAL DEPLOYMENTS:
 ## Only for local deployments
-## STATIC_ROOT = "/home/masont/dev/haystack/server/www"
-## SERVER_URL = "http://localhost:8000/listit"
-## DEVELOPMENT = True
-STAT_SERVER = False # enable only for stat server
-DEVELOPMENT = False
+STATIC_ROOT = os.path.join(os.path.dirname(__file__), 'www')
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     #'/work/connectingme/plum/server/templates'
-    '/Users/emax/Desktop/projects/workspace/plum/server/templates'
+    #'/Users/emax/Desktop/projects/workspace/plum/server/templates'
+    os.path.join(os.path.dirname(__file__), 'templates'),    
 )
 
 INSTALLED_APPS = (
@@ -89,9 +84,30 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'server.jv3',
+    'server.eyebrowse'
 )
 
+
+SERVER_EMAIL = "<server admin email addr>"
 EMAIL_HOST = "<imap hostname>"
 EMAIL_HOST_USER = "<imap user name>"
 EMAIL_HOST_PASSWORD = "<imap password>"
 EMAIL_TLS = True
+
+## IMPORTANT FLAGS
+DEBUG = False ## controls admin interface stuff
+TEMPLATE_DEBUG = DEBUG
+
+## specific to listit
+LISTIT_SERVER = True
+STATS_SERVER = False
+SERVER_URL = "http://localhost:8000/listit"
+DEVELOPMENT = False
+STAT_SERVER = False 
+ACTIVITY_CONTEXT_MODELS = True
+
+## specific to eyebrowse
+EYEBROWSE_SERVER = False
+EYEBROWSE_PROFILE_UPLOAD_DIR = os.path.join(os.path.join(os.path.dirname(__file__), 'eyebrowse'),"profiles")
+
+
