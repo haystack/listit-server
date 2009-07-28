@@ -406,6 +406,11 @@ def json_response(dict_obj):
                         
 ## ajax views for graphs, etc.
 
+def _mimic_entity_schema_from_url(url):
+    import urlparse
+    prot, host, page, foo, bar, baz = urlparse.urlparse(url)
+    return {"id":url, "host":host, "path": page, "type":"schemas.Webpage"}
+
 def _get_pages_for_user(user,from_msec,to_msec):
     return Event.objects.filter(owner=user,type="www-viewed",start__gte=from_msec,end__lte=to_msec)
 
@@ -431,9 +436,12 @@ def get_web_page_views(request):
         return json_response({"code":401,"message":"Access forbidden, please log in first"})
 
     from_msec,to_msec = _unpack_from_to_msec(request)
-    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid }
+
+    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid)}
+    hits = _get_pages_for_user(request.user,from_msec,to_msec)
+    print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
     
-    return json_response({ "code":200, "results": [ defang_event(evt) for evt in _get_pages_for_user(request.user) ] })
+    return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits ] });
 
 @login_required
 def get_time_per_page(request):

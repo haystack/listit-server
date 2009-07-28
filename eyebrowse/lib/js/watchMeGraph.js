@@ -79,23 +79,51 @@ var evtHandlers = ({
         jQuery(canvas).mouseup(function(){
             if (this_.viz.drag) {
                 this_.viz.drag = false;
-                var p = -(1200 * (this_.mouse.x - this_.dragBeginX));
+                var p = -(1200 * (this_.mouse.x - this_.dragBeginX)); // "p is weird." - brenn
+
+		var __gangsta_draw = function(newData) {
+		  //
+		  for (var i = 0; i < this_.viz.drawArray.length; i++) {
+                    for (var k = 0; k < this_.viz.drawArray[i].length; k++) {
+		      this_.viz.drawArray[i][k].mouseUp({
+			p: p,
+			newData: newData
+		      });
+                    }
+		  }
+		  this_.OGstartTime = this_.startTime;
+		  this_.OGendTime = this_.endTime;		  
+		};
                 if (p > 0) {
-                    var newData = this_.viz.listit.CMS.event_store.getEvents("www-viewed", [this_.OGendTime, this_.endTime]);
+		  //   var newData = this_.viz.listit.CMS.event_store.getEvents("www-viewed", [this_.OGendTime, this_.endTime]);
+		  try {
+		  jQuery.get("http://localhost:8000/get_views", {from:this_.OGendTime,to:this_.endTime},
+			     function(data) {
+			       if (data.code == 200) {
+				 __gangsta_draw(data.results);
+			       } else {
+				 console.log("error -- yaaaa!!!H!H!H!" + data.code + " ");
+			      }
+			     }, "json");
+		  } catch(e) {
+		    console.log(e);
+		  }
                 }
                 else {
-                    var newData = this_.viz.listit.CMS.event_store.getEvents("www-viewed", [this_.startTime, this_.OGstartTime]);
+		  try {
+                  //  var newData = this_.viz.listit.CMS.event_store.getEvents("www-viewed", [this_.startTime, this_.OGstartTime]);
+		  jQuery.get("http://localhost:8000/get_views", {from:this_.startTime,to:this_.OGstartTime}, // i aint even gonna ask.
+			     function(data) {
+			       if (data.code == 200) {
+				 __gangsta_draw(data.results);
+			       } else {
+				 console.log("yaaaa!!!H!H!H!" + data.code + " ");
+			      }
+			     }, "json");
+		  } catch(e) {
+		    console.log(e);
+		  }
                 }
-                for (var i = 0; i < this_.viz.drawArray.length; i++) {
-                    for (var k = 0; k < this_.viz.drawArray[i].length; k++) {
-                        this_.viz.drawArray[i][k].mouseUp({
-                            p: p,
-                            newData: newData
-                        });
-                    }
-                }
-                this_.OGstartTime = this_.startTime;
-                this_.OGendTime = this_.endTime;
             }
             else {
                 this_.viz.drag = false;
@@ -556,7 +584,7 @@ var lineGraphFactoryLite = ({
             return webHrArray;
         }();
         
-        for (var i = 1; i < this_.count; i++) {
+        for (var i = 1; i < this_.count; i++) { // why does this start at 1?
             this_.foo[i] = -(newWebViewed[i]);
             var wFoo = this_.windowWidth * ((fooX[i] - this_.startTime) / (this_.endTime - this_.startTime));
             var hFoo = ((this_.padding - this_.topPadding) * ((this_.foo[i] - this_.minData) / (this_.maxData - this_.minData)) + this_.padding);
@@ -594,7 +622,7 @@ var lineGraphFactory = ({
             this.data.push(params.data[i].start, params.data[i].end);
         }
         
-        this.avg = params.avg;
+        this.avg = params.avg; // boolean
         this.setXY();
     },
     draw: function(){
@@ -659,7 +687,7 @@ var lineGraphFactory = ({
         }
         else {
             // remove old stuff
-            for (var i = 0; i < this_.data.length; i++) {
+	  for (var i = 0; i < this_.data.length; i++) {
                 if (this_.data[i] >= this_.endTime) {
                     this_.data = this_.data.slice(0, i);
                     break;
@@ -678,7 +706,7 @@ var lineGraphFactory = ({
         var this_ = this;
         
         if (this_.avg) {
-            this_.startTime = new Date().valueOf() - 15778458000;
+	  this_.startTime = new Date().valueOf() - 15778458000; // 6 months
         }
         
         var fooStartTime = Math.floor((this_.startTime / this_.interp)) * this_.interp;
@@ -709,8 +737,8 @@ var lineGraphFactory = ({
         this_.minData = 0; // newWebViewed.min();
         // so that this is only computed on init
         if (!this_.maxData) {
-            this_.maxData = newWebViewed.max(); // should find max of entire dataset
-        }
+	  this_.maxData = newWebViewed.max(); 
+	}
         var fooX = function(){
             var foo = fooStartTime;
             var webHrArray = [];
