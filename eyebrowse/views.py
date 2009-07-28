@@ -405,24 +405,61 @@ def json_response(dict_obj):
     return HttpResponse(JSONEncoder().encode(dict_obj), "text/json")
                         
 ## ajax views for graphs, etc.
+
+def _get_pages_for_user(user,from_msec,to_msec):
+    return Event.objects.filter(owner=user,type="www-viewed",start__gte=from_msec,end__lte=to_msec)
+
+def _unpack_from_to_msec(request):
+    return (request.GET.get('from',0), request.GET.get('to',long(time.mktime(time.localtime())*1000)))
+
+def _get_time_per_page(user,from_msec,to_msec):
+    mine_events = _get_pages_for_user(user, from_msec, to_msec)
+    uniq_urls  = set( [s[0] for s in mine_events.values_list("entityid") ])
+    times_per_url = {}
+    for url in uniq_urls:
+        times_per_url[url] = long(reduce(lambda x,y: x+y, [ startend[1]-startend[0] for startend in mine_events.filter(entityid=url).values_list('start','end') ] ))
+    return times_per_url
+    
 @login_required
 def get_web_page_views(request):
-    
-    # if username != request.user.username:
-    #         ## the person is asking us for access to another user's activity log.
-    #         return json_response({"code":401,"message":"Access to another user's profile forbidden"})
+    ## gimme get parameters :
+    ## from: start time
+    ## to: end time
 
     if request.user is None:
           ## the person is asking us for access to another user's activity log.
         return json_response({"code":401,"message":"Access forbidden, please log in first"})
 
-    from_msec = request.GET.get('from',0)
-    to_msec = request.GET.get('to',int(time.mktime(time.localtime())*1000))
-
-    defang_event = lambda evt : {"start" : int(evt.start), "end" : int(evt.end), "url" : evt.entityid }
+    from_msec,to_msec = _unpack_from_to_msec(request)
+    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid }
     
-    return json_response({ "code":200, "results": [ defang_event(evt) for evt in Event.objects.filter(owner=request.user,type="www-viewed",start__gte=from_msec,end__lte=to_msec) ] })
-                          
+    return json_response({ "code":200, "results": [ defang_event(evt) for evt in _get_pages_for_user(request.user) ] })
+
+@login_required
+def get_time_per_page(request):
+    if request.user is None:
+          ## the person is asking us for access to another user's activity log.
+        return json_response({"code":401,"message":"Access forbidden, please log in first"})
+    from_msec,to_msec = _unpack_from_to_msec(request)
+    times_per_url = _get_time_per_page(request.user,from_msec,to_msec)    
+    return json_response({ "code":200, "results": times_per_url })
+        
+def get_top_pages(request,username):
+    user = User.objects.filter(username=username)
+    if request.user is None:
+          ## the person is asking us for access to another user's activity log.
+        return json_response({"code":401,"message":"Access forbidden, please log in first"})
+    from_msec,to_msec = _unpack_from_to_msec(request)
+    times_per_url = _get_time_per_page(request.user,from_msec,to_msec)
+    urls_ordered = times_per_url.keys()
+    urls_ordered.sort(lambda u1,u2: int(times_per_url[u2] - times_per_url[u1]))
+    return json_response({ "code":200, "results": [(u, long(times_per_url[u])) for u in urls_ordered[0:25]] })
+
+    ## a slightly faster than the slowest way
+    
+    
+
+    
                         
     
         

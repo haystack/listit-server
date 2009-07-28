@@ -47,6 +47,8 @@ urlpatterns = patterns('',
 
                        # ajax
                        (r'^get_views$', get_web_page_views),
+                       (r'^get_time_per_page$', get_time_per_page),
+                       (r'^get_top_pages/(\w+)/$', get_top_pages),
 
                        # home
                        (r'^faq/$', faq),
