@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}register{% endblock %}
+{% block imports %}
+        <script src="/lib/js/jquery-1.3.2.min.js">
+        </script>
+        <script src="/lib/js/jquery-ui-1.7.2.dialog.min.js">
+        </script>
+        <script src="/lib/js/watchhome.js">
+        </script>
+{% endblock %}
+{% block content %}
+<div id="home" style="width:351px; margin-left:auto; margin-right:auto;">
+<h1>register</h1>
+<br /><br />
+
+<form method="post" action=".">
+{{ form.as_p }}
+<input type="submit" value="register" />
+</form>
+  <div id="messageSent">signing in...</div>
+</div>
+{% endblock %}

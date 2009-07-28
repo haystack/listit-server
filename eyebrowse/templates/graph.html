@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Graph{% endblock %}
+{% block imports %}
+        <script src="/lib/js/jquery-1.3.2.min.js">
+        </script>
+        <script src="/lib/js/protocrock.js">
+        </script>
+        <script src="/lib/js/zamiang.js">
+        </script>
+        <script src="/lib/js/watchMeGraph.js">
+        </script>
+        <script src="/lib/js/canvas.text.js">
+        </script>
+        <script src="/lib/js/faces/helvetiker-normal-normal.js">
+        </script>
+        <script>
+            jQuery.noConflict();
+        </script>
+        <script>
+        function getListIt(){
+            try {
+                netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+            } 
+            catch (e) {
+            }
+            return Components.classes['@electronic.max/listit;1'].getService().wrappedJSObject;
+        };
+        
+        var WatchmeVisualisation = {
+            initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom, startDate){
+                this.canvas = canvas;
+                this.windowWidth = windowWidth;
+                this.windowHeight = windowHeight;
+                this.timeZoneCorrect = timeZoneCorrect;
+                this.endDate = new Date(new Date().valueOf() + this.timeZoneCorrect);
+                if (startDate) {
+                    this.startDate = new Date(startDate + this.timeZoneCorrect);
+                    zoom = this.endDate - this.startDate;
+                }
+                else {
+                    this.startDate = new Date(this.endDate.valueOf() - zoom + this.timeZoneCorrect);
+                }
+                this.now = new Date(new Date().valueOf() + this.timeZoneCorrect);
+                this.endTime = this.endDate.valueOf();
+                this.startTime = this.startDate.valueOf();
+                this.OGendTime = this.endDate.valueOf();
+                this.OGstartTime = this.startDate.valueOf();
+                this.interp = zoom / 192;
+                this.drag = undefined;
+                this.zoom = zoom;
+                
+                var listit = getListIt();
+                // var event_store = listit.CMS.event_store;
+                // var entity_store = listit.CMS.entity_store;
+                this.listit = listit;
+                
+                var dateSliderArray = [];
+                var lineGraphArray = [];
+                var statusArray = [];
+                this.drawArray = [];
+                
+                var data = this.listit.CMS.event_store.getEvents("www-viewed", [this.startTime, this.endTime])
+                
+                wwwBars = newify(statusFactory, this, {
+                    startTime: this.startTime,
+                    endTime: this.endTime,
+                    xOffset: 0,
+                    yOffset: 0,
+                    marginTop: this.windowHeight - 80,
+                    height: 20,
+                    color: "#0000ff",
+                    data: data
+                });
+                statusArray.push(wwwBars);
+                
+                todayGraph = newify(lineGraphFactory, this, {
+                    xOffset: 0,
+                    yOffset: 0,
+                    topPadding: 20,
+                    padding: windowHeight - 93,
+                    color: "#00ffff",
+                    dashed: false,
+                    key: true,
+                    avg: false,
+                    data: data
+                });
+                lineGraphArray.push(todayGraph);
+                
+                mainDateSlider = newify(dateSlider, this, {
+                    xOffset: 0,
+                    yOffset: 0,
+                    padding: 55
+                });
+                dateSliderArray.push(mainDateSlider);
+                
+                this.drawArray.push(lineGraphArray);
+this.drawArray.push(dateSliderArray);
+                this.drawArray.push(statusArray);
+
+
+mainEvtHandlers = newify(evtHandlers, this);
+                
+                this.draw();
+            },
+            draw: function(){
+                if (this.canvas !== undefined && this.canvas.getContext) {
+                    var ctx = this.canvas.getContext('2d');
+                    ctx.clearRect(0, 0, this.windowWidth, this.windowHeight);
+                    for (var i = 0; i < this.drawArray.length; i++) {
+                        for (var k = 0; k < this.drawArray[i].length; k++) {
+                            this.drawArray[i][k].draw();
+                        }
+                    }
+                }
+                else {
+                    alert('You need Safari 4 or Firefox 3+ to see this.');
+                }
+            },
+            getCanvas: function(){
+                return this.canvas;
+            },
+            setDrawArray: function(p){
+                this.drawArray = p;
+            }
+        };
+        
+        
+        jQuery(document).ready(function(){
+            var myWidth = undefined;
+            var myHeight = undefined;
+            
+            myWidth = window.innerWidth - 16;
+            myHeight = window.innerHeight - 250;
+            
+            document.getElementById("main").setAttribute("width", myWidth);
+            document.getElementById("main").setAttribute("height", myHeight);
+            
+            self.viz = newify(WatchmeVisualisation, document.getElementById("main"), myWidth, myHeight, 0, 654800000);
+        });
+        </script>
+{% endblock %}
+{% block content %}
+        <canvas id="main">
+        </canvas>
+        <div id="fooTxt">
+        </div>
+        <div id="fooDate"></div>	
+{% endblock %}

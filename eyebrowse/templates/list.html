@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block title %}List{% endblock %}
+{% block imports %}
+        <script src="/lib/js/jquery-1.3.2.min.js">
+        </script>
+        <script src="/lib/js/protocrock.js">
+        </script>
+        <script src="/lib/js/zamiang.js">
+        </script>
+        <script src="/lib/js/watchMeGraph.js">
+        </script>
+        <script>
+            jQuery.noConflict();
+        </script>
+        <script>
+           var animating = false;
+            var lost_events = [];
+            var reposbar2 = function(){
+                var h = 50; //jQuery("#hai").top();
+                if (h == 0) {
+                    setTimeout(reposbar2, 100);
+                }
+                animating = true;
+                jQuery("#hai").animate({
+                    top: jQuery(window)[0].scrollY + h - 20
+                }, 200, "linear", function(){
+                    animating = false;
+                    if (lost_events.length > 0) {
+                        lost_events = [];
+                        reposbar2();
+                    }
+                });
+            };
+            
+            
+            function getListIt(){
+                try {
+                    netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+                } 
+                catch (e) {
+                }
+                return Components.classes['@electronic.max/listit;1'].getService().wrappedJSObject;
+            };
+            
+            
+            var WatchmeVisualisation = {
+                initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom){
+                    this.canvas = canvas;
+                    this.windowWidth = windowWidth;
+                    this.windowHeight = windowHeight;
+                    this.timeZoneCorrect = timeZoneCorrect;
+                    this.endDate = new Date(new Date().valueOf());
+                    this.startDate = new Date(this.endDate.valueOf() - zoom);
+                    this.now = new Date(new Date().valueOf() + this.timeZoneCorrect);
+                    this.endTime = this.endDate.valueOf();
+                    this.startTime = this.startDate.valueOf();
+                    this.OGendTime = this.endDate.valueOf();
+                    this.OGstartTime = this.startDate.valueOf();
+                    this.interp = zoom / 192;
+                    this.drag = undefined;
+                    this.zoom = zoom;
+                    
+                    var listit = getListIt();
+                    this.listit = listit;
+                    
+                    var statusArray = [];
+                    this.drawArray = [];
+                    
+                    this.data = this.formatData(this.listit.CMS.event_store.getEvents("www-viewed", [this.startTime, this.endTime]));
+                    
+                    this.sortByTime();
+                },
+                draw: function(data){
+                    //jQuery("#list").slideUp("slow");
+                    jQuery("#list").hide();
+                    
+                    var newData = data;
+                    
+                    var html = "";
+                    for (var i = 0; i < data.length; i++) { //newData.length; i++) {
+                        html += "<div class=\"listItem\">";
+                        html += "<h5><a href=\"" + newData[i].id + "\">" + newData[i].title + "</a></h5>";
+                        html += "<h6><a href=\"http://" + newData[i].host + "\">" + newData[i].host + "</a></h6>";
+                        html += "<h7>time spent: " + timeCounterLong((newData[i].value) / 1000) + "</h7>";
+                        html += "</div>";
+                    }
+                    jQuery("#list").html(html);
+                    jQuery("#list").slideDown("slow");
+                },
+                formatData: function(data){
+                    var newData = data;
+                    
+                    // prolly shouldnt be in here
+                    // but it should run at this time
+                    var fooTotal = 0;
+                    for (var i = 0; i < newData.length; i++) {
+                        fooTotal += newData[i].end - newData[i].start;
+                    }
+                    
+                    jQuery("#totalTime").html("total: " + timeCounterLongAbv(fooTotal / 1000));
+                    jQuery("#avgTime").html("average: " + timeCounterLongAbv((fooTotal / (newData.length * 2)) / 1000));
+                    
+                    return function(){
+                        var namesObj = {};
+                        var objArray = [];
+                        var fooName = "";
+                        var barFactory = ({
+                            initialize: function(params){
+                                this.id = params.id;
+                                this.host = params.host;
+                                this.title = params.title;
+                                this.value = params.value;
+                            }
+                        });
+                        var unknown = newify(barFactory, {
+                            id: "unknown",
+                            host: "unknown",
+                            title: "unknown",
+                            value: 0
+                        });
+                        objArray.push(unknown);
+                        for (var i = 0; i < newData.length; i++) {
+                            if (newData[i].entity.host) {
+                                fooName = newData[i].entity.host;
+                                
+                                if (namesObj[fooName]) {
+                                    newData[i].entity.host.value += newData[i].end - newData[i].start;
+                                }
+                                else {
+                                    newData[i].entity.host = newify(barFactory, {
+                                        value: (newData[i].end - newData[i].start),
+                                        id: newData[i].entity.id,
+                                        title: newData[i].entity.title,
+                                        host: fooName.toString(),
+                                    });
+                                    namesObj[fooName] = newData[i].entity.host;
+                                    objArray.push(namesObj[fooName]);
+                                }
+                            }
+                            else {
+                                unknown.value += newData[i].end - newData[i].start;
+                            }
+                        }
+                        return objArray;
+                    }();
+                },
+                sortByTime: function(){
+                    var newData = this.data.objSort("value", -1, "id");
+                    newData.length = 50;
+                    this.draw(newData);
+                },
+                sortByName: function(){
+                    var newData = this.data.objSort("title", "id");
+                    this.draw(newData);
+                },
+                sortByDomain: function(){
+                    var newData = this.data.objSort("host", "id");
+                    this.draw(newData);
+                }
+            };
+            
+            jQuery(document).ready(function(){
+                // init the float dude
+                var callreposbar = function(){
+                    if (animating) {
+                        lost_events.push('hai');
+                    }
+                    else {
+                        reposbar2();
+                    }
+                };
+                jQuery(window).scroll(function(){
+                    callreposbar();
+                });
+                jQuery(window).resize(callreposbar);
+                jQuery(document).resize(callreposbar);
+                
+                reposbar2();
+                
+                var myWidth = undefined;
+                var myHeight = undefined;
+                
+                myWidth = window.innerWidth - 16;
+                myHeight = window.innerHeight - 250;
+                
+                self.viz = newify(WatchmeVisualisation, document.getElementById("main"), myWidth, myHeight, 0, 648000000); //1296000000);
+            });                   
+ </script>
+{% endblock %}
+{% block content %}
+        <div id="hai" class="bottombar">
+            <h1>{{ user.username }}</h1>
+            <div id="infoz">
+                <div id="totalTime">
+                </div>
+                <div id="avgTime">
+                </div>
+                filter by: 
+                <br/>
+            </div>
+        </div>
+        <div id="listNav">
+            sort: <a href="#name" onclick="window.viz.sortByName()">name</a>&nbsp | &nbsp<a href="#domain" onclick="window.viz.sortByDomain()">domain</a>&nbsp | &nbsp<a href="#time" onclick="window.viz.sortByTime()">time spent</a>
+        </div>
+        <div id="list">
+        </div>
+
+{% endblock %}

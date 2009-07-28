@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Invite A Friend{% endblock %}
+{% block head %}Invite A Friend{% endblock %}
+{% block content %}
+<div id="home" style="width:351px">
+Enter your friend name and email below,
+and click "send invite" to invite your friend to join the site:
+<form method="post" action=".">
+{{ form.as_p }}
+<input type="submit" value="send invite" />
+</form>
+</div>
+{% endblock %}

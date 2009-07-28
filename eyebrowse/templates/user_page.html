@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{{ user.username}}{% endblock %}
+{% block imports %}
+{% endblock %}
+{% block content %}
+<div id="report">
+  <div id="profile">
+{% ifequal user.username username %}
+<b>Name: </b>{{ first_name }} {{ last_name }} <br />
+<b>Location:</b> {{ location }} <br />
+<b>Website:</b> {{ homepage }} <br />
+<a href="/profile/{{ username }}"
+class="edit">edit your profile</a>
+{% else %}
+{% if is_friend %}
+<b>Name: </b>{{ first_name }} {{ last_name }} <br />
+<b>Location:</b> {{ location }} <br />
+<b>Website:</b> {{ homepage }} <br />
+<a href="/friends/{{ user.username }}/">
+{{ username }} is your friend</a>
+{% else %}
+<a href="/friend/add/?username={{ username }}">
+add {{ username }} to your friends</a>
+{% endif %}
+{% endifequal %}
+
+<h2>Friends</h2>
+{% if friends %}
+<ul class="friends">
+{% for friend in friends %}
+<li><a href="/user/{{ friend.username }}/">
+{{ friend.username }}</a></li>
+{% endfor %}
+</ul>
+<a href="/friends/{{ username }}/">
+view all {{ username }}'s friends</a>
+{% else %}
+<p>{{ username }} has no friends :(</p>
+{% endif %}
+{% ifequal user.username username %}
+<a href="/friends/{{ username }}/">view all your friends</a>
+{% endifequal %}
+
+</div>
+<div id="profile_content">
+    <img src="/uploads/{{ user.id }}.jpg" />
+    <h1>{{ username }}</h1><br />
+  <br />
+      <div id="key">
+        <div id="totalGraphKey" style="width:300px; text-align:center; display: inline-block;">total time on the web per week
+        </div>
+        <div id="avgGraphKey" style="float:right; width:300px; text-align:center; display: inline-block;">average time spent on webpages
+        </div>
+    </div>
+    <canvas id="totalTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
+    </canvas>
+    <canvas id="avgTimeGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">
+    </canvas>
+    <div id="listNav">
+    <a href="#top10" onclick="window.viz.top10()">{{ username}}'s top 10</a>&nbsp | &nbsp<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} minus you</a>&nbsp | &nbsp<a href="#youMunusThem" onclick="window.viz.youMunusThem ()">you minus {{ username }}</a>
+    </div>
+    <div id="list">  
+    </div>
+
+</div>
+<br/>
+</div>
+{% endblock %}

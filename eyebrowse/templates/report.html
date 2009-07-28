@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% block title %}Your Weekly  Report{% endblock %}
+{% block imports %}
+        <script src="/lib/js/jquery-1.3.2.min.js">
+        </script>
+        <script src="/lib/js/protocrock.js">
+        </script>
+        <script src="/lib/js/zamiang.js">
+        </script>
+        <script src="/lib/js/watchMeGraph.js">
+        </script>
+        <script src="/lib/js/canvas.text.js">
+        </script>
+        <script src="/lib/js/faces/helvetiker-normal-normal.js">
+        </script>
+        <script>
+            jQuery.noConflict();
+        </script>
+        <script>
+            function getListIt(){
+                try {
+                    netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+                } 
+                catch (e) {
+                }
+                return Components.classes['@electronic.max/listit;1'].getService().wrappedJSObject;
+            };
+            
+            
+            var WatchmeVisualisation = {
+                initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom){
+                    this.canvas = canvas;
+                    this.windowWidth = windowWidth;
+                    this.windowHeight = windowHeight;
+                    this.timeZoneCorrect = timeZoneCorrect;
+                    this.endDate = new Date(new Date().valueOf());
+                    this.startDate = new Date(this.endDate.valueOf() - zoom);
+                    this.now = new Date(new Date().valueOf() + this.timeZoneCorrect);
+                    this.endTime = this.endDate.valueOf();
+                    this.startTime = this.startDate.valueOf();
+                    this.OGendTime = this.endDate.valueOf();
+                    this.OGstartTime = this.startDate.valueOf();
+                    this.interp = zoom / 192;
+                    this.drag = undefined;
+                    this.zoom = zoom;
+                    
+                    var listit = getListIt();
+                    this.listit = listit;
+                    
+                    var statusArray = [];
+                    this.drawArray = [];
+                    this.data = this.formatData(this.listit.CMS.event_store.getEvents("www-viewed", [this.startTime, this.endTime]));
+                    this.sortByTime();
+                    
+                    // this part should be done by the server
+                    this.drawLiteGraph();
+                },
+                draw: function(data){
+                    var newData = data;
+                    
+                    var html = "";
+                    for (var i = 0; i < newData.length; i++) { //newData.length; i++) {
+                        html += "<div class=\"listItem\">";
+                        html += "<h5><a href=\"" + newData[i].id + "\">" + newData[i].title + "</a></h5>";
+                        html += "<h6><a href=\"" + newData[i].host + "\">" + newData[i].host + "</a></h6>";
+                        html += "<h7>time spent: " + timeCounterLong((newData[i].value) / 1000) + "</h7>";
+                        html += "</div>";
+                    }
+                    jQuery("#list").html(html);
+                },
+                formatData: function(data){
+                    var newData = data;
+
+                    // prolly shouldnt be in here
+                    // but it should run at this time
+                    var fooTotal = 0;
+                    for (var i = 0; i < newData.length; i++) {
+                        fooTotal += newData[i].end - newData[i].start;
+                    }
+                    jQuery("#totalTime").html("total time on websites: " + timeCounterLongAbv(fooTotal / 1000));
+                    jQuery("#avgTime").html("average time spent per site: " + timeCounterLongAbv((fooTotal / (newData.length * 2)) / 1000));
+		    fooDate = new Date(Math.floor(new Date().valueOf()/604800000) * 604800000);
+                    jQuery("#weekName").html("for the week of: " + fooDate.format('dddd, mmmm d'));
+                    return function(){
+                        var namesObj = {};
+                        var objArray = [];
+                        var fooName = "";
+                        var barFactory = ({
+                            initialize: function(params){
+                                this.id = params.id;
+                                this.host = params.host;
+                                this.title = params.title;
+                                this.value = params.value;
+                            }
+                        });
+                        var unknown = newify(barFactory, {
+                            id: "unknown",
+                            host: "unknown",
+                            title: "unknown",
+                            value: 0
+                        });
+                        objArray.push(unknown);
+                        for (var i = 0; i < newData.length; i++) {
+                            if (newData[i].entity.host) {
+                                fooName = newData[i].entity.host;
+                                
+                                if (namesObj[fooName]) {
+                                    newData[i].entity.host.value += newData[i].end - newData[i].start;
+                                }
+                                else {
+                                    newData[i].entity.host = newify(barFactory, {
+                                        value: (newData[i].end - newData[i].start),
+                                        id: newData[i].entity.id,
+                                        title: newData[i].entity.title,
+                                        host: fooName.toString(),
+                                    });
+                                    namesObj[fooName] = newData[i].entity.host;
+                                    objArray.push(namesObj[fooName]);
+                                }
+                            }
+                            else {
+                                unknown.value += newData[i].end - newData[i].start;
+                            }
+                        }
+                        return objArray;
+                    }();
+                },
+                sortByTime: function(){
+                    var newData = this.data.objSort("value", -1, "id");
+                    newData.length = 10;
+                    this.draw(newData);
+                },
+                drawLiteGraph: function(){
+                    var this_ = this;
+                    // get past 6 months
+                    var newData = this_.listit.CMS.event_store.getEvents("www-viewed", [15778458000, this_.endTime]);
+                    
+                    var startTime = newData[1].start.valueOf();
+                    var interpNum = 12;
+                    var interp = (this_.endTime - startTime) / interpNum;
+                    var count = (Math.floor((this_.endTime - startTime) / interp));
+                    // format the data
+                    // maybe use workers for this
+                    var ttData = [];//new Array(count);
+                    var avgDataNum = [];//new Array(count);
+                    var dateArray = function(){
+                        var foo = [];
+                        for (var i = 0; i < count; i++) {
+                            foo[i] = startTime + (interp * i);
+                            // set all arrays to 0 not sure if i need to do this
+                            ttData[i] = 0;
+                            avgDataNum[i] = 0;
+                        }
+                        return foo;
+                    }();
+		    
+		    /*
+		    // add the keys
+		    fooDate = new Date(Math.floor(new Date().valueOf()/604800000) * 604800000);
+		    fooStartDate = new Date(startTime)
+                    jQuery("#avgGraphKey").html(fooStartDate.format('mmmm d') + " - " + fooDate.format('mmmm d'));
+                    jQuery("#totalGraphKey").html(fooStartDate.format('mmmm d') + " - " + fooDate.format('mmmm d'));
+		    */
+                    for (var i = 0; i < newData.length; i++) {
+                        // oh man this is ineffecient hrm
+                        for (var j = 0; j < count; j++) {
+                                                if (j >= count) {
+                                if (newData[i].start.valueOf() > dateArray[j]) {
+                                    ttData[j] += newData[i].end - newData[i].start;
+                                    avgDataNum[j] += 1;
+                                }
+                            }
+                            else {
+                                if ((newData[i].start.valueOf() > dateArray[j]) && (newData[i].start.valueOf() < dateArray[j + 1])) {
+                                    ttData[j] += newData[i].end - newData[i].start;
+                                    avgDataNum[j] += 1;
+                                }
+                            }
+                        }
+                    }
+                    
+                    var avgData = function(){
+                        var foo = [];
+                        for (var i = 0; i < count; i++) {
+                            foo[i] = (ttData[i] / (avgDataNum[i] + 1));
+                        }
+                        return foo;
+                    }();
+                    
+                    var totalTimeG = newify(lineGraphFactoryLite, {
+                        canvas: document.getElementById("totalTimeGraph"),
+                        startTime: startTime,
+                        endTime: this_.endTime,
+                        windowHeight: 200,
+                        windowWidth: 450,
+                        interp: (this_.endTime - startTime) / interpNum,
+                        color: "#ff0000",
+                        data: ttData
+                    });
+                    var avgTimeG = newify(lineGraphFactoryLite, {
+                        canvas: document.getElementById("avgTimeGraph"),
+                        startTime: startTime,
+                        endTime: this_.endTime,
+                        windowHeight: 200,
+                        windowWidth: 450,
+                        interp: (this_.endTime - startTime) / interpNum,
+                        color: "#00ff00",
+                        data: avgData
+                    });
+                }
+            };
+                        jQuery(document).ready(function(){
+                var myWidth = undefined;
+                var myHeight = undefined;
+                
+                myWidth = window.innerWidth - 16;
+                myHeight = window.innerHeight - 250;
+                                
+                document.getElementById("totalTimeGraph").setAttribute("width", 450);
+                document.getElementById("totalTimeGraph").setAttribute("height", 200);
+                document.getElementById("avgTimeGraph").setAttribute("width", 450);
+                document.getElementById("avgTimeGraph").setAttribute("height", 200);
+                
+                self.viz = newify(WatchmeVisualisation, document.getElementById("main"), myWidth, myHeight, 0, 1296000000); //604800000); //1296000000);
+            });
+        </script>
+{% endblock %}
+{% block content %}
+<div id="report">
+    <h1>Weekly Report</h1>
+    <div id="weekName">
+    </div>
+    <div id="totalTime">
+    </div>
+    <div id="avgTime">
+    </div>
+    <br/>
+    <br/>
+    <div id="key">
+        <div id="totalGraphKey" style="width:450px; text-align:center; display: inline-block;">total time on the web per week
+        </div>
+        <div id="avgGraphKey" style="float:right; width:450px; text-align:center; display: inline-block;">average time spent on webpages
+        </div>
+    </div>
+    <canvas id="totalTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
+    </canvas>
+    <canvas id="avgTimeGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">
+    </canvas>
+<div id="twoLists">
+    <h3 style="width:auto;">Top 10 Websites
+        <div style="width:250px; float:right; text-align:left; display:inline-block; margin-right:20px;">
+            Recommended Sites
+        </div>
+    </h3>
+    <div id="recList" style="width:250px; float:right; margin-right:20px;margin-top:4px; border:1px lightgrey solid">
+        <div class="listItem" style="width:250px; border:none">
+            <h5><a href="">Foo Site</a></h5>
+            <h6><a href="">more foo</a></h6>
+            <h7 style="margin-right:20px;">
+                fooo bar
+            </h7>
+        </div>
+    </div>
+    <div id="list" style="width:580px; float:none;">
+    </div>
+</div>
+{% endblock %}
