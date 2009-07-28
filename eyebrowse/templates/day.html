@@ -13,6 +13,7 @@
             jQuery.noConflict();
         </script>
         <script>
+/*
     function getListIt(){
         try {
             netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
@@ -21,7 +22,8 @@
         }
         return Components.classes['@electronic.max/listit;1'].getService().wrappedJSObject;
     };
-    
+    */
+
     var WatchmeVisualisation = {
         initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom){
             this.canvas = canvas;
@@ -37,47 +39,66 @@
             this.startTime = this.startDate.valueOf();
             this.OGendTime = this.endDate.valueOf();
             this.OGstartTime = this.startDate.valueOf();
-            this.interp = zoom / 192;
-            this.drag = undefined;
-            this.zoom = zoom;
-            
-            var listit = getListIt();
-            this.listit = listit;
-            
-            var statusArray = [];
             this.drawArray = [];
             
-            var wwwBarsArray = [];
-            var fooDate = "";
-            var fooTotal = "";
-            for (var i = 0; i < (zoom / day); i++) {
+            this.newData = function getViews(startTime, endTime) {
+	      // uses the django model get_views to return www viewed events between start and end times
+	      try {
+		jQuery.get("http://localhost:8000/get_views", {from: startTime, to: endTime},
+			   function(data) {
+			     if (data.code == 200) {			       
+			       createTheWorld(data.results);
+			     } else {
+			       console.log("yaaaa!!!H!H!H!" + data.code + " ");
+			     }
+			   }, "json");
+	      } catch(e) {
+		console.log(e);
+	      }
+	    }(this.endTime - zoom, this.endTime);
+
+            
+	    function createTheWorld(newData){
+	      var wwwBarsArray = [];
+	      var fooDate = "";
+	      var fooTotal = "";
+	      var foodata = undefined;
+	      for (var i = 0; i < (zoom / day); i++) {
                 wwwBarsArray[i] = newify(statusFactory, this, {
-                    startTime: this.startTime - (day * i),
-                    endTime: this.endTime - (day * i),
-                    xOffset: 0,
-                    yOffset: 0,
-                    marginTop: 25 * i + 11,
-                    height: 20,
-                    color: "#0000ff",
-                    staticStatic: true,
-                    data: this.listit.CMS.event_store.getEvents("www-viewed", [this.startTime - (day * i), this.endTime - (day * i)])
+		  canvas: this.canvas,
+		  startTime: this.startTime - (day * i),
+		  endTime: this.endTime - (day * i),
+		  xOffset: 0,
+		  yOffset: 0,
+		  marginTop: 25 * i + 11,
+		  height: 20,
+		  color: "#0000ff",
+		  staticStatic: true,
+		  data: newData.filter(function(view) { 
+		    if (view.end > (this.endTime - (day * i)) || (view.start < (this.startTime - (day * i)))) {
+		      // something is wrong here
+		      return;
+		    }	
+		  })
                 });
+		console.log(wwwBarsArray[1].data);
                 fooDate += new Date(wwwBarsArray[i].endTime).format('dddd, mmmm d') + "<br />";
                 fooTotal += function(){
-                    var foo = 1;
-                    for (var j = 0; j < wwwBarsArray[i].data.length; j++) {
-                        foo += wwwBarsArray[i].data[j].end - wwwBarsArray[i].data[j].start;
-                    }
-                    return timeCounterLongAbv(foo / 1000) + "<br />";
+		  var foo = 1;
+		  for (var j = 0; j < wwwBarsArray[i].data.length; j++) {
+		    foo += wwwBarsArray[i].data[j].end - wwwBarsArray[i].data[j].start;
+		  }
+		  return timeCounterLongAbv(foo / 1000) + "<br />";
                 }();
-            }
-            this.drawArray.push(wwwBarsArray);
-            jQuery("#fooDate").html(fooDate);
-            jQuery("#fooTotal").html(fooTotal);
-            jQuery("#minDate") .html("| "  + (new Date(this.endTime - 86400000)).format('h:MM TT'));
-            jQuery("#maxDate").html((this.endDate.format('h:MM TT')) + " |");
-            mainEvtHandlers = newify(evtHandlers, this);
-            this.draw();
+	      }
+	      this.drawArray.push(wwwBarsArray);
+	      jQuery("#fooDate").html(fooDate);
+	      jQuery("#fooTotal").html(fooTotal);
+	      jQuery("#minDate") .html("| "  + (new Date(this.endTime - 86400000)).format('h:MM TT'));
+	      jQuery("#maxDate").html((this.endDate.format('h:MM TT')) + " |");
+	      mainEvtHandlers = newify(evtHandlers, this);
+	      this.draw();
+	    }
         },
         draw: function(){
             if (this.canvas !== undefined && this.canvas.getContext) {
@@ -93,14 +114,14 @@
                 alert('You need Safari 4 or Firefox 3+ to see this.');
             }
         },
-        getCanvas: function(){
-            return this.canvas;
-        },
-        setDrawArray: function(p){
-            this.drawArray = p;
-        }
+	getCanvas: function(){
+	  return this.canvas;
+	},
+	setDrawArray: function(p){
+	  this.drawArray = p;
+	}
     };
-    
+
     
     jQuery(document).ready(function(){
         var myWidth = undefined;
@@ -111,7 +132,7 @@
         document.getElementById("main").setAttribute("width", myWidth);
         document.getElementById("main").setAttribute("height", myHeight);
         jQuery("#maxDate").css("width", myWidth - 70);
-       self.viz = newify(WatchmeVisualisation, document.getElementById("main"), myWidth, myHeight, 0, 1296000000);
+	self.viz = newify(WatchmeVisualisation, document.getElementById("main"), myWidth, myHeight, 0, 1296000000); // 15 days
     });
         </script>
 {% endblock %}

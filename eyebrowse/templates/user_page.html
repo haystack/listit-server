@@ -9,7 +9,7 @@
 <b>Name: </b>{{ first_name }} {{ last_name }} <br />
 <b>Location:</b> {{ location }} <br />
 <b>Website:</b> {{ homepage }} <br />
-<a href="/profile/{{ username }}"
+<a href="/profile/{{ username }}/"
 class="edit">edit your profile</a>
 {% else %}
 {% if is_friend %}
@@ -19,7 +19,7 @@ class="edit">edit your profile</a>
 <a href="/friends/{{ user.username }}/">
 {{ username }} is your friend</a>
 {% else %}
-<a href="/friend/add/?username={{ username }}">
+<a href="/friend/add/?username={{ username }}/">
 add {{ username }} to your friends</a>
 {% endif %}
 {% endifequal %}

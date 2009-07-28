@@ -97,7 +97,7 @@ var evtHandlers = ({
                 if (p > 0) {
 		  //   var newData = this_.viz.listit.CMS.event_store.getEvents("www-viewed", [this_.OGendTime, this_.endTime]);
 		  try {
-		  jQuery.get("http://localhost:8000/get_views", {from:this_.OGendTime,to:this_.endTime},
+		    jQuery.get("http://localhost:8000/get_views", {from:this_.OGendTime,to:this_.endTime},
 			     function(data) {
 			       if (data.code == 200) {
 				 __gangsta_draw(data.results);
@@ -705,10 +705,6 @@ var lineGraphFactory = ({
     setXY: function(){
         var this_ = this;
         
-        if (this_.avg) {
-	  this_.startTime = new Date().valueOf() - 15778458000; // 6 months
-        }
-        
         var fooStartTime = Math.floor((this_.startTime / this_.interp)) * this_.interp;
         this_.count = (Math.floor((this_.endTime - this_.startTime) / this_.interp));
         
@@ -734,11 +730,10 @@ var lineGraphFactory = ({
             return counts;
         }();
         
-        this_.minData = 0; // newWebViewed.min();
-        // so that this is only computed on init
-        if (!this_.maxData) {
-	  this_.maxData = newWebViewed.max(); 
-	}
+        this_.minData = 0;
+	this_.maxData = newWebViewed.max(); 
+	if (this_.maxData < 1) {this_.maxData = 10} // cant be zero or the world will explode. i chose 10 for shits
+
         var fooX = function(){
             var foo = fooStartTime;
             var webHrArray = [];
@@ -750,58 +745,13 @@ var lineGraphFactory = ({
         }();
         
         for (var i = 1; i < this_.count; i++) {
-            this_.foo[i] = -(newWebViewed[i]);
-            var wFoo = this_.windowWidth * ((fooX[i] - this_.startTime) / (this_.endTime - this_.startTime));
-            var hFoo = ((this_.padding - this_.topPadding) * ((this_.foo[i] - this_.minData) / (this_.maxData - this_.minData)) + this_.padding);
-            
-            this_.xPoints.push(wFoo);
-            this_.yPoints.push(hFoo);
+            this_.xPoints.push(this_.windowWidth * ((fooX[i] - this_.startTime) / (this_.endTime - this_.startTime)));
+	    this_.yPoints.push((this_.padding - this_.topPadding) * ((-(newWebViewed[i]) - this_.minData) / (this_.maxData - this_.minData)) + this_.padding);
         }
         
         if (this_.avg) {
             this_.yPoints = this_.avgCounts(this_.findStartIndex(this_.yPoints));
         }
-    },
-    findStartIndex: function(c){
-        var this_ = this;
-        
-        var counts = function(){
-            var foo = 0;
-            
-            for (var i = c.length - 1; i >= 0; i--) { // runs backwards through the array to find a place where there are lots of 0s
-                if (c[i] < ((this_.padding - this_.topPadding) * ((1 - this_.minData) / (this_.maxData - this_.minData)) + this_.padding)) {
-                    foo += 1;
-                }
-                else {
-                    foo = 0;
-                }
-                if (foo > 50) { // number signifies the number of 0 to find before slicing
-                    return i + foo;
-                }
-            }
-        };
-        c = c.slice(counts);
-        return c;
-    },
-    avgCounts: function(p){
-        var this_ = this;
-        
-        // this also may not work
-        var numBlock = Math.round((this_.endTime - this_.startTime) / this_.interp);
-        var counts = [];
-        var n = Math.round(this_.count.length / ((this_.endTime - this_.startTime) / this_.interp)); // needs to be dynamic
-        for (var i = 0; i < numBlock; i++) {
-            counts[i] = (function(){
-                var foo = 0;
-                for (var k = n - 1; k > -1; k--) {
-                    if (p.counts[p.counts.length - i - numBlock * k]) {
-                        foo += p.counts[p.counts.length - i - numBlock * k];
-                    }
-                }
-                return foo / n;
-            })();
-        }
-        return counts;
     }
 });
 
