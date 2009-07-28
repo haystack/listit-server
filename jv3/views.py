@@ -448,7 +448,7 @@ class ActivityLogCollection(Collection):
             #print "item is %s " % repr(item)
             try:
                 if len(user_activity.filter(when=item['id'])) > 0:
-                    print "skipping committing duplicate entry %d " % item['id'];
+                    print "activity log : skipping duplicate %d " % item['id'];
                     continue
                 ##print "Committing %s item %s " % (entry.owner.email,repr(item))
                 entry = ActivityLog();

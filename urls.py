@@ -2,27 +2,35 @@ from django.conf.urls.defaults import *
 from django.contrib import admin
 from django.conf import settings
 from django_restapi.responder import *
+import eyebrowse.urls
 
 admin.autodiscover()
 
-if "STATS_SERVER" in settings.get_all_members() and settings.STATS_SERVER:
-    urlpatterns = patterns('',
-                            (r'^listit/stats/', include('jv3.stats.urls')),
-                            (r'^(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}))
-    
-elif settings.DEVELOPMENT:
-    urlpatterns = patterns('',
-                           (r'^admin/doc/', include('django.contrib.admindocs.urls')),
-                           (r'^admin/(.*)', admin.site.root),
-                           )    
-    urlpatterns += patterns('',
-        (r'^listit/jv3/', include('jv3.urls')),
-        (r'^listit/plum/', include('plum.urls')),
-        (r'^(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}))
-    
-else: ## deployment!
-    urlpatterns = patterns('',
-        (r'^jv3/', include('jv3.urls')),
-        (r'^plum/', include('plum.urls')),
-    )
+urlpatterns = None
 
+if settings.LISTIT_SERVER:
+    print "adding listit server"
+    if not settings.DEVELOPMENT:
+        ## deployment
+        urlpatterns = patterns('',
+                               (r'^jv3/', include('jv3.urls')),
+                               (r'^plum/', include('plum.urls')))
+    else:
+        ## development
+        urlpatterns = patterns('',
+                               (r'^listit/jv3/', include('jv3.urls')),
+                               (r'^listit/plum/', include('plum.urls')))
+
+        ## stats server is only available in development mode
+        if settings.STATS_SERVER:
+            urlpatterns += patterns('', (r'^listit/stats/', include('jv3.stats.urls')))
+
+if settings.EYEBROWSE_SERVER:
+    urlpatterns += eyebrowse.urls.urlpatterns
+
+if settings.DEVELOPMENT:
+    ## add these at the end to lower priorities
+    urlpatterns += patterns('',
+                            (r'^admin/doc/', include('django.contrib.admindocs.urls')),
+                            (r'^admin/(.*)', admin.site.root),
+                            (r'^(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}))        
