@@ -444,8 +444,9 @@ def get_time_per_page(request):
     times_per_url = _get_time_per_page(request.user,from_msec,to_msec)    
     return json_response({ "code":200, "results": times_per_url })
         
-def get_top_pages(request,username):
+def get_top_pages(request,username, n):
     user = User.objects.filter(username=username)
+    n = int(n)
     if request.user is None:
           ## the person is asking us for access to another user's activity log.
         return json_response({"code":401,"message":"Access forbidden, please log in first"})
@@ -453,7 +454,7 @@ def get_top_pages(request,username):
     times_per_url = _get_time_per_page(request.user,from_msec,to_msec)
     urls_ordered = times_per_url.keys()
     urls_ordered.sort(lambda u1,u2: int(times_per_url[u2] - times_per_url[u1]))
-    return json_response({ "code":200, "results": [(u, long(times_per_url[u])) for u in urls_ordered[0:25]] })
+    return json_response({ "code":200, "results": [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] })
 
     ## a slightly faster than the slowest way
     
