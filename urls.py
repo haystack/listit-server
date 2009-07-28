@@ -2,7 +2,6 @@ from django.conf.urls.defaults import *
 from django.contrib import admin
 from django.conf import settings
 from django_restapi.responder import *
-import eyebrowse.urls
 
 admin.autodiscover()
 
@@ -26,6 +25,8 @@ if settings.LISTIT_SERVER:
             urlpatterns += patterns('', (r'^listit/stats/', include('jv3.stats.urls')))
 
 if settings.EYEBROWSE_SERVER:
+    import eyebrowse.urls
+    print "enabling eyebrowse"
     urlpatterns += eyebrowse.urls.urlpatterns
 
 if settings.DEVELOPMENT:
