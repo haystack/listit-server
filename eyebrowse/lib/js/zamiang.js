@@ -224,10 +224,10 @@ function timeCounterLongAbv(time){
     if (minutes) {
       if (content)
 	content += ", ";
-      content += minutes + " min and";
+      content += minutes + " min and ";
     }
     content += t + " sec";
-    
+
     return (content);
 }
 

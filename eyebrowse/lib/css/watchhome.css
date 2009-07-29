@@ -418,7 +418,6 @@ a.selected {
     width:198px;
 } #profile_edit li{
     display:inline-block;
-    
 } #profile_edit input[type="submit"]{
     margin-top:10px;
 } #profile_edit h2{
@@ -430,6 +429,7 @@ a.selected {
     font-size:1.1em;
     padding: 8px;
     padding-left:0px;
+    color: #666666;
 } #whitelist {
     padding:12px;
     border: 1px solid lightgrey;
@@ -456,4 +456,11 @@ a.selected {
 } #listlist {
     padding: 12px;
     border-top:1px solid  lightgrey;
+} #dateselector {
+    font-size:1.0em;
+    width: 220px;
+    margin-left:auto;
+    margin-right:auto;
+    margin-bottom:-30px;
+    text-align:center;
 }

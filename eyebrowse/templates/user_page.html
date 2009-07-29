@@ -279,19 +279,19 @@ view all {{ username }} s friends</a>
     <img src="/uploads/{{ user.id }}.jpg" />
     <h1>{{ username }}</h1><br />
   <br />
-      <div id="key">
+    <canvas id="totalTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
+    </canvas>
+    <canvas id="avgTimeGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">
+    </canvas>
+      <div id="key" style="margin-top:-40px">
         <div id="totalGraphKey" style="width:300px; text-align:center; display: inline-block;">total time on the web per week
         </div>
         <div id="avgGraphKey" style="float:right; width:300px; text-align:center; display: inline-block;">average time spent on webpages
         </div>
     </div>
-    <canvas id="totalTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
-    </canvas>
-    <canvas id="avgTimeGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">
-    </canvas>
     <div id="listNav">
 {% ifequal user.username username %}
-<h2 style="margin-top:-25px;">Your Top 25</h2>
+<h2 style="margin-top:-15px;">Your Top 25</h2>
 {% else %}
     <a href="#top10" onclick="window.viz.top()">{{ username}}'s top 25</a>&nbsp | &nbsp<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp | &nbsp<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a>
 {% endifequal %}
