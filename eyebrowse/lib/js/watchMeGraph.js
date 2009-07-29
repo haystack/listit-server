@@ -752,6 +752,7 @@ var lineGraphFactory = ({
         if (this_.avg) {
             this_.yPoints = this_.avgCounts(this_.findStartIndex(this_.yPoints));
         }
+	this_.draw();
     }
 });
 
@@ -783,7 +784,7 @@ var statusFactory = ({
       // now we need to turn this domain into a color.
       if (this.__color_cache === undefined) { this.__color_cache = {}; }
       if (this.__color_cache[domain] === undefined) {
-	var mystery_prime =  13646456457645727890239087; //1283180923023829; //3021377;
+	var mystery_prime =  3021377; //13646456457645727890239087; //1283180923023829; //3021377;
 
 	// rgb generator
 	var rgb_generator = function(d) {
@@ -796,9 +797,7 @@ var statusFactory = ({
 
 	// hsl generator
 	var hsl_generator = function(domain) {
-	  var h = domain.length > 0 ? 
-	  domain.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; }) * mystery_prime % 360
-	  : 172;
+	  var h = domain.length > 0 ?  domain.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; }) * mystery_prime % 100 : 172;
 	  var s = "100%";
 	  var l = "73%";	
 	  return   "hsl("+[""+h,s,l].join(",")+")";
