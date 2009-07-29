@@ -539,10 +539,9 @@ var lineGraphFactoryLite = ({
 
 	// draw the key
 	ctx.beginPath();
-	ctx.strokeStyle = "#333333"
-	ctx.moveTo(0, this_.padding);
-	ctx.lineTo(this_.windowWidth, this_.padding);
-	ctx.stroke();
+	ctx.fillStyle = "#333333";
+	ctx.fillRect(0, this_.padding, this_.windowWidth, 1);
+
 
 	ctx.strokeStyle = "#666666";
 	ctx.font = ".7pt helvetiker";

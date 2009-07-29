@@ -3,7 +3,7 @@
     <head>
     <title>Watchme | {% block title %}{% endblock %}</title>
         <style>
-            @import url("http://yui.yahooapis.com/2.6.0/build/reset-fonts-grids/reset-fonts-grids.css");
+            @import url("/lib/css/reset-fonts-grids.css");
             @import url("/lib/css/jquery-ui-1.7.2.custom.css");
             @import url("/lib/css/watchhome.css");
         </style>
@@ -14,7 +14,7 @@
         <div id="header">
 	<a href="/"><img src="/lib/img/smallbird.jpg" style="float:left; padding-left:8px; padding-right:8px"/></a>
 {% if user.is_authenticated %}
-<a href="/groups/">groups</a>&nbsp | &nbsp<a href="/graph/">graph</a>&nbsp | &nbsp<a href="/days/">days</a>&nbsp | &nbsp<a href="/list/">list</a>&nbsp | &nbsp<a href="/report/">report</a>
+<a href="/groups/">groups</a>&nbsp | &nbsp<a href="/graph/">graph</a>&nbsp | &nbsp<a href="/days/">days</a>&nbsp | &nbsp<a href="/list/">list</a>&nbsp | &nbsp<a href="/user/{{ user.username }}/">report</a>
 <div id="usersettings">
 <a href="/profile/{{ user.username }}/">
 {{ user.username }}</a>&nbsp | &nbsp<a href="/logout/">logout</a>

@@ -224,7 +224,7 @@ function timeCounterLongAbv(time){
     // uncomment this to have min and seconds
     if (content)
         content += ", ";
-    content += minutes + " m and " + t + " s.";
+    content += minutes + " min and " + t + " sec";
 
     // document.getElementById('result4').innerHTML = content;
     return (content);

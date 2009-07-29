@@ -17,16 +17,6 @@
             jQuery.noConflict();
         </script>
         <script>
-            function getListIt(){
-                try {
-                    netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
-                } 
-                catch (e) {
-                }
-                return Components.classes['@electronic.max/listit;1'].getService().wrappedJSObject;
-            };
-            
-            
             var WatchmeVisualisation = {
                 initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom){
                     this.canvas = canvas;
@@ -35,7 +25,6 @@
                     this.timeZoneCorrect = timeZoneCorrect;
                     this.endDate = new Date(new Date().valueOf());
                     this.startDate = new Date(this.endDate.valueOf() - zoom);
-                    this.now = new Date(new Date().valueOf() + this.timeZoneCorrect);
                     this.endTime = this.endDate.valueOf();
                     this.startTime = this.startDate.valueOf();
                     this.OGendTime = this.endDate.valueOf();
@@ -43,36 +32,11 @@
                     this.interp = zoom / 192;
                     this.drag = undefined;
                     this.zoom = zoom;
-                    
-                    var listit = getListIt();
-                    this.listit = listit;
-                    
-                    var statusArray = [];
-                    this.drawArray = [];
-		    //  this.data = this.formatData(this.listit.CMS.event_store.getEvents("www-viewed", [this.startTime, this.endTime]));
-		    this.data = function getViews(startTime, endTime) {
-		      // uses the django model get_views to return www viewed events between start and end times
-		      try {
-			jQuery.get("http://localhost:8000/get_views", {from: startTime, to: endTime},
-				   function(data) {
-				     if (data.code == 200) {			       
-				       return data.results;
-				       //createTheWorld(data.results, startTime, endTime, viz);
-				     } else {
-				       console.log("yaaaa!!!H!H!H!" + data.code + " ");
-				     }
-				   }, "json");
-		      } catch(e) {
-			console.log(e);
-		      }
-		    }(this.startTime, this.endTime); // passing this around like a hot tomalie       
 
-                    //this.getTopPages(this.endTime - zoom, this.endTime);
-                    
-                    // this part should be done by the server
-                    this.drawLiteGraph();
+		    this.getTopPages(this.endTime - zoom, this.endTime);
+		    this.initLiteGraph(15778458000, this.endTime); // 15778458000 = the beginning of time (6 months ago)
                 },
-                draw: function(data){
+                drawTopPagesList: function(data){
                     var newData = data;
                     
                     var html = "";
@@ -85,113 +49,65 @@
                     }
                     jQuery("#list").html(html);
                 },
-                formatData: function(data){
-                    var newData = data;
-
-                    // prolly shouldnt be in here
-                    // but it should run at this time
-                    var fooTotal = 0;
-                    for (var i = 0; i < newData.length; i++) {
-                        fooTotal += newData[i].end - newData[i].start;
-                    }
-                    jQuery("#totalTime").html("total time on websites: " + timeCounterLongAbv(fooTotal / 1000));
-                    jQuery("#avgTime").html("average time spent per site: " + timeCounterLongAbv((fooTotal / (newData.length * 2)) / 1000));
-		    fooDate = new Date(Math.floor(new Date().valueOf()/604800000) * 604800000);
-                    jQuery("#weekName").html("for the week of: " + fooDate.format('dddd, mmmm d'));
-                    return function(){
-                        var namesObj = {};
-                        var objArray = [];
-                        var fooName = "";
-                        var barFactory = ({
-                            initialize: function(params){
-                                this.id = params.id;
-                                this.host = params.host;
-                                this.title = params.title;
-                                this.value = params.value;
-                            }
-                        });
-                        var unknown = newify(barFactory, {
-                            id: "unknown",
-                            host: "unknown",
-                            title: "unknown",
-                            value: 0
-                        });
-                        objArray.push(unknown);
-                        for (var i = 0; i < newData.length; i++) {
-                            if (newData[i].entity.host) {
-                                fooName = newData[i].entity.host;
-                                
-                                if (namesObj[fooName]) {
-                                    newData[i].entity.host.value += newData[i].end - newData[i].start;
-                                }
-                                else {
-                                    newData[i].entity.host = newify(barFactory, {
-                                        value: (newData[i].end - newData[i].start),
-                                        id: newData[i].entity.id,
-                                        title: newData[i].entity.title,
-                                        host: fooName.toString(),
-                                    });
-                                    namesObj[fooName] = newData[i].entity.host;
-                                    objArray.push(namesObj[fooName]);
-                                }
-                            }
-                            else {
-                                unknown.value += newData[i].end - newData[i].start;
-                            }
-                        }
-                        return objArray;
-                    }();
-                },
-                getTopPages: function(startTime, endTime){
-		  var newData = function getTopPages(startTime, endTime) {
-		    // uses the django model get_top_pages to return www viewed events between start and end times
-		    try {
-		      // something is wrong with how i am calling this
-		      jQuery.get("http://localhost:8000/get_top_pages", {from: startTime, to: endTime},
-				 function(data) {
-				   if (data.code == 200) {			       
-				     return data.results;
-				   } else {
-				     console.log("yaaaa!!!H!H!H!" + data.code + " ");
-				   }
-				 }, "json");
-		    } catch(e) {
-		      console.log(e);
-		    }
-		  }(startTime, endTime); 
-		  this.draw(newData);
-                },
-                drawLiteGraph: function(){
-                    var this_ = this;
-                    // get past 6 months
-                    var newData = this_.listit.CMS.event_store.getEvents("www-viewed", [15778458000, this_.endTime]);
-                    
-                    var startTime = newData[1].start.valueOf();
-                    var interpNum = 12;
-                    var interp = (this_.endTime - startTime) / interpNum;
-                    var count = (Math.floor((this_.endTime - startTime) / interp));
+                getTopPages: function(startTime, endTime, data){
+		  // uses the django model get_top_pages to return top pages between start and endtime
+		  this_ = this;
+		  // console.log("{{ user.username }}");
+		  // console.log("{{ username }}"); INCORRECT
+		  try {
+		    jQuery.get("http://localhost:8000/get_top_pages/{{ user.username }}/25/", {from: startTime, to: endTime},
+			       // this gets top 25 pages
+			       function(data) {
+				 if (data.code == 200) {			       
+				   this_.drawTopPagesList(data.results);		  
+				 } else {
+				   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+				 }
+			       }, "json");	
+		  } catch(e) {
+		    console.log(e);
+		  }
+		},
+                initLiteGraph: function(startTime, endTime){
+		  var this_ = this;		   
+		  try {
+		    jQuery.get("http://localhost:8000/get_views", {from: startTime, to: endTime},
+			       function(data) {
+				 if (data.code == 200) {
+				   this_.drawLiteGraph(data.results);
+				 } else {
+				   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+				 }
+			       }, "json");
+		  } catch(e) {
+		    console.log(e);
+		  }
+		  // ideally this call will be cached as it is EXPENSIVE AS ALL HELL		    
+                }, 
+		drawLiteGraph: function(data) {
+		  var this_ = this;
+		  var newData = data;
+		  var startTime = newData[1].start.valueOf();
+		  var interpNum = 12; // ALARM yea this is number of points on graph
+		  // fix this. it should be dynamic or a variable
+		  var interp = (this_.endTime - startTime) / interpNum;
+		  var count = (Math.floor((this_.endTime - startTime) / interp));
+		  
                     // format the data
-                    // maybe use workers for this
-                    var ttData = [];//new Array(count);
-                    var avgDataNum = [];//new Array(count);
+                    var ttData = []; // total time per count
+                    var avgDataNum = []; // number of websites
                     var dateArray = function(){
                         var foo = [];
                         for (var i = 0; i < count; i++) {
                             foo[i] = startTime + (interp * i);
-                            // set all arrays to 0 not sure if i need to do this
+                            // set all arrays to 0 so i can increment them
                             ttData[i] = 0;
                             avgDataNum[i] = 0;
                         }
                         return foo;
                     }();
-		    
-		    /*
-		    // add the keys
-		    fooDate = new Date(Math.floor(new Date().valueOf()/604800000) * 604800000);
-		    fooStartDate = new Date(startTime)
-                    jQuery("#avgGraphKey").html(fooStartDate.format('mmmm d') + " - " + fooDate.format('mmmm d'));
-                    jQuery("#totalGraphKey").html(fooStartDate.format('mmmm d') + " - " + fooDate.format('mmmm d'));
-		    */
+
+		    // function to get total time on websites per time instance (ie count)
                     for (var i = 0; i < newData.length; i++) {
                         // oh man this is ineffecient hrm
 		      for (var j = 0; j < count; j++) {
@@ -238,7 +154,7 @@
                         color: "#00ff00",
                         data: avgData
                     });
-                }
+		  }
             };
             jQuery(document).ready(function(){
                 var myWidth = undefined;
@@ -278,7 +194,7 @@
     <canvas id="avgTimeGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">
     </canvas>
 <div id="twoLists">
-    <h3 style="width:auto;">Top 10 Websites
+    <h3 style="width:auto;">Top 25 Websites
         <div style="width:250px; float:right; text-align:left; display:inline-block; margin-right:20px;">
             Recommended Sites
         </div>

@@ -174,7 +174,7 @@ a.selected {
     text-align: center;
 } .ui-dialog .ui-state-highlight, .ui-dialog .ui-state-error {
     padding: .3em;
-}.listItem {
+} .listItem {
     padding: 10px;
     border-bottom: 1px solid lightgrey;
     width: 580px;
@@ -186,10 +186,13 @@ a.selected {
     text-decoration: none
 } .listItem A:hover {
     text-decoration: underline;
-} .listItem {
-    width: 580px;
-    margin: 0px;
-} .friendStatus {
+} .listItem h7 {
+    padding-right:10px;    
+} .listItem .imgBox {   
+    float:right;
+    width: 60px;
+    text-align: left;
+}.friendStatus {
     position: absolute;
     width: auto;
     top: 0px;
@@ -361,13 +364,26 @@ a.selected {
     height:75px;
     width:75px;
     padding-right:12px;
-} #profile_content h1{
+} #profile_content .thumb {
+    height:14px;
+    width:14px;
+    padding-right:12px;
+    padding-left:12px;
+    vertical-align:middle;
+}
+#profile_content h1{
     font-size:3.5em;
     height: auto;
     display:inline-block; 
     vertical-align:top;
     padding:0px;
     padding-top:8px;
+} #profile_content h2{
+    font-size:1.53em;
+    margin-top:0px;
+    padding: 8px;
+    padding-left:0px;
+    border-bottom: 0px solid lightgrey;
 } #profile_content #listNav {
     width: 700px;
     display: inline-block;
@@ -395,4 +411,12 @@ a.selected {
     padding: 8px;
     padding-left:0px;
     border-bottom: 1px solid lightgrey;
+} #key {
+    font-size:1.1em;
+    padding: 8px;
+    padding-left:0px;
+} #whitelist {
+    padding:12px;
+    border: 1px solid lightgrey;
+    width:275px;
 }

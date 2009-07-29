@@ -417,14 +417,32 @@ def _get_pages_for_user(user,from_msec,to_msec):
 def _unpack_from_to_msec(request):
     return (request.GET.get('from',0), request.GET.get('to',long(time.mktime(time.localtime())*1000)))
 
-def _get_time_per_page(user,from_msec,to_msec):
+class EVENT_SELECTORS:
+    class Page:
+        @staticmethod
+        def access(queryset):
+            return [s[0] for s in queryset.values_list('entityid')]
+        @staticmethod
+        def filter_queryset(queryset,url):
+            return queryset.filter(entityid=url)
+    class Host:
+        @staticmethod
+        def access(queryset):
+            import urlparse
+            return [urlparse.urlparse(url[0])[1] for url in queryset.values_list('entityid')]
+        @staticmethod
+        def filter_queryset(queryset,url):
+            return queryset.filter(entityid__contains="://%s/"%url)        
+
+
+def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
     mine_events = _get_pages_for_user(user, from_msec, to_msec)
-    uniq_urls  = set( [s[0] for s in mine_events.values_list("entityid") ])
+    uniq_urls  = set( grouped_by.access(mine_events) )
     times_per_url = {}
     for url in uniq_urls:
-        times_per_url[url] = long(reduce(lambda x,y: x+y, [ startend[1]-startend[0] for startend in mine_events.filter(entityid=url).values_list('start','end') ] ))
+        times_per_url[url] = long(reduce(lambda x,y: x+y, [ startend[1]-startend[0] for startend in grouped_by.filter_queryset(mine_events,url).values_list('start','end') ] ))
     return times_per_url
-    
+
 @login_required
 def get_web_page_views(request):
     ## gimme get parameters :
@@ -452,9 +470,9 @@ def get_time_per_page(request):
     times_per_url = _get_time_per_page(request.user,from_msec,to_msec)    
     return json_response({ "code":200, "results": times_per_url })
         
-def get_top_pages(request,username):  # should have n here but i removed it temporarally 
+def get_top_pages(request,username, n):  # should have n here but i removed it temporarally 
     user = User.objects.filter(username=username)
-    #n = int(n)
+    n = int(n)
     if request.user is None:
           ## the person is asking us for access to another user's activity log.
         return json_response({"code":401,"message":"Access forbidden, please log in first"})
@@ -462,10 +480,25 @@ def get_top_pages(request,username):  # should have n here but i removed it temp
     times_per_url = _get_time_per_page(request.user,from_msec,to_msec)
     urls_ordered = times_per_url.keys()
     urls_ordered.sort(lambda u1,u2: int(times_per_url[u2] - times_per_url[u1]))
-    return json_response({ "code":200, "results": [(u, long(times_per_url[u])) for u in urls_ordered[0:25]] }) # n should go where 25 is here
 
-    ## a slightly faster than the slowest way
+    #_mimic_entity_schema_from_url
+    return json_response({ "code":200, "results": [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] }) 
+
     
+def get_top_hosts(request,username, n):  # should have n here but i removed it temporarally 
+    user = User.objects.filter(username=username)
+    n = int(n)
+    if request.user is None:
+          ## the person is asking us for access to another user's activity log.
+        return json_response({"code":401,"message":"Access forbidden, please log in first"})
+    from_msec,to_msec = _unpack_from_to_msec(request)
+    times_per_url = _get_time_per_page(request.user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Host)
+    urls_ordered = times_per_url.keys()
+    urls_ordered.sort(lambda u1,u2: int(times_per_url[u2] - times_per_url[u1]))
+
+    #_mimic_entity_schema_from_url
+    return json_response({ "code":200, "results": [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] }) 
+
     
 
     
