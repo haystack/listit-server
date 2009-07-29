@@ -779,6 +779,35 @@ var statusFactory = ({
         this.setPos();
 	this.mouseVal = undefined;
     },
+    selectColorForDomain:function(domain) {
+      // now we need to turn this domain into a color.
+      if (this.__color_cache === undefined) { this.__color_cache = {}; }
+      if (this.__color_cache[domain] === undefined) {
+	var mystery_prime =  13646456457645727890239087; //1283180923023829; //3021377;
+
+	// rgb generator
+	var rgb_generator = function(d) {
+	  var biggest_color = parseInt("ffffff",16);
+	  var code = d.length > 0 ?
+	  d.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; }) * mystery_prime % biggest_color :
+	  65535;
+	  return "#"+code.toString(16);	  	  
+        };
+
+	// hsl generator
+	var hsl_generator = function(domain) {
+	  var h = domain.length > 0 ? 
+	  domain.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; }) * mystery_prime % 360
+	  : 172;
+	  var s = "100%";
+	  var l = "73%";	
+	  return   "hsl("+[""+h,s,l].join(",")+")";
+	};
+
+	this.__color_cache[domain] = hsl_generator(domain); //rgb_generator(domain); //hsl_generator(domain);
+      }
+      return this.__color_cache[domain];
+    },
     draw: function(){
         var ctx = this.canvas.getContext('2d');
         var this_ = this;
@@ -789,9 +818,6 @@ var statusFactory = ({
             this_.endTime = this_.viz.endTime;
             this_.movePos();
         }
-        ctx.strokeStyle = this_.color;
-        ctx.fillStyle = this_.color;
-
 	for (var i = 0; i < this_.startPointArray.length; i++) {
 	  if (this_.pIH) {
 	    if (isPointInPoly(this_.polyArray[i], this_.mouseVal)){		 
@@ -801,17 +827,19 @@ var statusFactory = ({
 	      jQuery("#fooTxt").css({"top" : this_.marginTop + 45 + "px", "left" : this_.mouseVal.x + "px", "background" : "#000000", "padding" : "3px" });
 	    }	  
 	  }
-	  if (this_.viz.highlight === this_.domainArray[i]){
-	    ctx.fillStyle = "#00ff00";
-	  }
           ctx.beginPath();
+	  ctx.fillStyle = this_.selectColorForDomain(this_.domainArray[i]);
 	  ctx.fillRect(this_.startPointArray[i], this_.marginTop, this_.widthArray[i], this_.height);
+	  if (this_.viz.highlight == this_.domainArray[i]){
+	    ctx.fillStyle = "rgba(255,255,255,0.85)"; //"#00ff00";
+	    ctx.fillRect(this_.startPointArray[i], this_.marginTop, this_.widthArray[i], this_.height);
+	  }
 	  ctx.closePath();
-	  ctx.fillStyle = this_.color;
         }
         
         if (!(this_.pIH) && this_.trigger) {
             this_.trigger = false;
+	    this_.viz.highlight = "booo";
             jQuery("#fooTxt").html("");
 	    jQuery("#fooTxt").css({"padding" : "0px"});
         }
@@ -896,13 +924,14 @@ var statusFactory = ({
             this_.widthArray[i] = (this_.windowWidth * ((this_.data[i].end - this_.startTime) / (this_.endTime - this_.startTime))) - this_.startPointArray[i];
 	    this_.polyArray[i] = rectToPoly({xPos: this_.startPointArray[i], yPos: this_.marginTop, width: this_.widthArray[i], height: this_.height});
 	}
-        
+
         this_.poly = rectToPoly({
             xPos: this_.xOffset,
             yPos: this_.marginTop - this_.yOffset,
             height: this_.height,
             width: this_.windowWidth - this_.yOffset
         });
+	this_.draw();
     },
     movePos: function(){
         var this_ = this;

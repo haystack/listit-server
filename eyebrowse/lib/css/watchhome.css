@@ -29,6 +29,13 @@ h3 {
 
 h4 {
     margin-top: 15px;
+    line-height: 1.45em;
+    letter-spacing: 0.5px;
+    font-size: 1em;
+}
+
+body {
+    font-size: 1.1em;
 }
 
 h5 {
@@ -192,12 +199,20 @@ a.selected {
     float:right;
     width: 60px;
     text-align: left;
-}.friendStatus {
+} li {
+    margin-bottom:10px;
+} li img{
+    float: right;
+    height: 15px;
+    width: 15px;    
+    padding-right: 3px;
+}
+.friendStatus {
     position: absolute;
     width: auto;
     top: 0px;
     left: 0px;
-}#hai {
+} #hai {
     width: 150px;
     margin: 20px;
     padding: 20px;
@@ -418,5 +433,27 @@ a.selected {
 } #whitelist {
     padding:12px;
     border: 1px solid lightgrey;
-    width:275px;
+    width:280px;
+} .subhead {
+ font-size:0.8em;
+  line-height:1.2em;
+    padding:12px;
+} .bodytext {
+    line-height: 1.2em;
+    letter-spacing: 0.5px;
+    font-size: 1em;    
+} .bodytext A:link {
+    text-decoration: underline;
+    font-size: 1em;    
+} .bodytext A:visited {
+    text-decoration: underline;
+    font-size: 1em;    
+} .bodytext A:active {
+    text-decoration: none;
+    font-size: 1em;    
+} .bodytext A:hover {
+    text-decoration: underline;
+} #listlist {
+    padding: 12px;
+    border-top:1px solid  lightgrey;
 }

@@ -17,6 +17,20 @@ from django.db.models.signals import post_save
 from jv3.models import Event ## from listit, ya.
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 
+#TEMPORARY
+def whitelist(request):
+    t = loader.get_template("whitelist.html")
+    c = Context({ 'user': request.user })
+
+    return HttpResponse(t.render(c))
+
+def pluginhover(request):
+    t = loader.get_template("plugin_hover.html")
+    c = Context({ 'user': request.user })
+
+    return HttpResponse(t.render(c))
+
+# the views
 def index(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
