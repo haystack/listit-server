@@ -221,12 +221,13 @@ function timeCounterLongAbv(time){
             content += ", ";
         content += hours + " h";
     }
-    // uncomment this to have min and seconds
-    if (content)
-        content += ", ";
-    content += minutes + " min and " + t + " sec";
-
-    // document.getElementById('result4').innerHTML = content;
+    if (minutes) {
+      if (content)
+	content += ", ";
+      content += minutes + " min and";
+    }
+    content += t + " sec";
+    
     return (content);
 }
 

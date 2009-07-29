@@ -45,7 +45,7 @@
                 this.startTime = this.startDate.valueOf();
                 this.OGendTime = this.endDate.valueOf();
                 this.OGstartTime = this.startDate.valueOf();
-                this.interp = zoom / 192;
+                this.interp = zoom / 168;
                 this.drag = undefined;
                 this.zoom = zoom;
                 
@@ -133,7 +133,7 @@
             document.getElementById("main").setAttribute("width", myWidth);
             document.getElementById("main").setAttribute("height", myHeight);
             
-            self.viz = newify(WatchmeVisualisation, document.getElementById("main"), myWidth, myHeight, 0, 654800000);
+            self.viz = newify(WatchmeVisualisation, document.getElementById("main"), myWidth, myHeight, 0, 604800000);
         });
         </script>
 {% endblock %}

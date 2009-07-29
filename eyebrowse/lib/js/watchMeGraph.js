@@ -208,7 +208,7 @@ var dateSlider = ({
         ctx.lineWidth = 1;
         ctx.strokeStyle = "#0f0f0f";
         var fooHour = 0;
-        var fooDateVal = ((Math.floor(this_.endTime / (this_.viz.zoom / 12))) * (this_.viz.zoom / 12)); // 2 hours
+        var fooDateVal = ((Math.floor(this_.endTime / (this_.viz.zoom / 14))) * (this_.viz.zoom / 14)); // 2 hours
         for (var hourCount = 0; hourCount < 14; hourCount++) {
             var dayText = new Date(fooDateVal - fooHour);
             var q = this_.windowWidth * ((fooDateVal - fooHour - this_.startDate) / (this_.endDate - this_.startDate)); //- startTime) / (endTime - startTime)); // make dates not move >> - initDateMin) / (initDateMax - initDateMin));
@@ -218,13 +218,13 @@ var dateSlider = ({
             ctx.closePath();
             ctx.stroke();
             ctx.fillStyle = "#999999";
-            if ((this_.viz.zoom / 12) <= 7200000) {
-                ctx.fillText(dayText.format('h:MM TT'), q + 10, this_.windowHeight - this_.padding + 25);
-            }
-            else {
-                ctx.fillText(dayText.format('mmmm d h:MM TT'), q + 10, this_.windowHeight - this_.padding + 25);
-            }
-            fooHour += (this_.viz.zoom / 12); // 7200000	
+            //if ((this_.viz.zoom / 12) <= 7200000) {
+	      // ctx.fillText(dayText.format('h:MM TT'), q + 10, this_.windowHeight - this_.padding + 25);
+		//}
+		//else {
+		  ctx.fillText(dayText.format('mmmm d h:MM TT'), q + 10, this_.windowHeight - this_.padding + 25);
+		//}
+            fooHour += (this_.viz.zoom / 14); // 7200000	
         }
         
         
@@ -797,7 +797,7 @@ var statusFactory = ({
 
 	// hsl generator
 	var hsl_generator = function(domain) {
-	  var h = domain.length > 0 ?  domain.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; }) * mystery_prime % 100 : 172;
+	  var h = domain.length > 0 ?  domain.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; })  % 360 : 172;
 	  var s = "100%";
 	  var l = "73%";	
 	  return   "hsl("+[""+h,s,l].join(",")+")";

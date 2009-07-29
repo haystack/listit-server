@@ -124,7 +124,8 @@
 				   for (var i = 0; i < data.results.length; i++) {
 				     fooTotal += data.results[i].end - data.results[i].start;
 				   }				   
-				   jQuery("#totalTime").html("<b>total: </b> " + timeCounter(fooTotal / 1000));
+				   jQuery("#totalTime").html("<b>total time: </b> " + timeCounter(fooTotal / 1000));
+				   jQuery("#num").html("<b>total #: </b>" + data.results.length);				   			
 				   jQuery("#avgTime").html("<b>average: </b>" + timeCounterLongAbv((fooTotal / (data.results.length * 2)) / 1000));				   			
 				 } else {
 				   console.log("yaaaa!!!H!H!H!" + data.code + " ");
@@ -192,7 +193,7 @@
                         windowHeight: this_.windowHeight,
                         windowWidth: this_.windowWidth,
                         interp: (this_.endTime - startTime) / interpNum,
-                        color: "#ff0000",
+                        color: "#00ffff",
                         data: ttData
                     });
                     var avgTimeG = newify(lineGraphFactoryLite, {
@@ -202,7 +203,7 @@
                         windowHeight: this_.windowHeight,
                         windowWidth: this_.windowWidth,
                         interp: (this_.endTime - startTime) / interpNum,
-                        color: "#00ff00",
+                        color: "#ff00ff",
                         data: avgData
                     });
 		  }
@@ -245,7 +246,10 @@ add {{ username }} to your friends</a>
 {% endif %}
 {% endifequal %}
 
-<div id="totalTime" style="margin-top:10px;">
+<div id="num" style="margin-top:10px;">
+<b>number:</b>
+</div>
+<div id="totalTime">
 <b>total:</b>
 </div>
 <div id="avgTime">
@@ -287,7 +291,7 @@ view all {{ username }} s friends</a>
     </canvas>
     <div id="listNav">
 {% ifequal user.username username %}
-<h2>Your Top 25</h2>
+<h2 style="margin-top:-25px;">Your Top 25</h2>
 {% else %}
     <a href="#top10" onclick="window.viz.top()">{{ username}}'s top 25</a>&nbsp | &nbsp<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp | &nbsp<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a>
 {% endifequal %}
