@@ -46,57 +46,40 @@
 		  var this_ = this;
 		  var newData = data;
 		  var html = "";
-		  
-		  // run this to compare last week with this week
-		  // django should provice the results of this function along w/ the other data
-		  try {
-		    jQuery.get("http://localhost:8000/get_top_hosts/{{ user.username }}/250/", {from: (this_.startTime - (2 * this_.zoom)), to: (this_.endTime - this_.zoom) },
-			       function(data) {
-				 if (data.code == 200) {		
-				   // eventually this won't have to be in here
-				   for (var i = 0; i < newData.length; i++) { //newData.length; i++) {
-				     var trigger = true;
-				     html += "<div class=\"listItem\">";
-				     html += "<h6><b><a href=\"http://" + newData[i][0] + "\">" + newData[i][0] + "</a></b></h6>";
-				     for (var j = 0; j < data.results.length; j++){
-				       if (data.results[j][0] == newData[i][0]){					 
-					 if (i - j > 0){
-					   trigger = false;
-					   html += "<div class=\"imgBox\">";
-					   html += "<img src=\"/lib/img/arrow_full_down_16.png\" class=\"thumb\" />";					   
-					   html += "<b>" + (j - i) + "</b>";
-					   html += "</div>";
-					 }
-					 if (i - j < 0){
-					   trigger = false;
-					   html += "<div class=\"imgBox\">";
-					   html += "<img src=\"/lib/img/arrow_full_up_16.png\" class=\"thumb\" />";
-					   html += "<b>" + (j - i) + "</b>";
-					   html += "</div>";										   
-					 }				
-				       }
-				     }
-				     if (trigger) {
-				       html += "<div class=\"imgBox\">&nbsp;";					   
-				       html += "</div>";
-				     }
-				     html += "<h7><b>time spent:</b> " + timeCounterLong((newData[i][1]) / 1000) + "</h7>";				     
-				     html += "</div>";
-				   }
-				   jQuery("#list").html(html);		  
-				 } else {
-				   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-				 }
-			       }, "json");	
-		  } catch(e) {
-		    console.log(e);
+		  for (var i = 0; i < newData.length; i++) { 
+		    var trigger = true;
+		    html += "<div class=\"listItem\">";
+		    html += "<h6><b><a href=\"http://" + newData[i][0] + "\">" + newData[i][0] + "</a></b></h6>";
+		    
+		    if (newData[i][2] < 0){
+		      trigger = false;
+		      html += "<div class=\"imgBox\">";
+		      html += "<img src=\"/lib/img/arrow_full_down_16.png\" class=\"thumb\" />";					   
+		      html += "<b>" + newData[i][2] + "</b>";
+		      html += "</div>";
+		    }
+		    if (newData[i][2] > 0){
+		      trigger = false;
+		      html += "<div class=\"imgBox\">";
+		      html += "<img src=\"/lib/img/arrow_full_up_16.png\" class=\"thumb\" />";
+		      html += "<b>" + newData[i][2] + "</b>";
+		      html += "</div>";										   
+		    }				
+		    if (trigger) {
+		      html += "<div class=\"imgBox\">&nbsp;";
+		      // html += "<img src=\"/lib/img/star_16.png\" class=\"thumb\" />";
+		      html += "</div>";
+		    }
+		    html += "<h7><b>time spent:</b> " + timeCounterLong((newData[i][1]) / 1000) + "</h7>";				     
+		    html += "</div>";
 		  }
-                },
-                getTopPages: function(startTime, endTime, data){
+		  jQuery("#list").html(html);		  
+		},
+		getTopPages: function(startTime, endTime, data){
 		  // uses the django model get_top_pages to return top pages between start and endtime
 		  this_ = this;
 		  try {
-		    jQuery.get("http://localhost:8000/get_top_hosts/{{ user.username }}/25/", {from: startTime, to: endTime},
+		    jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ user.username }}/25/", {first_start: startTime - 86400000, first_end: endTime - 86400000, second_start: startTime, second_end: endTime},
 			       // this gets top 25 pages
 			       function(data) {
 				 if (data.code == 200) {		
@@ -228,14 +211,10 @@
 <div id="report">
   <div id="profile">
 {% ifequal user.username username %}
-<b>Name: </b>{{ first_name }} {{ last_name }} <br />
 <b>Location:</b> {{ location }} <br />
 <b>Website:</b> {{ homepage }} <br />
-<a href="/profile/{{ username }}/"
-class="edit">edit your profile</a>
 {% else %}
 {% if is_friend %}
-<b>Name: </b>{{ first_name }} {{ last_name }} <br />
 <b>Location:</b> {{ location }} <br />
 <b>Website:</b> {{ homepage }} <br />
 <a href="/friends/{{ user.username }}/">
@@ -247,10 +226,10 @@ add {{ username }} to your friends</a>
 {% endifequal %}
 
 <div id="num" style="margin-top:10px;">
-<b>number:</b>
+<b>total #:</b>
 </div>
 <div id="totalTime">
-<b>total:</b>
+<b>total time: </b>
 </div>
 <div id="avgTime">
 <b>average:</b>
@@ -271,7 +250,9 @@ view all {{ username }} s friends</a>
 <p>{{ username }} has no friends :(</p>
 {% endif %}
 {% ifequal user.username username %}
-<a href="/friends/{{ username }}/">view all your friends</a>
+<a href="/friends/{{ username }}/">view all your friends</a><br />
+<a href="/profile/{{ username }}/"
+class="edit">edit your profile</a><br />
 {% endifequal %}
 
 </div>

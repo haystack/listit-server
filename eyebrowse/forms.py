@@ -36,16 +36,16 @@ class RegistrationForm(forms.Form):
         raise forms.ValidationError('Username is already taken.')
 
 class ProfileSaveForm(forms.Form):
-    first_name = forms.CharField(
-        label='First Name',
-        widget=forms.TextInput(attrs={'size': 250}), 
-        required=False
-        )
-    last_name = forms.CharField(
-        label='Last Name',
-        widget=forms.TextInput(attrs={'size': 250}), 
-        required=False
-        )
+#     first_name = forms.CharField(
+#         label='First Name',
+#         widget=forms.TextInput(attrs={'size': 250}), 
+#         required=False
+#         )
+#     last_name = forms.CharField(
+#         label='Last Name',
+#         widget=forms.TextInput(attrs={'size': 250}), 
+#         required=False
+#         )
     email = forms.EmailField(
         label='Email',
         widget=forms.TextInput(attrs={'size': 250}), 

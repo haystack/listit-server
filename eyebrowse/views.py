@@ -61,30 +61,38 @@ def help(request):
     return HttpResponse(t.render(c))
 
 @login_required
-def list(request):
+def list(request, username):
+    user = get_object_or_404(User, username=username)
+
     t = loader.get_template("list.html")
-    c = Context({ 'user': request.user })
+    c = Context({ 'user': username })
 
     return HttpResponse(t.render(c))
 
 @login_required
-def day(request):
+def day(request, username):
+    user = get_object_or_404(User, username=username)
+
     t = loader.get_template("day.html")
     c = Context({ 'user': request.user })
 
     return HttpResponse(t.render(c))
 
 @login_required
-def report(request):
+def report(request, username):
+    user = get_object_or_404(User, username=username)
+
     t = loader.get_template("report.html")
-    c = Context({ 'user': request.user })
+    c = Context({ 'user': user.username })
 
     return HttpResponse(t.render(c))
 
 @login_required
-def graph(request):
+def graph(request, username):
+    user = get_object_or_404(User, username=username)
+
     t = loader.get_template("graph.html")
-    c = Context({ 'user': request.user })
+    c = Context({ 'user': user })
 
     return HttpResponse(t.render(c))
 
@@ -510,13 +518,89 @@ def get_top_hosts(request,username, n):  # should have n here but i removed it t
     urls_ordered = times_per_url.keys()
     urls_ordered.sort(lambda u1,u2: int(times_per_url[u2] - times_per_url[u1]))
 
+    print urls_ordered
     #_mimic_entity_schema_from_url
     return json_response({ "code":200, "results": [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] }) 
 
     
+def get_top_hosts_comparison(request,username, n): 
+    ##print "top hosts comparison request yo for user %s " % username
+
+    def _unpack_times(request):
+        return (long(request.GET['first_start']), long(request.GET['first_end']), long(request.GET['second_start']), long(request.GET['second_end']))
+
+    def _get_top_n(user,start,end):
+        time_per_host = _get_time_per_page(user,start,end,grouped_by=EVENT_SELECTORS.Host)
+        ordered_visits = [h for h in time_per_host.iteritems()]
+        ordered_visits.sort(lambda u1,u2: int(u2[1] - u1[1]))
+        return ordered_visits        
+    
+    users = User.objects.filter(username=username)
+    if len(users) == 0:
+        return json_response({"code":401,"message":"Unknown user %s" % username})
+
+    user = users[0]
+    ##print "got user : %s %s " % (repr(type(user)),repr(user))
+    n = int(n)
+    ##print user
+    ##print "request %s " % repr(request.GET)
+    first_start,first_end,second_start,second_end = _unpack_times(request)
+    
+    times_per_url_first = _get_top_n(user,first_start,first_end)
+    ##print "times_per_url_first %d %d " % (first_start,first_end)
+    times_per_url_second = _get_top_n(user,second_start,second_end)
+    
+
+    def index_of(what, where):
+        try:
+            return [ h[0] for h in where ].index(what)
+        except:
+            print sys.exc_info()
+            pass
+        return None
+
+    results = []
+    for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
+        old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
+        if old_rank is not None:
+            diff = - (i - old_rank)  # we want the gain not the difference
+            results.append(times_per_url_second[i] + (diff,) )
+        else:
+            results.append( times_per_url_second[i] )
+    ## this does not return for n, it returns everything
+    return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] }) 
 
     
-                        
+def get_top_sites_today(request, n):
+    user = User.objects.all();
+
+    return json_response({ "code":200, "results": [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] }) 
+
+def get_top_users(request, n):
+    user = User.objects.all();
+
+    return
+
+def get_most_recent_urls(request, n):
+    user = User.objects.all();
+
+    return
+
+def get_users_most_recent_urls(request, username, n):
+    users = User.objects.filter(username=username)
+    if len(users) == 0:
+        return json_response({"code":401,"message":"Unknown user %s" % username})
+    user = users[0]    
+    n = int(n)
+
+    from_msec,to_msec = _unpack_from_to_msec(request)
+
+    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid)}
+    hits = _get_pages_for_user(user,from_msec,to_msec)
+    print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
+
+    return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits[0:n] ] });
+
     
         
 

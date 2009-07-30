@@ -21,6 +21,12 @@ h1 {
     font-weight: normal;
     color: #363636;
 }
+h2{
+    font-size:1.33em;
+    padding: 8px;
+    padding-left:0px;
+    border-bottom: 1px double darkgrey;
+}
 
 h3 {
     font-size: 1.4em;
@@ -186,12 +192,16 @@ a.selected {
     border-bottom: 1px solid lightgrey;
     width: 580px;
 } .listItem A:link {
+    font-weight:bold;
     text-decoration: none
 } .listItem A:visited {
+    font-weight:bold;
     text-decoration: none
 } .listItem A:active {
+    font-weight:bolder;
     text-decoration: none
 } .listItem A:hover {
+    font-weight:bolder;
     text-decoration: underline;
 } .listItem h7 {
     padding-right:10px;    
@@ -387,7 +397,7 @@ a.selected {
     vertical-align:middle;
 }
 #profile_content h1{
-    font-size:3.5em;
+    font-size:4.5em;
     height: auto;
     display:inline-block; 
     vertical-align:top;
@@ -458,9 +468,22 @@ a.selected {
     border-top:1px solid  lightgrey;
 } #dateselector {
     font-size:1.0em;
-    width: 220px;
+    width: 260px;
     margin-left:auto;
     margin-right:auto;
     margin-bottom:-30px;
     text-align:center;
+} .viewbox {
+    width:500px;
+    height:150px;
+    margin-left:auto;
+    margin-right:auto;
+    margin-bottom:12px;
+} .viewboxlarge {
+    width:700px;
+    height:auto;
+    border: 0px solid lightgrey;
+    margin-left:auto;
+    margin-right:auto;
+    text-align:left;
 }

@@ -14,7 +14,7 @@
         <div id="header">
 	<a href="/"><img src="/lib/img/smallbird.jpg" style="float:left; padding-left:8px; padding-right:8px"/></a>
 {% if user.is_authenticated %}
-<a href="/graph/">graph</a>&nbsp | &nbsp<a href="/days/">days</a>&nbsp | &nbsp<a href="/user/{{ user.username }}/">report</a>
+<a href="/graph/{{ user.username }}/">graph</a>&nbsp | &nbsp<a href="/days/{{ user.username }}/">days</a>&nbsp | &nbsp<a href="/user/{{ user.username }}/">report</a>
 <div id="usersettings">
 <a href="/profile/{{ user.username }}/">
 {{ user.username }}</a>&nbsp | &nbsp<a href="/logout/">logout</a>

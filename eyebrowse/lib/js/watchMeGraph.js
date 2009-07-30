@@ -96,7 +96,6 @@ var evtHandlers = ({
 		  this_.OGendTime = this_.endTime;		  
 		};
                 if (p > 0) {
-		  //   var newData = this_.viz.listit.CMS.event_store.getEvents("www-viewed", [this_.OGendTime, this_.endTime]);
 		  try {
 		    jQuery.get("http://localhost:8000/get_views", {from:this_.OGendTime,to:this_.endTime},
 			     function(data) {
@@ -112,7 +111,6 @@ var evtHandlers = ({
                 }
                 else {
 		  try {
-                  //  var newData = this_.viz.listit.CMS.event_store.getEvents("www-viewed", [this_.startTime, this_.OGstartTime]);
 		  jQuery.get("http://localhost:8000/get_views", {from:this_.startTime,to:this_.OGstartTime}, // i aint even gonna ask.
 			     function(data) {
 			       if (data.code == 200) {
@@ -935,6 +933,8 @@ var statusFactory = ({
             this_.widthArray[i] = (this_.windowWidth * ((this_.data[i].end - this_.startTime) / (this_.endTime - this_.startTime))) - this_.startPointArray[i];
 	    this_.polyArray[i] = rectToPoly({xPos: this_.startPointArray[i], yPos: this_.marginTop, width: this_.widthArray[i], height: this_.height});
        }
+        this_.draw();
+
     }
     
 });

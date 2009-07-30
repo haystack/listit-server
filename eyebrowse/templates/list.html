@@ -37,15 +37,16 @@
                     this.endDate = new Date(new Date().valueOf());
                     this.startDate = new Date(this.endDate.valueOf() - zoom);
                     this.endTime = this.endDate.valueOf();
-                    this.startTime = this.startDate.valueOf();
+		    this.startTime = this.startDate.valueOf();
+		    this.now = new Date().valueOf();
                     this.interp = zoom / 192;
                     this.zoom = zoom;
                     
 		    this.getPages(this.startTime, this.endTime);
                 },
                 drawPagesList: function(data){
-                    //jQuery("#list").slideUp("slow"); // not slow enough!
                     jQuery("#list").hide();
+		    var this_ = this;
                     
                     var newData = data;
                     
@@ -53,8 +54,8 @@
                     for (var i = 0; i < data.length; i++) { //newData.length; i++) {
                         html += "<div class=\"listItem\">";
                         html += "<h5><a href=\"" + newData[i].id + "\">" + newData[i].title + "</a></h5>";
-                        html += "<h6><a href=\"http://" + newData[i].host + "\">" + newData[i].host + "</a></h6>";
-                        html += "<h7>time spent: " + timeCounterLong((newData[i].value) / 1000) + "</h7>";
+                        //html += "<h6><a href=\"http://" + newData[i].host + "\">" + newData[i].host + "</a></h6>";
+                        html += "<h7>time spent: " + timeCounterLong((this_.now - newData[i].value) / 1000) + "</h7>";
                         html += "</div>";
                     }
                     jQuery("#list").html(html);

@@ -52,10 +52,8 @@
                 getTopPages: function(startTime, endTime, data){
 		  // uses the django model get_top_pages to return top pages between start and endtime
 		  this_ = this;
-		  // console.log("{{ user.username }}");
-		  // console.log("{{ username }}"); INCORRECT
 		  try {
-		    jQuery.get("http://localhost:8000/get_top_pages/{{ user.username }}/25/", {from: startTime, to: endTime},
+		    jQuery.get("http://localhost:8000/get_top_hosts/{{ user.username }}/25/", {from: startTime, to: endTime},
 			       // this gets top 25 pages
 			       function(data) {
 				 if (data.code == 200) {			       

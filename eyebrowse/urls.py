@@ -22,10 +22,10 @@ urlpatterns = patterns('',
                        url(r'^$', index),
 
                        # browsing
-                       (r'^list/$', list),
-                       (r'^days/$', day),
-                       (r'^report/$', report),
-                       (r'^graph/$', graph),
+                       (r'^list/(\w+)/$', list),
+                       (r'^days/(\w+)/$', day),
+                       (r'^report/(\w+)/$', report),
+                       (r'^graph/(\w+)/$', graph),
 
                        # user pages
                        (r'^user/(\w+)/$', user_page),
@@ -50,7 +50,8 @@ urlpatterns = patterns('',
                        (r'^get_time_per_page$', get_time_per_page),
                        #(r'^get_top_pages/(\w+)/$', get_top_pages),
                        (r'^get_top_pages/(\w+)/(\d+)/$', get_top_pages),
-                       (r'^get_top_hosts/(\w+)/(\d+)/$', get_top_hosts),
+                       (r'^get_top_hosts_comparison/(\w+)/(\d+)/$', get_top_hosts_comparison),
+                       (r'^get_users_most_recent_urls/(\w+)/(\d+)/$', get_users_most_recent_urls),
 
 
                        # home
