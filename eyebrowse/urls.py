@@ -47,18 +47,26 @@ urlpatterns = patterns('',
 
                        # ajax
                        (r'^get_views$', get_web_page_views),
+                       (r'^get_views_user/(\w+)/$', get_web_page_views_user),
                        (r'^get_time_per_page$', get_time_per_page),
                        #(r'^get_top_pages/(\w+)/$', get_top_pages),
                        (r'^get_top_pages/(\w+)/(\d+)/$', get_top_pages),
                        (r'^get_top_hosts_comparison/(\w+)/(\d+)/$', get_top_hosts_comparison),
                        (r'^get_users_most_recent_urls/(\w+)/(\d+)/$', get_users_most_recent_urls),
-
+                       # homepage ajax
+                       (r'^get_most_recent_urls/(\d+)/$', get_most_recent_urls),
+                       (r'^get_trending_urls/(\d+)/$', get_trending_urls),
+                       (r'^get_top_urls/(\d+)/$', get_top_urls),
 
                        # home
-                       (r'^faq/$', faq),
+                       (r'^help/$', help),
+                       (r'^about/$', about),
+                       (r'^moreinfo/$', moreinfo),
+                       (r'^terms/$', terms),
 
                        # account management
                        (r'^profile/(\w+)/$', profile_save_page),
+                       (r'^settings/(\w+)/$',  privacy_settings_page),
 
                        (r'^lib/(?P<path>.*)$', 'django.views.static.serve',
                         { 'document_root': lib }),
@@ -71,6 +79,6 @@ urlpatterns = patterns('',
                        #  (r'^admin/', include(admin.site.urls)),
 
                        #TEMPORARY
-                       (r'^whitelist/$', whitelist),  
                        (r'^pluginhover/$', pluginhover),  
+                       (r'^pluginlogin/$', pluginlogin),  
 )

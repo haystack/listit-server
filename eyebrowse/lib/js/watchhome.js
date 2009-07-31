@@ -3,7 +3,6 @@ jQuery(document).ready(function(){
 
     function updateTips(t){
         tips.text(t).effect("highlight", {}, 1500);
-
     }
 
     function checkLength(o, n, min, max){
@@ -28,9 +27,10 @@ jQuery(document).ready(function(){
         }
     }
 
-    jQuery("#registerSubmit").click(function(){
+    jQuery("form:first").click(function(){
         jQuery(".error").hide();
         var bValid = true;
+
         allFields.removeClass('ui-state-error');
 
         bValid = bValid && checkLength(name, "name", 3, 16);
@@ -38,15 +38,19 @@ jQuery(document).ready(function(){
         bValid = bValid && checkLength(password1, "password", 5, 16);
         bValid = bValid && checkLength(password2, "password", 5, 16);
 
-        bValid = bValid && checkRegexp(name, /^[a-z]([0-9a-z_])+jQuery/i, "Username may consist of a-z, 0-9, underscores, begin with a letter.");
+	// these don't work for some reason
+	  //bValid = bValid && checkRegexp(name, /^[a-z]([0-9a-z_])+jQuery/i, "Username may consist of a-z, 0-9, underscores, begin with a letter.");
         // From jquery.validate.js (by joern), contributed by Scott Gonzalez: http://projects.scottsplayground.com/email_address_validation/
-        bValid = bValid && checkRegexp(email, /^((([a-z]|\d|[!#\jQuery%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\jQuery%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?jQuery/i, "eg. ui@jquery.com");
-        bValid = bValid && checkRegexp(password1, /^([0-9a-zA-Z])+jQuery/, "Password field only allow : a-z 0-9");
-        bValid = bValid && checkRegexp(password2, /^([0-9a-zA-Z])+jQuery/, "Password field only allow : a-z 0-9");
+        //bValid = bValid && checkRegexp(email, /^((([a-z]|\d|[!#\jQuery%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\jQuery%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?jQuery/i, "eg. ui@jquery.com");
+        //bValid = bValid && checkRegexp(password1, /^([0-9a-zA-Z])+jQuery/, "Password field only allow : a-z 0-9");
+        //bValid = bValid && checkRegexp(password2, /^([0-9a-zA-Z])+jQuery/, "Password field only allow : a-z 0-9");
 
         if (bValid) {
-	    jQuery("form:first").submit();
-            jQuery("#messageSent").show("slow");
+	 //   jQuery("form:first").click(function(){
+	   if ("#registerSubmit".click()){
+	     jQuery("form:first").submit();
+	   }
+	   jQuery("#messageSent").show("slow");
         }
         return false;
     });

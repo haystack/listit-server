@@ -119,6 +119,9 @@ input[type = submit] {
     border: solid 1px #333333;
     color: #333333;
     padding: 5px;
+    margin-top:8px;
+        font-size: 1.1em;
+
 }
 
 ul.messages {
@@ -271,12 +274,17 @@ a.selected {
     margin-top: 50px;
     text-align: center;
 } #home {
-    margin-top: 100px;
-    width: 700px;
+    margin-top: 60px;
+    width: 750px;
     margin-left: auto;
     margin-right: auto;
     text-align: center;
-} #usersettings {
+} #home h4 {
+    width: 97%;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}#usersettings {
     float: right;
     display: inline-block;
     padding-right: 8px;
@@ -297,13 +305,14 @@ a.selected {
     margin-bottom: -20px;
 } #signUpLink {
     padding: 10px;
-    width: auto;
+    width: 90px;
     margin-left: auto;
     margin-right: auto;
-    text-decoration: underline;
     display: block;
-    font-size: 1.2em;
+    font-size: 1.3em;
     cursor: pointer;
+    font-weight: normal;
+    border: 1px double black;
 } #signIn {
     text-decoration: underline;
     display: inline-block;
@@ -475,10 +484,11 @@ a.selected {
     text-align:center;
 } .viewbox {
     width:500px;
-    height:150px;
+    height:112px;
     margin-left:auto;
     margin-right:auto;
     margin-bottom:12px;
+    overflow:hidden;
 } .viewboxlarge {
     width:700px;
     height:auto;
@@ -486,4 +496,17 @@ a.selected {
     margin-left:auto;
     margin-right:auto;
     text-align:left;
+} .rightcolumn {
+    display:inline-block;
+    width:360px;   
+} .leftcolumn {
+    display:inline-block;
+    width:375px;    
+} .logo {
+    font-size:4.5em;
+    height: auto;
+    display:inline-block; 
+    vertical-align:top;
+    padding:0px;
+    padding-top:8px;
 }

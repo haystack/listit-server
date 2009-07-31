@@ -1,44 +1,54 @@
 <!DOCTYPE html>
 <html>
     <head>
-    <title>Watchme | {% block title %}{% endblock %}</title>
+        <title>eyebrowse | {% block title %}{% endblock %}</title>
         <style>
             @import url("/lib/css/reset-fonts-grids.css");
             @import url("/lib/css/jquery-ui-1.7.2.custom.css");
             @import url("/lib/css/watchhome.css");
         </style>
         <!--[if lt IE 7]><script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE7.js" type="text/javascript"></script><![endif]--><!--[if lt IE 8]><script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script><![endif]--><!--[if IE]><script type="text/javascript" src="lib/js/excanvas.compiled.js"></script><![endif]-->
-{% block imports %}{% endblock %}
+        <script src="/lib/js/jquery-1.3.2.min.js">
+        </script>
+        <script src="/lib/js/jquery-ui-1.7.2.custom.min.js">
+        </script>
+        <script src="/lib/js/protocrock.js">
+        </script>
+        <script src="/lib/js/zamiang.js">
+        </script>
+        <script>
+            jQuery.noConflict();
+        </script>
+        {% block imports %}{% endblock %}
     </head>
     <body>
         <div id="header">
-	<a href="/"><img src="/lib/img/smallbird.jpg" style="float:left; padding-left:8px; padding-right:8px"/></a>
-{% if user.is_authenticated %}
-<a href="/graph/{{ user.username }}/">graph</a>&nbsp | &nbsp<a href="/days/{{ user.username }}/">days</a>&nbsp | &nbsp<a href="/user/{{ user.username }}/">report</a>
-<div id="usersettings">
-<a href="/profile/{{ user.username }}/">
-{{ user.username }}</a>&nbsp | &nbsp<a href="/logout/">logout</a>
-</div>
-{% else %}
-<div id="usersettings">
-<a href="/login/">sign in</a>&nbsp | &nbsp<a href="/help/">help</a>
-{% endif %}          
-	       </div>
+            <a href="/"><img src="/lib/img/smallbird.jpg" style="float:left; padding-left:8px; padding-right:8px"/></a>{% if user.is_authenticated and user.username %}<a href="/graph/{{ user.username }}/">graph</a>&nbsp; &#124; &nbsp;<a href="/days/{{ user.username }}/">days</a>&nbsp; &#124; &nbsp;<a href="/user/{{ user.username }}/">profile</a>
+            <div id="usersettings">
+                <a href="/profile/{{ user.username }}/">{{ user.username }}</a>&nbsp; &#124; &nbsp;<a href="/logout/">logout</a>
+            </div>
+            {% else %}
+            <div id="usersettings">
+                <a href="/login/">sign in</a>&nbsp; &#124; &nbsp;<a href="/help/">help</a>
+                {% endif %} 
+            </div>
         </div>
-
-{% if messages %}
-<ul class="messages">
-{% for message in messages %}
-<li>{{ message }}</li>
-{% endfor %}
-</ul>
-{% endif %}
-
-{% block content %}{% endblock %}
-
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li>
+                {{ message }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% block content %}{% endblock %}
         <div id="footer">
-            <a href="/faq/">faq</a>&nbsp | &nbsp<a href="/help/">help</a>&nbsp | &nbsp<a href="http://groups.csail.mit.edu/haystack/">research</a>&nbsp | &nbsp<a href="googlecodepage.html">google code</a>&nbsp | &nbsp<a href="googlegroup.html">google group</a>
+            <a href="/about/">about</a>&nbsp; &#124; &nbsp;<a href="/help/">help</a>&nbsp; &#124; &nbsp;<a href="http://groups.csail.mit.edu/haystack/">research</a>&nbsp; &#124; &nbsp;<a href="googlecodepage.html">google code</a>&nbsp; &#124; &nbsp;<a href="http://groups.google.com/group/eyebrowse">google group</a>&nbsp; &#124; &nbsp;<a href="download.html">download</a>
             <h4>&reg; MIT License 2009</h4>
+            created by: <a href="http://www.zamiang.com/" style="font-size:11px; text-decoration:none;">Brennan Moore</a>
+            & <a href="http://scruffy.csail.mit.edu/emax/" style="font-size:11px; text-decoration:none;">Max Van Kleek</a><br />
+            in collaboration with MIT CSAIL
         </div>
     </body>
 </html>

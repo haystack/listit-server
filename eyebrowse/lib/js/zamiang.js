@@ -199,7 +199,7 @@ function timeCounterLong(time){
     // uncomment this to have min and seconds
     if (content)
         content += ", ";
-    content += minutes + " minutes and " + t + " seconds.";
+    content += minutes + " minutes and " + t + " seconds";
 
     // document.getElementById('result4').innerHTML = content;
     return (content);

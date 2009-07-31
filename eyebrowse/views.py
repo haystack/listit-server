@@ -3,7 +3,8 @@ from django.template import loader, Context
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
-from django.shortcuts import get_object_or_404
+from django.http import Http404
+from django.shortcuts import get_object_or_404, get_list_or_404
 from django.conf.urls.defaults import *
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
@@ -17,15 +18,72 @@ from django.db.models.signals import post_save
 from jv3.models import Event ## from listit, ya.
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 
+def privacy_settings_page(request, username):
+    if username != request.user.username:
+        return HttpResponseRedirect('/')
+    user = get_object_or_404(User, username=username)
+
+    privacysettings = user.privacysettings_set.all()[0] ## ?
+
+    listmode = privacysettings.listmode
+    exposure = privacysettings.exposure
+    
+    form = PrivacySaveForm({
+            'exposure': exposure,
+            'listmode': listmode,
+            })
+
+    if request.method == 'POST':
+        form = PrivacySaveForm(request.POST)
+        if form.is_valid():
+            user = _privacy_save(request, form)  
+            return HttpResponseRedirect(
+                '/settings/%s/' % request.user.username
+                )
+        variables = RequestContext(request, {'form': form, 'error': True})
+        return render_to_response('whitelist.html', variables)
+    variables = RequestContext(request, {'form': form, 'list':list })
+    return render_to_response('whitelist.html', variables )
+
+def _privacy_save(request, form):
+    username = request.user.username
+    user = get_object_or_404(User, username=username)
+    enduser = get_enduser_for_user(user)
+    privacysettings = user.privacysettings_set.all()[0] ## ?
+
+    privacysettings.listmode = form.cleaned_data['listmode']
+    privacysettings.exposure = form.cleaned_data['exposure']
+    privacysettings.save()
+
+#     tag_names = form.cleaned_data['tags'].split()
+#     for tag_name in tag_names:
+#         tag, dummy = UserTag.objects.get_or_create(name=tag_name)
+#         enduser.tags.add(tag) 
+    return user
+
+
+def _get_privacy_list(request, username):
+    username = request.user.username
+    user = get_object_or_404(User, username=username)
+    enduser = get_enduser_for_user(user)
+    privacysettings = user.privacysettings_set.all()[0] ## ?     
+   
+    if privacysettings.listmode == "W":
+        list = privacysettings.whitelist.split()
+    if privacysettings.listmode == "B":
+        list = privacysettings.whitelist.split()
+
+    return json_response({ "code":200, "results": list }) 
+
 #TEMPORARY
-def whitelist(request):
-    t = loader.get_template("whitelist.html")
+def pluginhover(request):
+    t = loader.get_template("plugin_hover.html")
     c = Context({ 'user': request.user })
 
     return HttpResponse(t.render(c))
 
-def pluginhover(request):
-    t = loader.get_template("plugin_hover.html")
+def pluginlogin(request):
+    t = loader.get_template("client_login.html")
     c = Context({ 'user': request.user })
 
     return HttpResponse(t.render(c))
@@ -40,6 +98,12 @@ def index(request):
                 password=form.cleaned_data['password1'],
                 email=form.cleaned_data['email']
                 )
+            enduser = EndUser()
+            enduser.user = user  
+            enduser.save()
+            privacysettings = PrivacySettings()
+            privacysettings.user = user
+            privacysettings.save()
             return HttpResponseRedirect('/register/success/')
         variables = RequestContext(request, {'form': form, 'error': True})
         return render_to_response('index.html', variables)
@@ -60,39 +124,53 @@ def help(request):
 
     return HttpResponse(t.render(c))
 
-@login_required
-def list(request, username):
-    user = get_object_or_404(User, username=username)
-
-    t = loader.get_template("list.html")
-    c = Context({ 'user': username })
-
-    return HttpResponse(t.render(c))
-
-@login_required
-def day(request, username):
-    user = get_object_or_404(User, username=username)
-
-    t = loader.get_template("day.html")
+def about(request):
+    t = loader.get_template("about.html")
     c = Context({ 'user': request.user })
 
     return HttpResponse(t.render(c))
 
-@login_required
+def moreinfo(request):
+    t = loader.get_template("moreinfo.html")
+    c = Context({ 'user': request.user })
+
+    return HttpResponse(t.render(c))
+
+def terms(request):
+    t = loader.get_template("terms.html")
+    c = Context({ 'user': request.user })
+
+    return HttpResponse(t.render(c))
+
+def list(request, username):
+    user = get_object_or_404(User, username=username)
+
+    t = loader.get_template("list.html")
+    c = Context({ 'username': user.username })
+
+    return HttpResponse(t.render(c))
+
+def day(request, username):
+    user = get_object_or_404(User, username=username)
+
+    t = loader.get_template("day.html")
+    c = Context({ 'username': user.username })
+
+    return HttpResponse(t.render(c))
+
 def report(request, username):
     user = get_object_or_404(User, username=username)
 
     t = loader.get_template("report.html")
-    c = Context({ 'user': user.username })
+    c = Context({ 'username': user.username })
 
     return HttpResponse(t.render(c))
 
-@login_required
 def graph(request, username):
     user = get_object_or_404(User, username=username)
 
     t = loader.get_template("graph.html")
-    c = Context({ 'user': user })
+    c = Context({ 'username': user.username })
 
     return HttpResponse(t.render(c))
 
@@ -104,18 +182,32 @@ def login_page(request):
             if user.is_active:
                 login(request, user)
                 # success
-                return HttpResponseRedirect('/')
+                return HttpResponseRedirect('/profile/')
             else:
                 # disabled account
-                return direct_to_template(request, 'inactive_account.html')
+                print "TOIOIS"
+
+             #   return direct_to_template(request, 'inactive_account.html')
+                variables = RequestContext(request, {'form': form, 'error': True})
+                return render_to_response('login.html', variables)
+
         else:
             # invalid login
-            return direct_to_template(request, 'invalid_login.html')
+            print "TOIOIS"
+            variables = RequestContext(request, {'form': form, 'error': True})
+            return render_to_response('login.html', variables)
+    #        return direct_to_template(request, 'invalid_login.html')
         
 def logout_page(request):
     logout(request)
     return HttpResponseRedirect('/')
 
+
+def get_enduser_for_user(user):
+    if EndUser.objects.filter(user=user).count() > 0:
+        return EndUser.objects.filter(user=user)[0]
+    raise Http404('Internal error. Call brennan or emax. Something is wrong. Houston.')
+    
 
 def user_page(request, username):
     try:
@@ -127,11 +219,8 @@ def user_page(request, username):
         to_friend=user
         )
     friends = [friendship.to_friend for friendship in user.friend_set.all()]
-    if EndUser.objects.filter(user=user).count() > 0:
-        enduser = EndUser.objects.filter(user=user)[0]
-    else:
-        enduser = EndUser()
-        enduser.user = user    
+    enduser = get_enduser_for_user(user)
+
     first_name = enduser.user.first_name
     last_name = enduser.user.last_name
     location = enduser.location
@@ -164,6 +253,12 @@ def register_page(request):
                 password=form.cleaned_data['password1'],
                 email=form.cleaned_data['email']
                 )
+            enduser = EndUser()
+            enduser.user = user  
+            enduser.save()
+            privacysettings = PrivacySettings()
+            privacysettings.user = user
+            privacysettings.save()
             if 'invitation' in request.session:
                 # Retrieve the invitation object.
                 invitation = Invitation.objects.get(id=request.session['invitation'])
@@ -213,16 +308,7 @@ def profile_save_page(request, username):
         enduser = EndUser()
         enduser.user = user    
     friends = [friendship.to_friend for friendship in user.friend_set.all()]
-    wwwlist = ' '.join(
-        www.name for www in enduser.wwwlist.all()
-        )
-    #this is doin it wrong
-    labelnamelist = ' '.join(
-        www.name for www in enduser.wwwlist.all()
-        )
-    labelcolorlist = ' '.join(
-        www.color for www in enduser.wwwlist.all()
-        )
+
     if request.method == 'POST':
         form = ProfileSaveForm(request.POST, request.FILES)
         if form.is_valid():
@@ -266,7 +352,6 @@ def profile_save_page(request, username):
                 })
     variables = RequestContext(request, {
         'friends': friends,
-        'wwwlist': wwwlist,
         'form': form
         })
     return render_to_response('profile_save.html', variables)
@@ -274,11 +359,8 @@ def profile_save_page(request, username):
 def _profile_save(request, form):
     username = request.user.username
     user = get_object_or_404(User, username=username)
-    if EndUser.objects.filter(user=user).count() > 0:
-        enduser = EndUser.objects.filter(user=user)[0]
-    else:
-        enduser = EndUser()
-        enduser.user = user    
+    enduser = get_enduser_for_user(user)
+
     enduser.user.first_name = form.cleaned_data['first_name']
     enduser.user.last_name = form.cleaned_data['last_name']
     enduser.user.email = form.cleaned_data['email']
@@ -345,7 +427,7 @@ def friend_add(request):
             '/friends/%s/' % request.user.username
             )
     else:
-        raise Http404
+        raise Http404('boo.')
 
 @login_required
 def friend_invite(request):
@@ -439,6 +521,16 @@ def _get_pages_for_user(user,from_msec,to_msec):
 def _unpack_from_to_msec(request):
     return (request.GET.get('from',0), request.GET.get('to',long(time.mktime(time.localtime())*1000)))
 
+def _unpack_times(request):
+    return (long(request.GET['first_start']), long(request.GET['first_end']), long(request.GET['second_start']), long(request.GET['second_end']))
+
+def _get_top_n(user,start,end):
+    time_per_host = _get_time_per_page(user,start,end,grouped_by=EVENT_SELECTORS.Host)
+    ordered_visits = [h for h in time_per_host.iteritems()]
+    ordered_visits.sort(lambda u1,u2: int(u2[1] - u1[1]))
+    return ordered_visits    
+
+
 class EVENT_SELECTORS:
     class Page:
         @staticmethod
@@ -465,7 +557,7 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
         times_per_url[url] = long(reduce(lambda x,y: x+y, [ startend[1]-startend[0] for startend in grouped_by.filter_queryset(mine_events,url).values_list('start','end') ] ))
     return times_per_url
 
-@login_required
+#@login_required
 def get_web_page_views(request):
     ## gimme get parameters :
     ## from: start time
@@ -483,7 +575,21 @@ def get_web_page_views(request):
     
     return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits ] });
 
-@login_required
+def get_web_page_views_user(request, username):
+    ## gimme get parameters :
+    ## from: start time
+    ## to: end time
+    user = User.objects.filter(username=username)
+    from_msec,to_msec = _unpack_from_to_msec(request)
+
+    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid)}
+    hits = _get_pages_for_user(user ,from_msec,to_msec)
+
+    print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
+    
+    return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits ] });
+
+#@login_required
 def get_time_per_page(request):
     if request.user is None:
           ## the person is asking us for access to another user's activity log.
@@ -525,15 +631,6 @@ def get_top_hosts(request,username, n):  # should have n here but i removed it t
     
 def get_top_hosts_comparison(request,username, n): 
     ##print "top hosts comparison request yo for user %s " % username
-
-    def _unpack_times(request):
-        return (long(request.GET['first_start']), long(request.GET['first_end']), long(request.GET['second_start']), long(request.GET['second_end']))
-
-    def _get_top_n(user,start,end):
-        time_per_host = _get_time_per_page(user,start,end,grouped_by=EVENT_SELECTORS.Host)
-        ordered_visits = [h for h in time_per_host.iteritems()]
-        ordered_visits.sort(lambda u1,u2: int(u2[1] - u1[1]))
-        return ordered_visits        
     
     users = User.objects.filter(username=username)
     if len(users) == 0:
@@ -571,20 +668,80 @@ def get_top_hosts_comparison(request,username, n):
     return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] }) 
 
     
-def get_top_sites_today(request, n):
+def get_top_urls(request, n):
     user = User.objects.all();
+    user = user[0] ## again this is fail not sure how to iterate through the users esp if they have not logged anything
+    n = int(n)
+    first_start,first_end,second_start,second_end = _unpack_times(request)
+    times_per_url_first = _get_top_n(user,first_start,first_end)
+    times_per_url_second = _get_top_n(user,second_start,second_end)
+    
+    def index_of(what, where):
+        try:
+            return [ h[0] for h in where ].index(what)
+        except:
+            print sys.exc_info()
+            pass
+        return None
 
-    return json_response({ "code":200, "results": [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] }) 
+    results = []
+    for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
+        old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
+        if old_rank is not None:
+            diff = - (i - old_rank)  # we want the gain not the difference
+            results.append(times_per_url_second[i] + (diff,) )
+        else:
+            results.append( times_per_url_second[i] )
 
+    return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] })
+
+def get_trending_urls(request, n):
+    user = User.objects.all();
+    user = user[0] ## again this is fail not sure how to iterate through the users esp if they have not logged anything
+    n = int(n)
+    first_start,first_end,second_start,second_end = _unpack_times(request)
+    times_per_url_first = _get_top_n(user,first_start,first_end)
+    times_per_url_second = _get_top_n(user,second_start,second_end)
+    
+    def index_of(what, where):
+        try:
+            return [ h[0] for h in where ].index(what)
+        except:
+            print sys.exc_info()
+            pass
+        return None
+
+    results = []
+    for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
+        old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
+        if old_rank is not None:
+            diff = - (i - old_rank)  # we want the gain not the difference
+            results.append(times_per_url_second[i] + (diff,) )
+        else:
+            results.append( times_per_url_second[i] )
+    
+    ## this needs to sort by the diff
+    ## results.sort(lambda u1,u2: int(times_per_url_second[u2] - times_per_url[u1]))
+            
+    return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] })
+
+## DOESNT WORK
 def get_top_users(request, n):
     user = User.objects.all();
 
     return
 
 def get_most_recent_urls(request, n):
-    user = User.objects.all();
+    users = User.objects.all();
+    n = int(n)
+    from_msec,to_msec = _unpack_from_to_msec(request)
 
-    return
+    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid)}
+    for user in users:
+        hits = _get_pages_for_user(users[0],from_msec,to_msec) ## not sure how to do this so i set user to be the 1st user
+    print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
+
+    return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits[0:n] ] });
 
 def get_users_most_recent_urls(request, username, n):
     users = User.objects.filter(username=username)

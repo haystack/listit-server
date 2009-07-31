@@ -16,27 +16,22 @@ GENDER_CHOICES = (
     ('R', 'Robot'),
 )
 
+LOGGING_LIST_MODE = (
+    ('W', 'Log Only'),
+    ('B', 'Log All Except'),
+)
+
+EXPOSURE_CHOICES = (
+    ('N', 'Nobody'),
+    ('F', 'Friends'),
+    ('P', 'Public'),
+)
+
 class UserTag(models.Model):
     name = models.CharField(max_length=120, unique=True)
 
     def __str__(self):
         return self.name
-
-class WWWWList(models.Model):
-    name = models.CharField(max_length=9000, unique=True, default="")
-
-    def __str__(self):
-        return self.name
-
-#for color labeling of visualizations
-class Label(models.Model):
-    name = models.CharField(max_length=250, unique=True)
-    color = models.CharField(max_length=250)
-
-    def __str__(self):
-        return '%s, %s' % (
-            self.name, self.color
-            )
 
 class EndUser(models.Model):
     user = models.ForeignKey(User, unique=True, primary_key=True)    
@@ -47,12 +42,16 @@ class EndUser(models.Model):
     birthdate = models.DateTimeField(blank=True, null=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
 
-    wwwlist = models.ManyToManyField(WWWWList)
-
-    label = models.ManyToManyField(Label)
-
     def __str__(self):
         return '%s enduser' % (self.user.username)
+
+class PrivacySettings(models.Model):
+    user = models.ForeignKey(User,unique=True,primary_key=True)
+    whitelist = models.TextField(blank=True, null=True)
+    blacklist = models.TextField(blank=True, null=True)    
+    listmode = models.CharField(max_length=1, choices=LOGGING_LIST_MODE, default="W")
+    exposure = models.CharField(max_length=1, choices=EXPOSURE_CHOICES, default="P")
+    other_settings = models.TextField(blank=True, null=True)   ## just in case!!
 
 class Friendship(models.Model):
     from_friend = models.ForeignKey(
@@ -92,6 +91,17 @@ class PageView(models.Model):
     page = models.ForeignKey(Page)
     startTime = models.DateTimeField()
     endTime = models.DateTimeField()
+
+#for color labeling of visualizations
+class ColorPair(models.Model):
+    user = models.ForeignKey(User)
+    page = models.ForeignKey(Page)
+    color = models.CharField(max_length=250)
+    
+    def __str__(self):
+        return '%s, %s' % (
+            self.page, self.color
+            )
 
 class Invitation(models.Model):
     name = models.CharField(max_length=50)

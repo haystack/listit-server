@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ user.username}}{% endblock %}
+{% block title %}{{ username}}{% endblock %}
 {% block imports %}
 <style>
 .listItem{
@@ -79,7 +79,7 @@
 		  // uses the django model get_top_pages to return top pages between start and endtime
 		  this_ = this;
 		  try {
-		    jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ user.username }}/25/", {first_start: startTime - 86400000, first_end: endTime - 86400000, second_start: startTime, second_end: endTime},
+		    jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ username }}/25/", {first_start: startTime - 86400000, first_end: endTime - 86400000, second_start: startTime, second_end: endTime},
 			       // this gets top 25 pages
 			       function(data) {
 				 if (data.code == 200) {		
@@ -95,7 +95,7 @@
                 initLiteGraph: function(startTime, endTime){
 		  var this_ = this;		   
 		  try {
-		    jQuery.get("http://localhost:8000/get_views", {from: startTime, to: endTime},
+		    jQuery.get("http://localhost:8000/get_views_user/{{ username }}/", {from: startTime, to: endTime},
 			       function(data) {
 				 if (data.code == 200) {
 				   this_.drawLiteGraph(data.results);
@@ -210,21 +210,21 @@
 {% block content %}
 <div id="report">
   <div id="profile">
-{% ifequal user.username username %}
-<b>Location:</b> {{ location }} <br />
+    <b>Location:</b> {{ location }} <br />
 <b>Website:</b> {{ homepage }} <br />
-{% else %}
-{% if is_friend %}
-<b>Location:</b> {{ location }} <br />
-<b>Website:</b> {{ homepage }} <br />
-<a href="/friends/{{ user.username }}/">
-{{ username }} is your friend</a>
-{% else %}
-<a href="/friend/add/?username={{ username }}/">
-add {{ username }} to your friends</a>
-{% endif %}
-{% endifequal %}
+    {% if user.username %}
+    {% if is_friend %}
+    <a href="/friends/{{ user.username }}/">
+    {{ username }} is your friend</a>
+    {% else %}{% ifequal user.username username %}
 
+    {% else %}
+     <a href="/friend/add/?username={{ username }}/">
+    add {{ username }} to your friends</a>
+    {% endifequal %}
+    {% endif %}
+    {% endif %}
+    
 <div id="num" style="margin-top:10px;">
 <b>total #:</b>
 </div>
@@ -258,7 +258,9 @@ class="edit">edit your profile</a><br />
 </div>
 <div id="profile_content">
     <img src="/uploads/{{ user.id }}.jpg" />
-    <h1>{{ username }}</h1><br />
+    <h1><a href="/user/{{ username }}/">{{ username }}</a></h1><br />
+  <br />
+ <a href="/graph/{{ username }}/">graph</a>&nbsp | &nbsp<a href="/days/{{ username }}/">days</a>&nbsp | &nbsp<a href="/user/{{ username }}/">profile</a>
   <br />
     <canvas id="totalTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
     </canvas>
@@ -273,8 +275,11 @@ class="edit">edit your profile</a><br />
     <div id="listNav">
 {% ifequal user.username username %}
 <h2 style="margin-top:-15px;">Your Top 25</h2>
+  {% else %}{% if user.username %}
+<a href="#top10" onclick="window.viz.top()">{{ username}}'s top 25</a>&nbsp | &nbsp<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp | &nbsp<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a>
 {% else %}
-    <a href="#top10" onclick="window.viz.top()">{{ username}}'s top 25</a>&nbsp | &nbsp<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp | &nbsp<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a>
+      <a href="#top10" onclick="window.viz.top()">{{ username}}'s top 25</a>
+  {% endif %}
 {% endifequal %}
 
     </div>

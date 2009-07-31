@@ -84,7 +84,21 @@ class ProfileSaveForm(forms.Form):
         required=False
         )
 
-class LableSaveForm(forms.Form):
+class PrivacySaveForm(forms.Form):
+    exposure = forms.TypedChoiceField(
+        label='Exposure',
+        widget = forms.RadioSelect(),
+        choices=eyebrowse.models.EXPOSURE_CHOICES, 
+        required=True
+        )
+    listmode = forms.TypedChoiceField(
+        label='List Mode',
+        widget = forms.RadioSelect(),
+        choices=eyebrowse.models.LOGGING_LIST_MODE, 
+        required=True
+        )
+
+class LabelSaveForm(forms.Form):
     label = forms.CharField(
         label='Tags',
         widget=forms.TextInput(attrs={'size': 250}), 

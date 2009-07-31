@@ -1,172 +1,168 @@
 {% extends "base.html" %}
 {% block title %}home{% endblock %}
 {% block imports %}
-<style>
-.listItem{
-   width: 650px;
-   margin-left:15px;
-   padding-right:0px;
- }
-.listItem .imgBox{
-   width: 44px;
-   padding:0px;
-   margin:0px;
-   height:14px;
- }
-.listItem b{
-  vertical-align:top;
-  margin-left:8px;
- }
-.listItem img{
-  width:14px;
-  height:14px;
- }
-.listItemSmall {
-    width:490px;
-    padding:4px;
-    text-align:left;
- }
-
-.listItemSmall A:link {
-  font-weight:normal;
-    text-decoration: none
-} .listItemSmall A:visited {
-  font-weight:normal;
-    text-decoration: none
-} .listItemSmall A:active {
-  font-weight:normal;
-    text-decoration: none
-} .listItemSmall A:hover {
-  font-weight:normal;
-    text-decoration: underline;
-}
-
-</style>
-         <script src="/lib/js/jquery-1.3.2.min.js">
-        </script>
-        <script src="/lib/js/protocrock.js">
-        </script>
-        <script src="/lib/js/watchhome.js">
-        </script>
-        <script src="/lib/js/zamiang.js">
-        </script>
-        <script>
-            jQuery.noConflict();
-        </script>
-        <script>
-            var WatchmeVisualisation = {
-                initialize: function(){
-                    this.endTime = new Date().valueOf();
-                    this.startTime = this.endTime - 43200000; // 12 hours
-
-		    this.getRecentPages(this.startTime, this.endTime);
-		    //  this.getTopUsers(this.startTime, this.endTime);
-		    this.getTopSitesToday(this.startTime, this.endTime);
-               },           
-		getRecentPages: function(startTime, endTime, data){
-		  this_ = this;
-		  var html = "";
-		  jQuery.get("http://localhost:8000/get_users_most_recent_urls/{{ user.username }}/7/", {from: startTime, to: endTime},	
-			     function(data) {
-			       if (data.code == 200) {						 
-				 var newData = data.results;				 
-				 for (var i = 0; i < newData.length; i++) { 
-				   html += "<div class=\"listItemSmall\">";
-				   // this should display titles of pages, not raw urls
-				   html += "<h6><b><a href=\"http://" + newData[i].entity.id + "\">" + newData[i].entity.id + "</a></b></h6>";
-				   html += "<h7>" + timeCounterLong((this_.endTime - newData[i].end) / 1000) + " <b>ago</b></h7>";				     
-				   html += "</div>";
-				 }
-				 jQuery("#latestviews").html(html);
-			       } else {
-				 console.log("yaaaa!!!H!H!H!" + data.code + " ");
-			       }
-			     }, "json");			  
-		},
-		getTopSitesToday: function(startTime, endTime){
-		  var this_ = this;
-		  var html = "";
-		  // 43200000 is 12 hours
-		  jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ user.username }}/15/", {first_start: startTime - 43200000, first_end: endTime - 43200000, second_start: startTime, second_end: endTime},
-			     function(data) {
-			       if (data.code == 200) {		
-				 var newData = data.results;
-				 for (var i = 0; i < newData.length; i++) { 
-				   var trigger = true;
-				   html += "<div class=\"listItem\">";
-				   html += "<h6><b><a href=\"http://" + newData[i][0] + "\">" + newData[i][0] + "</a></b></h6>";
-				   
-				   if (newData[i][2] < 0){
-				     trigger = false;
-				     html += "<div class=\"imgBox\">";
-				     html += "<img src=\"/lib/img/arrow_full_down_16.png\" class=\"thumb\" />";					   
-				     html += "<b>" + newData[i][2] + "</b>";
-				     html += "</div>";
-				   }
-				   if (newData[i][2] > 0){
-				     trigger = false;
-				     html += "<div class=\"imgBox\">";
-				     html += "<img src=\"/lib/img/arrow_full_up_16.png\" class=\"thumb\" />";
-				     html += "<b>" + newData[i][2] + "</b>";
-				     html += "</div>";										   
-				   }				
-				   if (trigger) {
-				     html += "<div class=\"imgBox\">&nbsp;";
-				     // html += "<img src=\"/lib/img/star_16.png\" class=\"thumb\" />";
-				     html += "</div>";
-				   }
-				   html += "<h7><b>time spent:</b> " + timeCounterLong((newData[i][1]) / 1000) + "</h7>";				     
-				   html += "</div>";
-				 }
-				 jQuery("#topviews").html(html);	
-			       } else {
-				 console.log("yaaaa!!!H!H!H!" + data.code + " ");
-			       }
-			     }, "json");
-		}	
-            };
-            jQuery(document).ready(function(){
-		self.viz = newify(WatchmeVisualisation); //one day  604800000); // 1 week //1296000000); // 2 weeks
-            });
-
-        </script>
+<script src="/lib/js/watchhome.js">
+</script>
+<script>
+    var WatchmeVisualisation = {
+        initialize: function(zoom){
+            this.endTime = new Date().valueOf();
+            this.startTime = this.endTime - zoom; // 12 hours
+            this.zoom = zoom;
+            
+            this.getRecentPages();
+            
+            //  this.getTopUsers(this.startTime, this.endTime);
+            this.getTopSites(this.endTime - zoom, this.endTime, zoom);
+            this.getTrendingSites(this.endTime - zoom, this.endTime, zoom);
+        },
+        getRecentPages: function(){
+            this_ = this;
+            this_.endTime = new Date().valueOf();
+            this_.startTime = this_.endTime - (this_.endTime - this_.startTime) - 6600000; // DELETE THIS MINUS ITS FER TESTIN'
+            jQuery.get("http://localhost:8000/get_most_recent_urls/7/", {
+                from: this_.startTime,
+                to: this_.endTime
+            }, function(data){
+                if (data.code == 200) {
+                    var newData = data.results;
+                    this_.data = newData;
+                    for (var i = 0; i < newData.length; i++) {
+                        var html = "";
+                        html += "<div class=\"listItemSmall\">";
+			html += "<h6><b><a href=\"http://" + newData[i].entity.id + "\">" + newData[i].entity.id + "</a></b></h6>";
+                        html += "<br /><h7>" + timeCounterLong((this_.endTime - newData[i].end) / 1000) + " ago by ";
+                        html += "<a href=\"/user/" + newData[i].user + "/\">" + newData[i].user + "</a></h7>";
+                        html += "</div>";
+                        jQuery("#latestviews").prepend(html);
+                        jQuery(".listItemSmall:first").slideDown("slow");
+                    }
+                }
+                else {
+                    console.log("yaaaa!!!H!H!H!" + data.code + " ");
+                }
+            }, "json");
+        },
+        drawTopSites: function(data){
+            var this_ = this;
+            var html = "";
+            var newData = data;
+            for (var i = 0; i < newData.length; i++) {
+                var trigger = true;
+                html += "<div class=\"listItem\">";
+                html += "<h6><b><a href=\"http://" + newData[i][0] + "\">" + newData[i][0] + "</a></b></h6>";
+                
+                if (newData[i][2] < 0) {
+                    trigger = false;
+                    html += "<div class=\"imgBox\">";
+                    html += "<img src=\"/lib/img/arrow_full_down_16.png\" class=\"thumb\" />";
+                    html += "<b>" + newData[i][2] + "</b>";
+                    html += "</div>";
+                }
+                if (newData[i][2] > 0) {
+                    trigger = false;
+                    html += "<div class=\"imgBox\">";
+                    html += "<img src=\"/lib/img/arrow_full_up_16.png\" class=\"thumb\" />";
+                    html += "<b>" + newData[i][2] + "</b>";
+                    html += "</div>";
+                }
+                if (trigger) {
+                    html += "<div class=\"imgBox\">&nbsp;";
+                    // html += "<img src=\"/lib/img/star_16.png\" class=\"thumb\" />";
+                    html += "</div>";
+                }
+                html += "<br /><h7><b>time spent:</b> " + timeCounterLong((newData[i][1]) / 1000) + "</h7>";
+                html += "</div>";
+            }
+            return html;
+        },
+        getTopSites: function(startTime, endTime, zoom){
+            var this_ = this;
+            jQuery.get("http://localhost:8000/get_top_urls/15/", {
+                first_start: startTime - zoom,
+                first_end: endTime - zoom,
+                second_start: startTime,
+                second_end: endTime
+            }, function(data){
+                if (data.code == 200) {
+                    var html = this_.drawTopSites(data.results);
+                    jQuery("#topviews").html(html);
+                }
+                else {
+                    console.log("yaaaa!!!H!H!H!" + data.code + " ");
+                }
+            }, "json");
+        },
+        getTrendingSites: function(startTime, endTime, zoom){
+            var this_ = this;
+            jQuery.get("http://localhost:8000/get_trending_urls/15/", {
+                first_start: startTime - zoom,
+                first_end: endTime - zoom,
+                second_start: startTime,
+                second_end: endTime
+            }, function(data){
+                if (data.code == 200) {
+                    var html = this_.drawTopSites(data.results);
+                    jQuery("#trendingviews").html(html);
+                }
+                else {
+                    console.log("yaaaa!!!H!H!H!" + data.code + " ");
+                }
+            }, "json");
+        },
+    };
+    jQuery(document).ready(function(){
+        self.viz = newify(WatchmeVisualisation, 43200000); //one day  604800000); // 1 week //1296000000); // 2 weeks
+        setInterval("self.viz.getRecentPages()", 3000);
+    });
+</script>
 {% endblock %}
 {% block content %}
-       <div id="home">
-       <img src="http://zamiang.webfactional.com/lib/img/bird.jpg" /><h1>You are what you view</h1>
-       <br />
-	 <div class="viewbox" id="latestviews"></div>
-	 
-	<div id="signUpFormContainer">
-	<div id="signUpForm">
-	  <br/>
-	  We will only contact you about critical updates and not disclose your address to anyone outside our research group.
-	  </h3>
-	  <p id="validateTips" style="margin-top:8px;">
-	  All form fields are required.
-	  </p>
-	  <fieldset>
-	  <form method="post" action=".">
-	  {{ form.as_p }}
-	  <div class="subhead" style="font-size:1em">
-	  by registering you agree to the <a href="/terms/" style="font-size:1em">terms and conditions</a> and <a href="/datause/" style="font-size:1em">data use policies</a></div>
-	  <input type="submit" value="register" id="registerSubmit" style="margin-top:10px;"/>
-	  </form>
-	  </fieldset>
-	  <a href="/download/">download</a>
-	  
+<div id="home">
+    <img src="http://zamiang.webfactional.com/lib/img/bird.jpg" />
+    <div class="logo">
+        eyebrowse
+    </div>
+    <br/>
+    <h1>You are what you view</h1>
+    <br/>
+    <div class="viewbox" id="latestviews">
+    </div>
+    <div id="signUpFormContainer">
+        <div id="signUpForm">
+        <br/>
+        We will only contact you about critical updates and not disclose your address to anyone outside our research group.
+        </h3>
+        <p id="validateTips" style="margin-top:8px; margin-bottom:-10px;">
+            All form fields are required.
+        </p>
+        <fieldset>
+            <form method="post" action=".">
+                {{ form.as_p }}
+                <input type="submit" value="register" id="registerSubmit" style="margin-top:10px;"/>
+            </form>
+        </fieldset>
+	<div class="subhead" style="font-size:1em; margin-top:-8px; margin-bottom:10px;">
+	  by registering you agree to the <a href="/terms/" style="font-size:1em">terms and conditions and data use policies</a>
 	</div>
-	<div id="messageSent">thanks for registering!</div>
-
-	<div id="signUpLink">
-	 Get Started
-	</div>
-	</div>
-	<h4>Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc.</h4>
-  <br />
-<h2>top webpages today</h2>
-	 <div class="viewboxlarge" id="topviews"></div>  
-  top users
-	 <div class="viewbox" id="latestviews"></div>
-       </div>
+    </div>
+    <div id="messageSent">
+        thanks for registering!
+    </div>
+    <div id="signUpLink">
+        Get Started
+    </div>
+</div>
+<h4>Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc.</h4>
+<br/>
+<div class="leftcolumn">
+    <h2>top webpages today</h2>
+    <div class="viewboxlarge" id="topviews">
+    </div>
+</div>
+<div class="rightcolumn" style="width:340px;">
+    <h2>trending webpages today</h2>
+    <div class="viewboxlarge" id="trendingviews" style="width:340px;">
+    </div>
+</div>
 {% endblock %}

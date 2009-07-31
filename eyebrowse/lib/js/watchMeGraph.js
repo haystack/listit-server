@@ -239,7 +239,7 @@ var dateSlider = ({
         ctx.stroke();
         ctx.closePath();
         
-        
+        /*
         // right triangle
         ctx.beginPath();
         ctx.moveTo(this_.rightSlider - this_.sliderTriWidth, this_.windowHeight - this_.padding - 2);
@@ -293,6 +293,8 @@ var dateSlider = ({
         if ((!(this_.lIH) && !(this_.rIH)) && (!(this_.lIS) && !(this_.rIS))) {
             jQuery("#fooTxt").html("");
         }
+	*/
+
     },
     mouseMove: function(params){
         var this_ = this;
@@ -396,15 +398,18 @@ var dateSlider = ({
     },
     initBarGraph: function(){
         var this_ = this;
+	/*
         this_.leftSliderDate = new Date(this_.startTime + ((this_.endTime - this_.startTime) * (this_.leftSlider / this_.windowWidth)));
         this_.rightSliderDate = new Date(this_.startTime + ((this_.endTime - this_.startTime) * (this_.rightSlider / this_.windowWidth)));
         this_.barGraphData = this_.viz.listit.CMS.event_store.getEvents("www-viewed", [this_.leftSliderDate, this_.rightSliderDate]);
         this_.barGraph = true;
         this_.drawBarGraph();
+	*/
     },
     drawBarGraph: function(){
         var this_ = this;
         var ctx = this_.canvas.getContext('2d');
+	/*
         this_.leftSliderDate = new Date(this_.startTime + ((this_.endTime - this_.startTime) * (this_.leftSlider / this_.windowWidth)));
         this_.rightSliderDate = new Date(this_.startTime + ((this_.endTime - this_.startTime) * (this_.rightSlider / this_.windowWidth)));
         var barGraphVals = function(){
@@ -492,7 +497,9 @@ var dateSlider = ({
             
             ctx.closePath();
             ctx.restore();
+       
         }
+	*/
     }
 });
 
