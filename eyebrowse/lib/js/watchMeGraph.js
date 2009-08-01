@@ -31,6 +31,7 @@ var evtHandlers = ({
         this.OGendTime = this.endTime;
         this.dragBeginX = 0;
 	this.isStatic = viz.isStatic; // does not make more calls
+	this.getURL = "http://localhost:8000/get_views_user/" + viz.user + "/";
         this._ev_handlers();
     },
     _ev_handlers: function(){
@@ -97,7 +98,7 @@ var evtHandlers = ({
 		};
                 if (p > 0) {
 		  try {
-		    jQuery.get("http://localhost:8000/get_views", {from:this_.OGendTime,to:this_.endTime},
+		    jQuery.get(this_.getURL, {from:this_.OGendTime,to:this_.endTime},
 			     function(data) {
 			       if (data.code == 200) {
 				 __gangsta_draw(data.results);
@@ -111,7 +112,7 @@ var evtHandlers = ({
                 }
                 else {
 		  try {
-		  jQuery.get("http://localhost:8000/get_views", {from:this_.startTime,to:this_.OGstartTime}, // i aint even gonna ask.
+		    jQuery.get(this_.getURL, {from:this_.startTime,to:this_.OGstartTime}, // i aint even gonna ask.
 			     function(data) {
 			       if (data.code == 200) {
 				 __gangsta_draw(data.results);
@@ -799,7 +800,7 @@ var statusFactory = ({
 	var hsl_generator = function(domain) {
 	  var h = domain.length > 0 ?  domain.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; })  % 360 : 172;
 	  var s = "100%";
-	  var l = "73%";	
+	  var l = "50%";	
 	  return   "hsl("+[""+h,s,l].join(",")+")";
 	};
 

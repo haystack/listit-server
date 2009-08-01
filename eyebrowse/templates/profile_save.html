@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}your profile{% endblock %}
+{% block title %}your settings{% endblock %}
 {% block imports %}
 <style>
     .listItem {
@@ -7,15 +7,6 @@
         display: none;
     }
 </style>
-<script src="/lib/js/jquery-1.3.2.min.js">
-</script>
-<script src="/lib/js/protocrock.js">
-</script>
-<script src="/lib/js/zamiang.js">
-</script>
-<script>
-    jQuery.noConflict();
-</script>
 <script>
     var WatchmeVisualisation = {
         initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom){
@@ -47,7 +38,6 @@
                 jQuery("#list").prepend(html);
                 jQuery(".listItem:first").slideDown("slow");
             }
-            // jQuery("#list").html(html);		  
         },
         getTopPages: function(startTime, endTime, data){
             this_ = this;
@@ -105,7 +95,14 @@
         <a href="/settings/{{ user.username }}/">edit your privacy settings</a>
     </div>
     <div id="profile_content">
-        <img src="/uploads/{{ user.id }}.jpg" /><h1><a href="/user/{{ user.username }}/">{{ user.username }}</a></h1>
+        <img src="/uploads/{{ user.id }}.jpg" />
+        <div class="userhead">
+            <h1><a href="/user/{{ user.username }}/">{{ user.username }}</a></h1>
+            <br/>
+            <div class="underuser">
+                <a href="/graph/{{ user.username }}/">graph</a>&nbsp; &#124; &nbsp;<a href="/days/{{ user.username }}/">days</a>&nbsp; &#124; &nbsp;<a href="/user/{{ user.username }}/">profile</a>
+            </div>
+        </div>
         <br/>
         <div id="list">
         </div>

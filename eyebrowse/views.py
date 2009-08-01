@@ -38,11 +38,11 @@ def privacy_settings_page(request, username):
         if form.is_valid():
             user = _privacy_save(request, form)  
             return HttpResponseRedirect(
-                '/settings/%s/' % request.user.username
+                '/profile/%s/' % request.user.username
                 )
-        variables = RequestContext(request, {'form': form, 'error': True})
+        variables = RequestContext(request, {'form': form, 'error': True, 'request_user': request.user})
         return render_to_response('whitelist.html', variables)
-    variables = RequestContext(request, {'form': form, 'list':list })
+    variables = RequestContext(request, {'form': form, 'list':list, 'request_user': request.user })
     return render_to_response('whitelist.html', variables )
 
 def _privacy_save(request, form):
@@ -75,20 +75,26 @@ def _get_privacy_list(request, username):
 
     return json_response({ "code":200, "results": list }) 
 
+def userprivacy(request, username):
+    t = loader.get_template("user_privacy.html")
+    c = Context({ 'requestuser': request.user.username, 'username': username })
+
+    return HttpResponse(t.render(c))
+
 #TEMPORARY
 def pluginhover(request):
     t = loader.get_template("plugin_hover.html")
-    c = Context({ 'user': request.user })
+    c = Context({ 'request_user': request.user.username })
 
     return HttpResponse(t.render(c))
 
+#TEMPORARY
 def pluginlogin(request):
     t = loader.get_template("client_login.html")
-    c = Context({ 'user': request.user })
+    c = Context({ 'request_user': request.user.username })
 
     return HttpResponse(t.render(c))
 
-# the views
 def index(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
@@ -109,69 +115,123 @@ def index(request):
         return render_to_response('index.html', variables)
     # normal registration form
     form = RegistrationForm()
-    variables = RequestContext(request, {'form': form})
+    variables = RequestContext(request, {'form': form, 'request_user': request.user.username })
     return render_to_response('index.html', variables)
 
 def faq(request):
     t = loader.get_template("faq.html")
-    c = Context({ 'user': request.user })
+    c = Context({ 'request_user': request.user.username })
 
     return HttpResponse(t.render(c))
 
 def help(request):
     t = loader.get_template("help.html")
-    c = Context({ 'user': request.user })
+    c = Context({ 'request_user': request.user.username })
 
     return HttpResponse(t.render(c))
 
 def about(request):
     t = loader.get_template("about.html")
-    c = Context({ 'user': request.user })
+    c = Context({ 'request_user': request.user.username })
 
     return HttpResponse(t.render(c))
 
 def moreinfo(request):
     t = loader.get_template("moreinfo.html")
-    c = Context({ 'user': request.user })
+    c = Context({ 'request_user': request.user.username })
 
     return HttpResponse(t.render(c))
 
 def terms(request):
     t = loader.get_template("terms.html")
-    c = Context({ 'user': request.user })
+    c = Context({ 'request_user': request.user.username })
 
     return HttpResponse(t.render(c))
 
 def list(request, username):
     user = get_object_or_404(User, username=username)
+    enduser = get_enduser_for_user(user)
+    is_friend = Friendship.objects.filter(
+        from_friend=request.user,
+        to_friend=user)    
+    privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
+    exposure = privacysettings.exposure
 
+    if request.user.id is not enduser.user.id:
+        if exposure == 'N':
+            return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
+        if exposure == 'F':
+            if not is_friend:
+                return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
+            pass
     t = loader.get_template("list.html")
-    c = Context({ 'username': user.username })
+    c = Context({ 'username': enduser.user.username, 'id': enduser.user.id })
 
     return HttpResponse(t.render(c))
 
 def day(request, username):
     user = get_object_or_404(User, username=username)
+    enduser = get_enduser_for_user(user)
+    is_friend = Friendship.objects.filter(
+        from_friend=request.user,
+        to_friend=user)    
+    privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
+    exposure = privacysettings.exposure
+    request_user = request.user.username
 
+    if request.user.id is not enduser.user.id:
+        if exposure == 'N':
+            return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
+        if exposure == 'F':
+            if not is_friend:
+                return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
+            pass
     t = loader.get_template("day.html")
-    c = Context({ 'username': user.username })
+    c = Context({ 'username': enduser.user.username, 'id': enduser.user.id, 'request_user': request_user })
 
     return HttpResponse(t.render(c))
 
 def report(request, username):
     user = get_object_or_404(User, username=username)
+    enduser = get_enduser_for_user(user)
+    is_friend = Friendship.objects.filter(
+        from_friend=request.user,
+        to_friend=user)    
+    privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
+    exposure = privacysettings.exposure
+    request_user = request.user.username
 
+    if request.user.id is not enduser.user.id:
+        if exposure == 'N':
+            return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
+        if exposure == 'F':
+            if not is_friend:
+                return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
+            pass
     t = loader.get_template("report.html")
-    c = Context({ 'username': user.username })
+    c = Context({ 'username': enduser.user.username, 'id': enduser.user.id, 'request_user': request_user })
 
     return HttpResponse(t.render(c))
 
 def graph(request, username):
     user = get_object_or_404(User, username=username)
+    enduser = get_enduser_for_user(user)
+    is_friend = Friendship.objects.filter(
+        from_friend=request.user,
+        to_friend=user)    
+    privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
+    exposure = privacysettings.exposure
+    request_user = request.user.username
 
+    if request.user.id is not enduser.user.id:
+        if exposure == 'N':
+            return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
+        if exposure == 'F':
+            if not is_friend:
+                return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
+            pass
     t = loader.get_template("graph.html")
-    c = Context({ 'username': user.username })
-
+    c = Context({ 'username': enduser.user.username, 'id': enduser.user.id, 'request_user': request_user })
     return HttpResponse(t.render(c))
 
 
@@ -210,17 +270,26 @@ def get_enduser_for_user(user):
     
 
 def user_page(request, username):
-    try:
-        user = User.objects.get(username=username)
-    except:
-        raise Http404('Requested user not found.')
+    user = get_object_or_404(User, username=username)
+    enduser = get_enduser_for_user(user)
     is_friend = Friendship.objects.filter(
         from_friend=request.user,
-        to_friend=user
-        )
-    friends = [friendship.to_friend for friendship in user.friend_set.all()]
-    enduser = get_enduser_for_user(user)
+        to_friend=user)    
+    privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
+    exposure = privacysettings.exposure
 
+
+    if request.user.id is not enduser.user.id:
+        if exposure == 'N':
+            return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
+        if exposure == 'F':
+            if not is_friend:
+                return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
+            pass
+
+    friends = [friendship.to_friend for friendship in user.friend_set.all()]
+
+    request_user = request.user.username
     first_name = enduser.user.first_name
     last_name = enduser.user.last_name
     location = enduser.location
@@ -228,7 +297,8 @@ def user_page(request, username):
     birthdate = enduser.birthdate
     photo = enduser.photo
     gender = enduser.gender
-    
+    id = enduser.user.id
+
     variables = RequestContext(request, {
         'username': username,
         'show_edit': username == request.user.username,
@@ -240,7 +310,9 @@ def user_page(request, username):
         'homepage': homepage,
         'birthdate': birthdate,
         'photo': photo,
-        'gender': gender
+        'gender': gender,
+        'id':id,
+        'request_user': request_user
         })
     return render_to_response('user_page.html', variables)
 
@@ -352,7 +424,8 @@ def profile_save_page(request, username):
                 })
     variables = RequestContext(request, {
         'friends': friends,
-        'form': form
+        'form': form,
+        'request_user': request.user
         })
     return render_to_response('profile_save.html', variables)
 
@@ -408,8 +481,7 @@ def friends_page(request, username):
 @login_required
 def friend_add(request):
     if request.GET.has_key('username'):
-        friend = \
-               get_object_or_404(User, username=request.GET['username'])
+        friend = get_object_or_404(User, username=request.GET['username'])
         friendship = Friendship(
             from_friend=request.user,
             to_friend=friend
@@ -579,7 +651,9 @@ def get_web_page_views_user(request, username):
     ## gimme get parameters :
     ## from: start time
     ## to: end time
-    user = User.objects.filter(username=username)
+    user = get_object_or_404(User, username=username)
+    enduser = get_enduser_for_user(user)
+
     from_msec,to_msec = _unpack_from_to_msec(request)
 
     defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid)}
@@ -629,25 +703,20 @@ def get_top_hosts(request,username, n):  # should have n here but i removed it t
     return json_response({ "code":200, "results": [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] }) 
 
     
-def get_top_hosts_comparison(request,username, n): 
-    ##print "top hosts comparison request yo for user %s " % username
-    
+def get_top_hosts_comparison(request, username, n): 
     users = User.objects.filter(username=username)
     if len(users) == 0:
         return json_response({"code":401,"message":"Unknown user %s" % username})
 
     user = users[0]
-    ##print "got user : %s %s " % (repr(type(user)),repr(user))
     n = int(n)
-    ##print user
-    ##print "request %s " % repr(request.GET)
+
     first_start,first_end,second_start,second_end = _unpack_times(request)
     
-    times_per_url_first = _get_top_n(user,first_start,first_end)
-    ##print "times_per_url_first %d %d " % (first_start,first_end)
     times_per_url_second = _get_top_n(user,second_start,second_end)
+    # this fails for some reason
+    times_per_url_first = _get_top_n(user,first_start,first_end)
     
-
     def index_of(what, where):
         try:
             return [ h[0] for h in where ].index(what)
@@ -664,7 +733,6 @@ def get_top_hosts_comparison(request,username, n):
             results.append(times_per_url_second[i] + (diff,) )
         else:
             results.append( times_per_url_second[i] )
-    ## this does not return for n, it returns everything
     return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] }) 
 
     

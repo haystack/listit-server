@@ -219,7 +219,7 @@
     {% else %}{% ifequal user.username username %}
 
     {% else %}
-     <a href="/friend/add/?username={{ username }}/">
+     <a href="/friend/add?username={{ username }}">
     add {{ username }} to your friends</a>
     {% endifequal %}
     {% endif %}
@@ -244,23 +244,29 @@
 {{ friend.username }}</a></li>
 {% endfor %}
 </ul>
+{% ifequal user.username username %}
+<a href="/friends/{{ username }}/">view your friends</a><br />
+{% else %}
 <a href="/friends/{{ username }}/">
 view all {{ username }} s friends</a>
+{% endifequal %}
 {% else %}
 <p>{{ username }} has no friends :(</p>
 {% endif %}
 {% ifequal user.username username %}
-<a href="/friends/{{ username }}/">view all your friends</a><br />
 <a href="/profile/{{ username }}/"
 class="edit">edit your profile</a><br />
 {% endifequal %}
 
 </div>
 <div id="profile_content">
-    <img src="/uploads/{{ user.id }}.jpg" />
+    <img src="/uploads/{{ id }}.jpg" />
+     <div class="userhead">
     <h1><a href="/user/{{ username }}/">{{ username }}</a></h1><br />
-  <br />
- <a href="/graph/{{ username }}/">graph</a>&nbsp | &nbsp<a href="/days/{{ username }}/">days</a>&nbsp | &nbsp<a href="/user/{{ username }}/">profile</a>
+<div class="underuser">
+ <a href="/graph/{{ username }}/">graph</a>&nbsp; &#124; &nbsp;<a href="/days/{{ username }}/">days</a>&nbsp; &#124; &nbsp;<a href="/user/{{ username }}/">profile</a>
+</div>
+</div>
   <br />
     <canvas id="totalTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
     </canvas>
@@ -276,9 +282,9 @@ class="edit">edit your profile</a><br />
 {% ifequal user.username username %}
 <h2 style="margin-top:-15px;">Your Top 25</h2>
   {% else %}{% if user.username %}
-<a href="#top10" onclick="window.viz.top()">{{ username}}'s top 25</a>&nbsp | &nbsp<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp | &nbsp<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a>
+<a href="#top10" onclick="window.viz.top()">{{ username}}'s top 25</a>&nbsp; &#124; &nbsp;<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp; &#124; &nbsp;<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a>
 {% else %}
-      <a href="#top10" onclick="window.viz.top()">{{ username}}'s top 25</a>
+     <h2>{{ username}}'s top 25</h2>
   {% endif %}
 {% endifequal %}
 

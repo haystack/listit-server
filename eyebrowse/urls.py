@@ -30,7 +30,7 @@ urlpatterns = patterns('',
                        # user pages
                        (r'^user/(\w+)/$', user_page),
                        (r'^friends/(\w+)/$', friends_page),
-                       (r'^friend/add/$', friend_add),
+                       (r'^friend/add$', friend_add),
                        (r'^friend/invite/$', friend_invite),
                        (r'^friend/accept/(\w+)/$', friend_accept),
 
@@ -67,6 +67,7 @@ urlpatterns = patterns('',
                        # account management
                        (r'^profile/(\w+)/$', profile_save_page),
                        (r'^settings/(\w+)/$',  privacy_settings_page),
+                       (r'^userprivacy/(\w+)/$', userprivacy),
 
                        (r'^lib/(?P<path>.*)$', 'django.views.static.serve',
                         { 'document_root': lib }),
