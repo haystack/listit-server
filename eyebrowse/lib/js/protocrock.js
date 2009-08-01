@@ -20,14 +20,14 @@ PROTOCROCK.arguments2array = function(v){
 
 PROTOCROCK.superclass = function(protocrock){
     return function(this_, method){
-        var args = protocrock.arguments2array(arguments);
-        var fnargs = args.slice(2);
-        var cur_super = this_.superclass;
-        var next_super = this_.superclass;
-        this_.superclass = next_super;
-        var result = cur_super[method].apply(this_, fnargs);
-        this_.superclass = cur_super;
-        return result;
+      var args = protocrock.arguments2array(arguments);
+      var fnargs = args.slice(2);
+      var cur_super = this_.superclass;
+      var next_super = this_.superclass;
+      this_.superclass = next_super;
+      var result = cur_super[method].apply(this_, fnargs);
+      this_.superclass = cur_super;
+      return result;
     };
 }(PROTOCROCK);
 

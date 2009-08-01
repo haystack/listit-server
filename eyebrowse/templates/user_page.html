@@ -210,9 +210,14 @@
 {% block content %}
 <div id="report">
   <div id="profile">
-    <b>Location:</b> {{ location }} <br />
+{% if location %}
+<b>Location:</b> {{ location }} <br />
+{% endif %}
+{% if homepage %}
 <b>Website:</b> {{ homepage }} <br />
-    {% if user.username %}
+{% endif %}
+  
+  {% if user.username %}
     {% if is_friend %}
     <a href="/friends/{{ user.username }}/">
     {{ username }} is your friend</a>
@@ -279,10 +284,13 @@ class="edit">edit your profile</a><br />
         </div>
     </div>
     <div id="listNav">
+<div class="user_page_top">
 {% ifequal user.username username %}
-<h2 style="margin-top:-15px;">Your Top 25</h2>
+<h2>Your Top 25</h2>
   {% else %}{% if user.username %}
-<a href="#top10" onclick="window.viz.top()">{{ username}}'s top 25</a>&nbsp; &#124; &nbsp;<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp; &#124; &nbsp;<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a>
+<div style="margin-bottom:8px;">
+<a href="#top10" onclick="window.viz.top()">{{ username}}'s top 25</a>&nbsp; &#124; &nbsp;<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp; &#124; &nbsp;<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a></div>
+</div>
 {% else %}
      <h2>{{ username}}'s top 25</h2>
   {% endif %}
