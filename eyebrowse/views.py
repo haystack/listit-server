@@ -602,6 +602,12 @@ def _get_top_n(user,start,end):
     ordered_visits.sort(lambda u1,u2: int(u2[1] - u1[1]))
     return ordered_visits    
 
+def get_title_from_evt(evt):
+    foo =  JSONDecoder().decode(JSONDecoder().decode(evt.entitydata)[0]['data'])
+    if foo.has_key('title'):
+        return foo['title']
+    return   
+
 
 class EVENT_SELECTORS:
     class Page:
@@ -641,7 +647,7 @@ def get_web_page_views(request):
 
     from_msec,to_msec = _unpack_from_to_msec(request)
 
-    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid)}
+    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid), "title": get_title_from_evt(evt)}
     hits = _get_pages_for_user(request.user,from_msec,to_msec)
     print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
     
@@ -656,7 +662,7 @@ def get_web_page_views_user(request, username):
 
     from_msec,to_msec = _unpack_from_to_msec(request)
 
-    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid)}
+    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid), "title": get_title_from_evt(evt)}
     hits = _get_pages_for_user(user ,from_msec,to_msec)
 
     print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
@@ -797,18 +803,20 @@ def get_trending_urls(request, n):
 def get_top_users(request, n):
     user = User.objects.all();
 
-    return
+    return 
 
 def get_most_recent_urls(request, n):
     users = User.objects.all();
     n = int(n)
     from_msec,to_msec = _unpack_from_to_msec(request)
+     
 
-    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid)}
+    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid), "title": get_title_from_evt(evt)}
     for user in users:
         hits = _get_pages_for_user(users[0],from_msec,to_msec) ## not sure how to do this so i set user to be the 1st user
-    print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
-
+    #print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))
+#    print [ evt.entitydata for evt in hits ]
+    #print [ JSONDecoder().decode(JSONDecoder().decode(evt.entitydata)[0]['data'])['title'] for evt in hits if JSONDecoder().decode(JSONDecoder().decode(evt.entitydata)[0]['data']).has_key('title') ]
     return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits[0:n] ] });
 
 def get_users_most_recent_urls(request, username, n):
@@ -820,7 +828,7 @@ def get_users_most_recent_urls(request, username, n):
 
     from_msec,to_msec = _unpack_from_to_msec(request)
 
-    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid)}
+    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid), "title": get_title_from_evt(evt)}
     hits = _get_pages_for_user(user,from_msec,to_msec)
     print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
 

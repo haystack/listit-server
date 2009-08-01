@@ -37,15 +37,15 @@ var evtHandlers = ({
     _ev_handlers: function(){
         var canvas = this.canvas;
         var this_ = this;
-        
+
         jQuery(canvas).mousemove(function(evt){
             var position = jQuery(canvas).position();
-            
+
             this_.mouse = {
                 x: evt.clientX - position.left,
                 y: evt.clientY - position.top
             };
-            
+
             if (this_.viz.drag) {
                 this_.viz.startTime -= 24000 * (this_.mouse.x - this_.dragBeginX);
                 this_.viz.endTime -= 24000 * (this_.mouse.x - this_.dragBeginX);
@@ -94,7 +94,7 @@ var evtHandlers = ({
                     }
 		  }
 		  this_.OGstartTime = this_.startTime;
-		  this_.OGendTime = this_.endTime;		  
+		  this_.OGendTime = this_.endTime;
 		};
                 if (p > 0) {
 		  try {
@@ -192,7 +192,7 @@ var dateSlider = ({
     draw: function(){
         var ctx = this.canvas.getContext('2d');
         var this_ = this;
-        
+
         // check to see if there is a new value for max date time
         if ((this_.startTime !== this_.viz.startTime) || (this_.endTime !== this_.viz.endTime)) {
             this_.startDate = new Date(this_.viz.startTime);
@@ -200,9 +200,9 @@ var dateSlider = ({
             this_.startTime = this_.viz.startTime;
             this_.endTime = this_.viz.endTime;
         }
-        
+
         ctx.font = "0.8pt helvetiker";
-        
+
         // dates
         ctx.lineWidth = 1;
         ctx.strokeStyle = "#0f0f0f";
@@ -217,11 +217,11 @@ var dateSlider = ({
             ctx.closePath();
             ctx.stroke();
             ctx.fillStyle = "#999999";
-	    ctx.fillText(dayText.format('mmmm d h:MM TT'), q + 10, this_.windowHeight - this_.padding + 25);		  
-            fooHour += (this_.viz.zoom / 14); 
+	    ctx.fillText(dayText.format('mmmm d h:MM TT'), q + 10, this_.windowHeight - this_.padding + 25);
+            fooHour += (this_.viz.zoom / 14);
         }
-        
-        
+
+
         // lines for date nav min/max
         ctx.beginPath();
         ctx.lineWidth = 1;
@@ -230,7 +230,7 @@ var dateSlider = ({
         ctx.fillText(this_.startDate.format('dddd, mmmm d h:MM TT'), 10, this_.windowHeight - this_.padding + 50);
         ctx.fillText(this_.endDate.format('dddd, mmmm d h:MM TT'), this_.windowWidth - 130, this_.windowHeight - this_.padding + 50);
         ctx.closePath();
-        
+
         // line showing width
         ctx.beginPath();
         ctx.strokeStyle = "#000000";
@@ -239,7 +239,7 @@ var dateSlider = ({
         ctx.lineWidth = 2.5;
         ctx.stroke();
         ctx.closePath();
-        
+
         /*
         // right triangle
         ctx.beginPath();
@@ -253,21 +253,21 @@ var dateSlider = ({
         }
         ctx.fill();
         ctx.closePath();
-        
+
         // left triangle
         ctx.beginPath();
         ctx.moveTo(this_.leftSlider + this_.sliderTriWidth, this_.windowHeight - this_.padding - 2);
         ctx.lineTo(this_.leftSlider, this_.windowHeight - this_.padding - this.sliderTriWidth - 2);
         ctx.lineTo(this_.leftSlider, this_.windowHeight - this_.padding + this.sliderTriWidth - 2);
         ctx.lineTo(this_.leftSlider + this_.sliderTriWidth, this_.windowHeight - this_.padding - 2);
-        
+
         ctx.fillStyle = "#000000";
         if (this_.lIH) {
             ctx.fillStyle = "#cc006b";
         }
         ctx.fill();
         ctx.closePath();
-        
+
         // ROLLOVERS
         if ((this_.rIH) || (this_.rIS)) {
             this_.trigger = true;
@@ -278,7 +278,7 @@ var dateSlider = ({
                 this_.initBarGraph();
             }
             jQuery("#fooTxt").html("<div class=\"friendStatus\" style=\"top:" + (this_.windowHeight - this_.padding - 3) + "px; left:" + (this_.rightSlider - 145) + "px; background:#000000; color:#ffffff; padding:3px; width:auto \">" + this_.rightSliderDate.format('dddd, mmmm dS, h:MM TT') + "</div>");
-            
+
         }
         if ((this_.lIH) || (this_.lIS)) {
             this_.trigger = true;
@@ -289,7 +289,7 @@ var dateSlider = ({
                 this_.initBarGraph();
             }
             jQuery("#fooTxt").html("<div class=\"friendStatus\" style=\"top:" + (this_.windowHeight - this_.padding + 5) + "px; left:" + (this_.leftSlider + 20) + "px; background:#000000; color:#ffffff; padding:3px; width:auto \">" + this_.leftSliderDate.format('dddd, mmmm dS, h:MM TT') + "</div>");
-            
+
         }
         if ((!(this_.lIH) && !(this_.rIH)) && (!(this_.lIS) && !(this_.rIS))) {
             jQuery("#fooTxt").html("");
@@ -299,10 +299,10 @@ var dateSlider = ({
     },
     mouseMove: function(params){
         var this_ = this;
-        
+
         this_.rIH = isPointInPoly(this_.rSP, params.mouseVal);
         this_.lIH = isPointInPoly(this_.lSP, params.mouseVal);
-        
+
         if (this_.rIS) {
             this_.rightSlider = params.mouseVal.x;
         }
@@ -315,11 +315,11 @@ var dateSlider = ({
     },
     mouseDown: function(params){
         var this_ = this;
-        
+
         if (this_.rIH) {
             this_.viz.drag = false;
             this_.rIS = true;
-            
+
         }
         if (this_.lIH) {
             this_.viz.drag = false;
@@ -328,11 +328,11 @@ var dateSlider = ({
         if (isPointInPoly(this_.zoomPlusPoly, params.mouseVal)) {
             this_.zoomZoom(-1);
         }
-        
+
         if (isPointInPoly(this_.zoomMinusPoly, params.mouseVal)) {
             this_.zoomZoom(1);
         }
-        
+
         this_.dateTrigger = false;
         if (isPointInPoly(this_.startDateSelectPoly, params.mouseVal)) {
             jQuery("#fooDate").html("<div id=\"navDateCal\" style=\"position: absolute; top:" + (this_.windowHeight - this.padding - 100) + "px; left:" + (params.mouseVal.x - 50) + "px; width:auto\"></div>");
@@ -358,7 +358,7 @@ var dateSlider = ({
             this_.dateTrigger = true;
             this_.endDateTrigger = true;
         }
-        
+
         if (!this_.dateTrigger && this_.startDateTrigger) {
             this_.viz.initialize(this_.viz.canvas, this_.viz.windowWidth, this_.viz.windowHeight, this_.viz.timeZoneCorrect, this_.viz.zoom, parseInt(jQuery.datepicker.formatDate("@", new Date(jQuery('#navDateCal').DatePickerGetDate(true)))));
             jQuery("#fooDate").html("");
@@ -372,16 +372,16 @@ var dateSlider = ({
     },
     mouseUp: function(){
         var this_ = this;
-        
+
         this_.lIS = false;
         this_.rIS = false;
         this_.lIH = false;
         this_.rIH = false;
         this_.trigger = false;
         this_.barGraph = false;
-        
+
         jQuery("#fooTxt").html("");
-        
+
         this_.rSP = rectToPoly({
             xPos: this_.rightSlider + this_.xOffset - this.sliderTriWidth,
             yPos: this_.windowHeight - this_.padding + this_.sliderTriTop + this_.yOffset,
@@ -394,8 +394,8 @@ var dateSlider = ({
             height: this_.sliderTriHeight,
             width: this_.sliderTriWidth
         });
-        
-        
+
+
     },
     initBarGraph: function(){
         var this_ = this;
@@ -434,7 +434,7 @@ var dateSlider = ({
                 }
                 if (this_.barGraphData[i].entity.host) {
                     fooName = this_.barGraphData[i].entity.host;
-                    
+
                     if (namesObj[fooName]) {
                         this_.barGraphData[i].entity.host.value += this_.barGraphData[i].end - this_.barGraphData[i].start;
                     }
@@ -468,14 +468,14 @@ var dateSlider = ({
                 }
                 return fooArray.max();
             }();
-            
+
             ctx.beginPath();
             ctx.fillStyle = "rgba(0,0,0,0.9)";
             ctx.fillRect(this_.leftSlider + this_.sliderTriWidth, 18, this_.rightSlider - this_.leftSlider - (2 * this_.sliderTriWidth), this_.windowHeight - (this_.padding * 2));
             ctx.fillRect(this_.leftSlider + this_.sliderTriWidth, this_.windowHeight - this_.padding - 2, 2, 0 - 40);
             ctx.fillRect(this_.rightSlider - this_.sliderTriWidth, this_.windowHeight - this_.padding - 2, 0 - 2, 0 - 40);
             ctx.closePath();
-            
+
             ctx.save();
             ctx.translate(0, -40);
             ctx.beginPath();
@@ -483,11 +483,11 @@ var dateSlider = ({
             ctx.fillStyle = "#ffffff";
             ctx.strokeStyle = "#ffffff";
             ctx.font = "0.8pt helvetiker";
-            
+
             ctx.fillText(this_.leftSliderDate.format("mmmm dS, h:MM TT") + " - " + this_.rightSliderDate.format("mmmm dS, h:MM TT"), (this_.rightSlider - this_.leftSlider) / 2 - 100 + this_.leftSlider, this_.padding + 24);
             ctx.strokeRect(this_.leftSlider + fooPad, this_.padding + fooPad - 5, this_.rightSlider - this_.leftSlider - (fooPad * 2), this_.windowHeight - (this_.padding * 2) - (fooPad * 2) + 5);
             ctx.font = "0.7pt helvetiker";
-            
+
             for (var i = 0; i < maxNum; i++) {
                 ctx.fillStyle = "#ffffff";
                 ctx.fillText(barGraphVals[i].id, ((this_.rightSlider - this_.leftSlider - (fooPad * 2)) / 8) * i + this_.leftSlider + (fooPad * 2), this_.windowHeight - this_.padding - 20);
@@ -495,10 +495,10 @@ var dateSlider = ({
                 ctx.fillStyle = "hsl(" + (120 * ((barGraphVals[i].value - minTime) / (maxTime - minTime)) + 180) + ",100%,55%)";
                 ctx.fillRect(((this_.rightSlider - this_.leftSlider - (fooPad * 2) + 20) / 8) * i + this_.leftSlider + (fooPad * 2) + 20, this_.windowHeight - (this_.padding * 2), 20, -(this_.windowHeight - ((this_.padding + fooPad + (fooPad * 2)) * 2)) * ((barGraphVals[i].value - minTime) / (maxTime - minTime)));
             }
-            
+
             ctx.closePath();
             ctx.restore();
-       
+
         }
 	*/
     }
@@ -557,22 +557,22 @@ var lineGraphFactoryLite = ({
 	ctx.fillText("" + 0, 9, this_.padding + 3);
 	for (var i = 1; i < 3; i++) {
 	  ctx.fillText("" + timeCounterClock(Math.floor(((this_.maxData - this_.minData) / 3) * i) / 1000), 9, (this_.padding + 3 + -(((this_.padding + 3) - (this_.topPadding + 5)) / 3) * i));
-	}        
+	}
 	ctx.restore();
 	ctx.closePath();
     },
     setXY: function(){
         var this_ = this;
-        
+
         var fooStartTime = Math.floor((this_.startTime / this_.interp)) * this_.interp;
         this_.count = (Math.floor((this_.endTime - this_.startTime) / this_.interp));
-        
+
         this_.xPoints = [];
         this_.yPoints = [];
         this_.foo = [];
-        
+
         var newWebViewed = this_.data;
-        
+
         this_.minData = 0; // newWebViewed.min();
         this_.maxData = newWebViewed.max(); // should find max of entire dataset
         var fooX = function(){
@@ -584,12 +584,12 @@ var lineGraphFactoryLite = ({
             }
             return webHrArray;
         }();
-        
+
         for (var i = 1; i < this_.count; i++) { // why does this start at 1?
             this_.foo[i] = -(newWebViewed[i]);
             var wFoo = this_.windowWidth * ((fooX[i] - this_.startTime) / (this_.endTime - this_.startTime));
             var hFoo = ((this_.padding - this_.topPadding) * ((this_.foo[i] - this_.minData) / (this_.maxData - this_.minData)) + this_.padding);
-            
+
             this_.xPoints.push(wFoo);
             this_.yPoints.push(hFoo);
         }
@@ -617,26 +617,26 @@ var lineGraphFactory = ({
         this.dashed = params.dashed;
         this.color = params.color;
         this.key = params.key;
-        
+
         this.data = [];
         for (var i = 0; i < params.data.length; i++) {
             this.data.push(params.data[i].start, params.data[i].end);
         }
-        
+
         this.avg = params.avg; // boolean
         this.setXY();
     },
     draw: function(){
         var ctx = this.canvas.getContext('2d');
         var this_ = this;
-        
-        // check to see if there is a new value for max date time        
+
+        // check to see if there is a new value for max date time
         if ((this_.startTime !== this_.viz.startTime) || (this_.endTime !== this_.viz.endTime)) {
             this_.startTime = this_.viz.startTime;
             this_.endTime = this_.viz.endTime;
             this_.setXY();
         }
-        
+
         ctx.beginPath();
 	ctx.lineWidth = 2;
 	ctx.strokeStyle = this_.color;
@@ -660,7 +660,7 @@ var lineGraphFactory = ({
             for (var i = 1; i < 7; i++) {
                 ctx.fillText("" + Math.floor(((this_.maxData - this_.minData) / 7) * i), 9, (this_.padding + 3 + -(((this_.padding + 3) - (this_.topPadding + 5)) / 7) * i));
                 ctx.fillText("" + Math.floor(((this_.maxData - this_.minData) / 7) * i), this_.windowWidth - 19, (this_.padding + 3 + -(((this_.padding + 3) - (this_.topPadding + 5)) / 7) * i));
-            }            
+            }
             ctx.closePath();
         }
     },
@@ -684,7 +684,7 @@ var lineGraphFactory = ({
             for (var i = 0; i < params.newData.length; i++) {
                 this_.data.push(params.newData[i].start, params.newData[i].end);
             }
-            
+
         }
         else {
             // remove old stuff
@@ -698,24 +698,24 @@ var lineGraphFactory = ({
                 this_.data.unshift(params.newData[i].start, params.newData[i].end);
             }
         }
-        
+
         this_.OGstartTime = this_.startTime;
         this_.OGendTime = this_.endTime;
         this_.setXY();
     },
     setXY: function(){
         var this_ = this;
-        
+
         var fooStartTime = Math.floor((this_.startTime / this_.interp)) * this_.interp;
         this_.count = (Math.floor((this_.endTime - this_.startTime) / this_.interp));
-        
+
         this_.xPoints = [];
         this_.yPoints = [];
         this_.foo = [];
-        
+
         var newWebViewed = function(){
             var counts = new Array(this_.count);
-            
+
             this_.data.map(function(record){
                 if (record > this_.endTime || record < this_.startTime) {
                     return;
@@ -730,9 +730,9 @@ var lineGraphFactory = ({
             }
             return counts;
         }();
-        
+
         this_.minData = 0;
-	this_.maxData = newWebViewed.max(); 
+	this_.maxData = newWebViewed.max();
 	if (this_.maxData < 1) {this_.maxData = 10} // cant be zero or the world will explode. i chose 10 for shits
 
         var fooX = function(){
@@ -744,12 +744,12 @@ var lineGraphFactory = ({
             }
             return webHrArray;
         }();
-        
+
         for (var i = 1; i < this_.count; i++) {
             this_.xPoints.push(this_.windowWidth * ((fooX[i] - this_.startTime) / (this_.endTime - this_.startTime)));
 	    this_.yPoints.push((this_.padding - this_.topPadding) * ((-(newWebViewed[i]) - this_.minData) / (this_.maxData - this_.minData)) + this_.padding);
         }
-        
+
         if (this_.avg) {
             this_.yPoints = this_.avgCounts(this_.findStartIndex(this_.yPoints));
         }
@@ -793,14 +793,14 @@ var statusFactory = ({
 	  var code = d.length > 0 ?
 	  d.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; }) * mystery_prime % biggest_color :
 	  65535;
-	  return "#"+code.toString(16);	  	  
+	  return "#"+code.toString(16);
         };
 
 	// hsl generator
 	var hsl_generator = function(domain) {
 	  var h = domain.length > 0 ?  domain.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; })  % 360 : 172;
 	  var s = "100%";
-	  var l = "50%";	
+	  var l = "50%";
 	  return   "hsl("+[""+h,s,l].join(",")+")";
 	};
 
@@ -811,8 +811,8 @@ var statusFactory = ({
     draw: function(){
         var ctx = this.canvas.getContext('2d');
         var this_ = this;
-        
-        // check to see if there is a new value for max date time	
+
+        // check to see if there is a new value for max date time
         if (((this_.startTime !== this_.viz.startTime) || (this_.endTime !== this_.viz.endTime)) && !this_.staticStatic) {
             this_.startTime = this_.viz.startTime;
             this_.endTime = this_.viz.endTime;
@@ -820,12 +820,12 @@ var statusFactory = ({
         }
 	for (var i = 0; i < this_.startPointArray.length; i++) {
 	  if (this_.pIH) {
-	    if (isPointInPoly(this_.polyArray[i], this_.mouseVal)){		 
+	    if (isPointInPoly(this_.polyArray[i], this_.mouseVal)){
 	      this_.viz.highlight = this_.domainArray[i];
 	      this_.trigger = true;
-	      jQuery("#fooTxt").html(this_.urlArray[i]);
-	      jQuery("#fooTxt").css({"top" : this_.marginTop + 45 + "px", "left" : this_.mouseVal.x + "px", "background" : "#000000", "padding" : "3px" });
-	    }	  
+	      jQuery("#fooTxt").html("<a href=\"http://" + this_.urlArray[i] + "\">" + this_.titleArray[i] + "</a>");
+	      jQuery("#fooTxt").css({"top" : this_.marginTop + 45 + "px", "left" : this_.mouseVal.x + this_.viz.marginLeft + "px" });
+	    }
 	  }
           ctx.beginPath();
 	  ctx.fillStyle = this_.selectColorForDomain(this_.domainArray[i]);
@@ -836,7 +836,7 @@ var statusFactory = ({
 	  }
 	  ctx.closePath();
         }
-        
+
         if (!(this_.pIH) && this_.trigger) {
             this_.trigger = false;
 	    this_.viz.highlight = "booo";
@@ -861,23 +861,25 @@ var statusFactory = ({
                     this_.data = this_.data.slice(i, foo);
                     this_.domainArray = this_.domainArray.slice(i, foo);
                     this_.urlArray = this_.urlArray.slice(i, foo);
+		    this_.titleArray = this_.titleArray.slice(i, foo);	    
                     this_.startPointArray = this_.startPointArray.slice(i, foo);
                     this_.widthArray = this_.widthArray.slice(i, foo);
                     this_.polyArray = this_.polyArray.slice(i, foo);
                     break;
                 }
             }
-            
+
             var newData = params.newData;
             for (var i = 0; i < newData.length; i++) {
                 this_.data.push(newData[i]);
                 this_.domainArray.push(newData[i].entity.host);
-                this_.urlArray.push(newData[i].entity.id);
+                this_.urlArray.push(newData[i].entity.path);
+		this_.titleArray.push(newData[i].title);
                 this_.startPointArray.push(this_.windowWidth * ((newData[i].start - this_.startTime) / (this_.endTime - this_.startTime)));
                 this_.widthArray.push((this_.windowWidth * ((newData[i].end - this_.startTime) / (this_.endTime - this_.startTime))) - this_.startPointArray[i]);
 		this_.polyArray.push(rectToPoly({xPos: this_.startPointArray[i], yPos: this_.marginTop, width: this_.widthArray[i], height: this_.height}));
 	    }
-            
+
         }
         else {
             // remove old stuff
@@ -885,6 +887,7 @@ var statusFactory = ({
                 if (this_.data[i].start >= this_.endTime) {
                     this_.data = this_.data.slice(0, i);
                     this_.domainArray = this_.domainArray.slice(0, i);
+		    this_.titleArray = this_.titleArray.slice(0, i);
                     this_.urlArray = this_.urlArray.slice(0, i);
                     this_.startPointArray = this_.startPointArray.slice(0, i);
                     this_.widthArray = this_.widthArray.slice(0, i);
@@ -892,34 +895,36 @@ var statusFactory = ({
                     break;
                 }
             }
-            
+
             var newData = params.newData;
             for (var i = 0; i < newData.length; i++) {
                 this_.data.unshift(newData[i]);
                 this_.domainArray.unshift(newData[i].entity.host);
-                this_.urlArray.unshift(newData[i].entity.id);
+                this_.urlArray.unshift(newData[i].entity.path);
+		this_.titleArray.unshift(newData[i].title);
                 this_.startPointArray.unshift(this_.windowWidth * ((newData[i].start - this_.startTime) / (this_.endTime - this_.startTime)));
                 this_.widthArray.unshift((this_.windowWidth * ((newData[i].end - this_.startTime) / (this_.endTime - this_.startTime))) - this_.startPointArray[i]);
 		this_.polyArray.push(rectToPoly({xPos: this_.startPointArray[i], yPos: this_.marginTop, width: this_.widthArray[i], height: this_.height}));
             }
         }
-        
+
         this_.OGstartTime = this_.startTime;
         this_.OGendTime = this_.endTime;
         this_.movePos();
     },
     setPos: function(){
         var this_ = this;
-        
+
         this_.domainArray = [];
         this_.urlArray = [];
         this_.startPointArray = [];
         this_.widthArray = [];
         this_.polyArray = [];
-        
+        this_.titleArray = [];
         for (var i = 0; i < this_.data.length; i++) {
             this_.domainArray[i] = this_.data[i].entity.host;
-            this_.urlArray[i] = this_.data[i].entity.id;
+            this_.urlArray[i] = this_.data[i].url;
+	    this_.titleArray[i] = this_.data[i].title;
             this_.startPointArray[i] = this_.windowWidth * ((this_.data[i].start - this_.startTime) / (this_.endTime - this_.startTime));
             this_.widthArray[i] = (this_.windowWidth * ((this_.data[i].end - this_.startTime) / (this_.endTime - this_.startTime))) - this_.startPointArray[i];
 	    this_.polyArray[i] = rectToPoly({xPos: this_.startPointArray[i], yPos: this_.marginTop, width: this_.widthArray[i], height: this_.height});
@@ -935,7 +940,7 @@ var statusFactory = ({
     },
     movePos: function(){
         var this_ = this;
-        
+
         for (var i = 0; i < this_.startPointArray.length; i++) {
             this_.startPointArray[i] = this_.windowWidth * ((this_.data[i].start - this_.startTime) / (this_.endTime - this_.startTime));
             this_.widthArray[i] = (this_.windowWidth * ((this_.data[i].end - this_.startTime) / (this_.endTime - this_.startTime))) - this_.startPointArray[i];
@@ -944,5 +949,5 @@ var statusFactory = ({
         this_.draw();
 
     }
-    
+
 });

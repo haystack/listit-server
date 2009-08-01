@@ -42,6 +42,8 @@ class EndUser(models.Model):
     birthdate = models.DateTimeField(blank=True, null=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
 
+    friends = models.ManyToManyField('self')
+
     def __str__(self):
         return '%s enduser' % (self.user.username)
 

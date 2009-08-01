@@ -203,7 +203,7 @@
                 document.getElementById("avgTimeGraph").setAttribute("width", 335);
                 document.getElementById("avgTimeGraph").setAttribute("height", 200);
                 
-                self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 604800000); // 1 week //1296000000); // 2 weeks
+                self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 172800000); // 2 days //604800000); // 1 week //1296000000); // 2 weeks
             });
         </script>
 {% endblock %}

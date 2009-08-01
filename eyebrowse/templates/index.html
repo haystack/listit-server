@@ -1,6 +1,51 @@
 {% extends "base.html" %}
 {% block title %}home{% endblock %}
 {% block imports %}
+<style>
+.listItem {
+    width: 320px;
+    margin-left: 10px;
+    padding-right: 0px;
+} .listItem .imgBox {
+    width: 44px;
+    padding: 0px;
+    margin: 0px;
+    height: 14px;
+} .listItem b {
+    vertical-align: top;
+    margin-left: 8px;
+float:none;
+} .listItem img {
+    width: 14px;
+    height: 15px;
+} .listItem .imgBox {
+    margin-top: 7px;
+    font-size: 1.1em;
+} .listItem h7{
+float:none;
+margin-top:3px;
+} .viewboxlarge {
+    width: 700px;
+    height: auto;
+    border: 0px solid lightgrey;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+} .rightcolumn {
+    display: inline-block;
+    width: 360px;
+} .leftcolumn {
+    display: inline-block;
+    width: 375px;
+} .logo {
+    font-size: 4.5em;
+    height: auto;
+    display: inline-block;
+    vertical-align: top;
+    padding: 0px;
+    padding-top: 8px;
+} 
+</style>
 <script src="/lib/js/watchhome.js">
 </script>
 <script>
@@ -27,10 +72,10 @@
                 if (data.code == 200) {
                     var newData = data.results;
                     this_.data = newData;
-                    for (var i = 0; i < newData.length; i++) {
+                   for (var i = 0; i < newData.length; i++) {
                         var html = "";
                         html += "<div class=\"listItemSmall\">";
-			html += "<h6><b><a href=\"http://" + newData[i].entity.id + "\">" + newData[i].entity.id + "</a></b></h6>";
+			html += "<h6><b><a href=\"http://" + newData[i].entity.id + "\">" + newData[i].title + "</a></b></h6>";
                         html += "<br /><h7>" + timeCounterLong((this_.endTime - newData[i].end) / 1000) + " ago by ";
                         html += "<a href=\"/user/" + newData[i].user + "/\">" + newData[i].user + "</a></h7>";
                         html += "</div>";
@@ -112,7 +157,7 @@
         },
     };
     jQuery(document).ready(function(){
-        self.viz = newify(WatchmeVisualisation, 43200000); //one day  604800000); // 1 week //1296000000); // 2 weeks
+        self.viz = newify(WatchmeVisualisation,  172800000); // 2 days  604800000); // 1 week 43200000); //one day  604800000); // 1 week //1296000000); // 2 weeks
         setInterval("self.viz.getRecentPages()", 3000);
     });
 </script>
@@ -154,7 +199,7 @@
     </div>
 </div>
 <h4>Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc.<br />
-<a href="/user/brennanmoore/">Brennan's profile</a> <a href="/user/electronicmax/">Emax's profile</a></h4>
+<a href="/user/brennanmoore/">Brennan's profile</a>&nbsp;<a href="/user/electronicmax/">Emax's profile</a></h4>
 <br/>
 <div class="leftcolumn">
     <h2>top webpages today</h2>

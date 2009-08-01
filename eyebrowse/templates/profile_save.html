@@ -4,8 +4,7 @@
 <style>
     .listItem {
         width: 650px;
-        display: none;
-    }
+   }
 </style>
 <script>
     var WatchmeVisualisation = {
@@ -22,6 +21,7 @@
             this.interp = zoom / 192;
             this.drag = undefined;
             this.zoom = zoom;
+
             
             this.getTopPages(this.endTime - zoom, this.endTime);
         },
@@ -30,14 +30,13 @@
             var newData = data;
             var html = "";
             for (var i = 0; i < newData.length; i++) {
+	        html = "";
                 html += "<div class=\"listItem\">";
-                // this should display titles of pages, not raw urls
-                html += "<h6><b><a href=\"http://" + newData[i].entity.id + "\">" + newData[i].entity.id + "</a></b></h6>";
+                html += "<h6><b><a href=\"http://" + newData[i].entity.id + "\">" + newData[i].title + "</a></b></h6>";
                 html += "<h7>" + timeCounterLong((this_.now - newData[i].end) / 1000) + " <b>ago</b></h7>";
                 html += "</div>";
                 jQuery("#list").prepend(html);
-                jQuery(".listItem:first").slideDown("slow");
-            }
+           }
         },
         getTopPages: function(startTime, endTime, data){
             this_ = this;
