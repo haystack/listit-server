@@ -57,7 +57,11 @@ urlpatterns = patterns('',
                        (r'^get_most_recent_urls/(\d+)/$', get_most_recent_urls),
                        (r'^get_trending_urls/(\d+)/$', get_trending_urls),
                        (r'^get_top_urls/(\d+)/$', get_top_urls),
+                       # user privacy ajax
+                       (r'^add_privacy_url/(\w+)$', add_privacy_url),
+                       (r'^get_privacy_urls/(\w+)$', get_privacy_urls),
 
+                       
                        # home
                        (r'^help/$', help),
                        (r'^about/$', about),

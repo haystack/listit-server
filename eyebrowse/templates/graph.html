@@ -214,7 +214,7 @@
 {% block content %}
 <canvas id="main">
 </canvas>
-<div id="fooTxt">
+<div class="fooTxt" id="fooTxt">
 </div>
 <div id="fooDate">
 </div>
@@ -225,5 +225,11 @@
         <br/>
         &#8230;yet
     </div>
+	  {% ifnotequal request_user username %}<br />
+<div class="underuser" style="margin-top:13px; margin-bottom:8px;">    
+	<h3 style="display:inline-block; font-size:1.1em"><a href="/user/{{ username }}/" style="text-decoration:none">{{ username }}</a>&#58;&nbsp;</h3>
+ <a href="/graph/{{ username }}/">graph</a>&nbsp; &#124; &nbsp;<a href="/days/{{ username }}/">days</a>&nbsp; &#124; &nbsp;<a href="/user/{{ username }}/">profile</a>
+</div>
+	  {% endifnotequal %}
 </div>
 {% endblock %}

@@ -372,7 +372,7 @@ a.selected {
     margin-top:15px;
     width:95%;
     display: inline-block;
-} #fooTxt {
+} .fooTxt {
     position:absolute;
     background:#000000; 
     color:#ffffff; 
@@ -380,7 +380,7 @@ a.selected {
     width:auto; 
     text-align:left;
     text-decoration: none;     
-} #fooTxt A:link {
+} .fooTxt A:link {
     text-decoration: none;
     font-size: 1em;       
     background:#000000; 
@@ -388,12 +388,14 @@ a.selected {
     color:#ffffff;  
 } #fooTxt A:visited {
     text-decoration: none;
-    font-size: 1em;       
+    font-size: 1em;  
+    padding:3px; 
     background:#000000; 
     color:#ffffff;    
 } #fooTxt A:active {
     text-decoration: none;
-    font-size: 1em;       
+    font-size: 1em;      
+    padding:3px; 
     background:#000000; 
     color:#ffffff;    
 } #fooTxtt A:hover {
@@ -529,9 +531,10 @@ a.selected {
     display:inline-block;
     vertical-align:top;
     padding:12px;
+    margin-left:20px;
+    margin-top:50px;
 } #listlist img {
     margin-right:12px;
-    
 }#dateselector {
     font-size:1.0em;
     width: 260px;
@@ -607,4 +610,21 @@ a.selected {
 }
 .bodytext {
 margin-top:10px;
+} .dateNav {
+ display:inline-block; 
+    font-size:0.8em; 
+    color:#666666;   
+    margin-left:130px;
+} #urladd {
+    background-color: #ffffff;
+    border: solid 1px #333333;
+    color: #333333;
+    margin-top:8px;
+    font-size: 1.1em;
+    width:22px;
+    padding:3px; 
+    padding-left:4px; 
+    margin-left:8px;
+    display:inline-block;
+    cursor: pointer;
 }

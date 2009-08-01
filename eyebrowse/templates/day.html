@@ -26,7 +26,7 @@
             this.startTime = this.startDate.valueOf();
             this.OGendTime = this.endDate.valueOf();
             this.OGstartTime = this.startDate.valueOf();
-this.marginLeft = 120;
+	    this.marginLeft = 120;
             this.drawArray = [];
             
             this.newData = function getViews(startTime, endTime, viz){
@@ -161,7 +161,7 @@ this.marginLeft = 120;
 <div id="dayHeading">
     <div class="centerLabel">
     </div>
-    <div id="dateNav" style="display:inline-block; font-size:0.8em; color:#666666;">
+    <div class="dateNav" style="display:inline-block; font-size:0.8em; color:#666666;">
         <div id="minDate" style="width:100px; display:inline-block">
         </div>
         <div id="maxDate" style="width:100px; float:right; text-align:right; display:inline-block;">
@@ -176,12 +176,12 @@ this.marginLeft = 120;
 </div>
 <canvas id="main">
 </canvas>
-<div id="fooTxt">
+<div class="fooTxt" id="fooTxt">
 </div>
 <br/>
 <div class="centerLabel">
 </div>
-<div id="dateNav" style="display:inline-block; font-size:0.8em; color:#666666;">
+<div class="dateNav">
     <div id="minDateTwo" style="width:100px; display:inline-block; margin-left:30px;">
     </div>
     <div id="maxDateTwo" style="width:100px; float:right; text-align:right; display:inline-block;">
@@ -194,6 +194,11 @@ this.marginLeft = 120;
         <br/>
         &#8230;yet
     </div>
-    {{ username }}
+	  {% ifnotequal request_user username %}<br />
+<div class="underuser" style="margin-top:13px; margin-bottom:8px;">    
+	<h3 style="display:inline-block; font-size:1.1em"><a href="/user/{{ username }}/" style="text-decoration:none">{{ username }}</a>&#58;&nbsp;</h3>
+ <a href="/graph/{{ username }}/">graph</a>&nbsp; &#124; &nbsp;<a href="/days/{{ username }}/">days</a>&nbsp; &#124; &nbsp;<a href="/user/{{ username }}/">profile</a>
+	  {% endifnotequal %}
+</div>
 </div>
 {% endblock %}

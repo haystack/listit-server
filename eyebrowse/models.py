@@ -51,11 +51,11 @@ class PrivacySettings(models.Model):
     user = models.ForeignKey(User,unique=True,primary_key=True)
     whitelist = models.TextField(blank=True, null=True)
     blacklist = models.TextField(blank=True, null=True)    
-    listmode = models.CharField(max_length=1, choices=LOGGING_LIST_MODE, default="W")
+    listmode = models.CharField(max_length=1, choices=LOGGING_LIST_MODE, default="B")
     exposure = models.CharField(max_length=1, choices=EXPOSURE_CHOICES, default="P")
     other_settings = models.TextField(blank=True, null=True)   ## just in case!!
 
-class Friendship(models.Model):
+class FriendRequest(models.Model):
     from_friend = models.ForeignKey(
         User, related_name='friend_set'
         )

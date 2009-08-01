@@ -823,7 +823,7 @@ var statusFactory = ({
 	    if (isPointInPoly(this_.polyArray[i], this_.mouseVal)){
 	      this_.viz.highlight = this_.domainArray[i];
 	      this_.trigger = true;
-	      jQuery("#fooTxt").html("<a href=\"http://" + this_.urlArray[i] + "\">" + this_.titleArray[i] + "</a>");
+	      jQuery("#fooTxt").html("<a href=\"" + this_.urlArray[i] + "\">" + this_.titleArray[i] + "</a>");
 	      jQuery("#fooTxt").css({"top" : this_.marginTop + 45 + "px", "left" : this_.mouseVal.x + this_.viz.marginLeft + "px" });
 	    }
 	  }
@@ -873,7 +873,7 @@ var statusFactory = ({
             for (var i = 0; i < newData.length; i++) {
                 this_.data.push(newData[i]);
                 this_.domainArray.push(newData[i].entity.host);
-                this_.urlArray.push(newData[i].entity.path);
+                this_.urlArray.push(newData[i].url);
 		this_.titleArray.push(newData[i].title);
                 this_.startPointArray.push(this_.windowWidth * ((newData[i].start - this_.startTime) / (this_.endTime - this_.startTime)));
                 this_.widthArray.push((this_.windowWidth * ((newData[i].end - this_.startTime) / (this_.endTime - this_.startTime))) - this_.startPointArray[i]);
@@ -900,7 +900,7 @@ var statusFactory = ({
             for (var i = 0; i < newData.length; i++) {
                 this_.data.unshift(newData[i]);
                 this_.domainArray.unshift(newData[i].entity.host);
-                this_.urlArray.unshift(newData[i].entity.path);
+                this_.urlArray.unshift(newData[i].url);
 		this_.titleArray.unshift(newData[i].title);
                 this_.startPointArray.unshift(this_.windowWidth * ((newData[i].start - this_.startTime) / (this_.endTime - this_.startTime)));
                 this_.widthArray.unshift((this_.windowWidth * ((newData[i].end - this_.startTime) / (this_.endTime - this_.startTime))) - this_.startPointArray[i]);

@@ -62,16 +62,18 @@ def _privacy_save(request, form):
     return user
 
 
-def _get_privacy_list(request, username):
+def get_privacy_urls(request, username):
     username = request.user.username
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
     privacysettings = user.privacysettings_set.all()[0] ## ?     
    
+    print privacysettings
+
     if privacysettings.listmode == "W":
         list = privacysettings.whitelist.split()
     if privacysettings.listmode == "B":
-        list = privacysettings.whitelist.split()
+        list = privacysettings.blacklist.split()
 
     return json_response({ "code":200, "results": list }) 
 
@@ -151,7 +153,7 @@ def terms(request):
 def list(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
-    is_friend = Friendship.objects.filter(
+    is_friend = FriendRequest.objects.filter(
         from_friend=request.user,
         to_friend=user)    
     privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
@@ -172,7 +174,7 @@ def list(request, username):
 def day(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
-    is_friend = Friendship.objects.filter(
+    is_friend = FriendRequest.objects.filter(
         from_friend=request.user,
         to_friend=user)    
     privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
@@ -194,7 +196,7 @@ def day(request, username):
 def report(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
-    is_friend = Friendship.objects.filter(
+    is_friend = FriendRequest.objects.filter(
         from_friend=request.user,
         to_friend=user)    
     privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
@@ -216,7 +218,7 @@ def report(request, username):
 def graph(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
-    is_friend = Friendship.objects.filter(
+    is_friend = FriendRequest.objects.filter(
         from_friend=request.user,
         to_friend=user)    
     privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
@@ -262,6 +264,27 @@ def logout_page(request):
     logout(request)
     return HttpResponseRedirect('/')
 
+def add_privacy_url(request, username):
+    if username != request.user.username:
+        return HttpResponseRedirect('/')
+    user = get_object_or_404(User, username=username)
+    privacysettings = user.privacysettings_set.all()[0] ## ?
+    listmode = privacysettings.listmode
+    input = request.GET['input'].strip()
+
+    if privacysettings.listmode == "W":
+        list = privacysettings.whitelist.split()
+        if not input in privacysettings.whitelist.split():
+            privacysettings.whitelist = ' '.join(privacysettings.whitelist.split() + [input])
+    if privacysettings.listmode == "B":
+        list = privacysettings.blacklist.split()
+        if not input in privacysettings.blacklist.split():
+            privacysettings.blacklist = ' '.join(privacysettings.blacklist.split() + [input])
+
+    # Save 
+    privacysettings.save()
+    return HttpResponseRedirect('/settings/%s/' % user.username)
+
 
 def get_enduser_for_user(user):
     if EndUser.objects.filter(user=user).count() > 0:
@@ -272,7 +295,7 @@ def get_enduser_for_user(user):
 def user_page(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
-    is_friend = Friendship.objects.filter(
+    is_friend = FriendRequest.objects.filter(
         from_friend=request.user,
         to_friend=user)    
     privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
@@ -335,13 +358,13 @@ def register_page(request):
                 # Retrieve the invitation object.
                 invitation = Invitation.objects.get(id=request.session['invitation'])
                 # Create friendship from user to sender.
-                friendship = Friendship(
+                friendship = FriendRequest(
                     from_friend=user,
                     to_friend=invitation.sender
                     )
                 friendship.save()
                 # Create friendship from sender to user.
-                friendship = Friendship (
+                friendship = FriendRequest (
                     from_friend=invitation.sender,
                     to_friend=user
                     )
@@ -482,7 +505,7 @@ def friends_page(request, username):
 def friend_add(request):
     if request.GET.has_key('username'):
         friend = get_object_or_404(User, username=request.GET['username'])
-        friendship = Friendship(
+        friendship = FriendRequest(
             from_friend=request.user,
             to_friend=friend
             )
