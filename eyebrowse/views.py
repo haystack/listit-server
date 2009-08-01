@@ -67,8 +67,6 @@ def get_privacy_urls(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
     privacysettings = user.privacysettings_set.all()[0] ## ?     
-   
-    print privacysettings
 
     if privacysettings.listmode == "W":
         list = privacysettings.whitelist.split()
@@ -76,6 +74,48 @@ def get_privacy_urls(request, username):
         list = privacysettings.blacklist.split()
 
     return json_response({ "code":200, "results": list }) 
+
+def delete_privacy_url(request, username):
+    if username != request.user.username:
+        return HttpResponseRedirect('/')
+    user = get_object_or_404(User, username=username)
+    privacysettings = user.privacysettings_set.all()[0] ## ?
+    listmode = privacysettings.listmode
+    input = request.GET['input'].strip()
+
+    if privacysettings.listmode == "W":
+        list = privacysettings.whitelist.split()
+        if input in privacysettings.whitelist.split():
+            privacysettings.whitelist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == input])
+    if privacysettings.listmode == "B":
+        list = privacysettings.blacklist.split()
+        if input in privacysettings.blacklist.split():
+            privacysettings.blacklist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == input])
+
+    # Save 
+    privacysettings.save()
+    return HttpResponseRedirect('/settings/%s/' % user.username)
+
+def add_privacy_url(request, username):
+    if username != request.user.username:
+        return HttpResponseRedirect('/')
+    user = get_object_or_404(User, username=username)
+    privacysettings = user.privacysettings_set.all()[0] ## ?
+    listmode = privacysettings.listmode
+    input = request.GET['input'].strip()
+
+    if privacysettings.listmode == "W":
+        list = privacysettings.whitelist.split()
+        if not input in privacysettings.whitelist.split():
+            privacysettings.whitelist = ' '.join(privacysettings.whitelist.split() + [input])
+    if privacysettings.listmode == "B":
+        list = privacysettings.blacklist.split()
+        if not input in privacysettings.blacklist.split():
+            privacysettings.blacklist = ' '.join(privacysettings.blacklist.split() + [input])
+
+    # Save 
+    privacysettings.save()
+    return
 
 def userprivacy(request, username):
     t = loader.get_template("user_privacy.html")
@@ -263,28 +303,6 @@ def login_page(request):
 def logout_page(request):
     logout(request)
     return HttpResponseRedirect('/')
-
-def add_privacy_url(request, username):
-    if username != request.user.username:
-        return HttpResponseRedirect('/')
-    user = get_object_or_404(User, username=username)
-    privacysettings = user.privacysettings_set.all()[0] ## ?
-    listmode = privacysettings.listmode
-    input = request.GET['input'].strip()
-
-    if privacysettings.listmode == "W":
-        list = privacysettings.whitelist.split()
-        if not input in privacysettings.whitelist.split():
-            privacysettings.whitelist = ' '.join(privacysettings.whitelist.split() + [input])
-    if privacysettings.listmode == "B":
-        list = privacysettings.blacklist.split()
-        if not input in privacysettings.blacklist.split():
-            privacysettings.blacklist = ' '.join(privacysettings.blacklist.split() + [input])
-
-    # Save 
-    privacysettings.save()
-    return HttpResponseRedirect('/settings/%s/' % user.username)
-
 
 def get_enduser_for_user(user):
     if EndUser.objects.filter(user=user).count() > 0:
