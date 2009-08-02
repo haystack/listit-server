@@ -277,7 +277,8 @@ def graph(request, username):
     return HttpResponse(t.render(c))
 
 
-def login_page(request):
+def register_success_page(request):
+    form = LoginForm()
     if request.method == 'POST':
         user = authenticate(username=request.POST['username'], password=request.POST['password'])
         if user is not None:
@@ -287,17 +288,13 @@ def login_page(request):
                 return HttpResponseRedirect('/profile/')
             else:
                 # disabled account
-                print "TOIOIS"
-
              #   return direct_to_template(request, 'inactive_account.html')
                 variables = RequestContext(request, {'form': form, 'error': True})
                 return render_to_response('login.html', variables)
 
-        else:
-            # invalid login
-            print "TOIOIS"
-            variables = RequestContext(request, {'form': form, 'error': True})
-            return render_to_response('login.html', variables)
+    else:
+        variables = RequestContext(request, {'form': form})
+        return render_to_response('registration/register_success.html', variables)
     #        return direct_to_template(request, 'invalid_login.html')
         
 def logout_page(request):

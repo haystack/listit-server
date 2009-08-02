@@ -38,8 +38,9 @@ urlpatterns = patterns('',
                        (r'^login/$', 'django.contrib.auth.views.login'),#login_page),
                        (r'^accounts/login/$', 'django.contrib.auth.views.login'),#login_page),
                        (r'^register/$', register_page),
-                       (r'^register/success/$', direct_to_template,
-                        { 'template': 'registration/register_success.html' }),
+                       (r'^register/success/$', register_success_page),
+                     #  (r'^register/success/$', direct_to_template,
+                     #   { 'template': 'registration/register_success.html' }),
                        (r'^logout/$', logout_page),
 
                        # search

@@ -39,8 +39,8 @@
             this.drag = undefined;
             this.zoom = zoom;
             this.drawArray = [];
-	    this.marginLeft = 0;
-	    this.user = "{{ username }}";
+            this.marginLeft = 0;
+            this.user = "{{ username }}";
             
             this.newData = function getViews(startTime, endTime, viz){
                 // uses the django model get_views to return www viewed events between start and end times
@@ -135,10 +135,10 @@
             this_.OGendTime = endTime;
             this_.OGstartTime = startTime;
             
-	    var data = function(startTime, endTime, viz){
+            var data = function(startTime, endTime, viz){
                 // uses the django model get_views to return www viewed events between start and end times
                 try {
-		  jQuery.get("http://localhost:8000/get_views_user/{{ username }}/", {
+                    jQuery.get("http://localhost:8000/get_views_user/{{ username }}/", {
                         from: startTime,
                         to: endTime
                     }, function(data){
@@ -225,11 +225,12 @@
         <br/>
         &#8230;yet
     </div>
-	  {% ifnotequal request_user username %}<br />
-<div class="underuser" style="margin-top:13px; margin-bottom:8px;">    
-	<h3 style="display:inline-block; font-size:1.1em"><a href="/user/{{ username }}/" style="text-decoration:none">{{ username }}</a>&#58;&nbsp;</h3>
- <a href="/graph/{{ username }}/">graph</a>&nbsp; &#124; &nbsp;<a href="/days/{{ username }}/">days</a>&nbsp; &#124; &nbsp;<a href="/user/{{ username }}/">profile</a>
-</div>
-	  {% endifnotequal %}
+    {% ifnotequal request_user username %}
+    <br/>
+    <div class="underuser" style="margin-top:13px; margin-bottom:8px;">
+        <h3 style="display:inline-block; font-size:1.1em"><a href="/user/{{ username }}/" style="text-decoration:none">{{ username }}</a>&#58;&nbsp;</h3>
+        <a href="/graph/{{ username }}/">graph</a>&nbsp; &#124; &nbsp;<a href="/days/{{ username }}/">days</a>&nbsp; &#124; &nbsp;<a href="/user/{{ username }}/">profile</a>
+    </div>
+    {% endifnotequal %}
 </div>
 {% endblock %}

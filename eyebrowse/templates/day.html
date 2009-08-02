@@ -26,7 +26,7 @@
             this.startTime = this.startDate.valueOf();
             this.OGendTime = this.endDate.valueOf();
             this.OGstartTime = this.startDate.valueOf();
-	    this.marginLeft = 120;
+            this.marginLeft = 120;
             this.drawArray = [];
             
             this.newData = function getViews(startTime, endTime, viz){
@@ -111,7 +111,7 @@
             this.drawArray = p;
         }
     };
-   
+    
     jQuery(document).ready(function(){
         var currentDate = new Date();
         
@@ -194,11 +194,12 @@
         <br/>
         &#8230;yet
     </div>
-	  {% ifnotequal request_user username %}<br />
-<div class="underuser" style="margin-top:13px; margin-bottom:8px;">    
-	<h3 style="display:inline-block; font-size:1.1em"><a href="/user/{{ username }}/" style="text-decoration:none">{{ username }}</a>&#58;&nbsp;</h3>
- <a href="/graph/{{ username }}/">graph</a>&nbsp; &#124; &nbsp;<a href="/days/{{ username }}/">days</a>&nbsp; &#124; &nbsp;<a href="/user/{{ username }}/">profile</a>
-	  {% endifnotequal %}
-</div>
+    {% ifnotequal request_user username %}
+    <br/>
+    <div class="underuser" style="margin-top:13px; margin-bottom:8px;">
+        <h3 style="display:inline-block; font-size:1.1em"><a href="/user/{{ username }}/" style="text-decoration:none">{{ username }}</a>&#58;&nbsp;</h3>
+        <a href="/graph/{{ username }}/">graph</a>&nbsp; &#124; &nbsp;<a href="/days/{{ username }}/">days</a>&nbsp; &#124; &nbsp;<a href="/user/{{ username }}/">profile</a>
+        {% endifnotequal %}
+    </div>
 </div>
 {% endblock %}

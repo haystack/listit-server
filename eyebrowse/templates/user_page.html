@@ -2,306 +2,307 @@
 {% block title %}{{ username}}{% endblock %}
 {% block imports %}
 <style>
-.listItem{
-   width: 650px;
-   margin-left:11px;
- }
+    .listItem {
+        width: 650px;
+        margin-left: 11px;
+    }
 </style>
-        <script src="/lib/js/jquery-1.3.2.min.js">
-        </script>
-        <script src="/lib/js/protocrock.js">
-        </script>
-        <script src="/lib/js/zamiang.js">
-        </script>
-        <script src="/lib/js/watchMeGraph.js">
-        </script>
-        <script src="/lib/js/canvas.text.js">
-        </script>
-        <script src="/lib/js/faces/helvetiker-normal-normal.js">
-        </script>
-        <script>
-            jQuery.noConflict();
-        </script>
-        <script>
-            var WatchmeVisualisation = {
-                initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom){
-                    this.canvas = canvas;
-                    this.windowWidth = windowWidth;
-                    this.windowHeight = windowHeight;
-                    this.timeZoneCorrect = timeZoneCorrect;
-                    this.endDate = new Date(new Date().valueOf());
-                    this.startDate = new Date(this.endDate.valueOf() - zoom);
-                    this.endTime = this.endDate.valueOf();
-                    this.startTime = this.startDate.valueOf();
-                    this.OGendTime = this.endDate.valueOf();
-                    this.OGstartTime = this.startDate.valueOf();
-                    this.interp = zoom / 192;
-                    this.drag = undefined;
-                    this.zoom = zoom;
-
-		    this.getTopPages(this.endTime - zoom, this.endTime);
-		    this.initLiteGraph(15778458000, this.endTime); // 15778458000 = the beginning of time (6 months ago)
-                },
-                drawTopPagesList: function(data){
-		  var this_ = this;
-		  var newData = data;
-		  var html = "";
-		  for (var i = 0; i < newData.length; i++) { 
-		    var trigger = true;
-		    html += "<div class=\"listItem\">";
-		    html += "<h6><b><a href=\"http://" + newData[i][0] + "\">" + newData[i][0] + "</a></b></h6>";
-		    
-		    if (newData[i][2] < 0){
-		      trigger = false;
-		      html += "<div class=\"imgBox\">";
-		      html += "<img src=\"/lib/img/arrow_full_down_16.png\" class=\"thumb\" />";					   
-		      html += "<b>" + newData[i][2] + "</b>";
-		      html += "</div>";
-		    }
-		    if (newData[i][2] > 0){
-		      trigger = false;
-		      html += "<div class=\"imgBox\">";
-		      html += "<img src=\"/lib/img/arrow_full_up_16.png\" class=\"thumb\" />";
-		      html += "<b>" + newData[i][2] + "</b>";
-		      html += "</div>";										   
-		    }				
-		    if (trigger) {
-		      html += "<div class=\"imgBox\">&nbsp;";
-		      // html += "<img src=\"/lib/img/star_16.png\" class=\"thumb\" />";
-		      html += "</div>";
-		    }
-		    html += "<h7><b>time spent:</b> " + timeCounterLong((newData[i][1]) / 1000) + "</h7>";				     
-		    html += "</div>";
-		  }
-		  jQuery("#list").html(html);		  
-		},
-		getTopPages: function(startTime, endTime, data){
-		  // uses the django model get_top_pages to return top pages between start and endtime
-		  this_ = this;
-		  try {
-		    jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ username }}/25/", {first_start: startTime - 86400000, first_end: endTime - 86400000, second_start: startTime, second_end: endTime},
-			       // this gets top 25 pages
-			       function(data) {
-				 if (data.code == 200) {		
-				   this_.drawTopPagesList(data.results);		  
-				 } else {
-				   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-				 }
-			       }, "json");	
-		  } catch(e) {
-		    console.log(e);
-		  }
-		},
-                initLiteGraph: function(startTime, endTime){
-		  var this_ = this;		   
-		  try {
-		    jQuery.get("http://localhost:8000/get_views_user/{{ username }}/", {from: startTime, to: endTime},
-			       function(data) {
-				 if (data.code == 200) {
-				   this_.drawLiteGraph(data.results);
-
-				   // prolly shouldnt be in here
-				   // but it should run at this time using this data
-				   // shows total web viewed and average webviewd
-				   var fooTotal = 0;
-				   for (var i = 0; i < data.results.length; i++) {
-				     fooTotal += data.results[i].end - data.results[i].start;
-				   }				   
-				   jQuery("#totalTime").html("<b>total time: </b> " + timeCounter(fooTotal / 1000));
-				   jQuery("#num").html("<b>total #: </b>" + data.results.length);				   			
-				   jQuery("#avgTime").html("<b>average: </b>" + timeCounterLongAbv((fooTotal / (data.results.length * 2)) / 1000));				   			
-				 } else {
-				   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-				 }
-			       }, "json");
-		  } catch(e) {
-		    console.log(e);
-		  }
-		  // ideally this call will be cached as it is EXPENSIVE AS ALL HELL		    
-                }, 
-		drawLiteGraph: function(data) {
-		  var this_ = this;
-		  var newData = data;
-		  var startTime = newData[1].start.valueOf();
-		  var interpNum = 12; // ALARM yea this is number of points on graph
-		  // fix this. it should be dynamic or a variable
-		  var interp = (this_.endTime - startTime) / interpNum;
-		  var count = (Math.floor((this_.endTime - startTime) / interp));
-		  
-                    // format the data
-                    var ttData = []; // total time per count
-                    var avgDataNum = []; // number of websites
-                    var dateArray = function(){
-                        var foo = [];
-                        for (var i = 0; i < count; i++) {
-                            foo[i] = startTime + (interp * i);
-                            // set all arrays to 0 so i can increment them
-                            ttData[i] = 0;
-                            avgDataNum[i] = 0;
-                        }
-                        return foo;
-                    }();
-
-		    // function to get total time on websites per time instance (ie count)
-                    for (var i = 0; i < newData.length; i++) {
-                        // oh man this is ineffecient hrm
-		      for (var j = 0; j < count; j++) {
-			if (j >= count) {
-			  if (newData[i].start.valueOf() > dateArray[j]) {
-			    ttData[j] += newData[i].end - newData[i].start;
-			    avgDataNum[j] += 1;
-			  }
-			}
-			else {
-			  if ((newData[i].start.valueOf() > dateArray[j]) && (newData[i].start.valueOf() < dateArray[j + 1])) {
-			    ttData[j] += newData[i].end - newData[i].start;
-			    avgDataNum[j] += 1;
-			  }
-			}
-		      }
+<script src="/lib/js/jquery-1.3.2.min.js">
+</script>
+<script src="/lib/js/protocrock.js">
+</script>
+<script src="/lib/js/zamiang.js">
+</script>
+<script src="/lib/js/watchMeGraph.js">
+</script>
+<script src="/lib/js/canvas.text.js">
+</script>
+<script src="/lib/js/faces/helvetiker-normal-normal.js">
+</script>
+<script>
+    jQuery.noConflict();
+</script>
+<script>
+    var WatchmeVisualisation = {
+        initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom){
+            this.canvas = canvas;
+            this.windowWidth = windowWidth;
+            this.windowHeight = windowHeight;
+            this.timeZoneCorrect = timeZoneCorrect;
+            this.endDate = new Date(new Date().valueOf());
+            this.startDate = new Date(this.endDate.valueOf() - zoom);
+            this.endTime = this.endDate.valueOf();
+            this.startTime = this.startDate.valueOf();
+            this.OGendTime = this.endDate.valueOf();
+            this.OGstartTime = this.startDate.valueOf();
+            this.interp = zoom / 192;
+            this.drag = undefined;
+            this.zoom = zoom;
+            
+            this.getTopPages(this.endTime - zoom, this.endTime);
+            this.initLiteGraph(15778458000, this.endTime); // 15778458000 = the beginning of time (6 months ago)
+        },
+        drawTopPagesList: function(data){
+            var this_ = this;
+            var newData = data;
+            var html = "";
+            for (var i = 0; i < newData.length; i++) {
+                var trigger = true;
+                html += "<div class=\"listItem\">";
+                html += "<h6><b><a href=\"http://" + newData[i][0] + "\">" + newData[i][0] + "</a></b></h6>";
+                
+                if (newData[i][2] < 0) {
+                    trigger = false;
+                    html += "<div class=\"imgBox\">";
+                    html += "<img src=\"/lib/img/arrow_full_down_16.png\" class=\"thumb\" />";
+                    html += "<b>" + newData[i][2] + "</b>";
+                    html += "</div>";
+                }
+                if (newData[i][2] > 0) {
+                    trigger = false;
+                    html += "<div class=\"imgBox\">";
+                    html += "<img src=\"/lib/img/arrow_full_up_16.png\" class=\"thumb\" />";
+                    html += "<b>" + newData[i][2] + "</b>";
+                    html += "</div>";
+                }
+                if (trigger) {
+                    html += "<div class=\"imgBox\">&nbsp;";
+                    // html += "<img src=\"/lib/img/star_16.png\" class=\"thumb\" />";
+                    html += "</div>";
+                }
+                html += "<h7><b>time spent:</b> " + timeCounterLong((newData[i][1]) / 1000) + "</h7>";
+                html += "</div>";
+            }
+            jQuery("#list").html(html);
+        },
+        getTopPages: function(startTime, endTime, data){
+            // uses the django model get_top_pages to return top pages between start and endtime
+            this_ = this;
+            try {
+                jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ username }}/25/", {
+                    first_start: startTime - 86400000,
+                    first_end: endTime - 86400000,
+                    second_start: startTime,
+                    second_end: endTime
+                },            // this gets top 25 pages
+                function(data){
+                    if (data.code == 200) {
+                        this_.drawTopPagesList(data.results);
                     }
-                    
-                    var avgData = function(){
-                        var foo = [];
-                        for (var i = 0; i < count; i++) {
-                            foo[i] = (ttData[i] / (avgDataNum[i] + 1));
+                    else {
+                        console.log("yaaaa!!!H!H!H!" + data.code + " ");
+                    }
+                }, "json");
+            } 
+            catch (e) {
+                console.log(e);
+            }
+        },
+        initLiteGraph: function(startTime, endTime){
+            var this_ = this;
+            try {
+                jQuery.get("http://localhost:8000/get_views_user/{{ username }}/", {
+                    from: startTime,
+                    to: endTime
+                }, function(data){
+                    if (data.code == 200) {
+                        this_.drawLiteGraph(data.results);
+                        
+                        // prolly shouldnt be in here
+                        // but it should run at this time using this data
+                        // shows total web viewed and average webviewd
+                        var fooTotal = 0;
+                        for (var i = 0; i < data.results.length; i++) {
+                            fooTotal += data.results[i].end - data.results[i].start;
                         }
-                        return foo;
-                    }();
-                    
-                    var totalTimeG = newify(lineGraphFactoryLite, {
-                        canvas: document.getElementById("totalTimeGraph"),
-                        startTime: startTime,
-                        endTime: this_.endTime,
-                        windowHeight: this_.windowHeight,
-                        windowWidth: this_.windowWidth,
-                        interp: (this_.endTime - startTime) / interpNum,
-                        color: "#00ffff",
-                        data: ttData
-                    });
-                    var avgTimeG = newify(lineGraphFactoryLite, {
-                        canvas: document.getElementById("avgTimeGraph"),
-                        startTime: startTime,
-                        endTime: this_.endTime,
-                        windowHeight: this_.windowHeight,
-                        windowWidth: this_.windowWidth,
-                        interp: (this_.endTime - startTime) / interpNum,
-                        color: "#ff00ff",
-                        data: avgData
-                    });
-		  }
-            };
-            jQuery(document).ready(function(){
-                var myWidth = undefined;
-                var myHeight = undefined;
-                
-                myWidth = window.innerWidth - 16;
-                myHeight = window.innerHeight - 250;
-                                
-                document.getElementById("totalTimeGraph").setAttribute("width", 335);
-                document.getElementById("totalTimeGraph").setAttribute("height", 200);
-                document.getElementById("avgTimeGraph").setAttribute("width", 335);
-                document.getElementById("avgTimeGraph").setAttribute("height", 200);
-                
-                self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 172800000); // 2 days //604800000); // 1 week //1296000000); // 2 weeks
+                        jQuery("#totalTime").html("<b>total time: </b> " + timeCounter(fooTotal / 1000));
+                        jQuery("#num").html("<b>total #: </b>" + data.results.length);
+                        jQuery("#avgTime").html("<b>average: </b>" + timeCounterLongAbv((fooTotal / (data.results.length * 2)) / 1000));
+                    }
+                    else {
+                        console.log("yaaaa!!!H!H!H!" + data.code + " ");
+                    }
+                }, "json");
+            } 
+            catch (e) {
+                console.log(e);
+            }
+            // ideally this call will be cached as it is EXPENSIVE AS ALL HELL		    
+        },
+        drawLiteGraph: function(data){
+            var this_ = this;
+            var newData = data;
+            var startTime = newData[1].start.valueOf();
+            var interpNum = 12; // ALARM yea this is number of points on graph
+            // fix this. it should be dynamic or a variable
+            var interp = (this_.endTime - startTime) / interpNum;
+            var count = (Math.floor((this_.endTime - startTime) / interp));
+            
+            // format the data
+            var ttData = []; // total time per count
+            var avgDataNum = []; // number of websites
+            var dateArray = function(){
+                var foo = [];
+                for (var i = 0; i < count; i++) {
+                    foo[i] = startTime + (interp * i);
+                    // set all arrays to 0 so i can increment them
+                    ttData[i] = 0;
+                    avgDataNum[i] = 0;
+                }
+                return foo;
+            }();
+            
+            // function to get total time on websites per time instance (ie count)
+            for (var i = 0; i < newData.length; i++) {
+                // oh man this is ineffecient hrm
+                for (var j = 0; j < count; j++) {
+                    if (j >= count) {
+                        if (newData[i].start.valueOf() > dateArray[j]) {
+                            ttData[j] += newData[i].end - newData[i].start;
+                            avgDataNum[j] += 1;
+                        }
+                    }
+                    else {
+                        if ((newData[i].start.valueOf() > dateArray[j]) && (newData[i].start.valueOf() < dateArray[j + 1])) {
+                            ttData[j] += newData[i].end - newData[i].start;
+                            avgDataNum[j] += 1;
+                        }
+                    }
+                }
+            }
+            
+            var avgData = function(){
+                var foo = [];
+                for (var i = 0; i < count; i++) {
+                    foo[i] = (ttData[i] / (avgDataNum[i] + 1));
+                }
+                return foo;
+            }();
+            
+            var totalTimeG = newify(lineGraphFactoryLite, {
+                canvas: document.getElementById("totalTimeGraph"),
+                startTime: startTime,
+                endTime: this_.endTime,
+                windowHeight: this_.windowHeight,
+                windowWidth: this_.windowWidth,
+                interp: (this_.endTime - startTime) / interpNum,
+                color: "#00ffff",
+                data: ttData
             });
-        </script>
+            var avgTimeG = newify(lineGraphFactoryLite, {
+                canvas: document.getElementById("avgTimeGraph"),
+                startTime: startTime,
+                endTime: this_.endTime,
+                windowHeight: this_.windowHeight,
+                windowWidth: this_.windowWidth,
+                interp: (this_.endTime - startTime) / interpNum,
+                color: "#ff00ff",
+                data: avgData
+            });
+        }
+    };
+    jQuery(document).ready(function(){
+        var myWidth = undefined;
+        var myHeight = undefined;
+        
+        myWidth = window.innerWidth - 16;
+        myHeight = window.innerHeight - 250;
+        
+        document.getElementById("totalTimeGraph").setAttribute("width", 335);
+        document.getElementById("totalTimeGraph").setAttribute("height", 200);
+        document.getElementById("avgTimeGraph").setAttribute("width", 335);
+        document.getElementById("avgTimeGraph").setAttribute("height", 200);
+        
+        self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 172800000); // 2 days //604800000); // 1 week //1296000000); // 2 weeks
+    });
+</script>
 {% endblock %}
 {% block content %}
 <div id="report">
-  <div id="profile">
-{% if location %}
-<b>Location:</b> {{ location }} <br />
-{% endif %}
-{% if homepage %}
-<b>Website:</b> {{ homepage }} <br />
-{% endif %}
-  
-  {% if user.username %}
-    {% if is_friend %}
-    <a href="/friends/{{ user.username }}/">
-    {{ username }} is your friend</a>
-    {% else %}{% ifequal user.username username %}
-
-    {% else %}
-     <a href="/friend/add?username={{ username }}">
-    add {{ username }} to your friends</a>
-    {% endifequal %}
-    {% endif %}
-    {% endif %}
-    
-<div id="num" style="margin-top:10px;">
-<b>total #:</b>
-</div>
-<div id="totalTime">
-<b>total time: </b>
-</div>
-<div id="avgTime">
-<b>average:</b>
-</div>
-
-
-<h2>Friends</h2>
-{% if friends %}
-<ul class="friends">
-{% for friend in friends %}
-<li><a href="/user/{{ friend.username }}/">
-{{ friend.username }}</a></li>
-{% endfor %}
-</ul>
-{% ifequal user.username username %}
-<a href="/friends/{{ username }}/">view your friends</a><br />
-{% else %}
-<a href="/friends/{{ username }}/">
-view all {{ username }} s friends</a>
-{% endifequal %}
-{% else %}
-<p>{{ username }} has no friends :(</p>
-{% endif %}
-{% ifequal user.username username %}
-<a href="/profile/{{ username }}/"
-class="edit">edit your profile</a><br />
-{% endifequal %}
-
-</div>
-
-<div id="profile_content">
-    <img src="/uploads/{{ id }}.jpg" />
-     <div class="userhead">
-    <h1><a href="/user/{{ username }}/">{{ username }}</a></h1><br />
-<div class="underuser">
- <a href="/graph/{{ username }}/">graph</a>&nbsp; &#124; &nbsp;<a href="/days/{{ username }}/">days</a>&nbsp; &#124; &nbsp;<a href="/user/{{ username }}/">profile</a>
-</div>
-</div>
-  <br />
-    <canvas id="totalTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
-    </canvas>
-    <canvas id="avgTimeGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">
-    </canvas>
-      <div id="key" style="margin-top:-40px">
-        <div id="totalGraphKey" style="width:300px; text-align:center; display: inline-block;">total time on the web per week
+    <div id="profile">
+        {% if location %}<b>Location:</b>
+        {{ location }} 
+        <br/>
+        {% endif %}
+        {% if homepage %}<b>Website:</b>
+        {{ homepage }} 
+        <br/>
+        {% endif %}
+        {% if user.username %}
+        {% if is_friend %}<a href="/friends/{{ user.username }}/">{{ username }} is your friend</a>
+        {% else %}{% ifequal user.username username %}
+        {% else %}<a href="/friend/add?username={{ username }}">add {{ username }} to your friends</a>
+        {% endifequal %}
+        {% endif %}
+        {% endif %}
+        <div id="num" style="margin-top:10px;">
+            <b>total #:</b>
         </div>
-        <div id="avgGraphKey" style="float:right; width:300px; text-align:center; display: inline-block;">average time spent on webpages
+        <div id="totalTime">
+            <b>total time: </b>
+        </div>
+        <div id="avgTime">
+            <b>average:</b>
+        </div>
+        <h2>Friends</h2>
+        {% if friends %}
+        <ul class="friends">
+            {% for friend in friends %}
+            <li>
+                <a href="/user/{{ friend.username }}/">{{ friend.username }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% ifequal user.username username %}<a href="/friends/{{ username }}/">view your friends</a>
+        <br/>
+        {% else %}<a href="/friends/{{ username }}/">view all {{ username }} s friends</a>
+        {% endifequal %}
+        {% else %}
+        <p>
+            {{ username }} has no friends :(
+        </p>
+        {% endif %}
+        {% ifequal user.username username %}<a href="/profile/{{ username }}/" class="edit">edit your profile</a>
+        <br/>
+        {% endifequal %}
+    </div>
+    <div id="profile_content">
+        <img src="/uploads/{{ id }}.jpg" />
+        <div class="userhead">
+            <h1><a href="/user/{{ username }}/">{{ username }}</a></h1>
+            <br/>
+            <div class="underuser">
+                <a href="/graph/{{ username }}/">graph</a>&nbsp; &#124; &nbsp;<a href="/days/{{ username }}/">days</a>&nbsp; &#124; &nbsp;<a href="/user/{{ username }}/">profile</a>
+            </div>
+        </div>
+        <br/>
+        <canvas id="totalTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
+        </canvas>
+        <canvas id="avgTimeGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">
+        </canvas>
+        <div id="key" style="margin-top:-40px">
+            <div id="totalGraphKey" style="width:300px; text-align:center; display: inline-block;">
+                total time on the web per week
+            </div>
+            <div id="avgGraphKey" style="float:right; width:300px; text-align:center; display: inline-block;">
+                average time spent on webpages
+            </div>
+        </div>
+        <div id="listNav">
+            <div class="user_page_top">
+                {% ifequal user.username username %}<h2>Your Top 25</h2>
+                {% else %}{% if user.username %}
+                <div style="margin-bottom:8px;">
+                    <a href="#top10" onclick="window.viz.top()">{{ username}}'s top 25</a>&nbsp; &#124; &nbsp;<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp; &#124; &nbsp;<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a>
+                </div>
+            </div>
+            {% else %}<h2>{{ username}}'s top 25</h2>
+            {% endif %}
+            {% endifequal %}
+        </div>
+        <div id="list">
         </div>
     </div>
-    <div id="listNav">
-<div class="user_page_top">
-{% ifequal user.username username %}
-<h2>Your Top 25</h2>
-  {% else %}{% if user.username %}
-<div style="margin-bottom:8px;">
-<a href="#top10" onclick="window.viz.top()">{{ username}}'s top 25</a>&nbsp; &#124; &nbsp;<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp; &#124; &nbsp;<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a></div>
-</div>
-{% else %}
-     <h2>{{ username}}'s top 25</h2>
-  {% endif %}
-{% endifequal %}
-
-    </div>
-    <div id="list">  
-    </div>
-
-</div>
-<br/>
+    <br/>
 </div>
 {% endblock %}
