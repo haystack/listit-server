@@ -75,7 +75,7 @@ margin-top:3px;
                    for (var i = 0; i < newData.length; i++) {
                         var html = "";
                         html += "<div class=\"listItemSmall\">";
-			html += "<h6><b><a href=\"http://" + newData[i].entity.id + "\">" + newData[i].title + "</a></b></h6>";
+			html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
                         html += "<br /><h7>" + timeCounterLong((this_.endTime - newData[i].end) / 1000) + " ago by ";
                         html += "<a href=\"/user/" + newData[i].user + "/\">" + newData[i].user + "</a></h7>";
                         html += "</div>";
@@ -169,9 +169,8 @@ margin-top:3px;
         eyebrowse
     </div>
     <br/>
-    <h1>You are what you view</h1>
-    <br/>
-    <div class="viewbox" id="latestviews">
+    <h1 style="margin-top:-10px; margin-left:5px; font-size:1.8em">you are what you view</h1>
+   <div class="viewbox" id="latestviews">
     </div>
     <div id="signUpFormContainer">
         <div id="signUpForm">
@@ -198,9 +197,12 @@ margin-top:3px;
         Get Started
     </div>
 </div>
-<h4>Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc.<br />
-<a href="/user/brennanmoore/">Brennan's profile</a>&nbsp;<a href="/user/electronicmax/">Emax's profile</a></h4>
-<br/>
+<h4 style="font-size:16px;margin-bottom:10px;">
+Record and visualize your web browsing activity to better understand how you use the web
+</h4>
+<div id="topusers">
+top users: <a href="/user/brennanmoore/">brennanmoore</a>&nbsp; &#124; &nbsp;<a href="/user/electronicmax/">electronicmax</a>
+</div>
 <div class="leftcolumn">
     <h2>top webpages today</h2>
     <div class="viewboxlarge" id="topviews">
