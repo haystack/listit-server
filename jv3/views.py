@@ -254,6 +254,16 @@ def userexists(request):
     response.status_code = 404;
     return response
 
+def login(request):
+    request_user = basicauth_get_user_by_emailaddr(request);
+    if not request_user:
+        response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
+        response.status_code = 401;
+        return response
+    response = HttpResponse("User exists", "text/html");
+    response.status_code = 200;
+    return response    
+
 def createuser(request):
     email = request.POST['username'];
     passwd = request.POST['password'];
