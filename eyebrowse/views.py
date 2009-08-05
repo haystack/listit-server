@@ -48,26 +48,20 @@ def privacy_settings_page(request, username):
 def _privacy_save(request, form):
     username = request.user.username
     user = get_object_or_404(User, username=username)
-    enduser = get_enduser_for_user(user)
     privacysettings = user.privacysettings_set.all()[0] ## ?
 
     privacysettings.listmode = form.cleaned_data['listmode']
     privacysettings.exposure = form.cleaned_data['exposure']
     privacysettings.save()
 
-#     tag_names = form.cleaned_data['tags'].split()
-#     for tag_name in tag_names:
-#         tag, dummy = UserTag.objects.get_or_create(name=tag_name)
-#         enduser.tags.add(tag) 
     return user
 
 
 def get_privacy_urls(request, username):
     username = request.user.username
     user = get_object_or_404(User, username=username)
-    enduser = get_enduser_for_user(user)
     privacysettings = user.privacysettings_set.all()[0] ## ?     
-
+    
     if privacysettings.listmode == "W":
         list = privacysettings.whitelist.split()
     if privacysettings.listmode == "B":
@@ -84,15 +78,10 @@ def delete_privacy_url(request, username):
     input = request.GET['input'].strip()
 
     if privacysettings.listmode == "W":
-        list = privacysettings.whitelist.split()
-        if input in privacysettings.whitelist.split():
-            privacysettings.whitelist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == input])
+        privacysettings.whitelist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == input])
     if privacysettings.listmode == "B":
-        list = privacysettings.blacklist.split()
-        if input in privacysettings.blacklist.split():
-            privacysettings.blacklist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == input])
+        privacysettings.blacklist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == input])
 
-    # Save 
     privacysettings.save()
     return HttpResponseRedirect('/settings/%s/' % user.username)
 
@@ -105,17 +94,21 @@ def add_privacy_url(request, username):
     input = request.GET['input'].strip()
 
     if privacysettings.listmode == "W":
-        list = privacysettings.whitelist.split()
-        if not input in privacysettings.whitelist.split():
-            privacysettings.whitelist = ' '.join(privacysettings.whitelist.split() + [input])
+        if privacysettings.whitelist is not None:
+            if not input in privacysettings.whitelist.split():
+                privacysettings.whitelist = ' '.join(privacysettings.whitelist.split() + [input])
+        else:
+            privacysettings.whitelist = input
     if privacysettings.listmode == "B":
-        list = privacysettings.blacklist.split()
-        if not input in privacysettings.blacklist.split():
-            privacysettings.blacklist = ' '.join(privacysettings.blacklist.split() + [input])
-
+        if privacysettings.blacklist is not None:
+            if not input in privacysettings.blacklist.split():
+                privacysettings.blacklist = ' '.join(privacysettings.blacklist.split() + [input])
+        else:
+            privacysettings.blacklist = input
     # Save 
     privacysettings.save()
-    return
+    return HttpResponseRedirect('/settings/%s/' % user.username)
+
 
 def userprivacy(request, username):
     t = loader.get_template("user_privacy.html")
@@ -213,7 +206,24 @@ def list(request, username):
 
 def day(request, username):
     user = get_object_or_404(User, username=username)
-    enduser = get_enduser_for_user(user)
+    print user
+
+    user = get_object_or_404(User, username=username)
+    if EndUser.objects.filter(user=user).count() > 0:
+        enduser = EndUser.objects.filter(user=user)[0]
+    else:
+        enduser = EndUser()
+        enduser.user = user
+    privacysettings = enduser.user.privacysettings_set.all()[0] ## ?    
+    print privacysettings
+
+    dir(User.objects.all()[0])
+
+    print enduser.user.username
+    #enduser = get_enduser_for_user(user)
+
+    print enduser
+
     is_friend = FriendRequest.objects.filter(
         from_friend=request.user,
         to_friend=user)    
@@ -275,47 +285,24 @@ def graph(request, username):
     t = loader.get_template("graph.html")
     c = Context({ 'username': enduser.user.username, 'id': enduser.user.id, 'request_user': request_user })
     return HttpResponse(t.render(c))
-
-
-def register_success_page(request):
-    form = LoginForm()
-    if request.method == 'POST':
-        user = authenticate(username=request.POST['username'], password=request.POST['password'])
-        if user is not None:
-            if user.is_active:
-                login(request, user)
-                # success
-                return HttpResponseRedirect('/profile/')
-            else:
-                # disabled account
-             #   return direct_to_template(request, 'inactive_account.html')
-                variables = RequestContext(request, {'form': form, 'error': True})
-                return render_to_response('login.html', variables)
-
-    else:
-        variables = RequestContext(request, {'form': form})
-        return render_to_response('registration/register_success.html', variables)
-    #        return direct_to_template(request, 'invalid_login.html')
-        
 def logout_page(request):
     logout(request)
     return HttpResponseRedirect('/')
 
 def get_enduser_for_user(user):
     if EndUser.objects.filter(user=user).count() > 0:
-        return EndUser.objects.filter(user=user)[0]
-    raise Http404('Internal error. Call brennan or emax. Something is wrong. Houston.')
-    
+        enduser = EndUser.objects.filter(user=user)[0]
+    else:
+        raise Http404('Internal error. Call brennan or emax. Something is wrong. Houston.')    
+    return enduser
+
 
 def user_page(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
-    is_friend = FriendRequest.objects.filter(
-        from_friend=request.user,
-        to_friend=user)    
+    is_friend = enduser.friends.filter(user=request.user)
     privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
     exposure = privacysettings.exposure
-
 
     if request.user.id is not enduser.user.id:
         if exposure == 'N':
@@ -407,16 +394,34 @@ def register_page(request):
     variables = RequestContext(request, {'form': form})
     return render_to_response('register.html', variables)
 
+
+
+def register_success_page(request):
+    form = LoginForm()
+    if request.method == 'POST':
+        user = authenticate(username=request.POST['username'], password=request.POST['password'])
+        if user is not None:
+            if user.is_active:
+                login(request, user)
+                # success
+                return HttpResponseRedirect('/profile/')
+            else:
+                # disabled account
+             #   return direct_to_template(request, 'inactive_account.html')
+                variables = RequestContext(request, {'form': form, 'error': True})
+                return render_to_response('login.html', variables)
+
+    else:
+        variables = RequestContext(request, {'form': form})
+        return render_to_response('registration/register_success.html', variables)
+    #        return direct_to_template(request, 'invalid_login.html')
+        
 @login_required
 def profile_save_page(request, username):
     if username != request.user.username:
         return HttpResponseRedirect('/')
     user = get_object_or_404(User, username=username)
-    if EndUser.objects.filter(user=user).count() > 0:
-        enduser = EndUser.objects.filter(user=user)[0]
-    else:
-        enduser = EndUser()
-        enduser.user = user    
+    enduser = get_enduser_for_user(user)
     friends = [friendship.to_friend for friendship in user.friend_set.all()]
 
     if request.method == 'POST':
@@ -472,8 +477,6 @@ def _profile_save(request, form):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
 
-    enduser.user.first_name = form.cleaned_data['first_name']
-    enduser.user.last_name = form.cleaned_data['last_name']
     enduser.user.email = form.cleaned_data['email']
     enduser.user.save()
 
@@ -505,19 +508,39 @@ def _profile_save(request, form):
         pass
     enduser.save()
     return user
-    
+
+@login_required
+def delete_user_page(request):
+    enduser = get_enduser_for_user(request.user)        
+
 def friends_page(request, username):
+    if username != request.user.username:
+        return HttpResponseRedirect('/')
     user = get_object_or_404(User, username=username)
-    friends = [friendship.to_friend for friendship in user.friend_set.all()]
+    if EndUser.objects.filter(user=user).count() > 0:
+        enduser = EndUser.objects.filter(user=user)[0]
+    else:
+        enduser = EndUser()
+        enduser.user = user  
+    # friends
+    friends = enduser.friends.all()
+    # awaiting approval
+    tofriend = [friendship.to_friend for friendship in user.friend_set.all()]
+    # pending friend requests
+    fromfriend = [friendship.from_friend for friendship in user.to_friend_set.all()]
     variables = RequestContext(request, {
         'username': username,
-        'friends': friends,
-        'show_user': True
+        'tofriend': tofriend,
+        'fromfriend': fromfriend,
+        'show_user': True,
+        'username': enduser.user.username,
+        'request_user': request.user,
+        'friends': friends
         })
     return render_to_response('friends_page.html', variables)
 
 @login_required
-def friend_add(request):
+def friend_add(request): # this sends a friend request to the user
     if request.GET.has_key('username'):
         friend = get_object_or_404(User, username=request.GET['username'])
         friendship = FriendRequest(
@@ -527,11 +550,11 @@ def friend_add(request):
         try:
             friendship.save()
             request.user.message_set.create(
-                message='%s was added to your friend list.' % friend.username
+                message='A friend request was sent to %s.' % friend.username
                 )
         except:
             request.user.message_set.create(
-                message='%s is already a friend of yours.' % friend.username
+                message='%s is already your friend.' % friend.username
                 )
         return HttpResponseRedirect(
             '/friends/%s/' % request.user.username
@@ -539,6 +562,39 @@ def friend_add(request):
     else:
         raise Http404('boo.')
 
+@login_required
+def friend_save(request):  # this saves the user as a friend in BOTH user's friends model
+    if request.GET.has_key('username'):
+        friend = get_object_or_404(User, username=request.GET['username'])
+        enduser = get_enduser_for_user(request.user)        
+        frienduser = get_enduser_for_user(friend)
+        try:
+            # save in each users profile
+            enduser.friends.add(frienduser)
+            enduser.friends.save()
+            # apparenly this does the trick
+            #frienduser.friends.add(enduser)
+            #frienduser.friends.save()
+        
+            friendship = FriendRequest.objects.filter(
+                from_friend=friend,
+                to_friend=request.user
+                )
+            friendship.delete()
+
+            request.user.message_set.create(
+                message='you and %s are now friends.' % friend.username
+                )
+        except:
+            request.user.message_set.create(
+                message='%s is already your friend.' % friend.username
+                )
+        
+        return HttpResponseRedirect(
+            '/friends/%s/' % request.user.username
+            )
+    else:
+        raise Http404('failz')
 @login_required
 def friend_invite(request):
     if request.method == 'POST':

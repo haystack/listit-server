@@ -127,8 +127,13 @@ input[type = radio] {
 
 ul.messages {
     border: 1px dashed #000;
-    margin: 1em 4em;
+	margin-top:50px;
+	margin-bottom:50px;
     padding: 1em;
+	font-size:1.4em;
+	width:300px;
+	margin-left:auto;
+	margin-right:auto;
 }
 
 li img {

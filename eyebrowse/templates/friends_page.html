@@ -1,28 +1,55 @@
 {% extends "base.html" %}
 {% block title %}Friends for {{ username }}{% endblock %}
 {% block imports %}
-        <script src="http://zamiang.webfactional.com/lib/js/jquery-1.3.2.min.js">
-        </script>
-        <script src="http://zamiang.webfactional.com/lib/js/jquery-ui-1.7.2.dialog.min.js">
-        </script>
-        <script src="http://zamiang.webfactional.com/lib/js/watchhome.js">
-        </script>
 {% endblock %}
-
 {% block content %}
-<div id="content">
-<h2>Friend List</h2>
+<div id="report" style="width:700px;">
+<div id="profile_content">
+<h2>friends</h2>
+<div class="viewboxprofile">
 {% if friends %}
 <ul class="friends">
 {% for friend in friends %}
+<li><a href="/user/{{ friend.user.username }}/">
+{{ friend.user.username }}</a></li>
+{% endfor %}
+</ul>
+{% else %}
+<p>you have no friends :(</p>
+{% endif %}
+</div>
+<br />
+<h2>pending friend requests</h2>
+<div class="viewboxprofile">
+{% if fromfriend %}
+<ul class="friends">
+{% for friend in fromfriend %}
+<li><a href="/user/{{ friend.username }}/">
+{{ friend.username }}</a>
+<h7><a href="/friend/save?username={{ friend.username }}">accept</a></h7>
+</li>
+{% endfor %}
+</ul>
+{% else %}
+<p>you have no pending friend requests</p>
+{% endif %}
+</div>
+<br />
+<h2>awaiting approval</h2>
+<div class="viewboxprofile">
+{% if tofriend %}
+<ul class="friends">
+{% for friend in tofriend %}
 <li><a href="/user/{{ friend.username }}/">
 {{ friend.username }}</a></li>
 {% endfor %}
 </ul>
 {% else %}
-<p>No friends found.</p>
+<p>not awaiting any friend request approvals</p>
 {% endif %}
-<a href="/friend/invite/">Invite a friend!</a>
-<h2>Latest Friend Webpaged Viewed</h2>
+</div>
+
+
+</div>
 </div>
 {% endblock %}

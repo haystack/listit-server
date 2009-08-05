@@ -387,21 +387,14 @@ jQuery(document).ready(function(){
 	<img src="/lib/img/ajax-loader.gif" class="loader" />
 	<div id="loading" class="loader"></div>
     <div id="profile">
-        {% if location %}<b>Location:</b>
-        {{ location }} 
-        <br/>
-        {% endif %}
-        {% if homepage %}<b>Website:</b>
-        {{ homepage }} 
-        <br/>
-        {% endif %}
         {% if user.username %}
         {% if is_friend %}<a href="/friends/{{ user.username }}/">{{ username }} is your friend</a>
         {% else %}{% ifequal user.username username %}
-        {% else %}<a href="/friend/add?username={{ username }}">add {{ username }} to your friends</a>
+        {% else %}<a href="/friend/add?username={{ username }}">add {{ username }} as a friend</a>
         {% endifequal %}
         {% endif %}
         {% endif %}
+
         <div id="num" style="margin-top:10px;">
             <b>total #:</b>
         </div>
@@ -411,6 +404,16 @@ jQuery(document).ready(function(){
         <div id="avgTime">
             <b>average:</b>
         </div>
+        <br />
+        {% if location %}<b>Location:</b>
+        {{ location }} 
+        <br/>
+        {% endif %}
+        {% if homepage %}<b>Website:</b>
+        {{ homepage }} 
+        <br/>
+        {% endif %}
+
         <h2>Friends</h2>
         {% if friends %}
         <ul class="friends">
@@ -497,9 +500,9 @@ jQuery(document).ready(function(){
             </div>
                 {% ifequal user.username username %}<h2>Your Top 25</h2>
                 {% else %}{% if user.username %}
-                <div style="margin-bottom:8px;">
+						<h2 style="font-size:14px;padding-top:12px;padding-bottom:12px">
                     <a href="#top10" onclick="window.viz.top()">{{ username}}'s top 25</a>&nbsp; &#124; &nbsp;<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp; &#124; &nbsp;<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a>
-                </div>
+							</h2>
             </div>
             {% else %}<h2>{{ username}}'s top 25</h2>
             {% endif %}

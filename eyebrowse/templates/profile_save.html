@@ -34,7 +34,7 @@
 			    html = "<ul >";
                 html += "<li>";
                 html += "<h6><b><a href=\"http://" + newData[i].entity.id + "\">" + newData[i].title + "</a></b></h6>";
-				html += "<a style=\"float:right; margin-right:6px; margin-left:6px;\" href=\"http://localhost:8000/delete_url_entry/{{ user.username }}?input=" + newData[i].title + "\"><img src=\"/lib/img/cancel_16.png\"/></a>";
+				html += "<a style=\"float:right; margin-right:6px; margin-left:6px;\" href=\"http://localhost:8000/delete_url_entry/{{ user.username }}?input=" + newData[i].title + "><img src=\"/lib/img/cancel_16.png\"/></a>";
                 html += "<h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
                 html += "</li>";
                 html += "</ul>";
@@ -105,6 +105,11 @@ jQuery(document).ready(function(){
 {% block content %}
 <div id="report">
     <div id="profile_edit">
+<a href="/friends/{{ user.username }}/">view all your friends</a> <br />				
+	    <a href="/friend/invite/">Invite a friend!</a>
+        <br/>
+        <a href="/settings/{{ user.username }}/">edit your privacy settings</a>
+
         <h2>Edit Your Profile</h2>
         {% include 'profile_save_form.html' %}
         <br/>
@@ -121,9 +126,7 @@ jQuery(document).ready(function(){
         <p style="padding:8px">
             you have no friends :(
         </p>
-        {% endif %}<a href="/friend/invite/">Invite a friend!</a>
-        <br/>
-        <a href="/settings/{{ user.username }}/">edit your privacy settings</a>
+        {% endif %}
     </div>
     <div id="profile_content" style="margin-left:230px; float:none;">
         <img src="/uploads/{{ user.id }}.jpg"  class="profileimage"/>

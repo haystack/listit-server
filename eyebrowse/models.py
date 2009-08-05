@@ -48,7 +48,7 @@ class EndUser(models.Model):
         return '%s enduser' % (self.user.username)
 
 class PrivacySettings(models.Model):
-    user = models.ForeignKey(User,unique=True,primary_key=True)
+    user = models.ForeignKey(User, unique=True, primary_key=True)
     whitelist = models.TextField(blank=True, null=True)
     blacklist = models.TextField(blank=True, null=True)    
     listmode = models.CharField(max_length=1, choices=LOGGING_LIST_MODE, default="B")
