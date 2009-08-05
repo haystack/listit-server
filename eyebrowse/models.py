@@ -91,8 +91,12 @@ class Page(models.Model):
 class PageView(models.Model):    
     user = models.ForeignKey(EndUser)
     page = models.ForeignKey(Page)
-    startTime = models.DateTimeField()
-    endTime = models.DateTimeField()
+    duration = models.DecimalField(max_digits=14, decimal_places=0)
+    startTime = models.DecimalField(max_digits=14, decimal_places=0)
+    endTime = models.DecimalField(max_digits=14, decimal_places=0)
+# destroy these on next syncdb
+#    startTime = models.DateTimeField()
+#    endTime = models.DateTimeField()
 
 #for color labeling of visualizations
 class ColorPair(models.Model):

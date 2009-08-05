@@ -21,7 +21,7 @@
             this.timeZoneCorrect = timeZoneCorrect;
             this.endDate = new Date(endTime);
             this.startDate = new Date(this.endDate.valueOf() - day);
-            this.now = new Date(new Date().valueOf() + this.timeZoneCorrect);
+            this.now = new Date().valueOf() + this.timeZoneCorrect);
             this.endTime = this.endDate.valueOf();
             this.startTime = this.startDate.valueOf();
             this.OGendTime = this.endDate.valueOf();
