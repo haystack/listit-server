@@ -30,17 +30,35 @@
             var newData = data;
             var html = "";
 			jQuery("#latestlist").html(html);
-            for (var i = 0; i < newData.length; i++) {
-			    html = "<ul >";
-                html += "<li>";
-                html += "<h6><b><a href=\"http://" + newData[i].entity.id + "\">" + newData[i].title + "</a></b></h6>";
-				html += "<a style=\"float:right; margin-right:6px; margin-left:6px;\" href=\"http://localhost:8000/delete_url_entry/{{ user.username }}?input=" + newData[i].title + "><img src=\"/lib/img/cancel_16.png\"/></a>";
+			html = "<ul >";
+            for (var i = newData.length - 1; i > 0; i--) {
+                html += "<li id=\"url" + i +  "\">";
+                html += "<h6><b><a href=\"" + newData[i].entity.id + "\">" + newData[i].title + "</a></b></h6>";
+				html += "<a href=\"javascript:self.viz.deletePage('" + newData[i].url + "','" + i + "');\" style=\"float:right; margin-right:6px; margin-left:6px;\" >";
+				html += "<img src=\"/lib/img/cancel_16.png\" /></a>";
                 html += "<h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
                 html += "</li>";
-                html += "</ul>";
-				jQuery("#latestlist").prepend(html);
 			}
+            html += "</ul>";
+			jQuery("#latestlist").append(html);
         },
+		deletePage: function(pageURL, num){
+			try {
+				jQuery.post("http://localhost:8000/delete_url_entry/", {
+							   'URL': "" + pageURL
+						   }, function(data){							   
+							   if (data.code == 200) {
+								   jQuery("\#url" + num).hide("slow");
+							   }
+							   else {
+								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							   }
+						   }, "json");
+            } 
+            catch (e) {
+                console.log(e);
+            }			
+		},
         getLatestPages: function(startTime, endTime){
             this_ = this;
             try {

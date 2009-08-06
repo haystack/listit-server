@@ -866,7 +866,7 @@ var statusFactory = ({
 								 }
 								 ctx.closePath();
 							 }
-
+							 
 							 if (!(this_.pIH) && this_.trigger) {
 								 this_.trigger = false;
 								 this_.viz.highlight = "booo";
@@ -959,7 +959,6 @@ var statusFactory = ({
 								 this_.widthArray[i] = (this_.windowWidth * ((this_.data[i].end - this_.startTime) / (this_.endTime - this_.startTime))) - this_.startPointArray[i];
 								 this_.polyArray[i] = rectToPoly({xPos: this_.startPointArray[i], yPos: this_.marginTop, width: this_.widthArray[i], height: this_.height});
 							 }
-
 							 this_.poly = rectToPoly({
 														 xPos: this_.xOffset,
 														 yPos: this_.marginTop - this_.yOffset,

@@ -63,7 +63,7 @@ urlpatterns = patterns('',
                        (r'^add_privacy_url/(\w+)$', add_privacy_url),
                        (r'^get_privacy_urls/(\w+)$', get_privacy_urls),
                        (r'^delete_privacy_url/(\w+)$', delete_privacy_url),
-
+                       (r'^delete_url_entry/$', delete_url_entry),
                        
                        # home
                        (r'^help/$', help),

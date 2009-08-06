@@ -21,7 +21,7 @@
             this.timeZoneCorrect = timeZoneCorrect;
             this.endDate = new Date(endTime);
             this.startDate = new Date(this.endDate.valueOf() - day);
-            this.now = new Date().valueOf() + this.timeZoneCorrect);
+            this.now = new Date().valueOf() + this.timeZoneCorrect;
             this.endTime = this.endDate.valueOf();
             this.startTime = this.startDate.valueOf();
             this.OGendTime = this.endDate.valueOf();
@@ -30,12 +30,14 @@
             this.drawArray = [];
             
             this.newData = function getViews(startTime, endTime, viz){
-                // uses the django model get_views to return www viewed events between start and end times
+				jQuery("#loadimg1").show();
                 try {
+
                     jQuery.get("http://localhost:8000/get_views_user/{{ username }}/", {
                         from: startTime,
                         to: endTime
                     }, function(data){
+						jQuery("#loadimg1").hide();
                         if (data.code == 200) {
                             createTheWorld(data.results, startTime, endTime, viz);
                         }
@@ -91,7 +93,7 @@
             this.draw();
         },
         draw: function(){
-            if (this.canvas !== undefined && this.canvas.getContext) {
+			if (this.canvas !== undefined && this.canvas.getContext) {
                 var ctx = this.canvas.getContext('2d');
                 ctx.clearRect(0, 0, this.windowWidth, this.windowHeight);
                 for (var i = 0; i < this.drawArray.length; i++) {
@@ -158,6 +160,7 @@
 </script>
 {% endblock %}
 {% block content %}
+	<div class="loader" id="loadimg1"></div>
 <div id="dayHeading">
     <div class="centerLabel">
     </div>

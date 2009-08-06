@@ -13,7 +13,7 @@ body {
 ul {
     list-style-type: none;
     padding: 0;
-    margin-top: 10px;
+    margin-top: 0px;
 }
 
 h1 {
@@ -221,8 +221,7 @@ a.selected {
 	font-weight:bold;
 } .viewboxprofile li{
 	border-bottom:1px solid lightgrey;
-	padding-bottom:2px;
-	margin-top:-6px;
+	 padding:3px;
 } .viewboxlarge {
     width: 700px;
     margin-left: 11px;
@@ -419,11 +418,13 @@ a.selected {
     margin-left: auto;
     margin-right: auto;
 	margin-bottom:20px;
+	margin-top:40px;
 	display: block;
     font-size: 1.47em;
     cursor: pointer;
     font-weight: normal;
     border: 1px double black;
+	background:#ffffff;
 } #signIn {
     text-decoration: underline;
     display: inline-block;
@@ -532,6 +533,7 @@ a.selected {
     text-align: left;
     padding: 12px;
     padding-top: 2px;
+	background-image:url("/lib/img/80_percent.png");	
 } #profile_content .thumb {
     height: 14px;
     width: 14px;
@@ -548,8 +550,9 @@ a.selected {
     margin-top: -17px;
 } #profile_content a{
 	 color:#111111;
+} #profile_content li{
+	 
 }
-
 #profile_content h1 a{
 	font-weight:bold;
 }#profile_content h2 {
@@ -571,7 +574,8 @@ a.selected {
 	width:310px;
 	display:inline-block; 
 	margin-bottom:20px; 
-	margin-left:20px; 
+	margin-left:10px; 
+	margin-top:20px;
 	font-size:14px;
 }
 
@@ -654,9 +658,9 @@ a.selected {
     display: inline-block;
     width: 320px;
 } .logo {
-    padding-top: 8px;
+    padding-top: 28px;
 	padding-bottom:20px;
-	margin-left:0px;
+	margin-left:12px;
 	width:330px;
 } .underuser {
     display: inline-block;
@@ -733,6 +737,14 @@ a.selected {
 	height:30px;
 	display:none;
 	margin-top:10px;
-	margin-left:10px;
-/*	background-image:url("/lib/img/ajax-loader.gif"); seems to make everythign super slow*/
+	margin-left:30px;
+	background-image:url("/lib/img/ajax-loader.gif");
+} #background {
+	filter:alpha(opacity=40); 
+   -moz-opacity: 0.4; 
+   opacity: 0.4; 
+   position: absolute;
+   top:22px;
+   left:0px;
+   z-index:-1;
 }

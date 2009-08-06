@@ -22,7 +22,6 @@ def privacy_settings_page(request, username):
     if username != request.user.username:
         return HttpResponseRedirect('/')
     user = get_object_or_404(User, username=username)
-
     privacysettings = user.privacysettings_set.all()[0] ## ?
 
     listmode = privacysettings.listmode
@@ -186,11 +185,10 @@ def terms(request):
 def list(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
-    is_friend = FriendRequest.objects.filter(
-        from_friend=request.user,
-        to_friend=user)    
+    is_friend = enduser.friends.filter(user=request.user)
     privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
     exposure = privacysettings.exposure
+    request_user = request.user.username
 
     if request.user.id is not enduser.user.id:
         if exposure == 'N':
@@ -206,27 +204,8 @@ def list(request, username):
 
 def day(request, username):
     user = get_object_or_404(User, username=username)
-    print user
-
-    user = get_object_or_404(User, username=username)
-    if EndUser.objects.filter(user=user).count() > 0:
-        enduser = EndUser.objects.filter(user=user)[0]
-    else:
-        enduser = EndUser()
-        enduser.user = user
-    privacysettings = enduser.user.privacysettings_set.all()[0] ## ?    
-    print privacysettings
-
-    dir(User.objects.all()[0])
-
-    print enduser.user.username
-    #enduser = get_enduser_for_user(user)
-
-    print enduser
-
-    is_friend = FriendRequest.objects.filter(
-        from_friend=request.user,
-        to_friend=user)    
+    enduser = get_enduser_for_user(user)
+    is_friend = enduser.friends.filter(user=request.user)
     privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
     exposure = privacysettings.exposure
     request_user = request.user.username
@@ -246,9 +225,7 @@ def day(request, username):
 def report(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
-    is_friend = FriendRequest.objects.filter(
-        from_friend=request.user,
-        to_friend=user)    
+    is_friend = enduser.friends.filter(user=request.user)
     privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
     exposure = privacysettings.exposure
     request_user = request.user.username
@@ -268,9 +245,7 @@ def report(request, username):
 def graph(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
-    is_friend = FriendRequest.objects.filter(
-        from_friend=request.user,
-        to_friend=user)    
+    is_friend = enduser.friends.filter(user=request.user)
     privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
     exposure = privacysettings.exposure
     request_user = request.user.username
@@ -341,6 +316,15 @@ def user_page(request, username):
         })
     return render_to_response('user_page.html', variables)
 
+def create_enduser_for_user(user):
+    enduser = EndUser()
+    enduser.user = user
+    enduser.save()
+    privacysettings = PrivacySettings()
+    privacysettings.user = user
+    privacysettings.save()
+
+
 def register_page(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
@@ -350,12 +334,7 @@ def register_page(request):
                 password=form.cleaned_data['password1'],
                 email=form.cleaned_data['email']
                 )
-            enduser = EndUser()
-            enduser.user = user  
-            enduser.save()
-            privacysettings = PrivacySettings()
-            privacysettings.user = user
-            privacysettings.save()
+            create_enduser_for_user(user)
             if 'invitation' in request.session:
                 # Retrieve the invitation object.
                 invitation = Invitation.objects.get(id=request.session['invitation'])
@@ -510,18 +489,26 @@ def _profile_save(request, form):
     return user
 
 @login_required
-def delete_user_page(request):
+def delete_url_entry(request):
     enduser = get_enduser_for_user(request.user)        
+
+    inputURL = request.POST['URL'].strip()
+    #inputPage = Page.objects.filter(url=inputURL)
+    #url_entry = PageView.objects.filter(user=enduser.user.username).filter(page=inputPage)
+    url_entry = Event.objects.filter(owner=enduser.user,type="www-viewed",entityid=inputURL)
+
+    for url in url_entry:
+        url.delete()
+
+    return json_response({ "code":200 });
+
 
 def friends_page(request, username):
     if username != request.user.username:
         return HttpResponseRedirect('/')
     user = get_object_or_404(User, username=username)
-    if EndUser.objects.filter(user=user).count() > 0:
-        enduser = EndUser.objects.filter(user=user)[0]
-    else:
-        enduser = EndUser()
-        enduser.user = user  
+    enduser = get_enduser_for_user(user)
+
     # friends
     friends = enduser.friends.all()
     # awaiting approval
@@ -692,6 +679,7 @@ def _unpack_times(request):
 
 def _get_top_n(user,start,end):
     time_per_host = _get_time_per_page(user,start,end,grouped_by=EVENT_SELECTORS.Host)
+    print time_per_host
     ordered_visits = [h for h in time_per_host.iteritems()]
     ordered_visits.sort(lambda u1,u2: int(u2[1] - u1[1]))
     return ordered_visits    
@@ -838,12 +826,16 @@ def get_top_hosts_comparison(request, username, n):
     
 def get_top_urls(request, n):
     user = User.objects.all();
-    user = user[0] ## again this is fail not sure how to iterate through the users esp if they have not logged anything
+    user = get_object_or_404(User, username="zamiang") # this is a user object
+    ## not sure how to iterate through the users and run averages on them?
+    print user.user.username
+
     n = int(n)
     first_start,first_end,second_start,second_end = _unpack_times(request)
     times_per_url_first = _get_top_n(user,first_start,first_end)
+    print times_per_url_first
     times_per_url_second = _get_top_n(user,second_start,second_end)
-    
+
     def index_of(what, where):
         try:
             return [ h[0] for h in where ].index(what)
