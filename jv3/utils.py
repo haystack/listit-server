@@ -183,16 +183,16 @@ def get_consenting_users_old(userset=None,newerthan=time.mktime(datetime.date(20
             (newerthan is None or float(get_newest_registration_for_user_by_email(u.email).when) > newerthan)]
 
 study_2_point = 1249099200000 ## 1249099200000 = august 1 2009
-def is_consenting_study_1(user):
+def is_consenting_study1(user):
     ## accurate.
     last_consent=UserRegistration.objects.filter(email=user.email).order_by("-when")[0]
-    return last_consent.couhes && last_consent.when < study_2_point
+    return last_consent.couhes and last_consent.when < study_2_point
 
-def is_consenting_study_2(user):
+def is_consenting_study2(user):
     last_consent=UserRegistration.objects.filter(email=user.email).order_by("-when")[0]
-    return last_consent.couhes && last_consent.when > study_2_point
+    return last_consent.couhes and last_consent.when > study_2_point
 
-def set_consenting(user,is_consenting,first_name=first_name,last_name=last_name,signed_date=long(time.mktime(datetime.datetime.now())*1000)):
+def set_consenting(user,is_consenting):
     ## clones a userreg
     regs = UserRegistration.objects.filter(email=user.email).order_by("-when")[0]
     clone = regs.clone()
@@ -262,7 +262,6 @@ def get_note_by_email_and_jid(email,jid):
         return None
     return n[0]
 
-
 def levenshtein(a,b):
     "Calculates the Levenshtein distance between a and b."
     n, m = len(a), len(b)
@@ -300,5 +299,19 @@ def actlogfix(dirname,server):
     return "\n".join(results)
 
 
-                     
-        
+def make_fake_reg_for_admin_user(email,couhes):
+    if UserRegistration.objects.filter(email=email).count() > 0:
+        return    
+    user = authmodels.User.objects.filter(email=email)[0]    
+    ureg = UserRegistration();
+    ureg.when = current_time_decimal();
+    ureg.email = user.email;
+    ureg.password = user.password;  ## WARNING this is a hashed password
+
+    ## couhes handling: couhes requires first & last name 
+    ureg.couhes = couhes
+
+    ## print "user couhes is %s " % repr(type(user.couhes))
+    ureg.cookie = gen_cookie();
+    ureg.save();
+    

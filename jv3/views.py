@@ -14,7 +14,7 @@ from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note, NoteForm
 import jv3.utils
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport
-from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username, get_user_by_email, is_consenting, json_response
+from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username, get_user_by_email, is_consenting_study1, is_consenting_study2, json_response
 import time
 from django.template.loader import get_template
 import sys
@@ -264,7 +264,7 @@ def login(request):
     resp.status_code = 200;
     return resp
 
-def set_consenting(request):
+def set_consenting_view(request):
     request_user = basicauth_get_user_by_emailaddr(request)
     if not request_user:
         resp = json_response({"code":401,'autherror':"Incorrect user/password combination"})
