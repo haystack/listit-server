@@ -5,7 +5,7 @@ from django_restapi.responder import *
 from django_restapi.receiver import *
 from jv3.models import SPO, SPOForm, Note, NoteForm, ActivityLog
 from jv3.views import SPOCollection, NoteCollection, ActivityLogCollection, userexists, createuser, confirmuser, submit_bug_report, reconsent, login
-from jv3.views import changepassword, changepassword_request, changepassword_confirm, notes_post_multi
+from jv3.views import changepassword, changepassword_request, changepassword_confirm, notes_post_multi, set_consenting
 from django_restapi.authentication import HttpBasicAuthentication, HttpDigestAuthentication, djangouser_auth
 from jv3.views import get_survey, post_survey, done_survey
 from django.conf import settings
@@ -125,7 +125,7 @@ urlpatterns = patterns('server.jv3.views.',
     (r'^createuser/$', createuser), ## POST
     (r'^confirmuser$', confirmuser),
 
-    (r'^reconsent$', reconsent),
+
     
     (r'^changepasswordrequest', changepassword_request), ## GET
     (r'^changepasswordconfirm', changepassword_confirm), ## GET
@@ -135,6 +135,10 @@ urlpatterns = patterns('server.jv3.views.',
     (r'^get_survey$', get_survey), ## POST
     (r'^post_survey/$', post_survey), ## POST
     (r'^done_survey/$', done_survey), ## POST
+
+    (r'^set_consenting/$', set_consenting),
+                       
+    ##(r'^reconsent$', reconsent),                       
     #(r'^login$', 'django.contrib.auth.views.login', {'template_name': 'jv3/login.html', 'module_name':'jv3'}),
     #(r'^login$', login_view),                       
 )

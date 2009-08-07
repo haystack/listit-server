@@ -161,6 +161,8 @@ def decode_emailaddr(request):
         return decoded[0]
     return None
 
+def json_response(dict_obj):
+    return HttpResponse(JSONEncoder().encode(dict_obj), "text/json")
 
 USERNAME_MAXCHARS = 30
 
@@ -180,18 +182,38 @@ def get_consenting_users_old(userset=None,newerthan=time.mktime(datetime.date(20
             get_newest_registration_for_user_by_email(u.email).couhes and
             (newerthan is None or float(get_newest_registration_for_user_by_email(u.email).when) > newerthan)]
 
-def get_consenting_users(userset=None,newerthan=time.mktime(datetime.date(2008,9,1).timetuple())*1000):
+study_2_point = 1249099200000 ## 1249099200000 = august 1 2009
+def is_consenting_study_1(user):
+    ## accurate.
+    last_consent=UserRegistration.objects.filter(email=user.email).order_by("-when")[0]
+    return last_consent.couhes && last_consent.when < study_2_point
+
+def is_consenting_study_2(user):
+    last_consent=UserRegistration.objects.filter(email=user.email).order_by("-when")[0]
+    return last_consent.couhes && last_consent.when > study_2_point
+
+def set_consenting(user,is_consenting,first_name=first_name,last_name=last_name,signed_date=long(time.mktime(datetime.datetime.now())*1000)):
+    ## clones a userreg
+    regs = UserRegistration.objects.filter(email=user.email).order_by("-when")[0]
+    clone = regs.clone()
+    clone.when = current_time_decimal()
+    clone.couhes = is_consenting
+    clone.save()        
+
+def get_consenting_users(userset=None,newerthan=long(time.mktime(datetime.date(2008,9,1).timetuple())*1000)):
     ## gets users who have in their most _recent_ consent agreed to couhes
     if newerthan is None: newerthan = 0
     # this could be done more easily if we had group_by
     # select pk,max(when),email where couhes="true" from UserRegistration group by email
-    newerthan = Decimal("%d"%newerthan)
+    print "%s %ld" % (type(newerthan),newerthan)
+    newerthan = Decimal("%ld" % newerthan)
+    print newerthan
     # UserRegistration.objects.extra(select={'unique_latest': 'select id,max(when),email,couhes where couhes="true" from jv3_userregistration group by email'});
 
     if userset == None:
         consented_at_some_time = list(set([ro.email for ro in UserRegistration.objects.filter(couhes=True,when__gt=newerthan)]))
     else:
-        emails = [n.email for u in userset]
+        emails = [u.email for u in userset]
         consented_at_some_time = list(set([ro.email for ro in UserRegistration.objects.filter(couhes=True,email__in=emails,when__gt=newerthan)]))
     
     ## prune this set for users that didn't consent their second time and for those not in userset

@@ -14,7 +14,7 @@ from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note, NoteForm
 import jv3.utils
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport
-from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username, get_user_by_email
+from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username, get_user_by_email, is_consenting, json_response
 import time
 from django.template.loader import get_template
 import sys
@@ -257,12 +257,24 @@ def userexists(request):
 def login(request):
     request_user = basicauth_get_user_by_emailaddr(request);
     if not request_user:
-        response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
-        response.status_code = 401;
-        return response
-    response = HttpResponse("User exists", "text/html");
-    response.status_code = 200;
-    return response    
+        resp = json_response({"code":401,'autherror':"Incorrect user/password combination"})
+        resp.status_code = 401;
+        return resp
+    resp = json_response({"code":200,"study1":is_consenting_study1(request_user),"study2":is_consenting_study2(request_user)})
+    resp.status_code = 200;
+    return resp
+
+def set_consenting(request):
+    request_user = basicauth_get_user_by_emailaddr(request)
+    if not request_user:
+        resp = json_response({"code":401,'autherror':"Incorrect user/password combination"})
+        resp.status_code = 401;
+        return resp
+    value = request.POST['consenting']    
+    set_consenting(request_user,value)
+    resp = json_response({"code":200})
+    resp.status_code = 200;
+    return resp
 
 def createuser(request):
     email = request.POST['username'];
@@ -338,6 +350,9 @@ def confirmuser(request):
     logevent(request,'confirmuser',405,request)
     return response
 
+
+
+## this method was used in an email sent out by initial study long ago --
 def reconsent(request):
     email = request.GET['email']
     newest_registration  = get_most_recent(UserRegistration.objects.filter(email__iexact=email))
@@ -353,6 +368,7 @@ def reconsent(request):
     response.status_code = 500;
     logevent(request,'reconsent',500,request)
     return response
+##
                            
 
 def changepassword_request(request): ## GET view, parameter username

@@ -110,6 +110,17 @@ class UserRegistration(models.Model):
         import utils
         return unicode('[%s] - %s - %s: %s %s' % (utils.decimal_time_to_str(self.when),self.username,repr(self.couhes),repr(self.first_name),repr(self.last_name)))
     
+    def clone(self):
+        ur = UserRegistration()
+        ur.when = self.when
+        ur.username = self.username
+        ur.password = self.password
+        ur.cookie = self.cookie
+        ur.first_name = self.first_name
+        ur.last_name = self.last_name
+        ur.couhes = self.couhes
+        return ur
+    
 try:
     admin.site.register(UserRegistration)
 except sites.AlreadyRegistered,r:
