@@ -22,12 +22,38 @@
 			this.windowHeight = height;
 			this.windowWidth = width;
 
-            //  this.getTopUsers(this.startTime, this.endTime);
+            this.getTopUsers(this.startTime, this.endTime, 10);
             this.getRecentPages(10, 3600000);
 			// I want to pass graph data the top user and have it run the function for the top user that would be super
 			this.getGraphData(this.startTime, this.endTime);	
         },
-		drawBG: function(data, startTime, endTime){
+		getTopUsers: function(startTime, endTime, num){
+            var this_ = this;
+			jQuery("#loadimg").show();
+			jQuery.get("http://localhost:8000/get_top_users/10/", {
+						   from: this_.startTime,
+						   to: this_.endTime,
+						   num: num
+					   }, function(data){
+						   jQuery("#loadimg").hide();
+						   if (data.code == 200) {
+							   var newData = data.results;
+							   for (var i = 0; i < newData.length; i++) {
+								   var html = "";
+								   html += "<li>";
+								   html += "<h6><b><a href=\"/user/" + newData[i].user +  "/\">" + newData[i].user + "</a></b></h6>";
+								   html += "<br /><h7>" + newData[i].number + " webpages</h7>";
+								   html += "</li>";
+								   jQuery("#topusers").prepend(html);
+								   jQuery(".listItemSmall:first").slideDown("slow");
+							   }
+						   }
+						   else {
+							   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+						   }
+					   }, "json");	
+		},
+		drawBG: function(data, startTime, endTime, viz){
 			var this_ = this;
 			var newData = data;
 			var newStartTime = startTime;
@@ -43,15 +69,16 @@
 			document.getElementById("bgcanvas").setAttribute("width", bg.windowWidth - 10);
 			document.getElementById("bgcanvas").setAttribute("height",bg.windowHeight - 10);
 			
-			bg.startTime = newStartTime;
-			bg.endTime = newEndTime;
 			for (var i = 0; i < (zoom / hour); i++) {
                 var fooData = newData.filter(function(view){
 												 if (view.end < (newEndTime - (hour * i)) && (view.start > (newEndTime - hour - (hour * i)))) {
 													 return view;
 												 }
 											 });
-                wwwBarsArray[i] = newify(statusFactory, bg, {
+                wwwBarsArray[i] = newify(statusFactory, viz, {
+											 canvas: bg.canvas,
+											 windowHeight: bg.windowHeight,
+											 windowWidth: bg.windowWidth,
 											 startTime: newEndTime - hour - (hour * i),
 											 endTime: newEndTime - (hour * i),
 											 xOffset: 0,
@@ -60,9 +87,11 @@
 											 height: 20,
 											 color: "#0000ff",
 											 staticStatic: true,
-											 data: fooData
-										 });
+											 data: fooData,
+											 noHover: true
+										 });				
             }
+			return wwwBarsArray;
 		},
 		getGraphData: function(startTime, endTime){
 			var this_ = this;
@@ -71,7 +100,7 @@
                            to: endTime
                        }, function(data){
                            if (data.code == 200) {
-							   this_.drawBG(data.results, startTime, endTime);
+							  // this_.drawBG(data.results, startTime, endTime);
                                this_.drawMiniGraph(data.results);
                            }						   
                        }, "json");
@@ -82,7 +111,7 @@
 			this_.drawArray = [];
 			this_.statusArray = [];
 			this_.graphArray = [];
-            var wwwBars = newify(statusFactory, this, {
+            var wwwBars = newify(statusFactory, this_, {
 									 startTime: this_.startTime,
 									 endTime: this_.endTime,
 									 xOffset: 0,
@@ -96,6 +125,10 @@
 									 fooTxtX: 400
 								 });
 			this_.statusArray.push(wwwBars);
+
+			var bgStatusArray = this_.drawBG(newData, this_.startTime, this_.endTime, this_);
+			this_.statusArray = this_.statusArray.concat(bgStatusArray);
+
             var interpNum = 100; // ALARM yea this is number of points on graph
             // fix this. it should be dynamic or a variable
             var interp = (this_.endTime - this_.startTime) / interpNum;
@@ -220,56 +253,55 @@ jQuery(document).ready(function(){
 </script>
 {% endblock %}
 {% block content %}
-<div class="loader" id="loadimg"></div>
-<div id="background">
-  <canvas id="bgcanvas"></canvas>
+<div class="loader" id="loadimg">
 </div>
-    <div id="profile_content" style="margin-top:0px; margin-left:auto;margin-right:auto;">
-        <div class="logo">
-          <img src="lib/img/eyebrowse_08.jpg" />
-        </div>
-		<h1 style="font-size:28px; margin-left:10px;">record and visualize your web browsing activity</h1>
-        <h4>
-            eyebrowse is a firefox plugin that records and visualizes your web browsing activity so you can notice trends, self reflect and compare with your friends.
-        </h4>
-        <h4 style="margin-left:55px;">
-            Using this plugin will help researchers better understand how people use the web so we can build better tools. Your information is recorded for research use only.
-        </h4>
-
-        <div id="signUpFormContainer">
-            <div id="signUpForm">
-                <div id="bodytext">We will only contact you about critical updates and not disclose your address to anyone outside our research group.</div>
-                <p id="validateTips" style="margin-top:8px; margin-bottom:-10px;">
-                    All form fields are required.
-                </p>
-                <fieldset>
-                    <form method="post" action=".">
-                        {{ form.as_p }}<input type="submit" value="register" id="registerSubmit" style="margin-top:10px;"/>
-                    </form>
-                </fieldset>
-                <div class="subhead" style="font-size:1em; margin-top:-8px; margin-bottom:10px;">
-                    by registering you agree to the <a href="/terms/" style="font-size:1em">terms and conditions and data use policies</a>
-                </div>
+<div id="background">
+    <canvas id="bgcanvas">
+    </canvas>
+</div>
+<div id="profile_content" style="margin-top:0px; margin-left:auto;margin-right:auto;">
+    <div class="logo">
+        <img src="lib/img/eyebrowse_14.png" />
+    </div><h1 style="font-size:28px; margin-left:10px;">record and visualize your web browsing activity</h1>
+    <h4>eyebrowse is a firefox plugin that records and visualizes your web browsing activity so you can notice trends, self reflect and compare with your friends.</h4>
+    <h4 style="margin-left:55px;">Using this plugin will help researchers better understand how people use the web so we can build better tools. Your information is recorded for research use only.</h4>
+    <div id="signUpFormContainer">
+        <div id="signUpForm">
+            <div id="bodytext">
+                We will only contact you about critical updates and not disclose your address to anyone outside our research group.
+            </div>
+            <p id="validateTips" style="margin-top:8px; margin-bottom:-10px;">
+                All form fields are required.
+            </p>
+            <fieldset>
+                <form method="post" action=".">
+                    {{ form.as_p }}<input type="submit" value="register" id="registerSubmit" style="margin-top:10px;"/>
+                </form>
+            </fieldset>
+            <div class="subhead" style="font-size:1em; margin-top:-8px; margin-bottom:10px;">
+                by registering you agree to the <a href="/terms/" style="font-size:1em">terms and conditions and data use policies</a>
             </div>
         </div>
-        <div id="messageSent">
-            thanks for registering!
+    </div>
+    <div id="messageSent">
+        thanks for registering!
+    </div>
+    <div id="signUpLink">
+        Get Started
+    </div>
+    <canvas id="main" style="padding:0px;margin:0px;">
+    </canvas>
+    <div class="leftcolumn" style="width:340px;">
+        <h2>now</h2>
+        <div class="viewboxhome" id="latestviews">
         </div>
-        <div id="signUpLink">
-            Get Started
+    </div>
+    <div class="rightcolumn" style="width:340px; vertical-align:top">
+        <h2>top users</h2>
+        <div class="viewboxhome" id="topusers">
         </div>
-		<canvas id="main" style="padding:0px;margin:0px;"></canvas>
-        <div class="leftcolumn" style="width:340px;">
-            <h2>now</h2>
-            <div class="viewboxhome" id="latestviews">
-            </div>
-        </div>
-        <div class="rightcolumn" style="width:340px; vertical-align:top">
-            <h2>top users</h2>
-            <div class="viewboxhome" id="topusers">
-            </div>
-        </div>
+    </div>
+</div>
 <div class="fooTxt" id="fooTxt">
 </div>
-
 {% endblock %}

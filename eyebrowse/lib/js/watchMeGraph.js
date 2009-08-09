@@ -203,23 +203,64 @@ var dateSlider = ({
 
 						  ctx.font = "0.8pt helvetiker";
 
-						  // dates
+						  // there should be a way to combine the next 3 functions
+						  // TODO make that happen				  
+ 						  // dates
+						  ctx.beginPath();
 						  ctx.lineWidth = 1;
 						  ctx.strokeStyle = "#0f0f0f";
 						  var fooHour = 0;
-						  var fooDateVal = ((Math.floor(this_.endTime / (this_.viz.zoom / 14))) * (this_.viz.zoom / 14));
-						  for (var hourCount = 0; hourCount < 14; hourCount++) {
-							  var dayText = new Date(fooDateVal - fooHour);
-							  var q = this_.windowWidth * ((fooDateVal - fooHour - this_.startDate) / (this_.endDate - this_.startDate));
-							  ctx.beginPath();
-							  ctx.moveTo(q, this_.windowHeight - this_.padding + 18);
-							  ctx.lineTo(q, this_.windowHeight - this_.padding + 22);
-							  ctx.closePath();
-							  ctx.stroke();
+						  var numHrs = 7;
+						  //console.log(this_.endTime);
+						  var endDateVal = (Math.floor((this_.endTime / (this_.viz.zoom / numHrs))) * (this_.viz.zoom / numHrs)) + 1800000; 
+						  
+						  for (var hrCount = 0; hrCount < numHrs; hrCount++) {
+							  var dayText = new Date(endDateVal +  86400000- fooHour);
+							  var q = this_.windowWidth * ((endDateVal - fooHour - this_.startDate) / (this_.endDate - this_.startDate));
 							  ctx.fillStyle = "#999999";
-							  ctx.fillText(dayText.format('mmmm d h:MM TT'), q + 10, this_.windowHeight - this_.padding + 25);
-							  fooHour += (this_.viz.zoom / 14);
+							  ctx.fillText(dayText.format('mmmm d'), q + 6, this_.windowHeight - this_.padding + 27);
+							  ctx.beginPath();
+							  ctx.fillStyle = "#333333";
+							  ctx.arc(q,this_.windowHeight - this_.padding + 22,1.5,0,Math.PI*2,true);
+							  ctx.fill();
+							  ctx.closePath();
+							  
+							  fooHour += (this_.viz.zoom / numHrs);
 						  }
+						  ctx.closePath();
+
+						  // lines for each 12 hrs
+						  ctx.beginPath();
+						  ctx.fillStyle = "#666666";
+						  fooHour = 0;
+						  numHrs = 14;
+						  endDateVal = (Math.floor((this_.endTime / (this_.viz.zoom / numHrs))) * (this_.viz.zoom / numHrs)) + 1800000; 						  
+						  // not sure why i have to subtract this but it ensures that the dates are on a 12 hr scale						  
+						  for (hrCount = 0; hrCount < numHrs; hrCount++) {
+							  var dayText = new Date(endDateVal - fooHour);
+							  var q = this_.windowWidth * ((endDateVal - fooHour - this_.startDate) / (this_.endDate - this_.startDate));
+							  ctx.fillStyle = "#000000";
+							  ctx.fillRect(q, this_.windowHeight - this_.padding + 2, 1.5, 6);							  
+							  fooHour += (this_.viz.zoom / numHrs);
+						  }
+						  ctx.closePath();
+
+
+						  // lines for each hour
+						  ctx.beginPath();
+						  ctx.fillStyle = "#666666";
+						  fooHour = 0;
+						  numHrs = this_.viz.zoom/3600000;
+						  endDateVal = (Math.floor((this_.endTime / (this_.viz.zoom / numHrs))) * (this_.viz.zoom / numHrs)) + 1800000; 						  
+						  // not sure why i have to subtract this but it ensures that the dates are on a 12 hr scale
+						  for (hrCount = 0; hrCount < numHrs + 24; hrCount++) {
+							  var dayText = new Date(endDateVal - fooHour);
+							  var q = this_.windowWidth * ((endDateVal - fooHour - this_.startDate) / (this_.endDate - this_.startDate));
+							  ctx.fillRect(q, this_.windowHeight - this_.padding + 2, 0.5, 3);
+							  fooHour += (this_.viz.zoom / numHrs);
+						  }
+						  ctx.closePath();
+
 
 
 						  // lines for date nav min/max
@@ -232,13 +273,14 @@ var dateSlider = ({
 						  ctx.closePath();
 
 						  // line showing width
-						  ctx.beginPath();
-						  ctx.strokeStyle = "#000000";
+						  ctx.beginPath();						  
 						  ctx.moveTo(0, this_.windowHeight - this_.padding - 2);
 						  ctx.lineTo(this_.windowWidth, this_.windowHeight - this_.padding - 2);
 						  ctx.lineWidth = 2.5;
 						  ctx.stroke();
 						  ctx.closePath();
+
+
 
 						  /*
 						   // right triangle
@@ -325,6 +367,7 @@ var dateSlider = ({
 							  this_.viz.drag = false;
 							  this_.lIS = true;
 						  }
+/*
 						  if (isPointInPoly(this_.zoomPlusPoly, params.mouseVal)) {
 							  this_.zoomZoom(-1);
 						  }
@@ -332,7 +375,7 @@ var dateSlider = ({
 						  if (isPointInPoly(this_.zoomMinusPoly, params.mouseVal)) {
 							  this_.zoomZoom(1);
 						  }
-
+*/
 						  this_.dateTrigger = false;
 						  if (isPointInPoly(this_.startDateSelectPoly, params.mouseVal)) {
 							  jQuery("#fooDate").html("<div id=\"navDateCal\" style=\"position: absolute; top:" + (this_.windowHeight - this.padding - 100) + "px; left:" + (params.mouseVal.x - 50) + "px; width:auto\"></div>");
@@ -513,6 +556,7 @@ var lineGraphFactoryLite = ({
 									this.endTime = params.endTime;
 									this.startDate = new Date(this.startTime);
 									this.endDate = new Date(this.endTime);
+									this.zoom = this.endTime - this.startTime;
 									this.windowHeight = params.windowHeight;
 									this.windowWidth = params.windowWidth;
 									this.interp = params.interp;
@@ -555,6 +599,41 @@ var lineGraphFactoryLite = ({
 										ctx.stroke();
 										ctx.closePath();
 										ctx.restore();
+
+										// draw the lines
+										// lines for each 12 hrs
+										ctx.beginPath();
+										ctx.fillStyle = "#666666";
+										var fooHour = 0;
+										var numHrs = 7;
+										var endDateVal = (Math.floor((this_.endTime / (this_.zoom / numHrs))) * (this_.zoom / numHrs)) + 1800000; 						  
+										// not sure why i have to subtract this but it ensures that the dates are on a 12 hr scale						  
+										for (hrCount = 0; hrCount < numHrs; hrCount++) {
+											var dayText = new Date(endDateVal - fooHour);
+											var q = this_.windowWidth * ((endDateVal - fooHour - this_.startDate) / (this_.endDate - this_.startDate));
+											ctx.fillStyle = "#000000";
+											ctx.fillRect(q, this_.windowHeight - 50, 1, 6);							  
+											fooHour += (this_.zoom / numHrs);
+										}
+										ctx.closePath();
+
+
+										// lines for each hour
+										ctx.beginPath();
+										ctx.fillStyle = "#666666";
+										fooHour = 0;
+										numHrs = this_.zoom/3600000;
+										endDateVal = (Math.floor((this_.endTime / (this_.zoom / numHrs))) * (this_.zoom / numHrs)) + 1800000; 						  
+										// not sure why i have to subtract this but it ensures that the dates are on a 12 hr scale
+										for (hrCount = 0; hrCount < numHrs + 24; hrCount++) {
+											var dayText = new Date(endDateVal - fooHour);
+											var q = this_.windowWidth * ((endDateVal - fooHour - this_.startDate) / (this_.endDate - this_.startDate));
+											ctx.fillRect(q, this_.windowHeight - 50, 0.5, 3);
+											fooHour += (this_.zoom / numHrs);
+										}
+										ctx.closePath();
+
+
 
 										// draw the key
 										ctx.beginPath();
@@ -642,7 +721,7 @@ var lineGraphFactory = ({
 								this.dashed = params.dashed;
 								this.color = params.color;
 								this.key = params.key;
-
+								this.label = params.label;
 								this.data = [];
 								for (var i = 0; i < params.data.length; i++) {
 									this.data.push(params.data[i].start, params.data[i].end);
@@ -686,6 +765,8 @@ var lineGraphFactory = ({
 										ctx.fillText("" + Math.floor(((this_.maxData - this_.minData) / 7) * i), 9, (this_.padding + 3 + -(((this_.padding + 3) - (this_.topPadding + 5)) / 7) * i));
 										ctx.fillText("" + Math.floor(((this_.maxData - this_.minData) / 7) * i), this_.windowWidth - 19, (this_.padding + 3 + -(((this_.padding + 3) - (this_.topPadding + 5)) / 7) * i));
 									}
+									// draw the label
+									ctx.fillText(this_.label,33, this_.topPadding + 5);
 									ctx.closePath();
 								}
 							},
@@ -788,8 +869,16 @@ var statusFactory = ({
 							 this.viz = viz;
 							 if (params.canvas) { this.canvas = params.canvas; }
 							 else { this.canvas = viz.canvas;}
-							 this.windowHeight = viz.windowHeight;
-							 this.windowWidth = viz.windowWidth;
+							 if (params.windowHeight){
+								 this.windowHeight = params.windowHeight;
+							 } else {
+								 this.windowHeight = viz.windowHeight;
+							 }
+							 if (params.windowWidth) {
+								 this.windowWidth = params.windowWidth;	 
+							 } else {
+								 this.windowWidth = viz.windowWidth;
+							 }
 							 this.startTime = params.startTime;
 							 this.endTime = params.endTime;
 							 this.OGstartTime = this.startTime;
@@ -809,6 +898,10 @@ var statusFactory = ({
 							 if (!(this.fooTxtY)){
 								 this.fooTxtY = 0;
 							 }
+							 if (params.noHover){
+								 this.noHover = params.noHover;
+							 }
+							 
 						 },
 						 selectColorForDomain:function(domain) {
 							 // now we need to turn this domain into a color.
@@ -853,8 +946,12 @@ var statusFactory = ({
 									 if (isPointInPoly(this_.polyArray[i], this_.mouseVal)){
 										 this_.viz.highlight = this_.domainArray[i];
 										 this_.trigger = true;
-										 jQuery("#fooTxt").html("<a href=\"" + this_.urlArray[i] + "\">" + this_.titleArray[i] + "</a>");
-										 jQuery("#fooTxt").css({"top" : this_.marginTop + 45 + this_.fooTxtY +"px", "left" : this_.mouseVal.x + this_.viz.marginLeft + "px" });
+										 if (this_.noHover){
+											 //console.log("yooz");
+										 } else {											 
+											 jQuery("#fooTxt").html("<a href=\"" + this_.urlArray[i] + "\">" + this_.titleArray[i] + "</a>");
+											 jQuery("#fooTxt").css({"top" : this_.marginTop + 45 + this_.fooTxtY +"px", "left" : this_.mouseVal.x + this_.viz.marginLeft + "px" });
+										 }
 									 }
 								 }
 								 ctx.beginPath();

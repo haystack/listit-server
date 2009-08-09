@@ -123,9 +123,7 @@
 							   from: startTime,
 							   to: endTime
 						   }, function(data){
-							   if (data.code == 200) {
-								   this_.drawLiteGraph(data.results, startTime, endTime);
-								   
+							   if (data.code == 200) {								   
 								   // prolly shouldnt be in here
 								   // but it should run at this time using this data
 								   // shows total web viewed and average webviewd
@@ -136,6 +134,7 @@
 								   jQuery("#totalTime").html("<b>total time: </b> " + timeCounter(fooTotal / 1000));
 								   jQuery("#num").html("<b>total #: </b>" + data.results.length);
 								   jQuery("#avgTime").html("<b>average: </b>" + timeCounterLongAbv((fooTotal / (data.results.length * 2)) / 1000));
+								   this_.drawLiteGraph(data.results, startTime, endTime);
 							   }
 							   else {
 								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
@@ -225,7 +224,7 @@
             var html = "";
 			jQuery("#latestlist").html(html);
 			html = "<ul >";
-            for (var i = newData.length - 1; i > newData.length - 21; i--) {
+            for (var i = newData.length - 1; i > newData.length - 16; i--) {
                 html += "<li id=\"url" + i +  "\">";
                 html += "<h6><b><a href=\"" + newData[i].entity.id + "\">" + newData[i].title + "</a></b></h6>";
 				html += "<a href=\"javascript:self.viz.deletePage('" + newData[i].url + "','" + i + "');\" style=\"float:right; margin-right:6px; margin-left:6px;\" >";
@@ -239,7 +238,7 @@
         },
 		deletePage: function(pageURL, num){
 			try {
-				jQuery.post("http://localhost:8000/delete_url_entry/", {
+				jQuery.post("/delete_url_entry/", {
 							   'URL': "" + pageURL
 						   }, function(data){							   
 							   if (data.code == 200) {

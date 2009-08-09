@@ -111,7 +111,18 @@
         },
         setDrawArray: function(p){
             this.drawArray = p;
-        }
+        },		
+		arrowBack: function(){
+			var this_ = this;
+			jQuery("#datepicker").val(new Date(this_.endTime - 860000000).format('mm/dd/yyyy'));
+			self.viz = newify(WatchmeVisualisation, document.getElementById("main"), this_.windowWidth, this_.windowHeight, 0, this_.endTime - 860000000 , 1728000000);
+		},
+		arrowForward: function(){
+			var this_ = this;
+			jQuery("#datepicker").val(new Date(this_.endTime + 860000000).format('mm/dd/yyyy'));
+			self.viz = newify(WatchmeVisualisation, document.getElementById("main"), this_.windowWidth, this_.windowHeight, 0, this_.endTime + 860000000 , 1728000000);
+		}
+
     };
     
     jQuery(document).ready(function(){
@@ -191,12 +202,15 @@
     </div>
 </div>
 <div id="dateselector">
-    <input id="datepicker" class="datepicker" value="06/14/2008" type="text" style="padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
+<a href="javascript:self.viz.arrowBack()"><img src="/lib/img/arrow_sans_left_16.png" style="vertical-align:middle"/></a>
+    <input id="datepicker" class="datepicker" value="06/14/2008" type="text" style="padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/>
     <div id="messageSent">
         robots do not know the future :( 
         <br/>
         &#8230;yet
     </div>
+<a href="javascript:self.viz.arrowForward()"><img src="/lib/img/arrow_sans_right_16.png" style="vertical-align:middle"/></a>
+
     {% ifnotequal request_user username %}
     <br/>
     <div class="underuser" style="margin-top:13px; margin-bottom:8px;">

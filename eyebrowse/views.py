@@ -18,6 +18,28 @@ from django.db.models.signals import post_save
 from jv3.models import Event ## from listit, ya.
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 
+#TEMPORARY
+def pluginhover(request):
+    t = loader.get_template("plugin_hover.html")
+    c = Context({ 'request_user': request.user.username })
+
+    return HttpResponse(t.render(c))
+
+#TEMPORARY
+def pluginlogin(request):
+    t = loader.get_template("client_login.html")
+    c = Context({ 'request_user': request.user.username })
+
+    return HttpResponse(t.render(c))
+
+def get_enduser_for_user(user):
+    if EndUser.objects.filter(user=user).count() > 0:
+        enduser = EndUser.objects.filter(user=user)[0]
+    else:
+        raise Http404('Internal error. Call brennan or emax. Something is wrong. Houston.')    
+    return enduser
+
+
 def privacy_settings_page(request, username):
     if username != request.user.username:
         return HttpResponseRedirect('/')
@@ -115,19 +137,6 @@ def userprivacy(request, username):
 
     return HttpResponse(t.render(c))
 
-#TEMPORARY
-def pluginhover(request):
-    t = loader.get_template("plugin_hover.html")
-    c = Context({ 'request_user': request.user.username })
-
-    return HttpResponse(t.render(c))
-
-#TEMPORARY
-def pluginlogin(request):
-    t = loader.get_template("client_login.html")
-    c = Context({ 'request_user': request.user.username })
-
-    return HttpResponse(t.render(c))
 
 def index(request):
     if request.method == 'POST':
@@ -170,35 +179,9 @@ def about(request):
 
     return HttpResponse(t.render(c))
 
-def moreinfo(request):
-    t = loader.get_template("moreinfo.html")
-    c = Context({ 'request_user': request.user.username })
-
-    return HttpResponse(t.render(c))
-
 def terms(request):
     t = loader.get_template("terms.html")
     c = Context({ 'request_user': request.user.username })
-
-    return HttpResponse(t.render(c))
-
-def list(request, username):
-    user = get_object_or_404(User, username=username)
-    enduser = get_enduser_for_user(user)
-    is_friend = enduser.friends.filter(user=request.user)
-    privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
-    exposure = privacysettings.exposure
-    request_user = request.user.username
-
-    if request.user.id is not enduser.user.id:
-        if exposure == 'N':
-            return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
-        if exposure == 'F':
-            if not is_friend:
-                return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
-            pass
-    t = loader.get_template("list.html")
-    c = Context({ 'username': enduser.user.username, 'id': enduser.user.id })
 
     return HttpResponse(t.render(c))
 
@@ -260,17 +243,6 @@ def graph(request, username):
     t = loader.get_template("graph.html")
     c = Context({ 'username': enduser.user.username, 'id': enduser.user.id, 'request_user': request_user })
     return HttpResponse(t.render(c))
-def logout_page(request):
-    logout(request)
-    return HttpResponseRedirect('/')
-
-def get_enduser_for_user(user):
-    if EndUser.objects.filter(user=user).count() > 0:
-        enduser = EndUser.objects.filter(user=user)[0]
-    else:
-        raise Http404('Internal error. Call brennan or emax. Something is wrong. Houston.')    
-    return enduser
-
 
 def user_page(request, username):
     user = get_object_or_404(User, username=username)
@@ -316,6 +288,11 @@ def user_page(request, username):
         })
     return render_to_response('user_page.html', variables)
 
+
+def logout_page(request):
+    logout(request)
+    return HttpResponseRedirect('/')
+
 def create_enduser_for_user(user):
     enduser = EndUser()
     enduser.user = user
@@ -323,7 +300,6 @@ def create_enduser_for_user(user):
     privacysettings = PrivacySettings()
     privacysettings.user = user
     privacysettings.save()
-
 
 def register_page(request):
     if request.method == 'POST':
@@ -372,7 +348,6 @@ def register_page(request):
         form = RegistrationForm()
     variables = RequestContext(request, {'form': form})
     return render_to_response('register.html', variables)
-
 
 
 def register_success_page(request):
@@ -500,6 +475,7 @@ def delete_url_entry(request):
     for url in url_entry:
         url.delete()
 
+    # TEMPORARY until i get it to remove all the same events from the page
     return json_response({ "code":200 });
 
 
@@ -582,6 +558,7 @@ def friend_save(request):  # this saves the user as a friend in BOTH user's frie
             )
     else:
         raise Http404('failz')
+
 @login_required
 def friend_invite(request):
     if request.method == 'POST':
@@ -611,37 +588,12 @@ def friend_invite(request):
         })
     return render_to_response('friend_invite.html', variables)
 
+
 def friend_accept(request, code):
     invitation = get_object_or_404(Invitation, code__exact=code)
     request.session['invitation'] = invitation.id
     return HttpResponseRedirect('/register/')
 
-# search stuff down here
-def user_search_page(request):
-    form = UserSearchForm()
-    bookmarks = []
-    show_results = False
-    if request.GET.has_key('query'):
-        show_results = True
-        query = request.GET['query'].strip()
-        if query:
-            keywords = query.split()
-            q = Q()
-            for keyword in keywords:
-                q = q & Q(title__icontains=keyword)
-            form = SearchForm({'query' : query})
-            bookmarks = EndUser.objects.filter(q)[:10]
-            
-    variables = RequestContext(request, { 'form': form,
-                                          'bookmarks': bookmarks,
-                                          'show_results': show_results,
-                                          'show_tags': True,
-                                          'show_user': True
-                                          })
-    if request.GET.has_key('ajax'):
-        return render_to_response('search_results.html', variables)
-    else:
-        return render_to_response('search.html', variables)
 
 
 ## hook for creating relevant Page objects when new jv3.Event objects get created
@@ -885,11 +837,17 @@ def get_trending_urls(request, n):
             
     return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] })
 
-## DOESNT WORK
-def get_top_users(request, n):
-    user = User.objects.all();
 
-    return 
+def get_top_users(request, n):
+    users = User.objects.all();
+    n = int(n)
+    from_msec,to_msec = _unpack_from_to_msec(request)
+
+    results = []
+    for user in users:
+        results.append( {"user": user.username, "number": Event.objects.filter(owner=user,type="www-viewed",start__gte=from_msec,end__lte=to_msec).count()} )
+   # results.sort(lambda u1,u2: int(times_per_url_second[u2] - times_per_url[u1]))
+    return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] })
 
 def get_most_recent_urls(request, n):
     users = User.objects.all();
@@ -918,10 +876,34 @@ def get_users_most_recent_urls(request, username, n):
     hits = _get_pages_for_user(user,from_msec,to_msec)
     print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
 
-    return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits[0:n] ] });
-
-    
+    return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits[0:n] ] });    
         
 
 
         
+# search stuff down here
+def user_search_page(request):
+    form = UserSearchForm()
+    bookmarks = []
+    show_results = False
+    if request.GET.has_key('query'):
+        show_results = True
+        query = request.GET['query'].strip()
+        if query:
+            keywords = query.split()
+            q = Q()
+            for keyword in keywords:
+                q = q & Q(title__icontains=keyword)
+            form = SearchForm({'query' : query})
+            bookmarks = EndUser.objects.filter(q)[:10]
+            
+    variables = RequestContext(request, { 'form': form,
+                                          'bookmarks': bookmarks,
+                                          'show_results': show_results,
+                                          'show_tags': True,
+                                          'show_user': True
+                                          })
+    if request.GET.has_key('ajax'):
+        return render_to_response('search_results.html', variables)
+    else:
+        return render_to_response('search.html', variables)

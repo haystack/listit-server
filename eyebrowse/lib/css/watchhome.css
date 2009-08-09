@@ -523,10 +523,6 @@ a.selected {
 } #profile p {
     padding: 8px;
     padding-left: 0px;
-} #profile #topusers {
-    font-size: 1em;
-    padding: 8px;
-    line-height: 16px;
 } #profile_content {
     margin-top: 50px;
     width: 700px;
@@ -640,8 +636,7 @@ a.selected {
     display: inline-block;
     vertical-align: top;
     padding: 12px;
-    margin-left: 20px;
-    margin-top: 50px;
+    margin-top: 30px;
 } #listlist img {
     margin-right: 12px;
 } #dateselector {
@@ -660,7 +655,7 @@ a.selected {
 } .logo {
     padding-top: 28px;
 	padding-bottom:20px;
-	margin-left:12px;
+	margin-left:22px;
 	width:330px;
 } .underuser {
     display: inline-block;
@@ -721,23 +716,17 @@ a.selected {
     cursor: pointer;
 } #urladdul li{
 	padding-bottom:10px;
-}#topusers {
-    margin-top: 8px;
-    text-decoration: none;
-    font-size: 1.2em;
-} #topusers a {
-    text-decoration: none;
 } #rightmenu {
     float: right;
     width: 340px;
 } .loader {   	
-	float:left;
+	position:absolute;
+	top:40px;
+	left:15px;
 	z-index: 5000;
 	width:30px;
 	height:30px;
 	display:none;
-	margin-top:10px;
-	margin-left:30px;
 	background-image:url("/lib/img/ajax-loader.gif");
 } #background {
 	filter:alpha(opacity=40); 
