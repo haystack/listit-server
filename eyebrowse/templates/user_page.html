@@ -45,20 +45,20 @@
                 html += "<h6><b><a href=\"http://" + newData[i][0] + "\">" + newData[i][0] + "</a></b></h6>";                
                 if (newData[i][2] < 0) {
                     trigger = false;
-                    html += "<div class=\"imgBox\">";
-                    html += "<b>" + newData[i][2] + "</b>";
+                    html += "<div class=\"imgbox\">";
                     html += "<img src=\"/lib/img/arrow_full_down_16.png\" />";
+                    html += "<b>" + newData[i][2] + "</b>";
                     html += "</div>";
                 }
                 if (newData[i][2] > 0) {
                     trigger = false;
-                    html += "<div class=\"imgBox\">";		   
-					html += "<b>" + newData[i][2] + "</b>";
+                    html += "<div class=\"imgbox\">";		   
 					html += "<img src=\"/lib/img/arrow_full_up_16.png\" />";                         
+					html += "<b>" + newData[i][2] + "</b>";
 					html += "</div>";
                 }
                 if (trigger) {
-                    html += "<div class=\"imgBox\">&nbsp;";
+                    html += "<div class=\"imgbox\">&nbsp;";
                     // html += "<img src=\"/lib/img/star_16.png\" />";
                     html += "</div>";
                 }
@@ -70,8 +70,9 @@
         },
         getTopPages: function(startTime, endTime, data){
             // uses the django model get_top_pages to return top pages between start and endtime
-            this_ = this;
+            var this_ = this;
             try {
+				jQuery("#loadimg").show();
                 jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ username }}/25/", {
 							   first_start: startTime - 86400000,
 							   first_end: endTime - 86400000,
@@ -79,6 +80,7 @@
 							   second_end: endTime
 						   }, // this gets top 25 pages
 						   function(data){
+							   jQuery("#loadimg").hide();
 							   if (data.code == 200) {
 								   this_.drawTopPagesList(data.results);
 							   }
@@ -254,6 +256,7 @@
             this_.startTime = startTime;
             
             try {
+				jQuery("#loadimg").show();
 				jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ username }}/25/", {
 							   first_start: startTime - 86400000,
 							   first_end: endTime - 86400000,
@@ -261,6 +264,7 @@
 							   second_end: endTime
 						   }, 
 						   function(data){
+							   jQuery("#loadimg").hide();
 							   if (data.code == 200) {
 								   this_.drawTopPagesList(data.results);
 							   }
@@ -374,6 +378,7 @@ jQuery(document).ready(function(){
 </script>
 {% endblock %}
 {% block content %}
+<div class="loader" id="loadimg"></div>
 <div id="report">
 	<img src="/lib/img/ajax-loader.gif" class="loader" />
 	<div id="loading" class="loader"></div>
@@ -492,7 +497,7 @@ jQuery(document).ready(function(){
                 {% ifequal user.username username %}<h2>Your Top 25</h2>
                 {% else %}{% if user.username %}
 						<h2 style="font-size:14px;padding-top:12px;padding-bottom:12px">
-                    <a href="#top10" onclick="window.viz.top()">{{ username}}'s top 25</a>&nbsp; &#124; &nbsp;<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp; &#124; &nbsp;<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a>
+                    <a href="#top10" onclick="window.viz.top()">top 25</a>&nbsp; &#124; &nbsp;<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp; &#124; &nbsp;<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a>
 							</h2>
             </div>
             {% else %}<h2>{{ username}}'s top 25</h2>

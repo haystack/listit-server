@@ -137,10 +137,10 @@ ul.messages {
 }
 
 li img {
-    float: right;
     height: 15px;
     width: 15px;
     padding-right: 3px;
+	float:right;
 }
 
 a {
@@ -234,10 +234,13 @@ a.selected {
 } .viewboxlarge a {
 	font-weight:bold;
 } .viewboxlarge li {
-    padding: 10px;
+    padding: 8px;
     border-bottom: 1px solid lightgrey;
-    padding-right: 0px;}
- }.viewboxlarge .imgBox {
+    padding-right: 0px;
+} .viewboxlarge li img{
+	float:none;
+}
+.viewboxlarge .imgbox {
     float: right;
     padding: 0px;
     margin: 0px;
@@ -245,8 +248,12 @@ a.selected {
     text-align: left;
     font-size: 1.1em;
     vertical-align: top;
-	width:60px;
-} .viewboxlarge h7{
+	width:45px;
+} .viewboxlarge b{
+	vertical-align:top;
+	padding-top:2px;
+	padding-left:5px;
+}.viewboxlarge h7{
     padding-right: 10px;
 	float:right;
 	text-align:right;
@@ -280,9 +287,9 @@ a.selected {
     padding-left: 10px;
 	text-align:left;
 	float:none;
-} .viewboxhome li .imgBox {
+} .viewboxhome .imgBox {
     float: right;
-    padding: 0px;
+    padding: 0pox;
     margin: 0px;
 	margin-top:10px;
     text-align: left;

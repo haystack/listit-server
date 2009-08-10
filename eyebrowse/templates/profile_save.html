@@ -136,11 +136,15 @@ jQuery(document).ready(function(){
         {% if friends %}
         <ul class="friends">
             {% for friend in friends %}
-            <li>
-                <a href="/user/{{ friend.username }}/">{{ friend.username }}</a>
+            <li style="display:block">
+                <a href="/user/{{ friend.username }}/">{{ friend.username }}</a><h7> {{ friend.number }}</h7>
             </li>
             {% endfor %}
         </ul>
+        {% ifequal user.username username %}<div class="footer"><a href="/friends/{{ username }}/">view all your friends</a></div>
+        {% else %}
+
+        {% endifequal %}
         {% else %}
         <p style="padding:8px">
             you have no friends :(

@@ -391,7 +391,13 @@ def profile_save_page(request, username):
         return HttpResponseRedirect('/')
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
-    friends = [friendship.to_friend for friendship in user.friend_set.all()]
+    #friends = [friendship.to_friend for friendship in user.friend_set.all()]
+    friends = enduser.friends.all()
+    friends_results = []
+    for friend in friends:
+        friends_results.append( {"username": friend.user.username, "number": Event.objects.filter(owner=friend.user,type="www-viewed").count()} )
+    friends_results.sort(key=lambda x:(x["username"], x["number"]))
+
 
     if request.method == 'POST':
         form = ProfileSaveForm(request.POST, request.FILES)
@@ -435,7 +441,7 @@ def profile_save_page(request, username):
                 'photo': photo
                 })
     variables = RequestContext(request, {
-        'friends': friends,
+        'friends': friends_results,
         'form': form,
         'request_user': request.user
         })
@@ -681,7 +687,7 @@ def _unpack_times(request):
 
 def _get_top_n(user,start,end):
     time_per_host = _get_time_per_page(user,start,end,grouped_by=EVENT_SELECTORS.Host)
-    print time_per_host
+
     ordered_visits = [h for h in time_per_host.iteritems()]
     ordered_visits.sort(lambda u1,u2: int(u2[1] - u1[1]))
     return ordered_visits    
@@ -716,7 +722,13 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
     uniq_urls  = set( grouped_by.access(mine_events) )
     times_per_url = {}
     for url in uniq_urls:
-        times_per_url[url] = long(reduce(lambda x,y: x+y, [ startend[1]-startend[0] for startend in grouped_by.filter_queryset(mine_events,url).values_list('start','end') ] ))
+        # might be faster to define a variable here rather than doing filter 2x for the if and the reduce
+        grouped_by_filtered = grouped_by.filter_queryset(mine_events,url).values_list('start','end')
+        # to make sure not to reduce an empty item 
+        if grouped_by_filtered:
+            times_per_url[url] = long(reduce(lambda x,y: x+y, [ startend[1]-startend[0] for startend in grouped_by_filtered ] ))
+        else:
+            pass
     return times_per_url
 
 #@login_required
@@ -792,20 +804,15 @@ def get_top_hosts(request,username, n):  # should have n here but i removed it t
     return json_response({ "code":200, "results": [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] }) 
 
     
-def get_top_hosts_comparison(request, username, n): 
-    users = User.objects.filter(username=username)
-    if len(users) == 0:
-        return json_response({"code":401,"message":"Unknown user %s" % username})
-
-    user = users[0]
+def get_top_hosts_comparison(request, username, n):
+    user = get_object_or_404(User, username=username)
     n = int(n)
 
     first_start,first_end,second_start,second_end = _unpack_times(request)
-    
-    times_per_url_second = _get_top_n(user,second_start,second_end)
-    # this fails for some reason
+
     times_per_url_first = _get_top_n(user,first_start,first_end)
-    
+    times_per_url_second = _get_top_n(user,second_start,second_end)
+
     def index_of(what, where):
         try:
             return [ h[0] for h in where ].index(what)
@@ -815,6 +822,9 @@ def get_top_hosts_comparison(request, username, n):
         return None
 
     results = []
+
+    # if the first list is longer than the second list
+    # this throws a  ValueError('list.index(x): x not in list',)
     for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
         old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
         if old_rank is not None:
@@ -822,7 +832,8 @@ def get_top_hosts_comparison(request, username, n):
             results.append(times_per_url_second[i] + (diff,) )
         else:
             results.append( times_per_url_second[i] )
-    return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] }) 
+
+    return json_response({ "code":200, "results": results[0:n] }) 
 
     
 def get_top_urls(request, n):
