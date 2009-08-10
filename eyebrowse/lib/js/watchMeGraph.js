@@ -172,22 +172,6 @@ var dateSlider = ({
 						  this.lIH = undefined; // is hover
 						  this.rIH = undefined;
 						  this.trigger = false;
-
-						  this.startDateSelect = false;
-						  this.startDateTrigger = false;
-						  this.endDateTrigger = false;
-						  this.startDateSelectPoly = rectToPoly({
-																	xPos: 10,
-																	yPos: this.windowHeight - this.padding + 40,
-																	height: 20,
-																	width: 130
-																});
-						  this.endDateSelectPoly = rectToPoly({
-																  xPos: this.windowWidth - 130,
-																  yPos: this.windowHeight - this.padding + 40,
-																  height: 20,
-																  width: 120
-															  });
 					  },
 					  draw: function(){
 						  var ctx = this.canvas.getContext('2d');
@@ -261,8 +245,6 @@ var dateSlider = ({
 						  }
 						  ctx.closePath();
 
-
-
 						  // lines for date nav min/max
 						  ctx.beginPath();
 						  ctx.lineWidth = 1;
@@ -279,65 +261,6 @@ var dateSlider = ({
 						  ctx.lineWidth = 2.5;
 						  ctx.stroke();
 						  ctx.closePath();
-
-
-
-						  /*
-						   // right triangle
-						   ctx.beginPath();
-						   ctx.moveTo(this_.rightSlider - this_.sliderTriWidth, this_.windowHeight - this_.padding - 2);
-						   ctx.lineTo(this_.rightSlider, this_.windowHeight - this_.padding - this.sliderTriWidth - 2);
-						   ctx.lineTo(this_.rightSlider, this_.windowHeight - this_.padding + this.sliderTriWidth - 2);
-						   ctx.lineTo(this_.rightSlider - this_.sliderTriWidth, this_.windowHeight - this_.padding - 2);
-						   ctx.fillStyle = "#000000";
-						   if (this_.rIH) {
-						   ctx.fillStyle = "#cc006b";
-						   }
-						   ctx.fill();
-						   ctx.closePath();
-
-						   // left triangle
-						   ctx.beginPath();
-						   ctx.moveTo(this_.leftSlider + this_.sliderTriWidth, this_.windowHeight - this_.padding - 2);
-						   ctx.lineTo(this_.leftSlider, this_.windowHeight - this_.padding - this.sliderTriWidth - 2);
-						   ctx.lineTo(this_.leftSlider, this_.windowHeight - this_.padding + this.sliderTriWidth - 2);
-						   ctx.lineTo(this_.leftSlider + this_.sliderTriWidth, this_.windowHeight - this_.padding - 2);
-
-						   ctx.fillStyle = "#000000";
-						   if (this_.lIH) {
-						   ctx.fillStyle = "#cc006b";
-						   }
-						   ctx.fill();
-						   ctx.closePath();
-
-						   // ROLLOVERS
-						   if ((this_.rIH) || (this_.rIS)) {
-						   this_.trigger = true;
-						   if (this_.barGraph) {
-						   this_.drawBarGraph();
-						   }
-						   else {
-						   this_.initBarGraph();
-						   }
-						   jQuery("#fooTxt").html("<div class=\"friendStatus\" style=\"top:" + (this_.windowHeight - this_.padding - 3) + "px; left:" + (this_.rightSlider - 145) + "px; background:#000000; color:#ffffff; padding:3px; width:auto \">" + this_.rightSliderDate.format('dddd, mmmm dS, h:MM TT') + "</div>");
-
-						   }
-						   if ((this_.lIH) || (this_.lIS)) {
-						   this_.trigger = true;
-						   if (this_.barGraph) {
-						   this_.drawBarGraph();
-						   }
-						   else {
-						   this_.initBarGraph();
-						   }
-						   jQuery("#fooTxt").html("<div class=\"friendStatus\" style=\"top:" + (this_.windowHeight - this_.padding + 5) + "px; left:" + (this_.leftSlider + 20) + "px; background:#000000; color:#ffffff; padding:3px; width:auto \">" + this_.leftSliderDate.format('dddd, mmmm dS, h:MM TT') + "</div>");
-
-						   }
-						   if ((!(this_.lIH) && !(this_.rIH)) && (!(this_.lIS) && !(this_.rIS))) {
-						   jQuery("#fooTxt").html("");
-						   }
-						   */
-
 					  },
 					  mouseMove: function(params){
 						  var this_ = this;
@@ -367,51 +290,6 @@ var dateSlider = ({
 							  this_.viz.drag = false;
 							  this_.lIS = true;
 						  }
-/*
-						  if (isPointInPoly(this_.zoomPlusPoly, params.mouseVal)) {
-							  this_.zoomZoom(-1);
-						  }
-
-						  if (isPointInPoly(this_.zoomMinusPoly, params.mouseVal)) {
-							  this_.zoomZoom(1);
-						  }
-*/
-						  this_.dateTrigger = false;
-						  if (isPointInPoly(this_.startDateSelectPoly, params.mouseVal)) {
-							  jQuery("#fooDate").html("<div id=\"navDateCal\" style=\"position: absolute; top:" + (this_.windowHeight - this.padding - 100) + "px; left:" + (params.mouseVal.x - 50) + "px; width:auto\"></div>");
-							  jQuery('#navDateCal').DatePicker({
-																   flat: true,
-																   date: this.startDate.format('yyyy-mm-dd'),
-																   current: this.startDate.format('yyyy-mm-dd'),
-																   calendars: 1,
-																   format: "Y m d"
-															   });
-							  this_.dateTrigger = true;
-							  this_.startDateTrigger = true;
-						  }
-						  if (isPointInPoly(this_.endDateSelectPoly, params.mouseVal)) {
-							  jQuery("#fooDate").html("<div id=\"navDateCal\" style=\"position: absolute; top:" + (this_.windowHeight - this.padding - 100) + "px; left:" + (params.mouseVal.x - 50) + "px; width:auto\"></div>");
-							  jQuery('#navDateCal').DatePicker({
-																   flat: true,
-																   date: this.startDate.format('yyyy-mm-dd'),
-																   current: this.startDate.format('yyyy-mm-dd'),
-																   calendars: 1,
-																   format: "Y m d"
-															   });
-							  this_.dateTrigger = true;
-							  this_.endDateTrigger = true;
-						  }
-
-						  if (!this_.dateTrigger && this_.startDateTrigger) {
-							  this_.viz.initialize(this_.viz.canvas, this_.viz.windowWidth, this_.viz.windowHeight, this_.viz.timeZoneCorrect, this_.viz.zoom, parseInt(jQuery.datepicker.formatDate("@", new Date(jQuery('#navDateCal').DatePickerGetDate(true)))));
-							  jQuery("#fooDate").html("");
-							  this_.startDateTrigger = false;
-						  }
-						  if (!this_.dateTrigger && this_.endDateTrigger) {
-							  this_.viz.initialize(this_.viz.canvas, this_.viz.windowWidth, this_.viz.windowHeight, this_.viz.timeZoneCorrect, this_.viz.zoom, parseInt(jQuery.datepicker.formatDate("@", new Date(jQuery('#navDateCal').DatePickerGetDate(true)))));
-							  jQuery("#fooDate").html("");
-							  this_.endDateTrigger = false;
-						  }
 					  },
 					  mouseUp: function(){
 						  var this_ = this;
@@ -438,117 +316,10 @@ var dateSlider = ({
 													 width: this_.sliderTriWidth
 												 });
 
-
-					  },
-					  initBarGraph: function(){
-						  var this_ = this;
-						  /*
-						   this_.leftSliderDate = new Date(this_.startTime + ((this_.endTime - this_.startTime) * (this_.leftSlider / this_.windowWidth)));
-						   this_.rightSliderDate = new Date(this_.startTime + ((this_.endTime - this_.startTime) * (this_.rightSlider / this_.windowWidth)));
-						   this_.barGraphData = this_.viz.listit.CMS.event_store.getEvents("www-viewed", [this_.leftSliderDate, this_.rightSliderDate]);
-						   this_.barGraph = true;
-						   this_.drawBarGraph();
-						   */
-					  },
-					  drawBarGraph: function(){
-						  var this_ = this;
-						  var ctx = this_.canvas.getContext('2d');
-						  /*
-						   this_.leftSliderDate = new Date(this_.startTime + ((this_.endTime - this_.startTime) * (this_.leftSlider / this_.windowWidth)));
-						   this_.rightSliderDate = new Date(this_.startTime + ((this_.endTime - this_.startTime) * (this_.rightSlider / this_.windowWidth)));
-						   var barGraphVals = function(){
-						   var namesObj = {};
-						   var objArray = [];
-						   var fooName = "";
-						   var barFactory = ({
-						   initialize: function(params){
-						   this.id = params.id;
-						   this.value = params.value;
-						   }
-						   });
-						   var unknown = newify(barFactory, {
-						   id: "unknown",
-						   value: 0
-						   });
-						   objArray.push(unknown);
-						   for (var i = 0; i < this_.barGraphData.length; i++) {
-						   if ((this_.barGraphData[i].start < this_.leftSliderDate.valueOf()) || (this_.barGraphData[i].end > this_.rightSliderDate.valueOf())) {
-						   continue;
-						   }
-						   if (this_.barGraphData[i].entity.host) {
-						   fooName = this_.barGraphData[i].entity.host;
-
-						   if (namesObj[fooName]) {
-                           this_.barGraphData[i].entity.host.value += this_.barGraphData[i].end - this_.barGraphData[i].start;
-						   }
-						   else {
-                           this_.barGraphData[i].entity.host = newify(barFactory, {
-                           value: (this_.barGraphData[i].end - this_.barGraphData[i].start),
-                           id: fooName.toString()
-                           });
-                           namesObj[fooName] = this_.barGraphData[i].entity.host;
-                           objArray.push(namesObj[fooName]);
-						   }
-						   }
-						   else {
-						   unknown.value += this_.barGraphData[i].end - this_.barGraphData[i].start;
-						   }
-						   }
-						   objArray = objArray.objSort("value", -1, "id");
-						   return objArray;
-						   }();
-						   if (barGraphVals.length > 3) {
-						   var fooPad = 40;
-						   var minTime = 0;
-						   var maxNum = Math.floor(this_.windowWidth / 80);
-						   if (barGraphVals.length < maxNum) {
-						   maxNum = barGraphVals.length;
-						   }
-						   var maxTime = function(){
-						   var fooArray = [];
-						   for (var i = 0; i < maxNum; i++) {
-						   fooArray.push(barGraphVals[i].value);
-						   }
-						   return fooArray.max();
-						   }();
-
-						   ctx.beginPath();
-						   ctx.fillStyle = "rgba(0,0,0,0.9)";
-						   ctx.fillRect(this_.leftSlider + this_.sliderTriWidth, 18, this_.rightSlider - this_.leftSlider - (2 * this_.sliderTriWidth), this_.windowHeight - (this_.padding * 2));
-						   ctx.fillRect(this_.leftSlider + this_.sliderTriWidth, this_.windowHeight - this_.padding - 2, 2, 0 - 40);
-						   ctx.fillRect(this_.rightSlider - this_.sliderTriWidth, this_.windowHeight - this_.padding - 2, 0 - 2, 0 - 40);
-						   ctx.closePath();
-
-						   ctx.save();
-						   ctx.translate(0, -40);
-						   ctx.beginPath();
-						   ctx.lineWidth = 1;
-						   ctx.fillStyle = "#ffffff";
-						   ctx.strokeStyle = "#ffffff";
-						   ctx.font = "0.8pt helvetiker";
-
-						   ctx.fillText(this_.leftSliderDate.format("mmmm dS, h:MM TT") + " - " + this_.rightSliderDate.format("mmmm dS, h:MM TT"), (this_.rightSlider - this_.leftSlider) / 2 - 100 + this_.leftSlider, this_.padding + 24);
-						   ctx.strokeRect(this_.leftSlider + fooPad, this_.padding + fooPad - 5, this_.rightSlider - this_.leftSlider - (fooPad * 2), this_.windowHeight - (this_.padding * 2) - (fooPad * 2) + 5);
-						   ctx.font = "0.7pt helvetiker";
-
-						   for (var i = 0; i < maxNum; i++) {
-						   ctx.fillStyle = "#ffffff";
-						   ctx.fillText(barGraphVals[i].id, ((this_.rightSlider - this_.leftSlider - (fooPad * 2)) / 8) * i + this_.leftSlider + (fooPad * 2), this_.windowHeight - this_.padding - 20);
-						   ctx.fillText(timeCounterLongAbv(barGraphVals[i].value / 1000), ((this_.rightSlider - this_.leftSlider - (fooPad * 2)) / 8) * i + this_.leftSlider + (fooPad * 2), this_.padding + fooPad + 20);
-						   ctx.fillStyle = "hsl(" + (120 * ((barGraphVals[i].value - minTime) / (maxTime - minTime)) + 180) + ",100%,55%)";
-						   ctx.fillRect(((this_.rightSlider - this_.leftSlider - (fooPad * 2) + 20) / 8) * i + this_.leftSlider + (fooPad * 2) + 20, this_.windowHeight - (this_.padding * 2), 20, -(this_.windowHeight - ((this_.padding + fooPad + (fooPad * 2)) * 2)) * ((barGraphVals[i].value - minTime) / (maxTime - minTime)));
-						   }
-
-						   ctx.closePath();
-						   ctx.restore();
-
-						   }
-						   */
 					  }
 				  });
 
 
-// graph lines
 var lineGraphFactoryLite = ({
 								initialize: function(params){
 									this.canvas = params.canvas;
@@ -702,7 +473,6 @@ var lineGraphFactoryLite = ({
 							});
 
 
-// graph lines
 var lineGraphFactory = ({
 							initialize: function(viz, params){
 								this.viz = viz;
@@ -950,7 +720,7 @@ var statusFactory = ({
 											 //console.log("yooz");
 										 } else {											 
 											 jQuery("#fooTxt").html("<a href=\"" + this_.urlArray[i] + "\">" + this_.titleArray[i] + "</a>");
-											 jQuery("#fooTxt").css({"top" : this_.marginTop + 45 + this_.fooTxtY +"px", "left" : this_.mouseVal.x + this_.viz.marginLeft + "px" });
+											 jQuery("#fooTxt").css({"top" : this_.marginTop + 45 + this_.fooTxtY +"px", "left" : this_.mouseVal.x + this_.viz.marginLeft + "px, padding: 3px" });
 										 }
 									 }
 								 }

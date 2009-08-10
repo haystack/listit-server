@@ -1,4 +1,4 @@
-import re,sys,time
+import re,sys,time,operator
 from django.template import loader, Context
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
@@ -17,6 +17,7 @@ from os.path import splitext
 from django.db.models.signals import post_save
 from jv3.models import Event ## from listit, ya.
 from django.utils.simplejson import JSONEncoder, JSONDecoder
+
 
 #TEMPORARY
 def pluginhover(request):
@@ -42,7 +43,7 @@ def get_enduser_for_user(user):
 
 def privacy_settings_page(request, username):
     if username != request.user.username:
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/userprivacy/%s/'% username)
     user = get_object_or_404(User, username=username)
     privacysettings = user.privacysettings_set.all()[0] ## ?
 
@@ -92,23 +93,29 @@ def get_privacy_urls(request, username):
 
 def delete_privacy_url(request, username):
     if username != request.user.username:
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/userprivacy/%s/'% username)
     user = get_object_or_404(User, username=username)
     privacysettings = user.privacysettings_set.all()[0] ## ?
     listmode = privacysettings.listmode
     input = request.GET['input'].strip()
+    print "input is %s" %input
+
+    print privacysettings.whitelist
+
+    print privacysettings.blacklist
+    print privacysettings.listmode
 
     if privacysettings.listmode == "W":
         privacysettings.whitelist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == input])
     if privacysettings.listmode == "B":
-        privacysettings.blacklist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == input])
+        privacysettings.blacklist = ' '.join([ x for x in privacysettings.blacklist.split() if not x == input])
 
     privacysettings.save()
     return HttpResponseRedirect('/settings/%s/' % user.username)
 
 def add_privacy_url(request, username):
     if username != request.user.username:
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/userprivacy/%s/'% username)
     user = get_object_or_404(User, username=username)
     privacysettings = user.privacysettings_set.all()[0] ## ?
     listmode = privacysettings.listmode
@@ -247,7 +254,13 @@ def graph(request, username):
 def user_page(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
-    is_friend = enduser.friends.filter(user=request.user)
+
+    if request.user.username:
+        request_enduser = get_enduser_for_user(request.user)
+        is_friend = request_enduser.friends.filter(user=user)
+    else: 
+        is_friend = False;
+
     privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
     exposure = privacysettings.exposure
 
@@ -259,8 +272,12 @@ def user_page(request, username):
                 return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
             pass
 
-    friends = [friendship.to_friend for friendship in user.friend_set.all()]
-
+    friends = enduser.friends.all()
+    friends_results = []
+    for friend in friends:
+        friends_results.append( {"username": friend.user.username, "number": Event.objects.filter(owner=friend.user,type="www-viewed").count()} )
+    friends_results.sort(key=lambda x:(x["username"], x["number"]))
+    
     request_user = request.user.username
     first_name = enduser.user.first_name
     last_name = enduser.user.last_name
@@ -274,7 +291,7 @@ def user_page(request, username):
     variables = RequestContext(request, {
         'username': username,
         'show_edit': username == request.user.username,
-        'friends': friends,
+        'friends': friends_results,
         'is_friend': is_friend,
         'first_name': first_name,
         'last_name': last_name,
@@ -373,6 +390,7 @@ def register_success_page(request):
 @login_required
 def profile_save_page(request, username):
     if username != request.user.username:
+
         return HttpResponseRedirect('/')
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
@@ -481,7 +499,7 @@ def delete_url_entry(request):
 
 def friends_page(request, username):
     if username != request.user.username:
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/userprivacy/%s/'% username)
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
 
@@ -534,17 +552,23 @@ def friend_save(request):  # this saves the user as a friend in BOTH user's frie
         try:
             # save in each users profile
             enduser.friends.add(frienduser)
-            enduser.friends.save()
-            # apparenly this does the trick
-            #frienduser.friends.add(enduser)
-            #frienduser.friends.save()
+            # enduser.friends.save()
+            # apparenly this does the trick w/o the save
         
             friendship = FriendRequest.objects.filter(
                 from_friend=friend,
                 to_friend=request.user
                 )
-            friendship.delete()
-
+            if friendship:
+                friendship.delete()
+            # try again with the from_friend to_friend reversed
+            else:
+                friendship = FriendRequest.objects.filter(
+                    from_friend=request.user,
+                    to_friend=friend
+                    )
+                friendship.delete()
+                
             request.user.message_set.create(
                 message='you and %s are now friends.' % friend.username
                 )
@@ -846,7 +870,11 @@ def get_top_users(request, n):
     results = []
     for user in users:
         results.append( {"user": user.username, "number": Event.objects.filter(owner=user,type="www-viewed",start__gte=from_msec,end__lte=to_msec).count()} )
-   # results.sort(lambda u1,u2: int(times_per_url_second[u2] - times_per_url[u1]))
+    print results
+    #results.sort(lambda u1,u2: int(times_per_url_second[u2] - times_per_url[u1]))
+    results.sort(key=lambda x:(x["number"], x["user"]))
+    #key=operator.itemgetter(1))
+
     return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] })
 
 def get_most_recent_urls(request, n):

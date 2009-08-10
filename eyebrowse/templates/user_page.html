@@ -13,31 +13,6 @@
 <script>
     jQuery.noConflict();
 </script>
-<style>
-.imgBox {
-    float: right;
-    padding: 0px;
-    margin: 0px;
-	margin-top:0px;
-    text-align: left;
-    font-size: 1.1em;
-    vertical-align: top;
-	width:60px;
-} .imgBox b {
-    vertical-align: top;
-    margin-left: 8px;
-    float: right; 
-    width:30px;
-} .imgBox img {
-	padding: 0px;
-	vertical-align:top;
-	padding-right:6px
-} .imgBox h7 {
-    padding-left: 10px;
-    text-align:left;
-	float:none;
-} 
-</style>
 <script>
     var WatchmeVisualisation = {
         initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom){
@@ -404,7 +379,7 @@ jQuery(document).ready(function(){
 	<div id="loading" class="loader"></div>
     <div id="profile">
         {% if user.username %}
-        {% if is_friend %}<a href="/friends/{{ user.username }}/">{{ username }} is your friend</a>
+        {% if is_friend %}
         {% else %}{% ifequal user.username username %}
         {% else %}<a href="/friend/add?username={{ username }}">add {{ username }} as a friend</a>
         {% endifequal %}
@@ -435,13 +410,13 @@ jQuery(document).ready(function(){
         <ul class="friends">
             {% for friend in friends %}
             <li>
-                <a href="/user/{{ friend.username }}/">{{ friend.username }}</a>
+                <a href="/user/{{ friend.username }}/">{{ friend.username }}</a><h7> {{ friend.number }}</h7>
             </li>
             {% endfor %}
         </ul>
-        {% ifequal user.username username %}<a href="/friends/{{ username }}/">view your friends</a>
-        <br/>
-        {% else %}<a href="/friends/{{ username }}/">view all {{ username }} s friends</a>
+        {% ifequal user.username username %}<div class="footer"><a href="/friends/{{ username }}/">view all your friends</a></div>
+        {% else %}
+
         {% endifequal %}
         {% else %}
         <p>
@@ -453,7 +428,7 @@ jQuery(document).ready(function(){
         {% endifequal %}
     </div>
     <div id="profile_content">
-        <img src="/uploads/{{ user.id }}.jpg" class="profileimage"/>
+        <img src="/uploads/{{ id }}.jpg" class="profileimage"/>
         <div class="userhead">
             <h1><a href="/user/{{ username }}/">{{ username }}</a></h1>
             <br/>

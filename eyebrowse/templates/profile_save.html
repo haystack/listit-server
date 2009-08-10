@@ -8,7 +8,7 @@
    }
 </style>
 <script src="/lib/js/datepicker.js">
-</script
+</script>
 <script>
     var WatchmeVisualisation = {
         initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom){
@@ -124,11 +124,11 @@ jQuery(document).ready(function(){
 {% block content %}
 <div id="report">
     <div id="profile_edit">
-<a href="/friends/{{ user.username }}/">view all your friends</a> <br />				
-	    <a href="/friend/invite/">Invite a friend!</a>
-        <br/>
-        <a href="/settings/{{ user.username }}/">edit your privacy settings</a>
-
+	    <a href="/friend/invite/">Invite a friend</a>
+		<div class="footer">
+		  <a href="/friends/{{ user.username }}/">view all your friends</a> <br />				
+          <a href="/settings/{{ user.username }}/">edit your privacy settings</a>
+		</div>
         <h2>Edit Your Profile</h2>
         {% include 'profile_save_form.html' %}
         <br/>
