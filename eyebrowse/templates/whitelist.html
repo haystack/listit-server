@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Privacy Settings{% endblock %}
+{% block imports %}
+<script>
+jQuery(document).ready(function(){
+    try {
+      // no params :(
+      jQuery.get("http://localhost:8000/get_privacy_urls/{{ user.username }}", {}, 
+		 function(data){
+		   if (data.code == 200) {
+		     var html = "";
+		     for (var i = 0; i < data.results.length; i++) {
+		       html += "<li>";
+		       html += data.results[i];
+		       html += "<a href=\"http://localhost:8000/delete_privacy_url/{{ user.username }}?input=" + data.results[i] + "\"><img src=\"/lib/img/cancel_16.png\"/></a>";
+		       html += "</li>";
+				 //console.log(data.results[i]);
+		     }
+		     jQuery("#urladdul").html(html);
+		   }
+		   else {
+		     console.log("yaaaa!!!H!H!H!" + data.code + " ");
+		   }
+		 }, "json");
+    } 
+    catch (e) {
+        console.log(e);
+		  }
+    jQuery("#urladd").click(function(){
+      var input = jQuery("#urladdtextinput").val();
+      jQuery("<li>" + input + "<a href=\"http://localhost:8000/delete_privacy_url/{{ user.username }}?input=" + input + "\"/><img src=\"/lib/img/cancel_16.png\" /></a>" + "</li>").appendTo('#urladdul');
+      jQuery.get("http://localhost:8000/add_privacy_url/{{ user.username }}", {input:input}); 
+    });
+});
+
+</script>
+{% endblock %}
+{% block content %}
+    <div id="faq" style="width:300px;">
+        <h1>Privacy Settings</h1>
+        <br/>
+        <div class="bodytext">
+The urls you add to this list will not be logged. At any time you can use <b><a href="http://support.mozilla.com/en-US/kb/Private+Browsing">private browsing</a></b> in Firefox to temporarily turn off logging.
+        </div>
+		<div id="listlist">
+          <form name="list" id="urladdform">
+            <label for="list">
+              Add URL:
+            </label>
+            <input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:228px;"/>
+			<div id="urladd">add</div>
+			<input type="submit" id="urladd" value="add" style="display:none;"/>
+          </form>
+          <ul id="urladdul" style="padding-left:7px;">
+          </ul>
+		</div>
+	</div>
+{% endblock %}
+	

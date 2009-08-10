@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}do not have permission{% endblock %}
+{% block imports %}
+{% endblock %}
+{% block content %}
+<div id="faq" style="text-align:center;">
+<h1>you do not have permission to view {{ username }}'s page</h1>
+{% if requestuser %}
+ <a href="/friend/add/?username={{ username }}/">
+send {{ username }} a friend request</a>
+{% endif %}
+<h1 style="margin-top:40px;"><a href="/login/">sign in</a></h1>
+</div>
+  {% endblock %}

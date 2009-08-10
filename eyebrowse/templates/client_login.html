@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+    <head>
+<title>Sign In</title>
+        <style>
+            @import url("/lib/css/reset-fonts-grids.css");
+           @import url("/lib/css/watchhome.css");
+
+</style>
+   </head>
+<body>
+<div id="whitelist">
+  <h1>Sign In</h1><br />
+ <p id="validateTips">
+</p>
+
+<form method="post" action=".">
+<p><label for="id_username">Username:</label>
+<input id="id_username" type="text" name="username" maxlength="30" /></p>
+<p><label for="id_password">Password:</label>
+<input type="password" name="password" id="id_password" /></p>
+<input type="hidden" name="next" value="/" />
+<div id="home" style="width:99%; margin-left:auto; margin-right:auto; margin-top:0px;">
+<input type="submit" value="sign in" id="registerSubmit" style="margin-top:4px; margin-left:auto; margin-right:auto;"/>
+</form>
+    <br />
+  <br />
+ <a href="http://localhost:8000/register/" style="margin-top:40px; margin-bottom:10px;">create an account</a>
+  </div>
+  <br />
+  <hr>
+    <div id="footer" style="width:auto; margin:-5px; border-top:0px solid black">
+      <a href="/faq/">faq</a>&nbsp | &nbsp<a href="/help/">help</a>&nbsp | &nbsp<a href="http://groups.csail.mit.edu/haystack/">research</a>
+    </div>
+    </body>
+    </html>
+    

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+<title>plugin hover</title>
+        <style>
+            @import url("/lib/css/reset-fonts-grids.css");
+           @import url("/lib/css/watchhome.css");
+        </style>
+        <script src="/lib/js/jquery-1.3.2.min.js">
+        </script>
+<script>
+jQuery.noConflict();
+</script>
+<script>
+try {
+jQuery.get("http://localhost:8000/get_top_hosts/{{ user.username }}/25/", {from: startTime, to: endTime},
+// this gets top 25 pages
+function(data) {
+if (data.code == 200) {		
+this_.drawTopPagesList(data.results);		  
+} else {
+console.log("yaaaa!!!H!H!H!" + data.code + " ");
+}
+}, "json");	
+} catch(e) {
+console.log(e);
+}
+</script>
+</head>
+<body>
+<br />
+<div id="whitelist" style="width:600px; margin-left:10px;">
+  <h1>{ page.name }</h1><br />
+
+<div class="bodytext">
+% if tags %
+% for tag in tags %
+<a href="/tags/{{ tag }}/">{ tag }</a>
+% endfor %
+% endif %
+</div>
+<br />
+    <div id="listlist">
+      <div class="listItem">
+	<h6><b><a href="http://localhost:8000/whitelist/">http://localhost:8000/whitelist/</a>  </h6>
+	<h7>11 hours, 21 minutes and 27 seconds.</h7>
+      </div>
+    </div>
+    
+    <hr>
+    <div id="footer" style="width:auto; margin:-5px; border-top:0px solid black">
+      <a href="/faq/">faq</a>&nbsp | &nbsp<a href="/help/">help</a>&nbsp | &nbsp<a href="http://groups.csail.mit.edu/haystack/">research</a>
+    </div>
+    </body>
+    </html>
+    
