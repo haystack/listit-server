@@ -14,7 +14,7 @@ from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note, NoteForm
 import jv3.utils
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport
-from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username, get_user_by_email, is_consenting_study1, is_consenting_study2, json_response
+from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username, get_user_by_email, is_consenting_study1, is_consenting_study2, json_response, set_consenting
 import time
 from django.template.loader import get_template
 import sys
@@ -262,6 +262,7 @@ def login(request):
         return resp
     resp = json_response({"code":200,"study1":is_consenting_study1(request_user),"study2":is_consenting_study2(request_user)})
     resp.status_code = 200;
+    print "returning resp %s // %s " % (repr(is_consenting_study1(request_user)),repr(is_consenting_study2(request_user)))
     return resp
 
 def set_consenting_view(request):
@@ -270,11 +271,13 @@ def set_consenting_view(request):
         resp = json_response({"code":401,'autherror':"Incorrect user/password combination"})
         resp.status_code = 401;
         return resp
-    value = request.POST['consenting']    
+
+    value = JSONDecoder().decode(request.raw_post_data)['consenting']
+    print "set_consenting %s " % repr(value)
     set_consenting(request_user,value)
     resp = json_response({"code":200})
     resp.status_code = 200;
-    return resp
+    return resp    
 
 def createuser(request):
     email = request.POST['username'];
@@ -293,8 +296,8 @@ def createuser(request):
 
     ## couhes handling: couhes requires first & last name 
     user.couhes = (request.POST['couhes'] == 'true'); ## assume this is boolean
-    user.first_name = request.POST['firstname']; 
-    user.last_name = request.POST['lastname']; 
+    user.first_name = request.POST.get('firstname',''); 
+    user.last_name = request.POST.get('lastname',''); 
     
     ## print "user couhes is %s " % repr(type(user.couhes))
     user.cookie = gen_cookie();
@@ -448,7 +451,7 @@ class ActivityLogCollection(Collection):
         try:
             most_recent_activity = get_most_recent(user_activity.filter(client=self._get_client(request)))
             if most_recent_activity:
-                print "MOST RECENT ACTIVITY %s " % most_recent_activity.when
+                #print "MOST RECENT ACTIVITY matching client  %s - %s " % (self._get_client(request),most_recent_activity.when)
                 return HttpResponse(JSONEncoder().encode({'value':int(most_recent_activity.when)}), self.responder.mimetype)
             return self.responder.error(request, 404, ErrorDict({"value":"No activity found"}));
         except:
@@ -456,6 +459,7 @@ class ActivityLogCollection(Collection):
     
     def _get_client(self,request):
         if request.GET.has_key('client'):
+            print request.GET['client']
             return request.GET['client']
         return None                
 
@@ -470,7 +474,11 @@ class ActivityLogCollection(Collection):
 
         user_activity = ActivityLog.objects.filter(owner=request_user,client=self._get_client(request))
         committed = [];
-        for item in JSONDecoder().decode(request.raw_post_data): #serializers.deserialize('json',request.raw_post_data):
+        incoming = JSONDecoder().decode(request.raw_post_data)
+        #print "incoming activity logs ~~ %d" % (len(incoming))
+        #if len(incoming) > 0:
+        #    print "starting at ~~ %s" % (repr(incoming[0]))
+        for item in incoming: #serializers.deserialize('json',request.raw_post_data):
             #print "item is %s " % repr(item)
             try:
                 if len(user_activity.filter(when=item['id'])) > 0:

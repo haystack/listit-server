@@ -196,9 +196,11 @@ def set_consenting(user,is_consenting):
     ## clones a userreg
     regs = UserRegistration.objects.filter(email=user.email).order_by("-when")[0]
     clone = regs.clone()
+    
     clone.when = current_time_decimal()
     clone.couhes = is_consenting
-    clone.save()        
+    clone.save()
+    print "Saving clone %s %s %s %s" % (repr(clone.id),repr(clone.couhes),repr(clone.email),repr(clone.when))
 
 def get_consenting_users(userset=None,newerthan=long(time.mktime(datetime.date(2008,9,1).timetuple())*1000)):
     ## gets users who have in their most _recent_ consent agreed to couhes

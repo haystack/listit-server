@@ -112,6 +112,7 @@ class UserRegistration(models.Model):
     
     def clone(self):
         ur = UserRegistration()
+        ur.email = self.email
         ur.when = self.when
         ur.username = self.username
         ur.password = self.password

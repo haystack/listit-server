@@ -39,7 +39,7 @@ class EventLogCollection(Collection):
         most_recent_activity = Event.objects.filter(owner=user,client=self._get_client(request)).order_by("-start");
         if most_recent_activity:
             return HttpResponse(JSONEncoder().encode({'value':int(most_recent_activity[0].start)}), self.responder.mimetype)
-        print "returning 404-------"
+        #print "returning 404-------"
         return self.responder.error(request, 404, ErrorDict({"value":"No activity found"}));
 
     def _get_client(self,request):
@@ -60,7 +60,7 @@ class EventLogCollection(Collection):
         for item in JSONDecoder().decode(request.raw_post_data):
             try:
                 if len(user_events.filter(start=item['start'],entityid=item["entityid"])) > 0:
-                    print "event log : skipping duplicate entry %d " % item['start'];
+                    # print "event log : skipping duplicate entry %d " % item['start'];
                     continue
                 ##print "Committing %s item %s " % (entry.owner.email,repr(item))
                 entry = Event()
