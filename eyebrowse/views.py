@@ -1,4 +1,4 @@
-import re,sys,time,operator
+import re,sys,time,operator, os
 from django.template import loader, Context
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
@@ -12,7 +12,10 @@ from django.template import RequestContext
 from django.db.models import Q
 from eyebrowse.forms import *
 from eyebrowse.models import *
+from cStringIO import StringIO
 from PIL import Image
+Image.init() # populates PIL fileformats
+from django.core.files.uploadedfile import SimpleUploadedFile
 from os.path import splitext
 from django.db.models.signals import post_save
 from jv3.models import Event ## from listit, ya.
@@ -98,12 +101,6 @@ def delete_privacy_url(request, username):
     privacysettings = user.privacysettings_set.all()[0] ## ?
     listmode = privacysettings.listmode
     input = request.GET['input'].strip()
-    print "input is %s" %input
-
-    print privacysettings.whitelist
-
-    print privacysettings.blacklist
-    print privacysettings.listmode
 
     if privacysettings.listmode == "W":
         privacysettings.whitelist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == input])
@@ -461,23 +458,52 @@ def _profile_save(request, form):
     for tag_name in tag_names:
         tag, dummy = UserTag.objects.get_or_create(name=tag_name)
         enduser.tags.add(tag) 
-    # save the image
-    try:
-        #image = Image.open(request.FILES['photo'])
-        #size = 128, 128
-        #image.thumbnail(size, Image.ANTIALIAS)
-        img = request.FILES['photo']
-        name = "%d.%s"% (enduser.user.id, img.name.strip().split(".")[-1])
-        file_exts = ('.png', '.jpg', '.jpeg',)
-        if splitext(img.name)[1].lower() not in file_exts:
-            print file_exts
-            raise forms.ValidationError("Only following Picture types accepted: %s"
-                                        % ", ".join([f.strip('.') for f in file_exts]))
+
+    # save the image    
+    if request.FILES:
+        if enduser.photo:
+            # this doesn't delete anything
+            # should delete the image from the server as it will be replaced soon
+            enduser.photo.delete()
         else:
-            enduser.photo.save(name, img)
-    except:
-        print sys.exc_info()
-        pass
+            pass
+        try:
+            # save the original image   
+            img = request.FILES['photo']
+            name = "%d.%s"% (enduser.user.id, img.name.strip().split(".")[-1])
+            file_exts = ('.png', '.jpg', '.jpeg',)
+            if splitext(img.name)[1].lower() not in file_exts:
+                print file_exts
+                raise forms.ValidationError("Only following Picture types accepted: %s"
+                                            % ", ".join([f.strip('.') for f in file_exts]))
+            else:
+                enduser.photo.save(name, img)
+
+            # save the thumbnail            
+            THUMBNAIL_SIZE = (69, 69)
+            image = Image.open(enduser.photo)
+            
+            if image.mode not in ('L', 'RGB'):
+                image = image.convert('RGB')
+                
+            # Without antialiasing the image pattern artifacts may result.
+            image.thumbnail(THUMBNAIL_SIZE, Image.ANTIALIAS)
+            
+            # Save the thumbnail
+            temp_handle = StringIO()
+            image.save(temp_handle, 'JPEG', quality=90)
+            temp_handle.seek(0)
+                        
+            # Save to the thumbnail field
+            suf = SimpleUploadedFile(os.path.split(enduser.photo.name)[-1],
+                                 temp_handle.read(), content_type='image/jpeg')
+
+            enduser.photo.delete()
+            enduser.photo.save(suf.name, suf)            
+        except:
+            print sys.exc_info()
+            pass
+
     enduser.save()
     return user
 
@@ -762,7 +788,6 @@ def get_top_hosts(request,username, n):  # should have n here but i removed it t
     urls_ordered = times_per_url.keys()
     urls_ordered.sort(lambda u1,u2: int(times_per_url[u2] - times_per_url[u1]))
 
-    print urls_ordered
     #_mimic_entity_schema_from_url
     return json_response({ "code":200, "results": [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] }) 
 
@@ -804,12 +829,10 @@ def get_top_urls(request, n):
     user = User.objects.all();
     user = get_object_or_404(User, username="zamiang") # this is a user object
     ## not sure how to iterate through the users and run averages on them?
-    print user.user.username
 
     n = int(n)
     first_start,first_end,second_start,second_end = _unpack_times(request)
     times_per_url_first = _get_top_n(user,first_start,first_end)
-    print times_per_url_first
     times_per_url_second = _get_top_n(user,second_start,second_end)
 
     def index_of(what, where):
@@ -870,8 +893,7 @@ def get_top_users(request, n):
     results = []
     for user in users:
         results.append( {"user": user.username, "number": Event.objects.filter(owner=user,type="www-viewed",start__gte=from_msec,end__lte=to_msec).count()} )
-    print results
-    #results.sort(lambda u1,u2: int(times_per_url_second[u2] - times_per_url[u1]))
+
     results.sort(key=lambda x:(x["number"], x["user"]))
     #key=operator.itemgetter(1))
 
@@ -886,9 +908,7 @@ def get_most_recent_urls(request, n):
     defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid), "title": get_title_from_evt(evt)}
     for user in users:
         hits = _get_pages_for_user(users[0],from_msec,to_msec) ## not sure how to do this so i set user to be the 1st user
-    #print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))
-#    print [ evt.entitydata for evt in hits ]
-    #print [ JSONDecoder().decode(JSONDecoder().decode(evt.entitydata)[0]['data'])['title'] for evt in hits if JSONDecoder().decode(JSONDecoder().decode(evt.entitydata)[0]['data']).has_key('title') ]
+  
     return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits[0:n] ] });
 
 def get_users_most_recent_urls(request, username, n):

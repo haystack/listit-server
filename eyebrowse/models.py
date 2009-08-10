@@ -1,4 +1,4 @@
-]import re
+import re
 from django.db import models
 from django.contrib import admin
 from django.contrib.sitemaps import Sitemap
