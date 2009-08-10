@@ -139,10 +139,12 @@
             var data = function(startTime, endTime, viz){
                 // uses the django model get_views to return www viewed events between start and end times
                 try {
+					jQuery("#loadimg1").show();
                     jQuery.get("http://localhost:8000/get_views_user/{{ username }}/", {
                         from: startTime,
                         to: endTime
                     }, function(data){
+						jQuery("#loadimg1").hide();
                         if (data.code == 200) {
                             for (var i = 0; i < this_.drawArray.length; i++) {
                                 for (var k = 0; k < this_.drawArray[i].length; k++) {
