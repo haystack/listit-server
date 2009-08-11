@@ -385,8 +385,9 @@ jQuery(document).ready(function(){
     <div id="profile">
         {% if user.username %}
         {% if is_friend %}
-        {% else %}{% ifequal user.username username %}
-        {% else %}<a href="/friend/add?username={{ username }}">add {{ username }} as a friend</a>
+        {% else %}
+		{% ifequal user.username username %}
+        {% else %}<a href="/friend/add?username={{ username }}">follow {{ username }}</a>
         {% endifequal %}
         {% endif %}
         {% endif %}
@@ -410,24 +411,45 @@ jQuery(document).ready(function(){
         <br/>
         {% endif %}
 
-        <h2>Friends</h2>
-        {% if friends %}
+        <h2>Followers</h2>
+        {% if followers %}
         <ul class="friends">
-            {% for friend in friends %}
+            {% for friend in followers %}
             <li>
                 <a href="/user/{{ friend.username }}/">{{ friend.username }}</a><h7> {{ friend.number }}</h7>
             </li>
             {% endfor %}
         </ul>
-        {% ifequal user.username username %}<div class="footer"><a href="/friends/{{ username }}/">view all your friends</a></div>
+        {% ifequal user.username username %}<div class="footer"><a href="/friends/{{ username }}/">view all your followers</a></div>
         {% else %}
-
         {% endifequal %}
         {% else %}
         <p>
-            {{ username }} has no friends :(
+            {{ username }} has no followers :(
         </p>
         {% endif %}
+
+
+        <h2>Following</h2>
+        {% if following %}
+        <ul class="friends">
+            {% for friend in following %}
+            <li>
+                <a href="/user/{{ friend.username }}/">{{ friend.username }}</a><h7> {{ friend.number }}</h7>
+            </li>
+            {% endfor %}
+        </ul>
+
+        {% ifequal user.username username %}<div class="footer"><a href="/friends/{{ username }}/">view the users you are following</a></div>
+        {% else %}
+        {% endifequal %}
+        {% else %}
+        <p>
+            {{ username }} is not following anyone :(
+        </p>
+        {% endif %}
+
+
         {% ifequal user.username username %}<a href="/profile/{{ username }}/" class="edit">edit your profile</a>
         <br/>
         {% endifequal %}

@@ -5,47 +5,33 @@
 {% block content %}
 <div id="report" style="width:700px;">
 <div id="profile_content">
-<h2>friends</h2>
+<h2>following</h2>
 <div class="viewboxprofile">
-{% if friends %}
+{% if following %}
 <ul class="friends">
-{% for friend in friends %}
-<li><a href="/user/{{ friend.user.username }}/">
-{{ friend.user.username }}</a></li>
-{% endfor %}
-</ul>
-{% else %}
-<p>you have no friends :(</p>
-{% endif %}
-</div>
-<br />
-<h2>pending friend requests</h2>
-<div class="viewboxprofile">
-{% if fromfriend %}
-<ul class="friends">
-{% for friend in fromfriend %}
+{% for friend in following %}
 <li><a href="/user/{{ friend.username }}/">
 {{ friend.username }}</a>
-<h7><a href="/friend/save?username={{ friend.username }}">accept</a></h7>
+<h7><a href="/friend/unfollow/{{ username }}/?friend={{ friend.username }}"><img src="/lib/img/cancel_16.png" /></a></h7>
 </li>
 {% endfor %}
 </ul>
 {% else %}
-<p>you have no pending friend requests</p>
+<p>are not following anyone :(</p>
 {% endif %}
 </div>
 <br />
-<h2>awaiting approval</h2>
+<h2>followers</h2>
 <div class="viewboxprofile">
-{% if tofriend %}
+{% if followers %}
 <ul class="friends">
-{% for friend in tofriend %}
+{% for friend in followers %}
 <li><a href="/user/{{ friend.username }}/">
 {{ friend.username }}</a></li>
 {% endfor %}
 </ul>
 {% else %}
-<p>not awaiting any friend request approvals</p>
+<p>you have no followers :(</p> 
 {% endif %}
 </div>
 

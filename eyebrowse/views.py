@@ -254,9 +254,13 @@ def user_page(request, username):
 
     if request.user.username:
         request_enduser = get_enduser_for_user(request.user)
-        is_friend = request_enduser.friends.filter(user=user)
+        #is_friend = request_enduser.friends.filter(user=user)
+        is_friend = user.friend_set.all().filter(id=request.user.id)
     else: 
         is_friend = False;
+
+    followers = [friendship.to_friend for friendship in user.friend_set.all()]
+    following = [friendship.from_friend for friendship in user.to_friend_set.all()]
 
     privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
     exposure = privacysettings.exposure
@@ -288,7 +292,8 @@ def user_page(request, username):
     variables = RequestContext(request, {
         'username': username,
         'show_edit': username == request.user.username,
-        'friends': friends_results,
+        'following': following,
+        'followers': followers,
         'is_friend': is_friend,
         'first_name': first_name,
         'last_name': last_name,
@@ -574,20 +579,18 @@ def friends_page(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
 
-    # friends
-    friends = enduser.friends.all()
-    # awaiting approval
-    tofriend = [friendship.to_friend for friendship in user.friend_set.all()]
-    # pending friend requests
-    fromfriend = [friendship.from_friend for friendship in user.to_friend_set.all()]
+    # friends = enduser.friends.all()
+
+    followers = [friendship.to_friend for friendship in user.friend_set.all()]
+    following = [friendship.from_friend for friendship in user.to_friend_set.all()]
+
     variables = RequestContext(request, {
         'username': username,
-        'tofriend': tofriend,
-        'fromfriend': fromfriend,
+        'following': following,
+        'followers': followers,
         'show_user': True,
         'username': enduser.user.username,
-        'request_user': request.user,
-        'friends': friends
+        'request_user': request.user
         })
     return render_to_response('friends_page.html', variables)
 
@@ -600,16 +603,26 @@ def friend_add(request): # this sends a friend request to the user
             to_friend=friend
             )
         try:
+            friendship.save()             
+            request.user.message_set.create(
+                message='you are now following %s.' % friend.username
+                )
+        except:           
+            friendship = FriendRequest(
+                from_friend=friend,
+                to_friend=request.user
+                )
+        
             friendship.save()
             request.user.message_set.create(
-                message='A friend request was sent to %s.' % friend.username
+                message='you are now following %s.' % friend.username
                 )
-        except:
-            request.user.message_set.create(
-                message='%s is already your friend.' % friend.username
-                )
+       # except:
+       #     request.user.message_set.create(
+       #         message='%s is already your friend.' % friend.username
+       #         )
         return HttpResponseRedirect(
-            '/friends/%s/' % request.user.username
+            '/friends/manage/%s/' % request.user.username
             )
     else:
         raise Http404('boo.')
@@ -627,7 +640,7 @@ def friend_save(request):  # this saves the user as a friend in BOTH user's frie
             # apparenly this does the trick w/o the save
         
             friendship = FriendRequest.objects.filter(
-                from_friend=friend,
+                 from_friend=friend,
                 to_friend=request.user
                 )
             if friendship:
@@ -653,6 +666,42 @@ def friend_save(request):  # this saves the user as a friend in BOTH user's frie
             )
     else:
         raise Http404('failz')
+
+def friend_unfollow(request, username):
+    if request.GET.has_key('friend'):
+        friend = get_object_or_404(User, username=request.GET['friend'])
+        enduser = get_enduser_for_user(request.user)        
+        frienduser = get_enduser_for_user(friend)
+        try:
+            friendship = FriendRequest.objects.filter(
+                 from_friend=friend,
+                to_friend=request.user
+                )
+            if friendship:
+                friendship.delete()
+            # try again with the from_friend to_friend reversed
+            else:
+                friendship = FriendRequest.objects.filter(
+                    from_friend=request.user,
+                    to_friend=friend
+                    )
+                friendship.delete()
+                
+            request.user.message_set.create(
+                message='you are no longer following %s.' % friend.username
+                )
+        except:
+            request.user.message_set.create(
+                message='%s failz.' % friend.username
+                )
+        
+        return HttpResponseRedirect(
+            '/friends/manage/%s/' % request.user.username
+            )
+    else:
+        raise Http404('failz')
+
+
 
 @login_required
 def friend_invite(request):

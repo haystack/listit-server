@@ -36,6 +36,7 @@ urlpatterns = patterns('',
                        (r'^friend/save$', friend_save),
                        (r'^friend/invite/$', friend_invite),
                        (r'^friend/accept/(\w+)/$', friend_accept),
+                       (r'^friend/unfollow/(\w+)/$', friend_unfollow),
                        
                        # session management
                        (r'^login/$', 'django.contrib.auth.views.login'),#login_page),
