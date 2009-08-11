@@ -302,6 +302,46 @@ def user_page(request, username):
         })
     return render_to_response('user_page.html', variables)
 
+def friends(request, username):
+    user = get_object_or_404(User, username=username)
+    enduser = get_enduser_for_user(user)
+
+    friends = enduser.friends.all()
+    friends_results = []
+    for friend in friends:
+        friends_results.append( {"username": friend.user.username, "number": Event.objects.filter(owner=friend.user,type="www-viewed").count()} )
+    friends_results.sort(key=lambda x:(x["username"], x["number"]))
+    
+    request_user = request.user.username
+
+    variables = RequestContext(request, {
+        'username': username,
+        'show_edit': username == request.user.username,
+        'friends': friends_results,
+        'request_user': request_user
+        })
+    return render_to_response('friends.html', variables)
+
+def webpage(request, username):
+    user = get_object_or_404(User, username=username)
+    enduser = get_enduser_for_user(user)
+
+    friends = enduser.friends.all()
+    friends_results = []
+    for friend in friends:
+        friends_results.append( {"username": friend.user.username, "number": Event.objects.filter(owner=friend.user,type="www-viewed").count()} )
+    friends_results.sort(key=lambda x:(x["username"], x["number"]))
+    
+    request_user = request.user.username
+
+    variables = RequestContext(request, {
+        'username': username,
+        'show_edit': username == request.user.username,
+        'friends': friends_results,
+        'request_user': request_user
+        })
+    return render_to_response('webpage.html', variables)
+    
 
 def logout_page(request):
     logout(request)
@@ -387,7 +427,6 @@ def register_success_page(request):
 @login_required
 def profile_save_page(request, username):
     if username != request.user.username:
-
         return HttpResponseRedirect('/')
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
@@ -937,7 +976,27 @@ def get_users_most_recent_urls(request, username, n):
 
     return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits[0:n] ] });    
         
+def get_following_views(request, username):
+    user = get_object_or_404(User, username=username)
+    enduser = get_enduser_for_user(user)
+    following = [friendship.to_friend for friendship in user.friend_set.all()]
 
+    from_msec,to_msec = _unpack_from_to_msec(request)
+
+    # temporary should user following
+    friends = enduser.friends.all()
+    friends_results = []
+
+    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid), "title": get_title_from_evt(evt)}
+
+    for friend in friends:
+        friend_user = get_object_or_404(User, username=friend.user.username)
+        events = Event.objects.filter(owner=friend_user,type="www-viewed",start__gte=from_msec,end__lte=to_msec)
+        friends_results.append( {"username": friend.user.username, "events": [ defang_event(evt) for evt in events ] } )
+        
+    friends_results.sort(key=lambda x:(x["username"], x["username"]))
+
+    return json_response({ "code":200, "results": friends_results });    
 
         
 # search stuff down here

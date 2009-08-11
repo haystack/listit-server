@@ -31,7 +31,7 @@
             var html = "";
 			jQuery("#latestlist").html(html);
 			html = "<ul >";
-            for (var i = newData.length - 1; i > 0; i--) {
+    for (var i = newData.length - 1; i > 0; i--) {
                 html += "<li id=\"url" + i +  "\">";
                 html += "<h6><b><a href=\"" + newData[i].entity.id + "\">" + newData[i].title + "</a></b></h6>";
 				html += "<a href=\"javascript:self.viz.deletePage('" + newData[i].url + "','" + i + "');\" style=\"float:right; margin-right:6px; margin-left:6px;\" >";

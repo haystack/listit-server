@@ -172,6 +172,7 @@ var dateSlider = ({
 						  this.lIH = undefined; // is hover
 						  this.rIH = undefined;
 						  this.trigger = false;
+						  this.draw();
 					  },
 					  draw: function(){
 						  var ctx = this.canvas.getContext('2d');

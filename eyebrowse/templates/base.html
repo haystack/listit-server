@@ -25,7 +25,7 @@
 <div id="header">
            <a href="/"><img src="/lib/img/smallbird.jpg" style="float:left; padding-left:8px; padding-right:8px"/></a>
 	    {% if request_user %}
-	    <a href="/graph/{{ request_user }}/">graph</a>&nbsp; &#124; &nbsp;<a href="/days/{{ request_user }}/">days</a>&nbsp; &#124; &nbsp;<a href="/user/{{ request_user }}/">profile</a>
+	    <a href="/graph/{{ request_user }}/">graph</a>&nbsp; &#124; &nbsp;<a href="/days/{{ request_user }}/">days</a>&nbsp; &#124; &nbsp;<a href="/webpage/{{ request_user }}/">webpages</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ request_user }}/">friends</a>&nbsp; &#124; &nbsp;<a href="/user/{{ request_user }}/">profile</a>
             <div id="usersettings">
                 <a href="/profile/{{ request_user }}/">{{ request_user }}</a>&nbsp; &#124; &nbsp;<a href="/logout/">logout</a>
             </div>

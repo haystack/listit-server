@@ -33,6 +33,13 @@ class UserTag(models.Model):
     def __str__(self):
         return self.name
 
+class Group(models.Model):
+    name = models.CharField(max_length=250,unique=True, primary_key=True)    
+    description = models.TextField(blank=True, null=True)    
+    photo = models.ImageField(upload_to=settings.EYEBROWSE_PROFILE_UPLOAD_DIR)
+    tags = models.ManyToManyField(UserTag) # not sure if i can use this but it seems ok
+    other_settings = models.TextField(blank=True, null=True)   ## just in case!!
+
 class EndUser(models.Model):
     user = models.ForeignKey(User, unique=True, primary_key=True)    
     location = models.CharField(max_length=250, blank=True, null=True)
