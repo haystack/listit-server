@@ -616,8 +616,8 @@ def extract_zen_notes_data(note):
             "edited":note.edited,
             "pk":note.id,
             "jid":note.jid,
-            "col":0,
-            "row":0,
+            "col":80,
+            "row":1,
             "version":note.version,
             "deleted":"false",
             "created":note.created};        
