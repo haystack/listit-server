@@ -185,12 +185,18 @@ def get_consenting_users_old(userset=None,newerthan=time.mktime(datetime.date(20
 study_2_point = 1249099200000 ## 1249099200000 = august 1 2009
 def is_consenting_study1(user):
     ## accurate.
-    last_consent=UserRegistration.objects.filter(email=user.email).order_by("-when")[0]
-    return last_consent.couhes and last_consent.when < study_2_point
+    consents=UserRegistration.objects.filter(email=user.email).order_by("-when")
+    if consents.count() > 0:
+        last_consent = consents[0]
+        return last_consent.couhes and last_consent.when < study_2_point
+    return False
 
 def is_consenting_study2(user):
-    last_consent=UserRegistration.objects.filter(email=user.email).order_by("-when")[0]
-    return last_consent.couhes and last_consent.when > study_2_point
+    consents=UserRegistration.objects.filter(email=user.email).order_by("-when")
+    if consents.count() > 0:
+        last_consent = consents[0]
+        return last_consent.couhes and last_consent.when > study_2_point
+    return False
 
 def set_consenting(user,is_consenting):
     ## clones a userreg

@@ -333,7 +333,7 @@ def confirmuser(request):
         
         ## handle couhes reg
         if (newest_registration.couhes):
-            assert nonblank(newest_registration.first_name) and nonblank(newest_registration.last_name), "Couhes requires non blank first and last names"
+            ## assert nonblank(newest_registration.first_name) and nonblank(newest_registration.last_name), "Couhes requires non blank first and last names"
             user.first_name = newest_registration.first_name;
             user.last_name = newest_registration.last_name;
             user.save();
