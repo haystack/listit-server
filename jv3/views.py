@@ -635,7 +635,7 @@ def get_zen(request):
     if Note.objects.filter(owner=request_user,jid="-1").count() > 0:
         magic_note = Note.objects.filter(owner=request_user,jid="-1",deleted=False)[0]
         note_order = JSONDecoder().decode(magic_note.contents)['noteorder']
-        notes = [ n for n in Note.objects.filter(owner=request_user,deleted=False) ]
+        notes = [ n for n in Note.objects.filter(owner=request_user,deleted=False).exclude(jid=-1) ]
         def sort_order(nx,ny):
             if nx.jid in note_order and ny.jid in note_order:
                 result = note_order.index(nx.jid) - note_order.index(ny.jid)
@@ -647,7 +647,7 @@ def get_zen(request):
         
     else:
         # sort by creation date ?
-        notes = Note.objects.filter(owner=request_user,deleted=False).order_by("-created")
+        notes = Note.objects.filter(owner=request_user,deleted=False).order_by("-created").exclude(jid=-1)
 
     ## make magic happen
     ndicts = [ extract_zen_notes_data(note) for note in notes ]

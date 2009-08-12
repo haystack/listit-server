@@ -200,8 +200,12 @@ def is_consenting_study2(user):
 
 def set_consenting(user,is_consenting):
     ## clones a userreg
-    regs = UserRegistration.objects.filter(email=user.email).order_by("-when")[0]
-    clone = regs.clone()
+    regs = UserRegistration.objects.filter(email=user.email).order_by("-when")
+    if regs.count() == 0:
+        make_fake_reg_for_admin_user(user.email,False)
+        regs = UserRegistration.objects.filter(email=user.email).order_by("-when")
+        
+    clone = regs[0].clone()
     
     clone.when = current_time_decimal()
     clone.couhes = is_consenting
