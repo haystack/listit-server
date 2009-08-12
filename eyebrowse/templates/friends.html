@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Graph{% endblock %}
+{% block title %}Your Friends{% endblock %}
 {% block imports %}
 <link rel="stylesheet" type="text/css" href="/lib/CSS/datepicker.css" />
 <script src="/lib/js/watchMeGraph.js">
@@ -66,7 +66,8 @@
                 catch (e) {
                     console.log(e);
                 }
-            }(this.startTime, this.endTime, this); // passing this around like a hot tomalie       
+            }(this.startTime, this.endTime, this); // passing this around like a hot 
+            this.getTopPages(this.endTime - zoom, this.endTime);
         },
         initLineGraph: function(newData, startTime, EndTime, viz, i){
 			var this_ = this;
@@ -108,7 +109,7 @@
                 for (var j = 0; j < wwwBars.data.length; j++) {
                     foo += wwwBars.data[j].end - wwwBars.data[j].start;
                 }
-                return timeCounterLongAbv(foo / 1000) + "<br />";
+                return timeCounterClock(foo / 1000) + "<br />";
             }();
         },
         setupDraw: function(){
@@ -151,6 +152,63 @@
         },
         setDrawArray: function(p){
             this.drawArray = p;
+        },        
+		drawTopPagesList: function(data){
+            var this_ = this;
+            var newData = data;
+            var html = "<ul>";
+            for (var i = 0; i < newData.length; i++) {
+                var trigger = true;
+                html += "<li>";
+                html += "<h6><b><a href=\"http://" + newData[i][0] + "\">" + newData[i][0] + "</a></b></h6>";                
+                if (newData[i][2] < 0) {
+                    trigger = false;
+                    html += "<div class=\"imgbox\">";
+                    html += "<img src=\"/lib/img/arrow_full_down_16.png\" />";
+                    html += "<b>" + newData[i][2] + "</b>";
+                    html += "</div>";
+                }
+                if (newData[i][2] > 0) {
+                    trigger = false;
+                    html += "<div class=\"imgbox\">";		   
+					html += "<img src=\"/lib/img/arrow_full_up_16.png\" />";                         
+					html += "<b>" + newData[i][2] + "</b>";
+					html += "</div>";
+                }
+                if (trigger) {
+                    html += "<div class=\"imgbox\">&nbsp;";
+                    // html += "<img src=\"/lib/img/star_16.png\" />";
+                    html += "</div>";
+                }
+                html += "<h7>" + timeCounterLong((newData[i][1]) / 1000) + "</h7>";
+                html += "</li>";
+            }
+			html += "</ul>";
+            jQuery("#list").html(html);
+        },
+		getTopPages: function(startTime, endTime, data){
+            var this_ = this;
+            try {
+				jQuery("#loadimg").show();
+                jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ username }}/25/", {
+							   first_start: startTime - 86400000,
+							   first_end: endTime - 86400000,
+							   second_start: startTime,
+							   second_end: endTime
+						   }, // this gets top 25 pages
+						   function(data){
+							   jQuery("#loadimg").hide();
+							   if (data.code == 200) {
+								   this_.drawTopPagesList(data.results);
+							   }
+							   else {
+								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							   }
+						   }, "json");
+            } 
+            catch (e) {
+                console.log(e);
+            }
         },
         refresh: function(endTime, startTime){
             var this_ = this;
@@ -282,10 +340,10 @@
 <div class="loader" id="loadimg1"></div>
 <div id="profile_content" style="width:950px; margin-left:auto;margin-right:auto">
   <h1 style="margin-left:130px;">Friends</h1>
-  <div id="dateselector" style="float:right;margin-right:90px; margin-top:12px;">
+  <div id="dateselector" style="float:right;margin-right:90px; margin-top:12px; font-size:1.1em">
 	week ending:
     <input id="datepicker" class="datepicker" value="06/14/2008" type="text" style="padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/>
-	<img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
+	<img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-bottom:6px; margin-left:4px;"/>
     <div id="messageSent">
       robots do not know the future :( 
 	  <br/>
@@ -303,7 +361,7 @@
 	</div>
 	<canvas id="status"></canvas>			
   </div>
-  
+<br />  
   <div class="user_page_top" style="width:700px; margin-left:auto;margin-right:auto;">
     <div id="dateselector" style="float:right; margin-top:15px; width:230px;">
 	  week ending:
@@ -315,11 +373,11 @@
         &#8230;yet
       </div>
 	</div>
-	
+
 	<h2 style="border-top:none">top 25</h2>
 	
   </div>
-  <div class="viewboxlarge" id="list" style="width:700px;">
+  <div class="viewboxlarge" id="list" style="width:690px; margin-left:130px">
   </div>
   
 </div>

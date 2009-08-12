@@ -27,7 +27,8 @@ urlpatterns = patterns('',
                        (r'^report/(\w+)/$', report),
                        (r'^graph/(\w+)/$', graph),
                        (r'^friends/(\w+)/$', friends),
-                       (r'^webpage/(\w+)/$', webpage),
+                       (r'^search/$', webpage),
+                       (r'^global/$', world),
                        
                        # user pages
                        (r'^user/(\w+)/$', user_page),
@@ -59,6 +60,8 @@ urlpatterns = patterns('',
                        (r'^get_top_hosts_comparison/(\w+)/(\d+)/$', get_top_hosts_comparison),
                        (r'^get_users_most_recent_urls/(\w+)/(\d+)/$', get_users_most_recent_urls),
                        (r'^get_following_views/(\w+)/$', get_following_views),
+                       (r'^get_views_url/$', get_views_url),
+                       (r'^get_top_users_for_url/(\d+)/$', get_top_users_for_url),
 
                        # homepage ajax
                        (r'^get_most_recent_urls/(\d+)/$', get_most_recent_urls),

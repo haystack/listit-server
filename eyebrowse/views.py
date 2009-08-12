@@ -248,6 +248,11 @@ def graph(request, username):
     c = Context({ 'username': enduser.user.username, 'id': enduser.user.id, 'request_user': request_user })
     return HttpResponse(t.render(c))
 
+def world(request):
+    t = loader.get_template("global.html")
+    c = Context({ 'username': request.user.username, 'id': request.user.id, 'request_user': request.user.username })
+    return HttpResponse(t.render(c))
+
 def user_page(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
@@ -327,23 +332,10 @@ def friends(request, username):
         })
     return render_to_response('friends.html', variables)
 
-def webpage(request, username):
-    user = get_object_or_404(User, username=username)
-    enduser = get_enduser_for_user(user)
-
-    friends = enduser.friends.all()
-    friends_results = []
-    for friend in friends:
-        friends_results.append( {"username": friend.user.username, "number": Event.objects.filter(owner=friend.user,type="www-viewed").count()} )
-    friends_results.sort(key=lambda x:(x["username"], x["number"]))
-    
-    request_user = request.user.username
-
+def webpage(request):
     variables = RequestContext(request, {
-        'username': username,
-        'show_edit': username == request.user.username,
-        'friends': friends_results,
-        'request_user': request_user
+        'username': request.user.username,
+        'request_user': request.user.username
         })
     return render_to_response('webpage.html', variables)
     
@@ -953,6 +945,52 @@ def get_top_urls(request, n):
 
     return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] })
 
+def get_top_urls_following(request, n):
+    user = get_object_or_404(User, username=username)
+    enduser = get_enduser_for_user(user)
+    following = [friendship.from_friend for friendship in user.to_friend_set.all()]
+
+    n = int(n)
+    first_start,first_end,second_start,second_end = _unpack_times(request)
+    times_per_url_first = _get_top_n(user,first_start,first_end)
+    times_per_url_second = _get_top_n(user,second_start,second_end)
+
+
+    for friend in following:
+        friend_user = get_object_or_404(User, username=friend.username)
+        times_per_url_first.append(_get_top_n(friend_user,first_start,first_end))
+        times_per_url_second.append(_get_top_n(friend_user,first_start,first_end))
+
+    def index_of(what, where):
+        try:
+            return [ h[0] for h in where ].index(what)
+        except:
+            print sys.exc_info()
+            pass
+        return None
+
+    results = []
+    for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
+        old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
+        if old_rank is not None:
+            diff = - (i - old_rank)  # we want the gain not the difference
+            results.append(times_per_url_second[i] + (diff,) )
+        else:
+            results.append( times_per_url_second[i] )
+
+    return json_response({ "code":200, "results": results[0:n] })
+
+def get_views_url(request):
+    from_msec,to_msec = _unpack_from_to_msec(request)
+    url = request.GET['url'].strip()
+
+    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid), "title": get_title_from_evt(evt)}
+
+    results = Event.objects.filter(entityid=url,type="www-viewed",start__gte=from_msec,end__lte=to_msec)
+
+    return json_response({ "code":200, "results": [ defang_event(evt) for evt in results ] } )
+
+
 def get_trending_urls(request, n):
     user = User.objects.all();
     user = user[0] ## again this is fail not sure how to iterate through the users esp if they have not logged anything
@@ -998,6 +1036,19 @@ def get_top_users(request, n):
 
     return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] })
 
+def get_top_users_for_url(request, n):
+    users = User.objects.all();
+    n = int(n)
+    from_msec,to_msec = _unpack_from_to_msec(request)
+    url = request.GET['url'].strip()
+    results = []
+    for user in users:
+        number = Event.objects.filter(owner=user,entityid=url,type="www-viewed",start__gte=from_msec,end__lte=to_msec).count()
+        results.append( {"user": user.username, "number": number } )
+    results.sort(key=lambda x:(x["user"], x["number"]))
+
+    return json_response({ "code":200, "results": results[0:n] })
+
 def get_most_recent_urls(request, n):
     users = User.objects.all();
     n = int(n)
@@ -1032,17 +1083,21 @@ def get_following_views(request, username):
 
     from_msec,to_msec = _unpack_from_to_msec(request)
 
-    # temporary should user following
-    friends = enduser.friends.all()
-    friends_results = []
+    following = [friendship.from_friend for friendship in user.to_friend_set.all()]
 
     defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid), "title": get_title_from_evt(evt)}
 
-    for friend in friends:
-        friend_user = get_object_or_404(User, username=friend.user.username)
+    friends_results = []
+
+    for friend in following:
+        friend_user = get_object_or_404(User, username=friend.username)
         events = Event.objects.filter(owner=friend_user,type="www-viewed",start__gte=from_msec,end__lte=to_msec)
-        friends_results.append( {"username": friend.user.username, "events": [ defang_event(evt) for evt in events ] } )
+        friends_results.append( {"username": friend.username, "events": [ defang_event(evt) for evt in events ] } )
         
+    # add the request.user
+    user_events = events = Event.objects.filter(owner=user,type="www-viewed",start__gte=from_msec,end__lte=to_msec)
+    friends_results.append( {"username": enduser.user.username, "events": [ defang_event(evt) for evt in user_events ] } )
+
     friends_results.sort(key=lambda x:(x["username"], x["username"]))
 
     return json_response({ "code":200, "results": friends_results });    

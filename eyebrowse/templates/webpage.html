@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ username}}{% endblock %}
+{% block title %}search{% endblock %}
 {% block imports %}
 <link rel="stylesheet" type="text/css" href="/lib/CSS/datepicker.css" />
 <script src="/lib/js/watchMeGraph.js">
@@ -15,7 +15,7 @@
 </script>
 <script>
     var WatchmeVisualisation = {
-        initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom){
+        initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom, url) {
             this.canvas = canvas;
             this.windowWidth = windowWidth;
             this.windowHeight = windowHeight;
@@ -30,59 +30,21 @@
             this.interp = zoom / 192;
             this.drag = undefined;
             this.zoom = zoom;
-
-            this.getLatestPages(this.endTime - 86400000, this.endTime); // 1 day
-            this.initLiteGraph(this.endTime - 604800000, this.endTime); // 604800000 is 1 week// 15778458000 = the beginning of time (6 months ago)
-            this.getTopPages(this.endTime - zoom, this.endTime);
+			this.url = url;
+            this.initSmallGraphs(this.startTime, this.endTime, url); // 604800000 is 1 week
+			//this.initUrlGraph(this.startTime, this.endTime, url);
+			this.initTopUsers(this.startTime, this.endTime, url);
         },
-        drawTopPagesList: function(data){
-            var this_ = this;
-            var newData = data;
-            var html = "<ul>";
-            for (var i = 0; i < newData.length; i++) {
-                var trigger = true;
-                html += "<li>";
-                html += "<h6><b><a href=\"http://" + newData[i][0] + "\">" + newData[i][0] + "</a></b></h6>";                
-                if (newData[i][2] < 0) {
-                    trigger = false;
-                    html += "<div class=\"imgbox\">";
-                    html += "<img src=\"/lib/img/arrow_full_down_16.png\" />";
-                    html += "<b>" + newData[i][2] + "</b>";
-                    html += "</div>";
-                }
-                if (newData[i][2] > 0) {
-                    trigger = false;
-                    html += "<div class=\"imgbox\">";		   
-					html += "<img src=\"/lib/img/arrow_full_up_16.png\" />";                         
-					html += "<b>" + newData[i][2] + "</b>";
-					html += "</div>";
-                }
-                if (trigger) {
-                    html += "<div class=\"imgbox\">&nbsp;";
-                    // html += "<img src=\"/lib/img/star_16.png\" />";
-                    html += "</div>";
-                }
-                html += "<h7>" + timeCounterLong((newData[i][1]) / 1000) + "</h7>";
-                html += "</li>";
-            }
-			html += "</ul>";
-            jQuery("#list").html(html);
-        },
-        getTopPages: function(startTime, endTime, data){
-            // uses the django model get_top_pages to return top pages between start and endtime
-            var this_ = this;
-            try {
-				jQuery("#loadimg").show();
-                jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ username }}/25/", {
-							   first_start: startTime - 86400000,
-							   first_end: endTime - 86400000,
-							   second_start: startTime,
-							   second_end: endTime
-						   }, // this gets top 25 pages
-						   function(data){
-							   jQuery("#loadimg").hide();
-							   if (data.code == 200) {
-								   this_.drawTopPagesList(data.results);
+		initTopUsers: function(startTime, endTime, url){
+			var this_ = this;	
+			try {
+                jQuery.get("http://localhost:8000/get_top_users_for_url/10/", {
+							   url: url,
+							   from: startTime,
+							   to: endTime
+						   }, function(data){
+							   if (data.code == 200) {	
+								   this_.drawTopUsers(data.results);							   			            
 							   }
 							   else {
 								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
@@ -92,11 +54,75 @@
             catch (e) {
                 console.log(e);
             }
-        },
-        initLiteGraph: function(startTime, endTime){
+		},
+		drawTopUsers: function(data){
+			var this_ = this;
+			var html = "";
+			for (var i = 0; i < data.length; i++){
+				html += "<li>";
+                html += "<a href=\"/user/" + data[i].user + "/\">" + data[i].user + "</a><h7>" + data[i].number + "</h7>";
+				html += "</li>";
+			}
+			jQuery("#topvisitors").html(html);					   			
+		},
+		initUrlGraph: function(startTime, endTime, url){
+			var this_ = this;	
+			var urlGraph = undefined;
+			
+            try {
+                jQuery.get("http://localhost:8000/get_views_url/", {
+							   url: url,
+							   from: startTime,
+							   to: endTime
+						   }, function(data){
+							   if (data.code == 200) {	
+								   this_.drawUrlGraph(data.results, startTime, endTime);							   			            
+							   }
+							   else {
+								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							   }
+						   }, "json");
+            } 
+            catch (e) {
+                console.log(e);
+            }
+		},
+		drawUrlGraph: function(data, startTime, endTime){
+			var this_ = this;
+
+
+			// 3 columns of divs
+			// 1 canvas bg
+			var leftHTML = "";
+			var rightHTML = "";
+			var centerHTML = "<h6><a href=\"" + this_.url + "\">" + this_.url + "</a></h6>";
+			for (var i =0; i < data.from.length; i++){
+				leftHTML += "<h6><a href=\"" + this_.from.url[i] + "\">" + this_.url.from.url[i] + "</a></h6>";
+			}
+			for (var i =0; i < data.to.length; i++){
+				rightHTML += "<h6><a href=\"" + this_.url.to.url[i] + "\">" + this_.url.to.url[i] + "</a></h6>";
+			}
+
+			var totalTimeG = newify(pathGraph, {
+										canvas: document.getElementById("pathGraph"),
+										startTime: startTime,
+										endTime: endTime,
+										windowHeight: this_.windowHeight,
+										windowWidth: this_.windowWidth,
+										interp: (endTime - startTime) / interpNum,
+										color: "#ff00ff",
+										data: data
+									});			
+			
+			jQuery("#urlLeft").html(leftHTML);
+			jQuery("#urlRight").html(rightHTML);
+			jQuery("#urlCenter").html(centerHTML);					   			
+		},
+		initSmallGraphs: function(startTime, endTime, url){
             var this_ = this;
             try {
-                jQuery.get("http://localhost:8000/get_views_user/{{ username }}/", {
+                jQuery.get("http://localhost:8000/get_views_url/", {
+							   url: url,
 							   from: startTime,
 							   to: endTime
 						   }, function(data){
@@ -108,9 +134,9 @@
 								   for (var i = 0; i < data.results.length; i++) {
 									   fooTotal += data.results[i].end - data.results[i].start;
 								   }
-								   jQuery("#totalTime").html("<b>total time: </b> " + timeCounter(fooTotal / 1000));
-								   jQuery("#num").html("<b>total #: </b>" + data.results.length);
-								   jQuery("#avgTime").html("<b>average: </b>" + timeCounterLongAbv((fooTotal / (data.results.length * 2)) / 1000));
+								   jQuery("#totalTime").html("<b>total time spent: </b> " + timeCounter(fooTotal / 1000));
+								   jQuery("#num").html("<b>total visits: </b>" + data.results.length);
+								   jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv((fooTotal / (data.results.length * 2)) / 1000));
 								   this_.drawLiteGraph(data.results, startTime, endTime);
 							   }
 							   else {
@@ -121,13 +147,12 @@
             catch (e) {
                 console.log(e);
             }
-            // ideally this call will be cached as it is EXPENSIVE AS ALL HELL		    
         },
         drawLiteGraph: function(data, startTime, endTime){
 			var this_ = this;
             var newData = data;
             var startTime = startTime; //newData[1].start.valueOf();
-			var endTime = endTime
+			var endTime = endTime;
             var interpNum = 28; // ALARM yea this is number of points on graph
             // fix this. it should be dynamic or a variable
             var interp = (endTime - startTime) / interpNum;
@@ -195,61 +220,6 @@
 									  data: avgData
 								  });
         },
-        drawLatestPagesList: function(data){
-			var this_ = this;
-            var newData = data;
-            var html = "";
-			jQuery("#latestlist").html(html);
-			html = "<ul >";
-            for (var i = newData.length - 1; i > newData.length - 16; i--) {
-                html += "<li id=\"url" + i +  "\">";
-                html += "<h6><b><a href=\"" + newData[i].entity.id + "\">" + newData[i].title + "</a></b></h6>";
-				html += "<a href=\"javascript:self.viz.deletePage('" + newData[i].url + "','" + i + "');\" style=\"float:right; margin-right:6px; margin-left:6px;\" >";
-				html += "<img src=\"/lib/img/cancel_16.png\" /></a>";
-                html += "<h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
-                html += "</li>";
-			}
-            html += "</ul>";
-			jQuery("#latestlist").append(html);
-			
-        },
-		deletePage: function(pageURL, num){
-			try {
-				jQuery.post("/delete_url_entry/", {
-							   'URL': "" + pageURL
-						   }, function(data){							   
-							   if (data.code == 200) {
-								   jQuery("\#url" + num).hide("slow");
-							   }
-							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-                console.log(e);
-            }			
-		},
-        getLatestPages: function(startTime, endTime){
-            this_ = this;
-            try {
-                jQuery.get("http://localhost:8000/get_views_user/{{ username }}/", {
-                //jQuery.get("http://localhost:8000/get_users_most_recent_urls/{{ username }}/15/", {
-							   from: startTime,
-							   to: endTime
-						   }, function(data){
-							   if (data.code == 200) {
-								   this_.drawLatestPagesList(data.results);
-							   }
-							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-                console.log(e);
-            }
-        },
 		refresh: function(startTime, endTime){
             var this_ = this;
             this_.endTime = endTime;
@@ -279,69 +249,17 @@
 		}
     };
 jQuery(document).ready(function(){
-						   var currentDate = new Date();
-						   jQuery("#datepickerlatest").val(currentDate.format('mm/dd/yyyy'));
-						   
-						   jQuery('#datepickerlatest').DatePicker({
-																	  format: 'm/d/Y',
-																	  date: jQuery('#datepickerlatest').val(),
-																	  current: jQuery('#datepickerlatest').val(),
-																	  starts: 1,
-																	  position: 'top',
-																	  current: '2009-07-29',
-																	  
-																	  onBeforeShow: function(){
-																		  jQuery('#datepickerlatest').DatePickerSetDate(jQuery('#datepickerlatest').val(), true);
-																	  },
-																	  onChange: function(formated, dates){
-																		  var fooDate = jQuery.datepicker.formatDate("@", new Date(jQuery('#datepickerlatest').DatePickerGetDate(true)));
-																		  if (fooDate > new Date().valueOf()) {
-																			  fooDate = new Date().valueOf();
-																			  jQuery('#datepickerlatest').val(currentDate.format('mm/dd/yyyy'));
-																			  jQuery("#messageSentLatest").show("slow");
-																		  }
-																		  else {
-																			  jQuery('#datepickerlatest').val(formated);
-																			  self.viz.getLatestPages(parseInt(fooDate) - 86400000, parseInt(fooDate)), jQuery("#messageSentLatest").hide("slow");
-																		  }
-																		  jQuery('#datepickerlatest').DatePickerHide();
-																		  
-																	  }
-																  });	
-						   jQuery("#datepickergraph").val(currentDate.format('mm/dd/yyyy'));						   
-						   jQuery('#datepickergraph').DatePicker({
-																	  format: 'm/d/Y',
-																	  date: jQuery('#datepickergraph').val(),
-																	  current: jQuery('#datepickergraph').val(),
-																	  starts: 1,
-																	  position: 'top',
-																	  current: '06-29-09',
-																	  
-																	  onBeforeShow: function(){
-																		  jQuery('#datepickergraph').DatePickerSetDate(jQuery('#datepickergraph').val(), true);
-																	  },
-																	  onChange: function(formated, dates){
-																		  var fooDate = jQuery.datepicker.formatDate("@", new Date(jQuery('#datepickergraph').DatePickerGetDate(true)));
-																		  if (fooDate > new Date().valueOf()) {
-																			  fooDate = new Date().valueOf();
-																			  jQuery('#datepickergraph').val(currentDate.format('mm/dd/yyyy'));
-																			  jQuery("#messageSentGraph").show("slow");
-																		  }
-																		  else {
-																			  jQuery('#datepickergraph').val(formated);
-																			  self.viz.initLiteGraph(parseInt(fooDate) - 604800000, parseInt(fooDate)), jQuery("#messageSentGraph").hide("slow");
-																		  }
-																		  jQuery('#datepickergraph').DatePickerHide();																		  
-																	  }
-																  });																		
-					   
+						   var currentDate = new Date();																					   
+						   var myWidth = window.innerWidth - 16;
+						   var myHeight = window.innerHeight - 250;
+						   var input = jQuery("#urladdtextinput").val();
 						   jQuery("#datepicker").val(currentDate.format('mm/dd/yyyy'));						   
 						   jQuery('#datepicker').DatePicker({
 																format: 'm/d/Y',
 																date: jQuery('#datepicker').val(),
 																current: jQuery('#datepicker').val(),
 																starts: 1,
-																position: 'top',
+																position: 'bottom',
 																current: '2009-07-29',
 																
 																onBeforeShow: function(){
@@ -361,151 +279,79 @@ jQuery(document).ready(function(){
 																	jQuery('#datepicker').DatePickerHide();
 																	
 																}
-															});						  						 						   
-						   var myWidth = undefined;
-						   var myHeight = undefined;
-						   
-						   myWidth = window.innerWidth - 16;
-						   myHeight = window.innerHeight - 250;
-						   
+															});				
+
 						   document.getElementById("totalTimeGraph").setAttribute("width", 335);
 						   document.getElementById("totalTimeGraph").setAttribute("height", 200);
 						   document.getElementById("avgTimeGraph").setAttribute("width", 335);
 						   document.getElementById("avgTimeGraph").setAttribute("height", 200);
+						   document.getElementById("pathgraph").setAttribute("width", 950);
+						   document.getElementById("pathgraph").setAttribute("height", 350);
+
 						   
-						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 604800000);// 1 week
+						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 604800000, input);// 1 week
 					   });
 </script>
 {% endblock %}
 {% block content %}
 <div class="loader" id="loadimg"></div>
-<div id="report">
-	<img src="/lib/img/ajax-loader.gif" class="loader" />
-	<div id="loading" class="loader"></div>
-    <div id="profile">
-        {% if user.username %}
-        {% if is_friend %}
-        {% else %}{% ifequal user.username username %}
-        {% else %}<a href="/friend/add?username={{ username }}">add {{ username }} as a friend</a>
-        {% endifequal %}
-        {% endif %}
-        {% endif %}
+<div id="profile_content" style="width:950px; margin-left:auto;margin-right:auto; ">
+	<div id="dateselector" style="font-size:1.1em; float:right; padding-top:6px; width:210px">
+	week ending:
+    <input id="datepicker" class="datepicker" value="06/14/2008" type="text" style="margin-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/>
+	<img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px; margin-bottom:6px;"/>
+    <div id="messageSent">
+      robots do not know the future :( 
+	  <br/>
+	  &#8230;yet
+	</div>
+  </div>
 
-        <div id="num" style="margin-top:10px;">
-            <b>total #:</b>
+
+  <form name="list" id="urladdform" style="border-bottom: 1px double #666666;">
+	<input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:228px;" value="http://localhost:8000/"/>
+	<div id="urladd" style="width:auto">search</div>
+	<input type="submit" id="urladd" value="add" style="display:none;"/>
+  </form>
+
+  <canvas id="pathgraph" style="z-index:-1">
+  </canvas>
+</div>
+
+
+<div id="report">
+    <div id="profile" style="margin-top:-10px">
+	  <div style="border-top:1px solid #333333">&nbsp;</div>
+        <div id="num">
+            <b>total visits:</b>
         </div>
         <div id="totalTime">
-            <b>total time: </b>
+            <b>total time spent: </b>
         </div>
         <div id="avgTime">
-            <b>average:</b>
+            <b>average time spent:</b>
         </div>
-        <br />
-        {% if location %}<b>Location:</b>
-        {{ location }} 
-        <br/>
-        {% endif %}
-        {% if homepage %}<b>Website:</b>
-        <a href="{{ homepage }}">{{ homepage }}</a> 
-        <br/>
-        {% endif %}
-
-        <h2>Friends</h2>
-        {% if friends %}
-        <ul class="friends">
-            {% for friend in friends %}
-            <li>
-                <a href="/user/{{ friend.username }}/">{{ friend.username }}</a><h7> {{ friend.number }}</h7>
-            </li>
-            {% endfor %}
+	  <h2 style="border-top:none">Top Visitors</h2>
+			  <br />
+        <ul class="friends" id="topvisitors">
+			  
         </ul>
-        {% ifequal user.username username %}<div class="footer"><a href="/friends/{{ username }}/">view all your friends</a></div>
-        {% else %}
-
-        {% endifequal %}
-        {% else %}
-        <p>
-            {{ username }} has no friends :(
-        </p>
-        {% endif %}
-        {% ifequal user.username username %}<a href="/profile/{{ username }}/" class="edit">edit your profile</a>
-        <br/>
-        {% endifequal %}
     </div>
-    <div id="profile_content">
-        <img src="/uploads/{{ id }}.jpg" class="profileimage"/>
-        <div class="userhead">
-            <h1><a href="/user/{{ username }}/">{{ username }}</a></h1>
-            <br/>
-            <div class="underuser">
-                <a href="/graph/{{ username }}/">graph</a>&nbsp; &#124; &nbsp;<a href="/days/{{ username }}/">days</a>&nbsp; &#124; &nbsp;<a href="/user/{{ username }}/">profile</a>
-            </div>
-        </div>
-        <br/>
-        <div id="listNav">
-            <div class="user_page_top">
-            <div id="dateselectorlatest" style="float:right; margin-top:15px; width:110px;">
-                <input id="datepickerlatest" class="datepicker" value="06/14/2008" type="text" style="font-size:12px;padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
-                <div id="messageSentLatest"  style="font-size:12px; display:none;">
-                    robots do not know the future :( 
-                    <br/>
-                    &#8230;yet
-                </div>
-            </div>
-					<h2>Latest</h2>
-
-            </div>
-					</div>
-        <div class="viewboxprofile" id="latestlist">
-        </div>
-<br />
-        <div id="listNav">
-            <div class="user_page_top">
-            <div id="dateselector" style="float:right; margin-top:15px; width:230px;">week ending:
-                <input id="datepickergraph" class="datepicker" value="06/14/2008" type="text" style="font-size:12px;padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
-                <div id="messageSentGraph"  style="font-size:12px; display:none";>
-                    robots do not know the future :( 
-                    <br/>
-                    &#8230;yet
-                </div>
-            </div>
-<h2>Graphs</h2>
-</div>
-<br />
+    <div id="profile_content" style="margin-top:0px">
+        	  <div style="border-top:1px solid #333333">&nbsp;</div>
+		<br />
         <canvas id="totalTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
         </canvas>
         <canvas id="avgTimeGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">
         </canvas>
         <div id="key" style="margin-top:-40px">
             <div id="totalGraphKey" style="width:300px; text-align:center; display: inline-block;">
-                total time on the web each day
+                total time spent
             </div>
             <div id="avgGraphKey" style="float:right; width:300px; text-align:center; display: inline-block;">
-                average time spent on a webpage
+                average time spent
             </div>
-        </div>
-        <div id="listNav">
-            <div class="user_page_top">
-            <div id="dateselector" style="float:right; margin-top:15px; width:230px;">week ending:
-                <input id="datepicker" class="datepicker" value="06/14/2008" type="text" style="font-size:12px;padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
-                <div id="messageSent"  style="font-size:12px";>
-                    robots do not know the future :( 
-                    <br/>
-                    &#8230;yet
-                </div>
-            </div>
-                {% ifequal user.username username %}<h2>Your Top 25</h2>
-                {% else %}{% if user.username %}
-						<h2 style="font-size:14px;padding-top:12px;padding-bottom:12px">
-                    <a href="#top10" onclick="window.viz.top()">top 25</a>&nbsp; &#124; &nbsp;<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp; &#124; &nbsp;<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a>
-							</h2>
-            </div>
-            {% else %}<h2>{{ username}}'s top 25</h2>
-            {% endif %}
-            {% endifequal %}
-        </div>
-        <div class="viewboxlarge" id="list" style="width:700px;">
-        </div>
+        </div>   
     </div>
     <br/>
 </div>
