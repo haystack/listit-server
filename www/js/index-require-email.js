@@ -48,7 +48,6 @@ $(document).ready( function() {
 
 });
 
-/*
 var BASE_URL = "/listit/jv3";
 
 var setmsg = function(msg) {
@@ -300,4 +299,3 @@ $(document).ready(function() {
     });    
 });
 
-*/
