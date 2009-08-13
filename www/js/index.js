@@ -13,41 +13,33 @@ var init_accordion = function() {
 	header: "div.feature-title",
 	autoheight:false,
 	alwaysOpen: false,
-        active:	""
+        active:	0
     });
+    $("#tandc").click(function()  {$("#terms").fadeIn(); });
+    $("#showtroubleshooting").click(function() {  $("#troubleshooting").fadeIn(); })    
 };
 
 $(document).ready( function() {
-    // checks navigator version and stuff.    
-    try {
-        var browser=navigator.appName;
-	      var b_version=navigator.appVersion;
-	      var version=parseFloat(b_version);
-	      if (browser=="Netscape" && version >= 5 && 
-            navigator.userAgent.match("rv:1\.9")) {
-	          $("#main-content").fadeIn();
-	          init_accordion();	
-	          return;
-	      } 
-    } catch(e) { }
-    $("#browser-version-problem").fadeIn();
-    $("#main-content").hide();
-    
-    $(".feature-list").accordion({
-	      header: "div.feature-title",
-	      autoheight:false,
-	      alwaysOpen: false,
-        active:	""
-    });
-    // Allow users to override a faulty browser version detection
-    $("#ff3-continue").click(function() {
-        $("#browser-version-problem").slideUp();
-        $("#main-content").slideDown();
-        return false;
-    });
-
-});
-
+		       // checks navigator version and stuff.    
+		       try {
+			   var browser=navigator.appName;
+			   var b_version=navigator.appVersion;
+			   var version=parseFloat(b_version);
+			   if (browser=="Netscape" && version >= 5 && 
+			       navigator.userAgent.match("rv:1\.9")) {
+			       $("#main-content").fadeIn();
+			       init_accordion();	
+			       return;
+			   }
+			   $("#browser-version-problem").fadeIn();
+			   $("#main-content").hide();
+			   $("#ff3-continue").click(function() {
+							$("#browser-version-problem").slideUp();
+							$("#main-content").slideDown();
+							return false;
+						    });
+		       } catch(e) { }
+		   });
 /*
 var BASE_URL = "/listit/jv3";
 
