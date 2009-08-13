@@ -1,0 +1,251 @@
+
+h1 { font-weight:normal; margin-top:0.2em; margin-bottom:1.5em;}
+h2 { font-weight:normal; margin-top:0.2em; margin-bottom:1.5em;}
+h3 { font-weight:normal; margin-top:0.2em; margin-bottom:1.5em;}
+.space_top { margin-top:1.5em; }
+.skinny_bottom { margin-bottom: 0.2em; }
+
+body {
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
+    background-color: #ffffff;
+    color: #000000;    
+    font-size: 11pt;
+    margin:0;
+    padding:0;
+}
+
+.container {
+  margin-right: auto;
+  margin-left: auto;
+  width:52em;
+}
+
+a, .fakehyperlink, .tabbar a {
+  color:#d36c00;
+}
+.fakehyperlink {
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 90%;
+}
+a:visited, .fakehyperlink:visited {color: #d36c00; }
+a:hover, .fakehyperlink:hover     {color: #9fb4cc; }
+
+#title {
+  text-align:right;
+  text-shadow: 2px 2px 4px #aaaaaa;
+  position:relative;
+  top:40px;
+}
+#title .bigger {
+  font-size: 400%;
+}
+#title .big {
+  font-size: 150%;
+}
+
+.tabbar {
+  border-bottom: 1px solid #d36c00;
+  list-style-type: none;
+  padding-left: 10px;
+  margin-top: 0;
+}
+
+.tabbar li {
+  -moz-appearance: none;
+  -moz-border-radius: 8px 8px 0 0;
+  display: inline-block;
+  font-size: 120%;
+  padding: 5px;
+  border: 1px solid #d36c00;
+  position: relative;
+  bottom: -1px;
+  background-color: #d36c00;
+}
+
+.tabbar a {
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.ui-tabs .ui-tabs-hide {
+  display: none;
+}
+
+.ui-tabs .ui-tabs-nav li.ui-tabs-selected a,
+.ui-tabs .ui-tabs-nav li.ui-state-disabled a,
+.ui-tabs .ui-tabs-nav li.ui-state-processing a {
+  cursor: text;
+  color: #000000;
+}
+
+.ui-tabs .ui-tabs-nav li.ui-tabs-selected,
+.ui-tabs .ui-tabs-nav li.ui-state-disabled,
+.ui-tabs .ui-tabs-nav li.ui-state-processing {
+  border-bottom-color: #ffffff;
+  background-color: #ffffff;
+}
+
+.item, .hiddenitem {
+  border: 1px solid #d36c00;
+  float:left;
+  margin:0 0.6em 1.8em;
+  -moz-border-radius: 8px;
+  -moz-box-shadow: 2px 2px 4px #aaaaaa;
+  padding:0.8em;
+  vertical-align:top;
+  width:23em;
+}
+
+.hiddenitem {
+  display:none;
+  width:49em;
+}
+
+.item ul {
+    padding-left:15px;
+}
+.item li {
+    padding-bottom:.5em;
+    padding-left:0px;
+}
+
+button, .inputButton {
+  -moz-appearance:none;
+  padding:1px 2px 0 2px;
+  -moz-border-radius: 8px;
+  border:1.5px solid #33332D;
+  font-size: 12px;
+  background-color: #ffffff;
+}
+button:hover, .inputButton:hover {
+  color: #d36c00;
+  border-color:#d36c00;
+}
+button:active, .inputButton:active {
+  background-color:#33332D;
+}
+
+.loginLabel, .loginInput {
+  display:inline-block;
+}
+.loginLabel {
+  font-weight:bold;
+  text-align:right;
+  margin-top: .4em;
+  width:13em;
+}
+.loginInput {
+  width:12em;
+  margin:0 0 1em 1em;
+}
+.loginInput, .filefield {
+  padding:4px 2px;
+  border:solid 1px #999;
+}
+.filefield {
+  margin:1em 1em 0;
+  width:20em;
+}
+
+.center {
+  text-align:center;
+}
+
+.message {
+  clear:left;
+  color:#d36c00;
+  margin-top:1em;
+}
+
+#registration #submitchangepassword {
+  font-size:80%;
+  margin: 0 4em;
+}
+
+#registration .boxes {
+  width:80%;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+#registration #submit {
+  margin-top:1em;
+}
+
+#preferences label {
+  display:inline-block;
+  width:10em;
+  text-align:right;
+}
+
+#preferences .right, #preferences select {
+  margin-left:1em;
+}
+
+#preferences .feature {
+  margin-top: .5em;
+  margin-bottom: .5em;
+}
+
+#sync #saveLogin {
+  margin-bottom:1em;
+  margin-top:1em;
+  clear:left;
+}
+
+#appearance #fontSize {
+  width:2em;
+}
+
+#appearance #numButtons {
+  display:inline-block;
+  height:2em;
+  width:1em;
+  margin-bottom:.5em;
+}
+#appearance #numButtons button {
+  font-size:80%;
+  padding:0;
+  border:none;
+  position:relative;
+}
+#appearance #numButtons button:hover {
+  border:none;
+}
+#appearance #numButtons button:active {
+  background-color:transparent;
+}
+#appearance #numUp {
+  top:-.2em;
+}
+#appearance #numDown {
+  top:-.5em;
+}
+
+#appearance .bgalign {
+  margin-left:6.3em;
+}
+
+#appearance #clearBackground {
+  margin-left: 17.8em;
+  margin-top: 1em;
+}
+
+#appearance select {
+  margin-top:.2em;
+  width: 6.6em;
+}
+
+#misc button {
+  width: 5em;
+}
+
+#misc label {
+  width:12em;
+}
+
+.not_participating {
+  background-color: #f3be70;
+  color:black;
+}
