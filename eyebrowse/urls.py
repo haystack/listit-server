@@ -62,18 +62,20 @@ urlpatterns = patterns('',
                        (r'^get_following_views/(\w+)/$', get_following_views),
                        (r'^get_views_url/$', get_views_url),
                        (r'^get_top_users_for_url/(\d+)/$', get_top_users_for_url),
+                       (r'^get_to_from_url/(\d+)/$', get_to_from_url),
 
                        # homepage ajax
                        (r'^get_most_recent_urls/(\d+)/$', get_most_recent_urls),
                        (r'^get_trending_urls/(\d+)/$', get_trending_urls),
                        (r'^get_top_urls/(\d+)/$', get_top_urls),
                        (r'^get_top_users/(\d+)/$', get_top_users),
+
                        # user privacy ajax
                        (r'^add_privacy_url/(\w+)$', add_privacy_url),
                        (r'^get_privacy_urls/(\w+)$', get_privacy_urls),
                        (r'^delete_privacy_url/(\w+)$', delete_privacy_url),
                        (r'^delete_url_entry/$', delete_url_entry),
-                       
+
                        # home
                        (r'^help/$', help),
                        (r'^about/$', about),

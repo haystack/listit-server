@@ -380,7 +380,7 @@ var lineGraphFactoryLite = ({
 										var numHrs = 7;
 										var endDateVal = (Math.floor((this_.endTime / (this_.zoom / numHrs))) * (this_.zoom / numHrs)) + 1800000; 						  
 										// not sure why i have to subtract this but it ensures that the dates are on a 12 hr scale						  
-										for (hrCount = 0; hrCount < numHrs; hrCount++) {
+										for (var hrCount = 0; hrCount < numHrs; hrCount++) {
 											var dayText = new Date(endDateVal - fooHour);
 											var q = this_.windowWidth * ((endDateVal - fooHour - this_.startDate) / (this_.endDate - this_.startDate));
 											ctx.fillStyle = "#000000";
@@ -416,9 +416,14 @@ var lineGraphFactoryLite = ({
 										ctx.font = ".7pt helvetiker";
 										ctx.fillStyle = "#666666";
 										ctx.lineWidth = 0.5;
-										ctx.fillText("" + this_.startDate.format('mmmm d'), 10, this_.padding + 20);
-										ctx.fillText("" + this_.endDate.format('mmmm d'), this_.windowWidth - 40, this_.padding + 20);
-
+										if (this_.endTime - this_.startTime > 43200000){											
+											ctx.fillText("" + this_.startDate.format('mmmm d'), 10, this_.padding + 20);
+											ctx.fillText("" + this_.endDate.format('mmmm d'), this_.windowWidth - 50, this_.padding + 20); // need to make this x value dyanmic base dod on size of text using measureText(0
+										}
+										else {
+											ctx.fillText("" + this_.startDate.format('hh:mm TT'), 10, this_.padding + 20);
+											ctx.fillText("" + this_.endDate.format('hh:mm TT'), this_.windowWidth - 40, this_.padding + 20); // need to make this x value dyanmic base dod on size of text using measureText(0											
+										}
 										ctx.save();
 										ctx.translate(0,0-10);
 										ctx.fillText("" + timeCounterClock(this_.maxData/ 1000), 9, this_.topPadding + 10);
@@ -610,7 +615,7 @@ var lineGraphFactory = ({
 
 								this_.minData = 0;
 								this_.maxData = newWebViewed.max();
-								if (this_.maxData < 1) {this_.maxData = 10} // cant be zero or the world will explode. i chose 10 for shits
+								if (this_.maxData < 1) {this_.maxData = 10;} // cant be zero or the world will explode. i chose 10 for shits
 
 								var fooX = function(){
 									var foo = fooStartTime;
@@ -848,3 +853,58 @@ var statusFactory = ({
 						 }
 
 					 });
+
+var compareFactory  = ({
+						   initialize: function(viz, params){
+							   this.viz = viz;
+							   if (params.canvas) { this.canvas = params.canvas; }
+							   else { this.canvas = viz.canvas;}
+							   if (params.windowHeight){
+								   this.windowHeight = params.windowHeight;
+							   } else {
+								   this.windowHeight = viz.windowHeight;
+							   }
+							   if (params.windowWidth) {
+								   this.windowWidth = params.windowWidth;	 
+							   } else {
+								   this.windowWidth = viz.windowWidth;
+							   }
+							   this.xOffset = params.xOffset;
+							   this.yOffset = params.yOffset;
+							   this.lineWidth = params.lineWidth;
+							   this.data = params.data;
+							   this.minH = params.minH;
+							   this.maxH = params.maxH;							   
+							   this.draw();
+						   },
+						   draw: function(){
+							   var ctx = this.canvas.getContext('2d');
+							   var this_ = this;
+							   
+							   var maxLineWidth = this_.data.to.min(); 
+							   var minLineWidth = this_.data.to.min();
+							   var startY = 20;
+							   for (var i = 0; i < this_.data.to.length; i++){
+								   ctx.lineWidth = this_.lineWidth * ((this_.data.to.value - minLineWidth)/(maxLineWidth - minLineWidth));
+								   ctx.strokeColor = "hsl(" + this_.maxH * ((this_.data.to.value - this_.minH)/(this_.maxH - this_.minH)) + this_.minH + ", 100%, 50%)";
+								   ctx.beginPath();
+								   ctx.moveTo(100, startY );
+								   ctx.lineTo(this_.windowWidth/2, this_.windowHeight/2);
+								   ctx.stroke();
+								   ctx.closePath();								   
+								   startY += this_.windowHeight / this_.data.to.length + 20;
+							   }
+
+							   startY = 20;
+							   for (var i = 0; i < this_.data.from.length; i++){
+								   ctx.lineWidth = this_.lineWidth * ((this_.data.from.value - minLineWidth)/(maxLineWidth - minLineWidth));
+								   ctx.strokeColor = "hsl(" + this_.maxH * ((this_.data.from.value - this_.minH)/(this_.maxH - this_.minH)) + this_.minH + ", 100%, 50%)";
+								   ctx.beginPath();
+								   ctx.moveTo(this_.windowWidth - 100, startY );
+								   ctx.lineTo(this_.windowWidth/2, this_.windowHeight/2);
+								   ctx.stroke();
+								   ctx.closePath();								   
+								   startY += this_.windowHeight / this_.data.from.length + 20;
+							   }
+						   }
+					   });

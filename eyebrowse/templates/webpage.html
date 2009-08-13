@@ -31,8 +31,8 @@
             this.drag = undefined;
             this.zoom = zoom;
 			this.url = url;
-            this.initSmallGraphs(this.startTime, this.endTime, url); // 604800000 is 1 week
-			//this.initUrlGraph(this.startTime, this.endTime, url);
+            this.initSmallGraphs(this.startTime, this.endTime, url); 
+			this.initUrlGraph(this.startTime, this.endTime, url);
 			this.initTopUsers(this.startTime, this.endTime, url);
         },
 		initTopUsers: function(startTime, endTime, url){
@@ -58,7 +58,7 @@
 		drawTopUsers: function(data){
 			var this_ = this;
 			var html = "";
-			for (var i = 0; i < data.length; i++){
+			for (var i = 0; i < data.length; i++) {
 				html += "<li>";
                 html += "<a href=\"/user/" + data[i].user + "/\">" + data[i].user + "</a><h7>" + data[i].number + "</h7>";
 				html += "</li>";
@@ -70,7 +70,7 @@
 			var urlGraph = undefined;
 			
             try {
-                jQuery.get("http://localhost:8000/get_views_url/", {
+                jQuery.get("http://localhost:8000/get_to_from_url/10/", {
 							   url: url,
 							   from: startTime,
 							   to: endTime
@@ -92,7 +92,6 @@
 
 
 			// 3 columns of divs
-			// 1 canvas bg
 			var leftHTML = "";
 			var rightHTML = "";
 			var centerHTML = "<h6><a href=\"" + this_.url + "\">" + this_.url + "</a></h6>";
@@ -101,22 +100,23 @@
 			}
 			for (var i =0; i < data.to.length; i++){
 				rightHTML += "<h6><a href=\"" + this_.url.to.url[i] + "\">" + this_.url.to.url[i] + "</a></h6>";
-			}
+			}			
+			jQuery("#urlLeft").html(leftHTML);
+			jQuery("#urlRight").html(rightHTML);
+			jQuery("#urlCenter").html(centerHTML);					   			
 
+			// 1 canvas bg
 			var totalTimeG = newify(pathGraph, {
 										canvas: document.getElementById("pathGraph"),
 										startTime: startTime,
 										endTime: endTime,
 										windowHeight: this_.windowHeight,
 										windowWidth: this_.windowWidth,
-										interp: (endTime - startTime) / interpNum,
-										color: "#ff00ff",
+										lineWidth: 10,
+										minH: 160,
+										maxH: 250, // hue
 										data: data
 									});			
-			
-			jQuery("#urlLeft").html(leftHTML);
-			jQuery("#urlRight").html(rightHTML);
-			jQuery("#urlCenter").html(centerHTML);					   			
 		},
 		initSmallGraphs: function(startTime, endTime, url){
             var this_ = this;
@@ -138,6 +138,7 @@
 								   jQuery("#num").html("<b>total visits: </b>" + data.results.length);
 								   jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv((fooTotal / (data.results.length * 2)) / 1000));
 								   this_.drawLiteGraph(data.results, startTime, endTime);
+
 							   }
 							   else {
 								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
@@ -224,28 +225,10 @@
             var this_ = this;
             this_.endTime = endTime;
             this_.startTime = startTime;
-            
-            try {
-				jQuery("#loadimg").show();
-				jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ username }}/25/", {
-							   first_start: startTime - 86400000,
-							   first_end: endTime - 86400000,
-							   second_start: startTime,
-							   second_end: endTime
-						   }, 
-						   function(data){
-							   jQuery("#loadimg").hide();
-							   if (data.code == 200) {
-								   this_.drawTopPagesList(data.results);
-							   }
-							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-				console.log(e);
-            }
+			
+			this_.initSmallGraphs(this_.startTime, this_.endTime, url); 
+			this_.initUrlGraph(this_.startTime, this_.endTime, url);
+			this_.initTopUsers(this_.startTime, this_.endTime, url);
 		}
     };
 jQuery(document).ready(function(){

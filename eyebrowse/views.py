@@ -813,10 +813,6 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
 
 #@login_required
 def get_web_page_views(request):
-    ## gimme get parameters :
-    ## from: start time
-    ## to: end time
-
     if request.user is None:
           ## the person is asking us for access to another user's activity log.
         return json_response({"code":401,"message":"Access forbidden, please log in first"})
@@ -980,6 +976,7 @@ def get_top_urls_following(request, n):
 
     return json_response({ "code":200, "results": results[0:n] })
 
+
 def get_views_url(request):
     from_msec,to_msec = _unpack_from_to_msec(request)
     url = request.GET['url'].strip()
@@ -990,6 +987,22 @@ def get_views_url(request):
 
     return json_response({ "code":200, "results": [ defang_event(evt) for evt in results ] } )
 
+def get_to_from_url(request, n):
+    from_msec,to_msec = _unpack_from_to_msec(request)
+    url = request.GET['url'].strip()
+    n = int(n)
+
+    # so this needs to do something to 
+    # create results.to and results.from
+    # the return needs to look something like this
+    results_to = {"title": "bar", "url":"bar", "value": "bar"} # array of these
+    results_from = {"title": "bar", "url":"bar", "value": "bar"} # array of these
+
+    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid), "title": get_title_from_evt(evt)}
+
+    results = Event.objects.filter(entityid=url,type="www-viewed",start__gte=from_msec,end__lte=to_msec)
+
+    return json_response({ "code":200, "results": [ defang_event(evt) for evt in results ] } )
 
 def get_trending_urls(request, n):
     user = User.objects.all();
