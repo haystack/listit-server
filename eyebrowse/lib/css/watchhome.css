@@ -470,7 +470,6 @@ a.selected {
     color: #ffffff;
     padding: 0px;
     width: auto;
-    text-align: left;
     text-decoration: none;
 } .fooTxt A:link {
     text-decoration: none;
@@ -657,7 +656,14 @@ a.selected {
     margin-right: auto;
     margin-bottom: -30px;
     text-align: center;
-} .rightcolumn {
+} #datepicker{
+	padding-top: 4px; 
+	padding-left: 6px;
+	width: 70px;
+	height: 18px; 
+	display: inline-block;
+	font-size:1.35em;
+}.rightcolumn {
     display: inline-block;
     width: 320px;
 } .leftcolumn {
@@ -665,8 +671,8 @@ a.selected {
     width: 320px;
 } .logo {
     padding-top: 28px;
-	padding-bottom:20px;
-	margin-left:22px;
+	padding-bottom:24px;
+	margin-left:29px;
 	width:330px;
 } .underuser {
     display: inline-block;

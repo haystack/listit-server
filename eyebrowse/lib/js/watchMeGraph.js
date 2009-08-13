@@ -136,7 +136,8 @@ var evtHandlers = ({
 var dateSlider = ({
 					  initialize: function(viz, params){
 						  this.viz = viz;
-						  this.canvas = viz.getCanvas();
+						  if (params.canvas) { this.canvas = params.canvas; }
+						  else { this.canvas = viz.canvas;}						  
 						  this.startDate = viz.startDate;
 						  this.endDate = viz.endDate;
 						  this.startTime = viz.startTime;
@@ -482,15 +483,24 @@ var lineGraphFactoryLite = ({
 var lineGraphFactory = ({
 							initialize: function(viz, params){
 								this.viz = viz;
-								this.canvas = viz.getCanvas();
+								if (params.canvas) { this.canvas = params.canvas; }
+								else { this.canvas = viz.canvas;}
+								if (params.windowHeight){
+									this.windowHeight = params.windowHeight;
+								} else {
+									this.windowHeight = viz.windowHeight;
+								}
+								if (params.windowWidth) {
+									this.windowWidth = params.windowWidth;	 
+								} else {
+									this.windowWidth = viz.windowWidth;
+								}
 								this.startDate = viz.startDate;
 								this.endDate = viz.endDate;
 								this.startTime = viz.startTime;
 								this.endTime = viz.endTime;
 								this.OGstartTime = viz.startTime;
 								this.OGendTime = viz.endTime;
-								this.windowHeight = viz.windowHeight;
-								this.windowWidth = viz.windowWidth;
 								this.interp = viz.interp;
 								this.padding = params.padding;
 								this.topPadding = params.topPadding;
@@ -671,8 +681,12 @@ var statusFactory = ({
 							 this.setPos();
 							 this.mouseVal = undefined;
 							 this.fooTxtY = params.fooTxtY;
+							 this.fooTxtX = params.fooTxtX;
 							 if (!(this.fooTxtY)){
 								 this.fooTxtY = 0;
+							 }
+							 if (!(this.fooTxtX)){
+								 this.fooTxtX = 0;
 							 }
 							 if (params.noHover){
 								 this.noHover = params.noHover;
@@ -723,10 +737,9 @@ var statusFactory = ({
 										 this_.viz.highlight = this_.domainArray[i];
 										 this_.trigger = true;
 										 if (this_.noHover){
-											 //console.log("yooz");
-										 } else {											 
+										 } else {			
 											 jQuery("#fooTxt").html("<a href=\"" + this_.urlArray[i] + "\">" + this_.titleArray[i] + "</a>");
-											 jQuery("#fooTxt").css({"top" : this_.marginTop + 45 + this_.fooTxtY +"px", "left" : this_.mouseVal.x + this_.viz.marginLeft + "px, padding: 3px" });
+											 jQuery("#fooTxt").css({"left" : this_.mouseVal.x + this_.fooTxtX + "px", "padding": "3px", "top" : this_.marginTop + 45 + this_.fooTxtY + "px" });
 										 }
 									 }
 								 }

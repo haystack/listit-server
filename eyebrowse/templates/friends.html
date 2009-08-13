@@ -19,6 +19,7 @@
             this.canvas = canvas;
             this.windowWidth = windowWidth;
             this.windowHeight = windowHeight;
+			this.OGwindowHeight = windowHeight;
             this.timeZoneCorrect = timeZoneCorrect;
             this.endDate = new Date(endTime);
             if (startDate) {
@@ -36,13 +37,13 @@
             this.interp = zoom / 168;
             this.drag = undefined;
             this.zoom = zoom;
-            this.drawArray = [];
             this.marginLeft = 0;
             this.user = "{{ username }}";            
 			this.friendName = "";
             this.friendTotal = "";
-			this.drawArray = [];
-			this.statusCanvas = document.getElementById("status");
+            this.drawArray = [];
+			this.statusArray = []; // could init more of these if there are more types of graphs
+			this.graphCanvas = document.getElementById("main");
             this.newData = function getViews(startTime, endTime, viz){
 				jQuery("#loadimg1").show();
                 try {
@@ -54,7 +55,7 @@
                         if (data.code == 200) {
 							document.getElementById("status").setAttribute("height", data.results.length * 40);
 							for (var i = 0; i < data.results.length; i++){
-								viz.initLineGraph(data.results[i], startTime, endTime, viz, i);
+								viz.initLineGraph(data.results[i], startTime, endTime, viz, i, data.results.lenght * 40);
 							}
 							viz.setupDraw();
                         }
@@ -69,39 +70,42 @@
             }(this.startTime, this.endTime, this); // passing this around like a hot 
             this.getTopPages(this.endTime - zoom, this.endTime);
         },
-        initLineGraph: function(newData, startTime, EndTime, viz, i){
+        initLineGraph: function(newData, startTime, EndTime, viz, i, height){
 			var this_ = this;
-			var fooColor = undefined;
 
 			var friendLineGraph = []; // kinda silly to do this but makes sure names are all unique
 
+			this_.windowHeight = this_.OGwindowHeight;
+
 			var friendLineGraph = newify(lineGraphFactory, this_, {
-												xOffset: 0,
-												yOffset: 0,
-												topPadding: 10,
-												padding: this_.windowHeight - 63,
-												color: selectColorForDomain(newData.username),
-												dashed: false,
-												key: true,
-												avg: false,
-												data: newData.events,
-            									label: "websites viewed"
-											});
-			//this_.drawArray.push(friendLineGraph);            
-			
-			var wwwBars = newify(statusFactory, viz, {
-										canvas: this_.statusCanvas,
+											 canvas: this_.graphCanvas,
+											 xOffset: 0,
+											 yOffset: 0,
+											 topPadding: 10,
+											 padding: this_.windowHeight - 63,
+											 color: selectColorForDomain(newData.username),
+											 dashed: false,
+											 key: true,
+											 avg: false,
+											 data: newData.events,
+            								 label: "websites viewed"
+										 });
+
+			this_.windowHeight = height;
+			var wwwBars = newify(statusFactory, this_, {
 										startTime: this_.startTime,
 										endTime: this_.endTime,
 										xOffset: 0,
 										yOffset: 0,
-										marginTop: 25 * i + 11,
+										marginTop: 25 * i + 18,
 										height: 20,
 										staticStatic: true,
+     									fooTxtY: 450,
+									    fooTxtX: (getClientCords().width - this_.windowWidth)/2,
 										data: newData.events
 									});
-			this_.drawArray.push(wwwBars);            
-
+			this_.statusArray.push(wwwBars);            
+			var fooColor = undefined;
 			fooColor = selectColorForDomain(newData.username);
 			this_.friendName += "<a href=\"/user/" + newData.username + "/\" style=\"font-weight:bold; border-bottom:3px solid " + fooColor + "\">" + newData.username + "</a><br />";
             this_.friendTotal += function(){
@@ -111,39 +115,35 @@
                 }
                 return timeCounterClock(foo / 1000) + "<br />";
             }();
+            jQuery("#fooDate").html(this_.friendName);
+            jQuery("#fooTotal").html(this_.friendTotal);
         },
-        setupDraw: function(){
+        setupDraw: function(params){
 			this_ = this;
+			this_.drawArray.push(this_.statusArray);
+
+            var mainEvtHandlers = newify(evtHandlers, this_);
+
+			this_.windowHeight = this_.OGwindowHeight;
             var mainDateSlider = newify(dateSlider, this_, {
+											canvas: this_.graphCanvas,
 											xOffset: 0,
 											yOffset: 0,
 											padding: 52
 										});
-			this_.canvas = this_.statusCanvas;
-			this_.isStatic = true; 
-            var mainEvtHandlers = newify(evtHandlers, this_);
-
-            jQuery("#fooDate").html(this_.friendName);
-            jQuery("#fooTotal").html(this_.friendTotal);
-
             this_.draw();
 		},
 		draw: function(){
-			var this_ = this;
-			if (this_.canvas !== undefined && this.canvas.getContext) {
-				var ctx = this_.canvas.getContext('2d');
-				ctx.clearRect(0, 0, this_.windowWidth, this_.windowHeight);
-				for (var i = 0; i < this.drawArray.length; i++) {
-						this_.drawArray[i].draw();
-				}
-				var ctx = this_.statusCanvas.getContext('2d');
-				ctx.clearRect(0, 0, this_.windowWidth, this_.windowHeight);
-				for (var i = 0; i < this.drawArray.length; i++) {
-						this_.drawArray[i].draw();
-				}
-
-			}
-			else {
+            if (this.canvas !== undefined && this.canvas.getContext) {
+                var ctx = this.canvas.getContext('2d');
+                ctx.clearRect(0, 0, this.windowWidth, this.windowHeight);
+                for (var i = 0; i < this.drawArray.length; i++) {
+                    for (var k = 0; k < this.drawArray[i].length; k++) {
+                        this.drawArray[i][k].draw();
+                    }
+                }
+            }
+            else {
                 alert('You need Safari 4 or Firefox 3+ to see this.');
             }
         },
@@ -252,8 +252,6 @@
 			jQuery("#datepicker").val(new Date(this_.endTime + 860000000).format('mm/dd/yyyy'));
 			this_.refresh(this_.endTime + 860000000, this_.startTime + 860000000);
 		},
-
-											
     };
     
     
@@ -331,7 +329,7 @@
         document.getElementById("status").setAttribute("width", myWidth);
         document.getElementById("status").setAttribute("height", myHeight);
         
-        self.viz = newify(WatchmeVisualisation, document.getElementById("main"), myWidth, myHeight, 0, currentDate.valueOf(), 604800000); // 1 week
+        self.viz = newify(WatchmeVisualisation, document.getElementById("status"), myWidth, myHeight, 0, currentDate.valueOf(), 604800000); // 1 week
     });
 </script>
 {% endblock %}
@@ -357,7 +355,7 @@
 	</div>
 	<div id="fooDate" class="days" style="float:left; margin-left:15px; margin-right:0px;width:112px">
 	</div>
-	<div id="fooTotal" class="days" style="float:right; width:122px; margin-right:0px">
+	<div id="fooTotal" class="days" style="float:right; width:122px; margin-right:0px; margin-top:8px;line-height:30px;">
 	</div>
 	<canvas id="status"></canvas>			
   </div>
