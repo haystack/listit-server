@@ -279,10 +279,11 @@ jQuery(document).ready(function(){
 {% block content %}
 <div class="loader" id="loadimg"></div>
 <div id="profile_content" style="width:950px; margin-left:auto;margin-right:auto; ">
-	<div id="dateselector" style="font-size:1.1em; float:right; padding-top:6px; width:210px">
+	  <h1>search</h1><br />
+	<div id="dateselector" style="font-size:1.1em; float:right; padding-top:10px; width:210px">
 	week ending:
-    <input id="datepicker" class="datepicker" value="06/14/2008" type="text" style="margin-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/>
-	<img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px; margin-bottom:6px;"/>
+    <input id="datepicker" class="datepicker" value="06/14/2008" type="text" style="font-size:12px"/>
+	<img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px; margin-bottom:2px;"/>
     <div id="messageSent">
       robots do not know the future :( 
 	  <br/>
@@ -291,7 +292,7 @@ jQuery(document).ready(function(){
   </div>
 
 
-  <form name="list" id="urladdform" style="border-bottom: 1px double #666666;">
+  <form name="list" id="urladdform">
 	<input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:228px;" value="http://localhost:8000/"/>
 	<div id="urladd" style="width:auto">search</div>
 	<input type="submit" id="urladd" value="add" style="display:none;"/>
@@ -304,7 +305,7 @@ jQuery(document).ready(function(){
 
 <div id="report">
     <div id="profile" style="margin-top:-10px">
-	  <div style="border-top:1px solid #333333">&nbsp;</div>
+	  <div style="border-top:1px solid #999999">&nbsp;</div>
         <div id="num">
             <b>total visits:</b>
         </div>
@@ -321,7 +322,7 @@ jQuery(document).ready(function(){
         </ul>
     </div>
     <div id="profile_content" style="margin-top:0px">
-        	  <div style="border-top:1px solid #333333">&nbsp;</div>
+        	  <div style="border-top:1px solid #999999">&nbsp;</div>
 		<br />
         <canvas id="totalTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
         </canvas>

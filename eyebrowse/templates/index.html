@@ -111,6 +111,7 @@
 			this_.drawArray = [];
 			this_.statusArray = [];
 			this_.graphArray = [];
+								
             var wwwBars = newify(statusFactory, this_, {
 									 startTime: this_.startTime,
 									 endTime: this_.endTime,
@@ -121,9 +122,9 @@
 									 color: "#0000ff",
 									 staticStatic: true,
 									 data: newData,
-									 fooTxtY: 400,
-									 fooTxtX: 400
-								 });
+									 fooTxtY: 390,
+									 fooTxtX: (getClientCords().width - 700)/2
+ 								 });
 			this_.statusArray.push(wwwBars);
 
 			var bgStatusArray = this_.drawBG(newData, this_.startTime, this_.endTime, this_);
@@ -255,6 +256,8 @@ jQuery(document).ready(function(){
 {% block content %}
 <div class="loader" id="loadimg">
 </div>
+<div class="fooTxt" id="fooTxt" >
+</div>	
 <div id="background">
     <canvas id="bgcanvas">
     </canvas>
@@ -289,8 +292,6 @@ jQuery(document).ready(function(){
     <div id="signUpLink">
         Get Started
     </div>
-	<div class="fooTxt" id="fooTxt" >
-	</div>	
     <canvas id="main" style="padding:0px;margin:0px;">
     </canvas>
     <div class="leftcolumn" style="width:340px;">

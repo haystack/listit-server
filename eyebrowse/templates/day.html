@@ -34,43 +34,44 @@
                 try {
 
                     jQuery.get("http://localhost:8000/get_views_user/{{ username }}/", {
-                        from: startTime,
-                        to: endTime
-                    }, function(data){
-						jQuery("#loadimg1").hide();
-                        if (data.code == 200) {
-                            createTheWorld(data.results, startTime, endTime, viz);
-                        }
-                        else {
-                            console.log("yaaaa!!!H!H!H!" + data.code + " ");
-                        }
-                    }, "json");
+								   from: startTime,
+								   to: endTime
+							   }, function(data){
+								   jQuery("#loadimg1").hide();
+								   if (data.code == 200) {
+									   createTheWorld(data.results, startTime, endTime, viz);
+								   }
+								   else {
+									   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+								   }
+							   }, "json");
                 } 
                 catch (e) {
                     console.log(e);
                 }
             }(this.endTime - zoom, this.endTime, this); // passing this around like a hot tomalie       
             var wwwBarsArray = [];
-            function createTheWorld(newData, startTime, endTime, viz){
+            function createTheWorld(newData, startTime, endTime, viz, windowWidth){
                 var fooDate = "";
                 var fooTotal = "";
                 for (var i = 0; i < (zoom / day); i++) {
                     var fooData = newData.filter(function(view){
-                        if (view.end < (endTime - (day * i)) && (view.start > (endTime - day - (day * i)))) {
-                            return view;
-                        }
-                    });
+													 if (view.end < (endTime - (day * i)) && (view.start > (endTime - day - (day * i)))) {
+														 return view;
+													 }
+												 });
                     wwwBarsArray[i] = newify(statusFactory, viz, {
-                        startTime: endTime - day - (day * i),
-                        endTime: endTime - (day * i),
-                        xOffset: 0,
-                        yOffset: 0,
-                        marginTop: 25 * i + 11,
-                        height: 20,
-                        color: "#0000ff",
-                        staticStatic: true,
-                        data: fooData
-                    });
+												 startTime: endTime - day - (day * i),
+												 endTime: endTime - (day * i),
+												 xOffset: 0,
+												 yOffset: 0,
+												 marginTop: 25 * i + 11,
+												 height: 20,
+												 color: "#0000ff",
+												 staticStatic: true,
+												 data: fooData,
+												 fooTxtX: ((getClientCords().width - viz.windowWidth)/2) // this plus 150 will center text over the mouse rather than having it to the left 
+											 });
                     fooDate += new Date(wwwBarsArray[i].endTime).format('dddd, mmmm d') + "<br />";
                     fooTotal += function(){
                         var foo = 1;
@@ -88,7 +89,7 @@
                 jQuery("#maxDateTwo").html((new Date(endTime).format('h:MM TT')) + " |");
             }
             this.isStatic = true; // does not move or make more ajax calls
-            mainEvtHandlers = newify(evtHandlers, this);
+            this.mainEvtHandlers = newify(evtHandlers, this);
             this.drawArray.push(wwwBarsArray);
             this.draw();
         },
@@ -124,50 +125,51 @@
 		}
 
     };
-    
-    jQuery(document).ready(function(){
-        var currentDate = new Date();
-        
-        jQuery('#datepicker').DatePicker({
-            format: 'm/d/Y',
-            date: jQuery('#datepicker').val(),
-            current: jQuery('#datepicker').val(),
-            starts: 1,
-            position: 'top',
-            current: '2009-07-29',
-            
-            onBeforeShow: function(){
-                jQuery('#datepicker').DatePickerSetDate(jQuery('#datepicker').val(), true);
-            },
-            onChange: function(formated, dates){
-                var fooDate = jQuery.datepicker.formatDate("@", new Date(jQuery('#datepicker').DatePickerGetDate(true)));
-                if (fooDate > new Date().valueOf()) {
-                    fooDate = new Date().valueOf();
-                    jQuery('#datepicker').val(currentDate.format('mm/dd/yyyy'));
-                    jQuery("#messageSent").show("slow");
-                }
-                else {
-                    jQuery('#datepicker').val(formated);
-                    self.viz = newify(WatchmeVisualisation, document.getElementById("main"), myWidth, myHeight, 0, parseInt(fooDate), 1728000000); // 20 days 1296000000); // 15 days  2592000000); // 30 days	    
-                    jQuery("#messageSent").hide("slow");
-                }
-                jQuery('#datepicker').DatePickerHide();
-                
-            }
-        });
-        var myWidth = undefined;
-        var myHeight = undefined;
-        
-        myWidth = window.innerWidth - 400;
-        myHeight = 510;//window.innerHeight;
-        document.getElementById("main").setAttribute("width", myWidth);
-        document.getElementById("main").setAttribute("height", myHeight);
-        jQuery("#maxDate").css("width", myWidth - 70);
-        jQuery("#maxDateTwo").css("width", myWidth - 70);
-        jQuery("#datepicker").val(currentDate.format('mm/dd/yyyy'));
-        
-        self.viz = newify(WatchmeVisualisation, document.getElementById("main"), myWidth, myHeight, 0, currentDate.valueOf(), 1728000000); // 20 days 1296000000); // 15 days  2592000000); // 30 days
-    });
+
+jQuery(document).ready(function(){
+						   var currentDate = new Date();
+						   
+						   jQuery('#datepicker').DatePicker({
+																format: 'm/d/Y',
+																date: jQuery('#datepicker').val(),
+																current: jQuery('#datepicker').val(),
+																starts: 1,
+																position: 'top',
+																current: '2009-07-29',
+																
+																onBeforeShow: function(){
+																	jQuery('#datepicker').DatePickerSetDate(jQuery('#datepicker').val(), true);
+																},
+																onChange: function(formated, dates){
+																	var fooDate = jQuery.datepicker.formatDate("@", new Date(jQuery('#datepicker').DatePickerGetDate(true)));
+																	if (fooDate > new Date().valueOf()) {
+																		fooDate = new Date().valueOf();
+																		jQuery('#datepicker').val(currentDate.format('mm/dd/yyyy'));
+																		jQuery("#messageSent").show("slow");
+																	}
+																	else {
+																		jQuery('#datepicker').val(formated);
+																		self.viz = newify(WatchmeVisualisation, document.getElementById("main"), myWidth, myHeight, 0, parseInt(fooDate), 1728000000);
+																		// 20 days 
+																		jQuery("#messageSent").hide("slow");
+																	}
+																	jQuery('#datepicker').DatePickerHide();
+																	
+																}
+															});
+						   var myWidth = undefined;
+						   var myHeight = undefined;
+						   
+						   myWidth = window.innerWidth - 400;
+						   myHeight = 510;//window.innerHeight;
+						   document.getElementById("main").setAttribute("width", myWidth);
+						   document.getElementById("main").setAttribute("height", myHeight);
+						   jQuery("#maxDate").css("width", myWidth - 70);
+						   jQuery("#maxDateTwo").css("width", myWidth - 70);
+						   jQuery("#datepicker").val(currentDate.format('mm/dd/yyyy'));
+						   
+						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), myWidth, myHeight, 0, currentDate.valueOf(), 1728000000); // 20 days 1296000000); // 15 days  2592000000); // 30 days
+					   });
 </script>
 {% endblock %}
 {% block content %}

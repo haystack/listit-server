@@ -425,7 +425,7 @@ a.selected {
     margin-left: auto;
     margin-right: auto;
 	margin-bottom:20px;
-	margin-top:40px;
+	margin-top:28px;
 	display: block;
     font-size: 1.47em;
     cursor: pointer;
@@ -467,11 +467,11 @@ a.selected {
 } .fooTxt {
     position: absolute;
     background: #000000;
-    color: #ffffff;
+    color: #999999;
     padding: 0px;
     width: auto;
     text-decoration: none;
-} .fooTxt A:link {
+} .fooTxt A {
     text-decoration: none;
     font-size: 1em;
     background: #000000;
@@ -525,13 +525,11 @@ a.selected {
     margin-top: 10px;
     padding: 8px;
     padding-left: 0px;
-    border-top: 3px dotted #00ffff;
 } #profile p {
     padding: 8px;
     padding-left: 0px;
 } #profile .footer {
 	 margin-top:8px;
-
 } #profile_content {
     margin-top: 50px;
     width: 700px;
@@ -554,7 +552,7 @@ a.selected {
     padding-top: 0px;
     margin-top: -17px;
 } #profile_content a{
-	 color:#111111;
+	 color:#333333;
 } #profile_content li{
  }
 #profile_content h1 a{
@@ -566,7 +564,6 @@ a.selected {
     padding: 8px;
     padding-left: 0px;
     padding-bottom: 8px;
-    border-top: 3px dotted #00ffff;
 } #profile_content h3 {
 	width:660; 
 	display:inline-block; 
@@ -579,7 +576,7 @@ a.selected {
 	display:inline-block; 
 	margin-bottom:20px; 
 	margin-left:10px; 
-	margin-top:20px;
+	margin-top:18px;
 	font-size:14px;
 }
 
@@ -671,8 +668,8 @@ a.selected {
     width: 320px;
 } .logo {
     padding-top: 28px;
-	padding-bottom:24px;
-	margin-left:29px;
+	padding-bottom:31px;
+	margin-left:39px;
 	width:330px;
 } .underuser {
     display: inline-block;
@@ -737,13 +734,13 @@ a.selected {
     float: right;
     width: 340px;
 } .loader {   	
-	position:absolute;
+	position:fixed;
 	top:40px;
 	left:15px;
-	z-index: 5000;
-	width:30px;
-	height:30px;
+	z-index: 5000;	
 	display:none;
+	width:66px;
+	height:66px;
 	background-image:url("/lib/img/ajax-loader.gif");
 } #background {
 	filter:alpha(opacity=40); 

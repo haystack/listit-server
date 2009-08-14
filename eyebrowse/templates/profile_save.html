@@ -62,11 +62,13 @@
 		},
         getLatestPages: function(startTime, endTime){
             this_ = this;
+	        jQuery("#loadimg").show();
             try {
                 jQuery.get("http://localhost:8000/get_views_user/{{ user.username }}/", {
 							   from: startTime,
 							   to: endTime
 						   }, function(data){
+                               jQuery("#loadimg").hide();
 							   if (data.code == 200) {
 								   this_.drawLatestPagesList(data.results);
 							   }
@@ -122,6 +124,7 @@ jQuery(document).ready(function(){
 </script>
 {% endblock %}
 {% block content %}
+<div class="loader" id="loadimg"></div>
 <div id="report">
     <div id="profile_edit">
 	    <a href="/friend/invite/">Invite a friend</a>

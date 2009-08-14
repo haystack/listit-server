@@ -397,7 +397,7 @@ var lineGraphFactoryLite = ({
 										fooHour = 0;
 										numHrs = this_.zoom/3600000;
 										endDateVal = (Math.floor((this_.endTime / (this_.zoom / numHrs))) * (this_.zoom / numHrs)) + 1800000; 						  
-										// not sure why i have to subtract this but it ensures that the dates are on a 12 hr scale
+										// not sure why i have to add this but it ensures that the dates are on a 12 hr scale
 										for (hrCount = 0; hrCount < numHrs + 24; hrCount++) {
 											var dayText = new Date(endDateVal - fooHour);
 											var q = this_.windowWidth * ((endDateVal - fooHour - this_.startDate) / (this_.endDate - this_.startDate));
@@ -422,8 +422,8 @@ var lineGraphFactoryLite = ({
 											ctx.fillText("" + this_.endDate.format('mmmm d'), this_.windowWidth - 50, this_.padding + 20); // need to make this x value dyanmic base dod on size of text using measureText(0
 										}
 										else {
-											ctx.fillText("" + this_.startDate.format('hh:mm TT'), 10, this_.padding + 20);
-											ctx.fillText("" + this_.endDate.format('hh:mm TT'), this_.windowWidth - 40, this_.padding + 20); // need to make this x value dyanmic base dod on size of text using measureText(0											
+											ctx.fillText("" + this_.startDate.format('hh:mm TT'), 10, this_.padding + 18);
+											ctx.fillText("" + this_.endDate.format('hh:mm TT'), this_.windowWidth - 48, this_.padding + 20); // need to make this x value dyanmic base dod on size of text using measureText(0											
 										}
 										ctx.save();
 										ctx.translate(0,0-10);

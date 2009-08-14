@@ -292,6 +292,10 @@ def user_page(request, username):
     birthdate = enduser.birthdate
     photo = enduser.photo
     gender = enduser.gender
+    tags = ' '.join(
+        tag.name for tag in enduser.tags.all()
+        )
+    
     id = enduser.user.id
 
     variables = RequestContext(request, {
@@ -306,6 +310,7 @@ def user_page(request, username):
         'homepage': homepage,
         'birthdate': birthdate,
         'photo': photo,
+        'tags' : tags,
         'gender': gender,
         'id':id,
         'request_user': request_user
@@ -1063,16 +1068,17 @@ def get_top_users_for_url(request, n):
     return json_response({ "code":200, "results": results[0:n] })
 
 def get_most_recent_urls(request, n):
-    users = User.objects.all();
     n = int(n)
+    
     from_msec,to_msec = _unpack_from_to_msec(request)
-     
-
+    
     defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid), "title": get_title_from_evt(evt)}
-    for user in users:
-        hits = _get_pages_for_user(users[0],from_msec,to_msec) ## not sure how to do this so i set user to be the 1st user
-  
-    return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits[0:n] ] });
+    
+    hits = Event.objects.filter(type="www-viewed",start__gte=from_msec,end__lte=to_msec).order_by("-start")
+    if n > 0:
+        return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits[0:n] ] });
+    else:
+        return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits ] });
 
 def get_users_most_recent_urls(request, username, n):
     users = User.objects.filter(username=username)

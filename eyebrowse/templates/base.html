@@ -2,6 +2,7 @@
 <html>
     <head>
         <title>eyebrowse | {% block title %}{% endblock %}</title>
+		<link rel="shortcut icon" href="/lib/img/favicon.ico">
         <style>
             @import url("/lib/css/reset-fonts-grids.css");
             @import url("/lib/css/jquery-ui-1.7.2.custom.css");
@@ -23,34 +24,35 @@
     </head>
     <body>
 <div id="header">
-           <a href="/"><img src="/lib/img/smallbird.jpg" style="float:left; padding-left:8px; padding-right:8px"/></a>
-	    {% if request_user %}
-		   <a href="/global/">global</a>&nbsp; &#124; &nbsp;<a href="/search/">search</a>&nbsp; &#124; &nbsp;<a href="/graph/{{ request_user }}/">graph</a>&nbsp; &#124; &nbsp;<a href="/days/{{ request_user }}/">days</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ request_user }}/">friends</a>&nbsp; &#124; &nbsp;<a href="/user/{{ request_user }}/">profile</a>
-            <div id="usersettings">
-                <a href="/profile/{{ request_user }}/">{{ request_user }}</a>&nbsp; &#124; &nbsp;<a href="/logout/">logout</a>
-            </div>
-            {% else %}
-            <div id="usersettings">
-                <a href="/login/">sign in</a>&nbsp; &#124; &nbsp;<a href="/help/">help</a>
-                {% endif %} 
-            </div>
-        </div>
-        {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-            <li>
-                {{ message }}
-            </li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-        {% block content %}{% endblock %}
-        <div id="footer">
-            <a href="/about/">about</a>&nbsp; &#124; &nbsp;<a href="/help/">help</a>&nbsp; &#124; &nbsp;<a href="http://groups.csail.mit.edu/haystack/">research</a>&nbsp; &#124; &nbsp;<a href="googlecodepage.html">google code</a>&nbsp; &#124; &nbsp;<a href="http://groups.google.com/group/eyebrowse">google group</a>&nbsp; &#124; &nbsp;<a href="download.html">download</a>
-            <h6 style="padding:3px">&reg; MIT License 2009</h6><br />
-            created by: <a href="http://www.zamiang.com/" style="text-decoration:none; font-size:1em;">Brennan Moore</a>, 
-            <a href="http://scruffy.csail.mit.edu/emax/" style="text-decoration:none; font-size:1em;">Max Van Kleek</a> & <a href="http://people.csail.mit.edu/karger/" style="text-decoration:none; font-size:1em;">David Karger</a><br />
-            at MIT CSAIL
-        </div>
+  <a href="/"><img src="/lib/img/smallbird.jpg" style="float:left; padding-left:8px; padding-right:8px; vertical-align:top"/></a>
+  <a href="/global/">global</a>&nbsp; &#124; &nbsp;<a href="/search/">search</a>
+  {% if request_user %}
+  &nbsp; &#124; &nbsp;<a href="/graph/{{ request_user }}/">graph</a>&nbsp; &#124; &nbsp;<a href="/days/{{ request_user }}/">days</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ request_user }}/">friends</a>&nbsp; &#124; &nbsp;<a href="/user/{{ request_user }}/">profile</a>
+  <div id="usersettings">
+    <a href="/profile/{{ request_user }}/">{{ request_user }}</a>&nbsp; &#124; &nbsp;<a href="/logout/">logout</a>
+  </div>
+  {% else %}
+  <div id="usersettings">
+    <a href="/login/">sign in</a>&nbsp; &#124; &nbsp;<a href="/help/">help</a>
+    {% endif %} 
+  </div>
+</div>
+{% if messages %}
+<ul class="messages">
+  {% for message in messages %}
+  <li>
+    {{ message }}
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% block content %}{% endblock %}
+<div id="footer">
+  <a href="/about/">about</a>&nbsp; &#124; &nbsp;<a href="/help/">help</a>&nbsp; &#124; &nbsp;<a href="http://groups.csail.mit.edu/haystack/">research</a>&nbsp; &#124; &nbsp;<a href="googlecodepage.html">google code</a>&nbsp; &#124; &nbsp;<a href="http://groups.google.com/group/eyebrowse">google group</a>&nbsp; &#124; &nbsp;<a href="download.html">download</a>
+  <h6 style="padding:3px">&reg; MIT License 2009</h6><br />
+  created by: <a href="http://www.zamiang.com/" style="text-decoration:none; font-size:1em;">Brennan Moore</a>, 
+  <a href="http://scruffy.csail.mit.edu/emax/" style="text-decoration:none; font-size:1em;">Max Van Kleek</a> & <a href="http://people.csail.mit.edu/karger/" style="text-decoration:none; font-size:1em;">David Karger</a><br />
+  at MIT CSAIL
+</div>
     </body>
 </html>
