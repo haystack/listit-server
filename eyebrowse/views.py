@@ -718,7 +718,7 @@ def _mimic_entity_schema_from_url(url):
     return {"id":url, "host":host, "path": page, "type":"schemas.Webpage"}
 
 def _get_pages_for_user(user,from_msec,to_msec):
-    return PageView.objects.filter(user=user,start__gte=from_msec,end__lte=to_msec)
+    return PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
 
 def _unpack_from_to_msec(request):
     return (request.GET.get('from',0), request.GET.get('to',long(time.mktime(time.localtime())*1000)))
@@ -761,8 +761,9 @@ class EVENT_SELECTORS:
             return queryset.filter(entityid__contains="://%s/"%url)        
 
 def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
-    if user.count() > 1:
-        mine_events = PageView.objects.filter(start__gte=from_msec,end__lte=to_msec)
+    import django.db.models.query
+    if type(user) == django.db.models.query.QuerySet:
+        mine_events = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec)
     else:
         mine_events = _get_pages_for_user(user, from_msec, to_msec)
         
@@ -866,8 +867,8 @@ def get_top_hosts_comparison(request, username, n):
 
     @cache.region('long_term')
     def fetch_data(user, first_start, first_end, second_start, second_end):
-        times_per_url_first = _get_top_n(user,first_start,first_end)
-        times_per_url_second = _get_top_n(user,second_start,second_end)
+        times_per_url_first = _get_top_hosts_n(user,first_start,first_end)
+        times_per_url_second = _get_top_hosts_n(user,second_start,second_end)
         
         def index_of(what, where):
             try:
@@ -885,7 +886,7 @@ def get_top_hosts_comparison(request, username, n):
             old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
             if old_rank is not None:
                 diff = - (i - old_rank)  # we want the gain not the difference
-                results.append(times_per_url_second[i] + (diff,) )
+                results.append( times_per_url_second[i] + (diff,) )
             else:
                 results.append( times_per_url_second[i] )
 
@@ -908,8 +909,8 @@ def get_top_hosts_comparison_global(request, username, n):
     def fetch_data(first_start, first_end, second_start, second_end):
         users = User.objects.all();
 
-        times_per_url_first = _get_top_n(users,first_start,first_end)
-        times_per_url_second = _get_top_n(users,second_start,second_end)
+        times_per_url_first = _get_top_hosts_n(users,first_start,first_end)
+        times_per_url_second = _get_top_hosts_n(users,second_start,second_end)
 
         def index_of(what, where):
             try:
@@ -1005,7 +1006,7 @@ def get_views_url(request):
     from_msec,to_msec = _unpack_from_to_msec(request)
     url = request.GET['url'].strip()
 
-    results = PageView.objects.filter(url=url,start__gte=from_msec,end__lte=to_msec)
+    results = PageView.objects.filter(url=url,startTime__gte=from_msec,endTime__lte=to_msec)
 
     return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in results ] } )
 
@@ -1022,7 +1023,7 @@ def get_to_from_url(request, n):
     results_to = {"title": "bar", "url":"bar", "value": "bar"} # array of these
     results_from = {"title": "bar", "url":"bar", "value": "bar"} # array of these
 
-    results = PageView.objects.filter(url=url,start__gte=from_msec,end__lte=to_msec)
+    results = PageView.objects.filter(url=url,startTime__gte=from_msec,endTime__lte=to_msec)
 
     return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in results ] } )
 
@@ -1064,7 +1065,7 @@ def get_top_users(request, n):
 
     results = []
     for user in users:
-        results.append( {"user": user.username, "number": PageView.objects.filter(user=user,start__gte=from_msec,end__lte=to_msec).count()} )
+        results.append( {"user": user.username, "number": PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec).count() } )
 
     results.sort(key=lambda x:(x["number"], x["user"]))
 
@@ -1077,8 +1078,9 @@ def get_top_users_for_url(request, n):
     url = request.GET['url'].strip()
     results = []
     for user in users:
-        number = PageView.objects.filter(user=user,url=url,start__gte=from_msec,end__lte=to_msec).count()} )
+        number = PageView.objects.filter(user=user,url=url,startTime__gte=from_msec,endTime__lte=to_msec).count()
         results.append( {"user": user.username, "number": number } )
+
     results.sort(key=lambda x:(x["user"], x["number"]))
 
     return json_response({ "code":200, "results": results[0:n] })
@@ -1088,7 +1090,8 @@ def get_most_recent_urls(request, n):
     
     from_msec,to_msec = _unpack_from_to_msec(request)
     
-    hits = Event.objects.filter(type="www-viewed",start__gte=from_msec,end__lte=to_msec).order_by("-start")
+    hits = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec).order_by("-startTime")
+
     if n > 0:
         return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits[0:n] ] });
     else:
@@ -1121,11 +1124,11 @@ def get_following_views(request, username):
 
     for friend in following:
         friend_user = get_object_or_404(User, username=friend.username)
-        events = PageView.objects.filter(user=friend_user,start__gte=from_msec,end__lte=to_msec)} )
+        events = PageView.objects.filter(user=friend_user,startTime__gte=from_msec,endTime__lte=to_msec)
         friends_results.append( {"username": friend.username, "events": [ defang_pageview(evt) for evt in events ] } )
         
     # add the request.user
-    user_events = PageView.objects.filter(user=user,start__gte=from_msec,end__lte=to_msec)} )
+    user_events = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
     friends_results.append( {"username": enduser.user.username, "events": [ defang_pageview(evt) for evt in user_events ] } )
 
     friends_results.sort(key=lambda x:(x["username"], x["username"]))
