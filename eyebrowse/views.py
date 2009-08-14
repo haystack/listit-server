@@ -863,7 +863,6 @@ def get_top_hosts_comparison(request, username, n):
     first_end = round_time_to_day(first_end)
     second_start = round_time_to_day(second_start)
     second_end = round_time_to_day(second_end)
-    # days_ago = int(round(((int(time.time() * 1000) - second_end) / 86400000)))
 
     @cache.region('long_term')
     def fetch_data(user, first_start, first_end, second_start, second_end):
