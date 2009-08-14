@@ -19,8 +19,7 @@ from os.path import splitext
 from django.db.models.signals import post_save
 from jv3.models import Event ## from listit, ya.
 from django.utils.simplejson import JSONEncoder, JSONDecoder
-
-# uhoz it beaker! hopefully this will work
+# beaker
 from eyebrowse.beakercache import cache
 
 #TEMPORARY
@@ -779,7 +778,7 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
     return times_per_url
 
 def defang_pageview(pview):
-    return {"start" : long(pview.start), "end" : long(pview.end), "url" : pview.url, "host": pview.host, "title": pview.title}
+    return {"start" : long(pview.startTime), "end" : long(pview.endTime), "url" : pview.url, "host": pview.host, "title": pview.title}
 
 #@login_required
 def get_web_page_views(request):
@@ -1057,25 +1056,42 @@ def get_top_users(request, n):
     n = int(n)
     from_msec,to_msec = _unpack_from_to_msec(request)
 
-    results = []
-    for user in users:
-        results.append( {"user": user.username, "number": PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec).count() } )
+    from_msec_rounded = round_time_to_day(from_msec)
+    to_msec_rounded = round_time_to_day(to_msec)
 
-    results.sort(key=lambda x:(x["number"], x["user"]))
+    @cache.region('long_term')
+    def fetch_data(from_msec, to_msec):
+        results = []
+        for user in users:
+            results.append( {"user": user.username, "number": PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec).count() } )
+            
+        results.sort(key=lambda x:(x["number"], x["user"]))
+        return results[0:n]
+        
+    return_results = fetch_data(from_msec_rounded, to_msec_rounded)
 
-    return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] })
+    return json_response({ "code":200, "results": return_results })
 
 def get_top_users_for_url(request, n):
     users = User.objects.all();
     n = int(n)
     from_msec,to_msec = _unpack_from_to_msec(request)
-    url = request.GET['url'].strip()
-    results = []
-    for user in users:
-        number = PageView.objects.filter(user=user,url=url,startTime__gte=from_msec,endTime__lte=to_msec).count()
-        results.append( {"user": user.username, "number": number } )
+    get_url = request.GET['url'].strip()
 
-    results.sort(key=lambda x:(x["user"], x["number"]))
+    from_msec_rounded = round_time_to_day(from_msec)
+    to_msec_rounded = round_time_to_day(to_msec)
+
+    @cache.region('long_term')
+    def fetch_data(from_msec, to_msec, url):
+        results = []
+        for user in users:
+            number = PageView.objects.filter(user=user,url=url,startTime__gte=from_msec,endTime__lte=to_msec).count()
+            results.append( {"user": user.username, "number": number } )
+            
+        results.sort(key=lambda x:(x["user"], x["number"]))
+        return results[0:n]
+
+    return_results = fetch_data(from_msec_rounded, to_msec_rounded, get_url)
 
     return json_response({ "code":200, "results": results[0:n] })
 
@@ -1104,30 +1120,37 @@ def get_users_most_recent_urls(request, username, n):
     print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
 
     return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits[0:n] ] });    
-        
+
+# complex to cache as will have to rerun if they start following more users        
 def get_following_views(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
-    following = [friendship.to_friend for friendship in user.friend_set.all()]
-
-    from_msec,to_msec = _unpack_from_to_msec(request)
-
     following = [friendship.from_friend for friendship in user.to_friend_set.all()]
 
-    friends_results = []
+    from_msec,to_msec = _unpack_from_to_msec(request)
+    from_msec_rounded = round_time_to_day(from_msec)
+    to_msec_rounded = round_time_to_day(to_msec)
 
-    for friend in following:
-        friend_user = get_object_or_404(User, username=friend.username)
-        events = PageView.objects.filter(user=friend_user,startTime__gte=from_msec,endTime__lte=to_msec)
-        friends_results.append( {"username": friend.username, "events": [ defang_pageview(evt) for evt in events ] } )
-        
-    # add the request.user
-    user_events = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
-    friends_results.append( {"username": enduser.user.username, "events": [ defang_pageview(evt) for evt in user_events ] } )
+    # potentially i can just not pass it the following param hrmz
+    @cache.region('long_term')
+    def fetch_data(from_msec, to_msec, user, following):
+        friends_results = []
 
-    friends_results.sort(key=lambda x:(x["username"], x["username"]))
+        for friend in following:
+            friend_user = get_object_or_404(User, username=friend.username)
+            events = PageView.objects.filter(user=friend_user,startTime__gte=from_msec,endTime__lte=to_msec)
+            friends_results.append( {"username": friend.username, "events": [ defang_pageview(evt) for evt in events ] } )
+            
+        # add the request.user
+        user_events = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
+        friends_results.append( {"username": enduser.user.username, "events": [ defang_pageview(evt) for evt in user_events ] } )
 
-    return json_response({ "code":200, "results": friends_results });    
+        friends_results.sort(key=lambda x:(x["username"], x["username"]))
+        return friends_results
+
+    results = fetch_data(from_msec_rounded, to_msec_rounded, user, following)
+
+    return json_response({ "code":200, "results": results });    
 
         
 # search stuff down here

@@ -788,7 +788,7 @@ var statusFactory = ({
 								 var newData = params.newData;
 								 for (var i = 0; i < newData.length; i++) {
 									 this_.data.push(newData[i]);
-									 this_.domainArray.push(newData[i].entity.host);
+									 this_.domainArray.push(newData[i].host);
 									 this_.urlArray.push(newData[i].url);
 									 this_.titleArray.push(newData[i].title);
 									 this_.startPointArray.push(this_.windowWidth * ((newData[i].start - this_.startTime) / (this_.endTime - this_.startTime)));
@@ -815,7 +815,7 @@ var statusFactory = ({
 								 var newData = params.newData;
 								 for (var i = 0; i < newData.length; i++) {
 									 this_.data.unshift(newData[i]);
-									 this_.domainArray.unshift(newData[i].entity.host);
+									 this_.domainArray.unshift(newData[i].host);
 									 this_.urlArray.unshift(newData[i].url);
 									 this_.titleArray.unshift(newData[i].title);
 									 this_.startPointArray.unshift(this_.windowWidth * ((newData[i].start - this_.startTime) / (this_.endTime - this_.startTime)));
@@ -838,7 +838,7 @@ var statusFactory = ({
 							 this_.polyArray = [];
 							 this_.titleArray = [];
 							 for (var i = 0; i < this_.data.length; i++) {
-								 this_.domainArray[i] = this_.data[i].entity.host;
+								 this_.domainArray[i] = this_.data[i].host;
 								 this_.urlArray[i] = this_.data[i].url;
 								 this_.titleArray[i] = this_.data[i].title;
 								 this_.startPointArray[i] = this_.windowWidth * ((this_.data[i].start - this_.startTime) / (this_.endTime - this_.startTime));
