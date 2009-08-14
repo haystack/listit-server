@@ -96,7 +96,7 @@ class Page(models.Model):
         scheme, self.host, self.path, foo, bar, baz = urlparse.urlparse(url)
 
 class PageView(models.Model):    
-    user = models.ForeignKey(EndUser)
+    user = models.ForeignKey(User)
     duration = models.DecimalField(max_digits=14, decimal_places=0)
     startTime = models.DecimalField(max_digits=14, decimal_places=0)
     endTime = models.DecimalField(max_digits=14, decimal_places=0)
@@ -122,7 +122,7 @@ class PageView(models.Model):
     @staticmethod
     def from_Event(evt):
         import eyebrowse.views
-        pv = self.from_url( evt.owner, evt.entityid, evt.start, evt.end )
+        pv = PageView.from_url( evt.owner, evt.entityid, evt.start, evt.end )
         pv.title = eyebrowse.views.get_title_from_evt(evt)
         return pv
 

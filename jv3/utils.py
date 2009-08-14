@@ -20,6 +20,7 @@ import time
 import datetime
 import random
 import urllib
+import sys
 from os import listdir
 from decimal import Decimal        
 
@@ -125,7 +126,7 @@ def _authenticate_user(emailaddr,password):
 
 def basicauth_get_user_by_emailaddr(request):
     decoded = basicauth_decode_email_password(request)
-    if decoded is not None:
+    if decoded is not None and len(decoded) == 2 and len(decoded[0]) > 0 and len(decoded[1]) > 0:
         return _authenticate_user(decoded[0],decoded[1])
     return None
 
@@ -134,21 +135,18 @@ def basicauth_decode_email_password(request):
     If we use this, then we do not have to rely on session authentication 
     """
     ## it's either in the META or the GET
-    authblob = request.META.get('HTTP_AUTHORIZATION', None)
-    if authblob is None:
-        auth_get = request.GET.get("HTTP_AUTHORIZATION",None)
-        if auth_get is None:
-            return None
-        authblob = urllib.unquote(auth_get)
-        
-    if authblob:
+    try:
+        authblob = request.META.get('HTTP_AUTHORIZATION', None)
+        if authblob is None:
+            auth_get = request.GET.get("HTTP_AUTHORIZATION",None)
+            authblob = urllib.unquote(auth_get) 
         (authmeth, auth) = authblob.split(' ', 1)
-        if authmeth.lower() != 'basic':
-            return None
+        assert authmeth.strip().lower() == 'basic', "auth token 1 must be basic %s " % authmeth.lower()
         auth = auth.strip().decode('base64')
         emailaddr, password = auth.split(':', 1)        
-        return (emailaddr,password)
-    
+        return (emailaddr,password)        
+    except:
+        print sys.exc_info();
     return None        
 
 def decode_emailaddr(request):
@@ -157,7 +155,7 @@ def decode_emailaddr(request):
     """
     ## it's either in the META or the GET
     decoded = basicauth_decode_email_password(request)
-    if decoded is not None:
+    if decoded is not None and len(decoded) == 2:
         return decoded[0]
     return None
 

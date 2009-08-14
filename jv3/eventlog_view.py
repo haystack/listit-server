@@ -20,10 +20,19 @@ from django.template.loader import get_template
 import sys
 
 
+def authenticate_user(request):
+    # this authentication mechanism works for BOTH listit-style and eyebrowse-style authentication
+    ba_user = basicauth_get_user_by_emailaddr(request)
+    if ba_user is not None:
+        return ba_user
+    if request.user and request.user.username:
+        return request.user
+    return None
+
 class EventLogCollection(Collection):
 
     def read(self,request):
-        request_user = basicauth_get_user_by_emailaddr(request);
+        request_user = authenticate_user(request);
         if not request_user:
             return self.responder.error(request, 401, ErrorDict({"autherror":"Incorrect user/password combination"}))
         
@@ -51,7 +60,7 @@ class EventLogCollection(Collection):
         """
         lets the user post new activity in a giant single array of activity log elements
         """
-        request_user = basicauth_get_user_by_emailaddr(request);
+        request_user = authenticate_user(request);
         if not request_user:
             return self.responder.error(request, 401, ErrorDict({"autherror":"Incorrect user/password combination"}))
 
