@@ -740,25 +740,24 @@ def get_title_from_evt(evt):
     return   
 
 def round_time_to_day(time):
-    new_time = math.floor(time / 86400000) * 86400000
+    new_time = int(math.floor(time / 86400000) * 86400000)
     return new_time        
 
 class EVENT_SELECTORS:
     class Page:
         @staticmethod
         def access(queryset):
-            return [s[0] for s in queryset.values_list('entityid')]
+            return [s[0] for s in queryset.values_list('url')]
         @staticmethod
         def filter_queryset(queryset,url):
-            return queryset.filter(entityid=url)
+            return queryset.filter(url=url)
     class Host:
         @staticmethod
         def access(queryset):
-            import urlparse
-            return [urlparse.urlparse(url[0])[1] for url in queryset.values_list('entityid')]
+            return [s[0] for s in queryset.values_list('host')] # <- comparatively lame. # pretty badass too: [urlparse.urlparse(url[0])[1] for url in queryset.values_list('host')]
         @staticmethod
-        def filter_queryset(queryset,url):
-            return queryset.filter(entityid__contains="://%s/"%url)        
+        def filter_queryset(queryset,host):
+            return queryset.filter(host=host) #queryset.filter(entityid__contains="://%s/"%url)         ## tres. badass!!!
 
 def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
     import django.db.models.query
@@ -855,10 +854,6 @@ def get_top_hosts_comparison(request, username, n):
     n = int(n)
 
     first_start,first_end,second_start,second_end = _unpack_times(request)
-    def round_time_to_day(time):
-        new_time = math.floor(time / 86400000) * 86400000
-        return new_time        
-    
     first_start = round_time_to_day(first_start)
     first_end = round_time_to_day(first_end)
     second_start = round_time_to_day(second_start)
