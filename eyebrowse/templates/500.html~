@@ -1,9 +1,0 @@
-{% extends "base.html" %}
-{% block title %}ERROR 500{% endblock %}
-{% block imports %}
-{% endblock %}
-{% block content %}
-<div id="faq">
-<h1>INTERNAL SERVER ERROR SRY!</h1>
-</div>
-{% endblock %}
