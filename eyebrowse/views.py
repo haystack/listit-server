@@ -220,10 +220,37 @@ def graph(request, username):
     c = Context({ 'username': enduser.user.username, 'id': enduser.user.id, 'request_user': request_user })
     return HttpResponse(t.render(c))
 
-def world(request):
+def world(request): # confusing name fix this
     t = loader.get_template("global.html")
     c = Context({ 'username': request.user.username, 'id': request.user.id, 'request_user': request.user.username })
     return HttpResponse(t.render(c))
+
+def page_profile(request): 
+    variables = RequestContext(request, {
+        'username': request.user.username,
+        'request_user': request.user.username
+        })
+    return render_to_response('webpage.html', variables)
+
+def friends(request, username):
+    user = get_object_or_404(User, username=username)
+    enduser = get_enduser_for_user(user)
+
+    friends = enduser.friends.all()
+    friends_results = []
+    for friend in friends:
+        friends_results.append( {"username": friend.user.username, "number": Event.objects.filter(owner=friend.user,type="www-viewed").count()} )
+    friends_results.sort(key=lambda x:(x["username"], x["number"]))
+    
+    request_user = request.user.username
+
+    variables = RequestContext(request, {
+        'username': username,
+        'show_edit': username == request.user.username,
+        'friends': friends_results,
+        'request_user': request_user
+        })
+    return render_to_response('friends.html', variables)
 
 def user_page(request, username):
     user = get_object_or_404(User, username=username)
@@ -255,72 +282,34 @@ def user_page(request, username):
         friends_results.append( {"username": friend.user.username, "number": Event.objects.filter(owner=friend.user,type="www-viewed").count()} )
     friends_results.sort(key=lambda x:(x["username"], x["number"]))
     
-    request_user = request.user.username
-    first_name = enduser.user.first_name
-    last_name = enduser.user.last_name
-    location = enduser.location
-    homepage = enduser.homepage
-    birthdate = enduser.birthdate
-    photo = enduser.photo
-    gender = enduser.gender
     tags = ' '.join(
         tag.name for tag in enduser.tags.all()
         )
     
-    id = enduser.user.id
-
     variables = RequestContext(request, {
-        'username': username,
-        'show_edit': username == request.user.username,
-        'following': following,
-        'followers': followers,
-        'is_friend': is_friend,
-        'first_name': first_name,
-        'last_name': last_name,
-        'location': location,
-        'homepage': homepage,
-        'birthdate': birthdate,
-        'photo': photo,
-        'tags' : tags,
-        'gender': gender,
-        'id':id,
-        'request_user': request_user
-        })
-    return render_to_response('user_page.html', variables)
-
-def friends(request, username):
-    user = get_object_or_404(User, username=username)
-    enduser = get_enduser_for_user(user)
-
-    friends = enduser.friends.all()
-    friends_results = []
-    for friend in friends:
-        friends_results.append( {"username": friend.user.username, "number": Event.objects.filter(owner=friend.user,type="www-viewed").count()} )
-    friends_results.sort(key=lambda x:(x["username"], x["number"]))
-    
-    request_user = request.user.username
-
-    variables = RequestContext(request, {
-        'username': username,
-        'show_edit': username == request.user.username,
-        'friends': friends_results,
-        'request_user': request_user
-        })
-    return render_to_response('friends.html', variables)
-
-def webpage(request):
-    variables = RequestContext(request, {
-        'username': request.user.username,
+         'username': username,
+         'show_edit': username == request.user.username,
+         'following': following,
+         'followers': followers,
+         'is_friend': is_friend,
+         'first_name': enduser.user.first_name,
+         'last_name': enduser.user.last_name,
+         'location': enduser.location,
+         'homepage': enduser.homepage,
+         'birthdate': enduser.birthdate,
+         'photo': enduser.photo,
+         'tags' : tags,
+         'gender': enduser.gender,
+         'id':enduser.user.id,
         'request_user': request.user.username
         })
-    return render_to_response('webpage.html', variables)
-    
+    return render_to_response('user_page.html', variables)
 
 def logout_page(request):
     logout(request)
     return HttpResponseRedirect('/')
 
-def create_enduser_for_user(user):
+def _create_enduser_for_user(user):
     enduser = EndUser()
     enduser.user = user
     enduser.save()
@@ -337,7 +326,7 @@ def register_page(request):
                 password=form.cleaned_data['password1'],
                 email=form.cleaned_data['email']
                 )
-            create_enduser_for_user(user)
+            _create_enduser_for_user(user)
             if 'invitation' in request.session:
                 # Retrieve the invitation object.
                 invitation = Invitation.objects.get(id=request.session['invitation'])
