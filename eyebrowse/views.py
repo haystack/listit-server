@@ -1,7 +1,6 @@
-import re,sys,time,operator, os
+import re,sys,time,operator,os,math
 from django.template import loader, Context
-from django.http import HttpResponse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse,HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render_to_response
 from django.http import Http404
 from django.shortcuts import get_object_or_404, get_list_or_404
@@ -21,6 +20,8 @@ from django.db.models.signals import post_save
 from jv3.models import Event ## from listit, ya.
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 
+# uhoz it beaker! hopefully this will work
+from eyebrowse.beakercache import cache
 
 #TEMPORARY
 def pluginhover(request):
@@ -45,9 +46,10 @@ def get_enduser_for_user(user):
 
 
 def privacy_settings_page(request, username):
-    if username != request.user.username:
-        return HttpResponseRedirect('/userprivacy/%s/'% username)
     user = get_object_or_404(User, username=username)
+    if username != request.user.username:
+        return HttpResponseForbidden('Only %s can edit this profile' % username)
+
     privacysettings = user.privacysettings_set.all()[0] ## ?
 
     listmode = privacysettings.listmode
@@ -88,7 +90,7 @@ def get_privacy_urls(request, username):
     privacysettings = user.privacysettings_set.all()[0] ## ?     
     
     if privacysettings.listmode == "W":
-        list = privacysettings.whitelist.split()
+        list = privacysettings.whitelist.split()  ## redefin'in a reserved keyword since 2009.. CHANGE 'list' TO SOMETHING ELSE! plz. kthx
     if privacysettings.listmode == "B":
         list = privacysettings.blacklist.split()
 
@@ -192,18 +194,8 @@ def terms(request):
 def day(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
-    is_friend = enduser.friends.filter(user=request.user)
-    privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
-    exposure = privacysettings.exposure
     request_user = request.user.username
 
-    if request.user.id is not enduser.user.id:
-        if exposure == 'N':
-            return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
-        if exposure == 'F':
-            if not is_friend:
-                return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
-            pass
     t = loader.get_template("day.html")
     c = Context({ 'username': enduser.user.username, 'id': enduser.user.id, 'request_user': request_user })
 
@@ -212,18 +204,8 @@ def day(request, username):
 def report(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
-    is_friend = enduser.friends.filter(user=request.user)
-    privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
-    exposure = privacysettings.exposure
     request_user = request.user.username
 
-    if request.user.id is not enduser.user.id:
-        if exposure == 'N':
-            return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
-        if exposure == 'F':
-            if not is_friend:
-                return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
-            pass
     t = loader.get_template("report.html")
     c = Context({ 'username': enduser.user.username, 'id': enduser.user.id, 'request_user': request_user })
 
@@ -232,18 +214,8 @@ def report(request, username):
 def graph(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
-    is_friend = enduser.friends.filter(user=request.user)
-    privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
-    exposure = privacysettings.exposure
     request_user = request.user.username
 
-    if request.user.id is not enduser.user.id:
-        if exposure == 'N':
-            return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
-        if exposure == 'F':
-            if not is_friend:
-                return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
-            pass
     t = loader.get_template("graph.html")
     c = Context({ 'username': enduser.user.username, 'id': enduser.user.id, 'request_user': request_user })
     return HttpResponse(t.render(c))
@@ -259,7 +231,6 @@ def user_page(request, username):
 
     if request.user.username:
         request_enduser = get_enduser_for_user(request.user)
-        #is_friend = request_enduser.friends.filter(user=user)
         is_friend = user.friend_set.all().filter(id=request.user.id)
     else: 
         is_friend = False;
@@ -770,8 +741,8 @@ def _unpack_from_to_msec(request):
 def _unpack_times(request):
     return (long(request.GET['first_start']), long(request.GET['first_end']), long(request.GET['second_start']), long(request.GET['second_end']))
 
-def _get_top_n(user,start,end):
-    time_per_host = _get_time_per_page(user,start,end,grouped_by=EVENT_SELECTORS.Host)
+def _get_top_hosts_n(users,start,end):
+    time_per_host = _get_time_per_page(users,start,end,grouped_by=EVENT_SELECTORS.Host) 
 
     ordered_visits = [h for h in time_per_host.iteritems()]
     ordered_visits.sort(lambda u1,u2: int(u2[1] - u1[1]))
@@ -783,6 +754,9 @@ def get_title_from_evt(evt):
         return foo['title']
     return   
 
+def round_time_to_day(time):
+    new_time = math.floor(time / 86400000) * 86400000
+    return new_time        
 
 class EVENT_SELECTORS:
     class Page:
@@ -801,9 +775,12 @@ class EVENT_SELECTORS:
         def filter_queryset(queryset,url):
             return queryset.filter(entityid__contains="://%s/"%url)        
 
-
 def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
-    mine_events = _get_pages_for_user(user, from_msec, to_msec)
+    if user.count() > 1:
+        mine_events = Event.objects.filter(type="www-viewed",start__gte=from_msec,end__lte=to_msec)
+    else:
+        mine_events = _get_pages_for_user(user, from_msec, to_msec)
+        
     uniq_urls  = set( grouped_by.access(mine_events) )
     times_per_url = {}
     for url in uniq_urls:
@@ -855,22 +832,23 @@ def get_time_per_page(request):
     times_per_url = _get_time_per_page(request.user,from_msec,to_msec)    
     return json_response({ "code":200, "results": times_per_url })
         
-def get_top_pages(request,username, n):  # should have n here but i removed it temporarally 
+def get_top_pages(request,username, n):
     user = User.objects.filter(username=username)
     n = int(n)
-    if request.user is None:
+    # removed privacy settings 
+    #if request.user is None:
           ## the person is asking us for access to another user's activity log.
-        return json_response({"code":401,"message":"Access forbidden, please log in first"})
+    #    return json_response({"code":401,"message":"Access forbidden, please log in first"})
     from_msec,to_msec = _unpack_from_to_msec(request)
     times_per_url = _get_time_per_page(request.user,from_msec,to_msec)
     urls_ordered = times_per_url.keys()
     urls_ordered.sort(lambda u1,u2: int(times_per_url[u2] - times_per_url[u1]))
 
-    #_mimic_entity_schema_from_url
+
     return json_response({ "code":200, "results": [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] }) 
 
     
-def get_top_hosts(request,username, n):  # should have n here but i removed it temporarally 
+def get_top_hosts(request,username, n):
     user = User.objects.filter(username=username)
     n = int(n)
     if request.user is None:
@@ -886,36 +864,91 @@ def get_top_hosts(request,username, n):  # should have n here but i removed it t
 
     
 def get_top_hosts_comparison(request, username, n):
-    user = get_object_or_404(User, username=username)
+    user_user = get_object_or_404(User, username=username)
     n = int(n)
 
     first_start,first_end,second_start,second_end = _unpack_times(request)
+    def round_time_to_day(time):
+        new_time = math.floor(time / 86400000) * 86400000
+        return new_time        
+    
+    first_start = round_time_to_day(first_start)
+    first_end = round_time_to_day(first_end)
+    second_start = round_time_to_day(second_start)
+    second_end = round_time_to_day(second_end)
+    # days_ago = int(round(((int(time.time() * 1000) - second_end) / 86400000)))
 
-    times_per_url_first = _get_top_n(user,first_start,first_end)
-    times_per_url_second = _get_top_n(user,second_start,second_end)
+    @cache.region('long_term')
+    def fetch_data(user, first_start, first_end, second_start, second_end):
+        times_per_url_first = _get_top_n(user,first_start,first_end)
+        times_per_url_second = _get_top_n(user,second_start,second_end)
+        
+        def index_of(what, where):
+            try:
+                return [ h[0] for h in where ].index(what)
+            except:
+                print sys.exc_info()
+                pass
+            return None
 
-    def index_of(what, where):
-        try:
-            return [ h[0] for h in where ].index(what)
-        except:
-            print sys.exc_info()
-            pass
-        return None
+        results = []
 
-    results = []
+        # if the first list is longer than the second list
+        # this throws a  ValueError('list.index(x): x not in list',)
+        for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
+            old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
+            if old_rank is not None:
+                diff = - (i - old_rank)  # we want the gain not the difference
+                results.append(times_per_url_second[i] + (diff,) )
+            else:
+                results.append( times_per_url_second[i] )
 
-    # if the first list is longer than the second list
-    # this throws a  ValueError('list.index(x): x not in list',)
-    for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
-        old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
-        if old_rank is not None:
-            diff = - (i - old_rank)  # we want the gain not the difference
-            results.append(times_per_url_second[i] + (diff,) )
-        else:
-            results.append( times_per_url_second[i] )
+        return results[0:n]
 
-    return json_response({ "code":200, "results": results[0:n] }) 
+    return_results = fetch_data(user_user, first_start,first_end,second_start,second_end)
+        
+    return json_response({ "code":200, "results": return_results }) 
 
+def get_top_hosts_comparison_global(request, username, n):    
+    n = int(n)
+
+    first_start,first_end,second_start,second_end = _unpack_times(request)
+    first_start = round_time_to_day(first_start)
+    first_end = round_time_to_day(first_end)
+    second_start = round_time_to_day(second_start)
+    second_end = round_time_to_day(second_end)
+
+    @cache.region('long_term')
+    def fetch_data(first_start, first_end, second_start, second_end):
+        users = User.objects.all();
+
+        times_per_url_first = _get_top_n(users,first_start,first_end)
+        times_per_url_second = _get_top_n(users,second_start,second_end)
+
+        def index_of(what, where):
+            try:
+                return [ h[0] for h in where ].index(what)
+            except:
+                print sys.exc_info()
+                pass
+            return None
+
+        results = []
+
+        for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
+            old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
+            if old_rank is not None:
+                diff = - (i - old_rank)  # we want the gain not the difference
+                results.append(times_per_url_second[i] + (diff,) )
+            else:
+                results.append( times_per_url_second[i] )
+
+        return results[0:n]
+
+    return_results = fetch_data(first_start,first_end,second_start,second_end)
+        
+    return json_response({ "code":200, "results": return_results }) 
+    
     
 def get_top_urls(request, n):
     user = User.objects.all();

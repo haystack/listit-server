@@ -33,13 +33,15 @@ padding:6px;
             this.startTime = this.startDate.valueOf();
             this.OGendTime = this.endDate.valueOf();
             this.OGstartTime = this.startDate.valueOf();
+			this.endTimeRecent = this.endTime;
             this.interp = zoom / 192;
             this.drag = undefined;
             this.zoom = zoom;
 
+            this.getRecentPages(10, 3600000);
             this.initLiteGraph(this.startTime, this.endTime);
             this.getTopUsers(this.startTime, this.endTime, 10);
-          //  this.getTopPages(this.startTime, this.endTime);
+			//  this.getTopPages(this.startTime, this.endTime);
         },
 		getTopUsers: function(startTime, endTime, num){
             var this_ = this;
@@ -91,7 +93,6 @@ padding:6px;
                 }
                 if (trigger) {
                     html += "<div class=\"imgbox\">&nbsp;";
-                    // html += "<img src=\"/lib/img/star_16.png\" />";
                     html += "</div>";
                 }
                 html += "<h7>" + timeCounterLong((newData[i][1]) / 1000) + "</h7>";
@@ -101,7 +102,6 @@ padding:6px;
             jQuery("#list").html(html);
         },
         getTopPages: function(startTime, endTime, data){
-            // uses the django model get_top_pages to return top pages between start and endtime
             var this_ = this;
             try {
 				jQuery("#loadimg").show();
@@ -153,13 +153,12 @@ padding:6px;
             catch (e) {
                 console.log(e);
             }
-            // ideally this call will be cached as it is EXPENSIVE AS ALL HELL		    
         },
-        drawLiteGraph: function(data, startTime, endTime){
+        drawLiteGraph: function(data, newStartTime, newEndTime){
 			var this_ = this;
             var newData = data;
-            var startTime = startTime; //newData[1].start.valueOf();
-			var endTime = endTime
+            var startTime = newStartTime;
+			var endTime = newEndTime;
             var interpNum = 28; // ALARM yea this is number of points on graph
             // fix this. it should be dynamic or a variable
             var interp = (endTime - startTime) / interpNum;
@@ -227,62 +226,34 @@ padding:6px;
 									  data: avgData
 								  });
         },
-        drawLatestPagesList: function(data){
-			var this_ = this;
-            var newData = data;
-            var html = "";
-			jQuery("#latestlist").html(html);
-			html = "<ul >";
-            for (var i = newData.length - 1; i > newData.length - 16; i--) {
-                html += "<li id=\"url" + i +  "\">";
-                html += "<h6><b><a href=\"" + newData[i].entity.id + "\">" + newData[i].title + "</a></b></h6>";
-				html += "<a href=\"javascript:self.viz.deletePage('" + newData[i].url + "','" + i + "');\" style=\"float:right; margin-right:6px; margin-left:6px;\" >";
-				html += "<img src=\"/lib/img/cancel_16.png\" /></a>";
-                html += "<h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
-                html += "</li>";
-			}
-            html += "</ul>";
-			jQuery("#latestlist").append(html);
-			
+        getRecentPages: function(num, startBuffer){
+            var this_ = this;
+			this_.startTimeRecent = this_.endTimeRecent - startBuffer; // startbuffer is just for init to offset the time and make sure something comes in
+            this_.endTimeRecent = new Date().valueOf();
+			jQuery("#loadimg").show();
+			jQuery.get("http://localhost:8000/get_most_recent_urls/" + num + "/", {
+						   from: this_.startTimeRecent,
+						   to: this_.endTimeRecent
+					   }, function(data){
+						   jQuery("#loadimg").hide();
+						   if (data.code == 200) {
+							   var newData = data.results;
+							   for (var i = 0; i < newData.length; i++) {
+								   var html = "";
+								   html += "<li>";
+								   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
+								   html += "<br /><h7>" + timeCounterLong((this_.endTime - newData[i].end) / 1000) + " ago by ";
+								   html += "<a href=\"/user/" + newData[i].user + "/\">" + newData[i].user + "</a></h7>";
+								   html += "</li>";
+								   jQuery("#latestviews").prepend(html);
+							   }
+						   }
+						   else {
+							   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+						   }
+					   }, "json");
         },
-		deletePage: function(pageURL, num){
-			try {
-				jQuery.post("/delete_url_entry/", {
-							   'URL': "" + pageURL
-						   }, function(data){							   
-							   if (data.code == 200) {
-								   jQuery("\#url" + num).hide("slow");
-							   }
-							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-                console.log(e);
-            }			
-		},
-        getLatestPages: function(startTime, endTime){
-            this_ = this;
-            try {
-                jQuery.get("http://localhost:8000/get_views_user/{{ username }}/", {
-                //jQuery.get("http://localhost:8000/get_users_most_recent_urls/{{ username }}/15/", {
-							   from: startTime,
-							   to: endTime
-						   }, function(data){
-							   if (data.code == 200) {
-								   this_.drawLatestPagesList(data.results);
-							   }
-							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-                console.log(e);
-            }
-        },
-		refresh: function(startTime, endTime){
+       	refresh: function(startTime, endTime){
             var this_ = this;
             this_.endTime = endTime;
             this_.startTime = startTime;
@@ -352,6 +323,7 @@ jQuery(document).ready(function(){
 						   document.getElementById("avgTimeGraph").setAttribute("height", 200);
 						   
 						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 43200000);// 12 hrs
+						   setInterval("self.viz.getRecentPages(10, 0)", 30000);
 					   });
 </script>
 {% endblock %}
@@ -370,17 +342,10 @@ jQuery(document).ready(function(){
         <div id="avgTime">
             <b>average spent:</b>
         </div>
-        <br />
-        {% if location %}<b>Location:</b>
-        {{ location }} 
-        <br/>
-        {% endif %}
-        {% if homepage %}<b>Website:</b>
-        <a href="{{ homepage }}">{{ homepage }}</a> 
-        <br/>
-        {% endif %}
-
-        <h2 style="border-top:none">Top Users</h2>
+        <h2>Now</h2>
+        <div class="viewboxhome" id="latestviews">
+        </div>
+        <h2>Top Users</h2>
 		<div class="viewboxhome" id="topusers">
         </div>
     </div>
