@@ -277,9 +277,43 @@ def set_consenting_view(request):
     set_consenting(request_user,value)
     resp = json_response({"code":200})
     resp.status_code = 200;
-    return resp    
+    return resp
+
+
+require_account_confirmation = False
+joeuser_name = "List.It User"
+
+def _make_user_from_registration(reg):
+    ## check to see if already registered
+    if get_user_by_email(reg.email):
+        user = get_user_by_email(reg.email)
+        return user
+        
+    user = authmodels.User();
+    user.username = make_username(reg.email);  ## intentionally a dupe, since we dont have a username. WE MUST be sure not to overflow it (max_chat is default 30)
+    user.email = reg.email;
+    user.first_name = joeuser_name;
+    user.set_password(reg.password);
+    user.save();
+    
+    ## handle couhes reg
+    if (reg.couhes):
+        ## assert nonblank(reg.first_name) and nonblank(reg.last_name), "Couhes requires non blank first and last names"
+        user.first_name = reg.first_name;
+        user.last_name = reg.last_name;
+        user.save();
+        ## now make couhes consetnform
+        cc = CouhesConsent()
+        cc.owner = user;
+        cc.signed_date = reg.when;
+        cc.save()
+
+    return user    
 
 def createuser(request):
+    ## as of 8.13, we now no longer require email confirmation -- we create users immediately
+    ## on signup.
+    
     email = request.POST['username'];
     passwd = request.POST['password'];
     
@@ -288,62 +322,48 @@ def createuser(request):
         response.status_code = 405;
         logevent(request,'createuser',205,email)
         return response
-    
-    user = UserRegistration();
-    user.when = current_time_decimal();
-    user.email = email;
-    user.password = passwd;  ## this is unfortunate.
 
+    user_reg = UserRegistration();
+    user_reg.when = current_time_decimal();
+    user_reg.email = email;
+    user_reg.password = passwd;  ## this is unfortunate.
+    
     ## couhes handling: couhes requires first & last name 
-    user.couhes = (request.POST['couhes'] == 'true'); ## assume this is boolean
-    user.first_name = request.POST.get('firstname',''); 
-    user.last_name = request.POST.get('lastname',''); 
+    user_reg.couhes = (request.POST['couhes'] == 'true'); ## assume this is boolean
+    user_reg.first_name = request.POST.get('firstname',''); 
+    user_reg.last_name = request.POST.get('lastname',''); 
     
     ## print "user couhes is %s " % repr(type(user.couhes))
-    user.cookie = gen_cookie();
-    user.save();
-    
-    print "New user registration is %s " % repr(user);
-    send_mail('Did you register for Listit?', gen_confirm_newuser_email_body(user) , 'listit@csail.mit.edu', (user.email,), fail_silently=False)
-    response = HttpResponse("UserRegistration created successfully", "text/html");    
+    user_reg.cookie = gen_cookie();
+    user_reg.save();
+
+    if require_account_confirmation:
+        print "New user registration is %s " % repr(user_reg);
+        send_mail('Did you register for Listit?', gen_confirm_newuser_email_body(user_reg) , 'listit@csail.mit.edu', (user_reg.email,), fail_silently=False)
+        response = HttpResponse("UserRegistration created successfully", "text/html");    
+        response.status_code = 200;
+        logevent(request,'createusr',201,user_reg)
+        return response
+
+    ## else
+    user = _make_user_from_registration(user_reg)
+    response = HttpResponse("User created successfully", "text/html");    
     response.status_code = 200;
-    logevent(request,'createusr',201,user)
-    return response
+    logevent(request,'createusr',201,user_reg)
+    return response        
+
+def __is_unconfirmed(u):
+    return user.first_name == joeuser_name
 
 def confirmuser(request):
     cookie = request.GET['cookie'];
     matching_registrations = UserRegistration.objects.filter(cookie=cookie)
     if len(matching_registrations) > 0:
-        ## create user
         newest_registration = get_most_recent(matching_registrations)
-        
-        ## check to see if already registered
-        if get_user_by_email(newest_registration.email):
-            user = get_user_by_email(newest_registration.email)
-            logevent(request,'confirmuser','alreadyregistered',cookie)
-            return render_to_response('jv3/confirmuser.html',
-                                      {"message": "I think I already know you, %s.  You should have no trouble logging in.  Let us know if you have problems! " % newest_registration.email,
-                                       'username':user.email, 'password':newest_registration.password, 'server':settings.SERVER_URL});
-        
-        user = authmodels.User();
-        user.username = make_username(newest_registration.email);  ## intentionally a dupe, since we dont have a username. WE MUST be sure not to overflow it (max_chat is default 30)
-        user.email = newest_registration.email;
-        user.set_password(newest_registration.password);
-        user.save();
-        
-        ## handle couhes reg
-        if (newest_registration.couhes):
-            ## assert nonblank(newest_registration.first_name) and nonblank(newest_registration.last_name), "Couhes requires non blank first and last names"
-            user.first_name = newest_registration.first_name;
-            user.last_name = newest_registration.last_name;
-            user.save();
-            
-            ## now make couhes consetnform
-            cc = CouhesConsent()
-            cc.owner = user;
-            cc.signed_date = newest_registration.when;
-            cc.save()
-
+        user= _make_user_from_registration(newest_registration)
+        user.first_name = newest_registration.first_name
+        user.last_name = newest_registration.last_name
+        user.save()
         logevent(request,'confirmuser',200,user)
         return render_to_response('jv3/confirmuser.html', {'message': "Okay, thank you for confirming that you are a human, %s.  You can now synchronize with List.it. " % user.email,
                                                            'username':user.email, 'password':newest_registration.password, 'server':settings.SERVER_URL});
