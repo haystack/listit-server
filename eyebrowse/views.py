@@ -536,8 +536,6 @@ def friends_page(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
 
-    # friends = enduser.friends.all()
-
     followers = [friendship.to_friend for friendship in user.friend_set.all()]
     following = [friendship.from_friend for friendship in user.to_friend_set.all()]
 
@@ -699,17 +697,15 @@ def friend_accept(request, code):
 
 ## hook for creating relevant Page objects when new jv3.Event objects get created
 ## by the listit server (which answers calls from listit)    
-def create_www_pages_for_each_event(sender, created=None, instance=None, **kwargs):
+def create_www_pageviews_for_each_event(sender, created=None, instance=None, **kwargs):
     print "post-save event for sender %s : %s " % (repr(sender),repr(instance.entityid)) ## debug!!
     if (created and instance is not None):
         if instance.entitytype == "schemas.Webpage" and instance.entityid is not None:
             print "post-save url: %s " % instance.entityid ## debug!!
-            p,createdpage = Page.objects.get_or_create(url=instance.entityid)
-            if createdpage:
-                p.set_host_path(instance.entityid)
-                p.save()
+            pageview = PageView.from_Event(instance)
+            pageview.save()
                 
-post_save.connect(create_www_pages_for_each_event, sender=Event)
+post_save.connect(create_www_pageviews_for_each_event, sender=Event)
 
 def json_response(dict_obj):
     return HttpResponse(JSONEncoder().encode(dict_obj), "text/json")
@@ -722,7 +718,7 @@ def _mimic_entity_schema_from_url(url):
     return {"id":url, "host":host, "path": page, "type":"schemas.Webpage"}
 
 def _get_pages_for_user(user,from_msec,to_msec):
-    return Event.objects.filter(owner=user,type="www-viewed",start__gte=from_msec,end__lte=to_msec)
+    return PageView.objects.filter(user=user,start__gte=from_msec,end__lte=to_msec)
 
 def _unpack_from_to_msec(request):
     return (request.GET.get('from',0), request.GET.get('to',long(time.mktime(time.localtime())*1000)))
@@ -766,7 +762,7 @@ class EVENT_SELECTORS:
 
 def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
     if user.count() > 1:
-        mine_events = Event.objects.filter(type="www-viewed",start__gte=from_msec,end__lte=to_msec)
+        mine_events = PageView.objects.filter(start__gte=from_msec,end__lte=to_msec)
     else:
         mine_events = _get_pages_for_user(user, from_msec, to_msec)
         
@@ -782,6 +778,9 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
             pass
     return times_per_url
 
+def defang_pageview(pview):
+    return {"start" : long(pview.start), "end" : long(pview.end), "url" : pview.url, "host": pview.host, "title": pview.title}
+
 #@login_required
 def get_web_page_views(request):
     if request.user is None:
@@ -790,11 +789,10 @@ def get_web_page_views(request):
 
     from_msec,to_msec = _unpack_from_to_msec(request)
 
-    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid), "title": get_title_from_evt(evt)}
     hits = _get_pages_for_user(request.user,from_msec,to_msec)
     print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
     
-    return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits ] });
+    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits ] });
 
 def get_web_page_views_user(request, username):
     ## gimme get parameters :
@@ -805,12 +803,11 @@ def get_web_page_views_user(request, username):
 
     from_msec,to_msec = _unpack_from_to_msec(request)
 
-    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid), "title": get_title_from_evt(evt)}
     hits = _get_pages_for_user(user ,from_msec,to_msec)
 
     print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
     
-    return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits ] });
+    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits ] });
 
 #@login_required
 def get_time_per_page(request):
@@ -1008,12 +1005,12 @@ def get_views_url(request):
     from_msec,to_msec = _unpack_from_to_msec(request)
     url = request.GET['url'].strip()
 
-    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid), "title": get_title_from_evt(evt)}
+    results = PageView.objects.filter(url=url,start__gte=from_msec,end__lte=to_msec)
 
-    results = Event.objects.filter(entityid=url,type="www-viewed",start__gte=from_msec,end__lte=to_msec)
+    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in results ] } )
 
-    return json_response({ "code":200, "results": [ defang_event(evt) for evt in results ] } )
-
+# doesnt work 
+# supposed to get ranked list of the urls gone to before and after the ur passed in the request
 def get_to_from_url(request, n):
     from_msec,to_msec = _unpack_from_to_msec(request)
     url = request.GET['url'].strip()
@@ -1025,11 +1022,9 @@ def get_to_from_url(request, n):
     results_to = {"title": "bar", "url":"bar", "value": "bar"} # array of these
     results_from = {"title": "bar", "url":"bar", "value": "bar"} # array of these
 
-    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid), "title": get_title_from_evt(evt)}
+    results = PageView.objects.filter(url=url,start__gte=from_msec,end__lte=to_msec)
 
-    results = Event.objects.filter(entityid=url,type="www-viewed",start__gte=from_msec,end__lte=to_msec)
-
-    return json_response({ "code":200, "results": [ defang_event(evt) for evt in results ] } )
+    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in results ] } )
 
 def get_trending_urls(request, n):
     user = User.objects.all();
@@ -1069,10 +1064,9 @@ def get_top_users(request, n):
 
     results = []
     for user in users:
-        results.append( {"user": user.username, "number": Event.objects.filter(owner=user,type="www-viewed",start__gte=from_msec,end__lte=to_msec).count()} )
+        results.append( {"user": user.username, "number": PageView.objects.filter(user=user,start__gte=from_msec,end__lte=to_msec).count()} )
 
     results.sort(key=lambda x:(x["number"], x["user"]))
-    #key=operator.itemgetter(1))
 
     return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] })
 
@@ -1083,7 +1077,7 @@ def get_top_users_for_url(request, n):
     url = request.GET['url'].strip()
     results = []
     for user in users:
-        number = Event.objects.filter(owner=user,entityid=url,type="www-viewed",start__gte=from_msec,end__lte=to_msec).count()
+        number = PageView.objects.filter(user=user,url=url,start__gte=from_msec,end__lte=to_msec).count()} )
         results.append( {"user": user.username, "number": number } )
     results.sort(key=lambda x:(x["user"], x["number"]))
 
@@ -1094,13 +1088,11 @@ def get_most_recent_urls(request, n):
     
     from_msec,to_msec = _unpack_from_to_msec(request)
     
-    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid), "title": get_title_from_evt(evt)}
-    
     hits = Event.objects.filter(type="www-viewed",start__gte=from_msec,end__lte=to_msec).order_by("-start")
     if n > 0:
-        return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits[0:n] ] });
+        return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits[0:n] ] });
     else:
-        return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits ] });
+        return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits ] });
 
 def get_users_most_recent_urls(request, username, n):
     users = User.objects.filter(username=username)
@@ -1111,11 +1103,10 @@ def get_users_most_recent_urls(request, username, n):
 
     from_msec,to_msec = _unpack_from_to_msec(request)
 
-    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid), "title": get_title_from_evt(evt)}
     hits = _get_pages_for_user(user,from_msec,to_msec)
     print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
 
-    return json_response({ "code":200, "results": [ defang_event(evt) for evt in hits[0:n] ] });    
+    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits[0:n] ] });    
         
 def get_following_views(request, username):
     user = get_object_or_404(User, username=username)
@@ -1126,18 +1117,16 @@ def get_following_views(request, username):
 
     following = [friendship.from_friend for friendship in user.to_friend_set.all()]
 
-    defang_event = lambda evt : {"start" : long(evt.start), "end" : long(evt.end), "url" : evt.entityid, "entity": _mimic_entity_schema_from_url(evt.entityid), "title": get_title_from_evt(evt)}
-
     friends_results = []
 
     for friend in following:
         friend_user = get_object_or_404(User, username=friend.username)
-        events = Event.objects.filter(owner=friend_user,type="www-viewed",start__gte=from_msec,end__lte=to_msec)
-        friends_results.append( {"username": friend.username, "events": [ defang_event(evt) for evt in events ] } )
+        events = PageView.objects.filter(user=friend_user,start__gte=from_msec,end__lte=to_msec)} )
+        friends_results.append( {"username": friend.username, "events": [ defang_pageview(evt) for evt in events ] } )
         
     # add the request.user
-    user_events = events = Event.objects.filter(owner=user,type="www-viewed",start__gte=from_msec,end__lte=to_msec)
-    friends_results.append( {"username": enduser.user.username, "events": [ defang_event(evt) for evt in user_events ] } )
+    user_events = PageView.objects.filter(user=user,start__gte=from_msec,end__lte=to_msec)} )
+    friends_results.append( {"username": enduser.user.username, "events": [ defang_pageview(evt) for evt in user_events ] } )
 
     friends_results.sort(key=lambda x:(x["username"], x["username"]))
 
@@ -1161,7 +1150,6 @@ def user_search_page(request):
             bookmarks = EndUser.objects.filter(q)[:10]
             
     variables = RequestContext(request, { 'form': form,
-                                          'bookmarks': bookmarks,
                                           'show_results': show_results,
                                           'show_tags': True,
                                           'show_user': True

@@ -97,13 +97,34 @@ class Page(models.Model):
 
 class PageView(models.Model):    
     user = models.ForeignKey(EndUser)
-    page = models.ForeignKey(Page)
     duration = models.DecimalField(max_digits=14, decimal_places=0)
     startTime = models.DecimalField(max_digits=14, decimal_places=0)
     endTime = models.DecimalField(max_digits=14, decimal_places=0)
-# destroy these on next syncdb
-#    startTime = models.DateTimeField()
-#    endTime = models.DateTimeField()
+    title = models.CharField(max_length=100,null=True)
+    url = models.URLField(verify_exists=False)
+    host = models.CharField(max_length=255,null=True)
+    path = models.CharField(max_length=512,null=True)
+    tags = models.ManyToManyField(PageTag)
+
+    @staticmethod
+    def from_url(user,url,start,end):
+        ## sets host and path parameters by parsin' them out
+        import urlparse
+        newview = PageView()
+        newview.url = url
+        scheme, newview.host, newview.path, foo, bar, baz = urlparse.urlparse(url)
+        newview.user = user
+        newview.startTime = start
+        newview.endTime = end
+        newview.duration = end - start # usually. but we cache it cuz sql is dumb.
+        return newview
+    
+    @staticmethod
+    def from_Event(evt):
+        import eyebrowse.views
+        pv = self.from_url( evt.owner, evt.entityid, evt.start, evt.end )
+        pv.title = eyebrowse.views.get_title_from_evt(evt)
+        return pv
 
 #for color labeling of visualizations
 class ColorPair(models.Model):
