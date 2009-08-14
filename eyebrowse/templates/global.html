@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+{% block title %}global{% endblock %}
+{% block imports %}
+<link rel="stylesheet" type="text/css" href="/lib/CSS/datepicker.css" />
+<style>
+.viewboxhome li {
+width:190px;
+padding:6px;
+}
+</style>
+<script src="/lib/js/watchMeGraph.js">
+</script>
+<script src="/lib/js/canvas.text.js">
+</script>
+<script src="/lib/js/faces/helvetiker-normal-normal.js">
+</script>
+<script src="/lib/js/datepicker.js">
+</script>
+<script>
+    jQuery.noConflict();
+</script>
+<script>
+    var WatchmeVisualisation = {
+        initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom){
+            this.canvas = canvas;
+            this.windowWidth = windowWidth;
+            this.windowHeight = windowHeight;
+            this.timeZoneCorrect = timeZoneCorrect;
+			this.now = new Date().valueOf();
+            this.endDate = new Date();
+            this.startDate = new Date(this.endDate.valueOf() - zoom);
+            this.endTime = this.endDate.valueOf();
+            this.startTime = this.startDate.valueOf();
+            this.OGendTime = this.endDate.valueOf();
+            this.OGstartTime = this.startDate.valueOf();
+            this.interp = zoom / 192;
+            this.drag = undefined;
+            this.zoom = zoom;
+
+            this.initLiteGraph(this.startTime, this.endTime);
+            this.getTopUsers(this.startTime, this.endTime, 10);
+          //  this.getTopPages(this.startTime, this.endTime);
+        },
+		getTopUsers: function(startTime, endTime, num){
+            var this_ = this;
+			jQuery("#loadimg").show();
+			jQuery.get("http://localhost:8000/get_top_users/10/", {
+						   from: this_.startTime,
+						   to: this_.endTime,
+						   num: num
+					   }, function(data){
+						   jQuery("#loadimg").hide();
+						   if (data.code == 200) {
+							   var newData = data.results;
+							   for (var i = 0; i < newData.length; i++) {
+								   var html = "";
+								   html += "<li>";
+								   html += "<h6><b><a href=\"/user/" + newData[i].user +  "/\">" + newData[i].user + "</a></b></h6>";
+								   html += "<br /><h7>" + newData[i].number + " webpages today</h7>";
+								   html += "</li>";
+								   jQuery("#topusers").prepend(html);
+								   jQuery(".listItemSmall:first").slideDown("slow");
+							   }
+						   }
+						   else {
+							   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+						   }
+					   }, "json");	
+		},
+        drawTopPagesList: function(data){
+            var this_ = this;
+            var newData = data;
+            var html = "<ul>";
+            for (var i = 0; i < newData.length; i++) {
+                var trigger = true;
+                html += "<li>";
+                html += "<h6><b><a href=\"http://" + newData[i][0] + "\">" + newData[i][0] + "</a></b></h6>";                
+                if (newData[i][2] < 0) {
+                    trigger = false;
+                    html += "<div class=\"imgbox\">";
+                    html += "<img src=\"/lib/img/arrow_full_down_16.png\" />";
+                    html += "<b>" + newData[i][2] + "</b>";
+                    html += "</div>";
+                }
+                if (newData[i][2] > 0) {
+                    trigger = false;
+                    html += "<div class=\"imgbox\">";		   
+					html += "<img src=\"/lib/img/arrow_full_up_16.png\" />";                         
+					html += "<b>" + newData[i][2] + "</b>";
+					html += "</div>";
+                }
+                if (trigger) {
+                    html += "<div class=\"imgbox\">&nbsp;";
+                    // html += "<img src=\"/lib/img/star_16.png\" />";
+                    html += "</div>";
+                }
+                html += "<h7>" + timeCounterLong((newData[i][1]) / 1000) + "</h7>";
+                html += "</li>";
+            }
+			html += "</ul>";
+            jQuery("#list").html(html);
+        },
+        getTopPages: function(startTime, endTime, data){
+            // uses the django model get_top_pages to return top pages between start and endtime
+            var this_ = this;
+            try {
+				jQuery("#loadimg").show();
+                jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ username }}/25/", {
+							   first_start: startTime - 86400000,
+							   first_end: endTime - 86400000,
+							   second_start: startTime,
+							   second_end: endTime
+						   }, // this gets top 25 pages
+						   function(data){
+							   jQuery("#loadimg").hide();
+							   if (data.code == 200) {
+								   this_.drawTopPagesList(data.results);
+							   }
+							   else {
+								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							   }
+						   }, "json");
+            } 
+            catch (e) {
+                console.log(e);
+            }
+        },
+        initLiteGraph: function(startTime, endTime){
+            var this_ = this;
+            try {
+				jQuery.get("http://localhost:8000/get_most_recent_urls/" + 0 + "/", {
+							   from: startTime,
+							   to: endTime
+						   }, function(data){
+							   if (data.code == 200) {								   
+								   // prolly shouldnt be in here
+								   // but it should run at this time using this data
+								   // shows total web viewed and average webviewd
+								   var fooTotal = 0;
+								   for (var i = 0; i < data.results.length; i++) {
+									   fooTotal += data.results[i].end - data.results[i].start;
+								   }
+								   jQuery("#totalTime").html("<b>total time spent: </b> " + timeCounter(fooTotal / 1000));
+								   jQuery("#num").html("<b>total visits: </b>" + data.results.length);
+								   jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv((fooTotal / (data.results.length * 2)) / 1000));
+								   this_.drawLiteGraph(data.results, startTime, endTime);
+							   }
+							   else {
+								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							   }
+						   }, "json");
+            } 
+            catch (e) {
+                console.log(e);
+            }
+            // ideally this call will be cached as it is EXPENSIVE AS ALL HELL		    
+        },
+        drawLiteGraph: function(data, startTime, endTime){
+			var this_ = this;
+            var newData = data;
+            var startTime = startTime; //newData[1].start.valueOf();
+			var endTime = endTime
+            var interpNum = 28; // ALARM yea this is number of points on graph
+            // fix this. it should be dynamic or a variable
+            var interp = (endTime - startTime) / interpNum;
+            var count = (Math.floor((endTime - startTime) / interp));
+            
+            // format the data
+            var ttData = []; // total time per count
+            var avgDataNum = []; // number of websites
+            var dateArray = function(){
+                var foo = [];
+                for (var i = 0; i < count; i++) {
+                    foo[i] = startTime + (interp * i);
+                    // set all arrays to 0 so i can increment them
+                    ttData[i] = 0;
+                    avgDataNum[i] = 0;
+                }
+                return foo;
+            }();
+            
+            // function to get total time on websites per time instance (ie count)
+            for (var i = 0; i < newData.length; i++) {
+                // oh man this is ineffecient hrm
+                for (var j = 0; j < count; j++) {
+                    if (j >= count) {
+                        if (newData[i].start.valueOf() > dateArray[j]) {
+                            ttData[j] += newData[i].end - newData[i].start;
+                            avgDataNum[j] += 1;
+                        }
+                    }
+                    else {
+                        if ((newData[i].start.valueOf() > dateArray[j]) && (newData[i].start.valueOf() < dateArray[j + 1])) {
+                            ttData[j] += newData[i].end - newData[i].start;
+                            avgDataNum[j] += 1;
+                        }
+                    }
+                }
+            }
+            
+            var avgData = function(){
+                var foo = [];
+                for (var i = 0; i < count; i++) {
+                    foo[i] = (ttData[i] / (avgDataNum[i] + 1));
+                }
+                return foo;
+            }();
+            
+            var totalTimeG = newify(lineGraphFactoryLite, {
+										canvas: document.getElementById("totalTimeGraph"),
+										startTime: startTime,
+										endTime: endTime,
+										windowHeight: this_.windowHeight,
+										windowWidth: this_.windowWidth,
+										interp: (endTime - startTime) / interpNum,
+										color: "#ff00ff",
+										data: ttData
+									});
+            var avgTimeG = newify(lineGraphFactoryLite, {
+									  canvas: document.getElementById("avgTimeGraph"),
+									  startTime: startTime,
+									  endTime: endTime,
+									  windowHeight: this_.windowHeight,
+									  windowWidth: this_.windowWidth,
+									  interp: (endTime - startTime) / interpNum,
+									  color: "#ff00ff",
+									  data: avgData
+								  });
+        },
+        drawLatestPagesList: function(data){
+			var this_ = this;
+            var newData = data;
+            var html = "";
+			jQuery("#latestlist").html(html);
+			html = "<ul >";
+            for (var i = newData.length - 1; i > newData.length - 16; i--) {
+                html += "<li id=\"url" + i +  "\">";
+                html += "<h6><b><a href=\"" + newData[i].entity.id + "\">" + newData[i].title + "</a></b></h6>";
+				html += "<a href=\"javascript:self.viz.deletePage('" + newData[i].url + "','" + i + "');\" style=\"float:right; margin-right:6px; margin-left:6px;\" >";
+				html += "<img src=\"/lib/img/cancel_16.png\" /></a>";
+                html += "<h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
+                html += "</li>";
+			}
+            html += "</ul>";
+			jQuery("#latestlist").append(html);
+			
+        },
+		deletePage: function(pageURL, num){
+			try {
+				jQuery.post("/delete_url_entry/", {
+							   'URL': "" + pageURL
+						   }, function(data){							   
+							   if (data.code == 200) {
+								   jQuery("\#url" + num).hide("slow");
+							   }
+							   else {
+								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							   }
+						   }, "json");
+            } 
+            catch (e) {
+                console.log(e);
+            }			
+		},
+        getLatestPages: function(startTime, endTime){
+            this_ = this;
+            try {
+                jQuery.get("http://localhost:8000/get_views_user/{{ username }}/", {
+                //jQuery.get("http://localhost:8000/get_users_most_recent_urls/{{ username }}/15/", {
+							   from: startTime,
+							   to: endTime
+						   }, function(data){
+							   if (data.code == 200) {
+								   this_.drawLatestPagesList(data.results);
+							   }
+							   else {
+								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							   }
+						   }, "json");
+            } 
+            catch (e) {
+                console.log(e);
+            }
+        },
+		refresh: function(startTime, endTime){
+            var this_ = this;
+            this_.endTime = endTime;
+            this_.startTime = startTime;
+            
+            try {
+				jQuery("#loadimg").show();
+				jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ username }}/25/", {
+							   first_start: startTime - 86400000,
+							   first_end: endTime - 86400000,
+							   second_start: startTime,
+							   second_end: endTime
+						   }, 
+						   function(data){
+							   jQuery("#loadimg").hide();
+							   if (data.code == 200) {
+								   this_.drawTopPagesList(data.results);
+							   }
+							   else {
+								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							   }
+						   }, "json");
+            } 
+            catch (e) {
+				console.log(e);
+            }
+		}
+    };
+jQuery(document).ready(function(){
+						   var currentDate = new Date();
+
+						   jQuery("#datepicker").val(currentDate.format('mm/dd/yyyy'));						   
+						   jQuery('#datepicker').DatePicker({
+																format: 'm/d/Y',
+																date: jQuery('#datepicker').val(),
+																current: jQuery('#datepicker').val(),
+																starts: 1,
+																position: 'bottom',
+																current: '2009-07-29',
+																
+																onBeforeShow: function(){
+																	jQuery('#datepicker').DatePickerSetDate(jQuery('#datepicker').val(), true);
+																},
+																onChange: function(formated, dates){
+																	var fooDate = jQuery.datepicker.formatDate("@", new Date(jQuery('#datepicker').DatePickerGetDate(true)));
+																	if (fooDate > new Date().valueOf()) {
+																		fooDate = new Date().valueOf();
+																		jQuery('#datepicker').val(currentDate.format('mm/dd/yyyy'));
+																		jQuery("#messageSent").show("slow");
+																	}
+																	else {
+																		jQuery('#datepicker').val(formated);
+																		self.viz.refresh(parseInt(fooDate) - self.viz.zoom, parseInt(fooDate)), jQuery("#messageSent").hide("slow");
+																	}
+																	jQuery('#datepicker').DatePickerHide();
+																	
+																}
+															});						  						 						   
+						   var myWidth = undefined;
+						   var myHeight = undefined;
+						   
+						   myWidth = window.innerWidth - 16;
+						   myHeight = window.innerHeight - 250;
+						   
+						   document.getElementById("totalTimeGraph").setAttribute("width", 330);
+						   document.getElementById("totalTimeGraph").setAttribute("height", 200);
+						   document.getElementById("avgTimeGraph").setAttribute("width", 330);
+						   document.getElementById("avgTimeGraph").setAttribute("height", 200);
+						   
+						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 43200000);// 12 hrs
+					   });
+</script>
+{% endblock %}
+{% block content %}
+<div class="loader" id="loadimg"></div>
+<div id="report">
+	<img src="/lib/img/ajax-loader.gif" class="loader" />
+	<div id="loading" class="loader"></div>
+    <div id="profile">
+        <div id="num" style="margin-top:10px;">
+            <b>total visits:</b>
+        </div>
+        <div id="totalTime">
+            <b>total time spent: </b>
+        </div>
+        <div id="avgTime">
+            <b>average spent:</b>
+        </div>
+        <br />
+        {% if location %}<b>Location:</b>
+        {{ location }} 
+        <br/>
+        {% endif %}
+        {% if homepage %}<b>Website:</b>
+        <a href="{{ homepage }}">{{ homepage }}</a> 
+        <br/>
+        {% endif %}
+
+        <h2 style="border-top:none">Top Users</h2>
+		<div class="viewboxhome" id="topusers">
+        </div>
+    </div>
+    <div id="profile_content">
+      <div class="userhead">
+        <h1>Global</h1>
+      </div>
+      <div id="dateselector" style="float:right; font-size:1.1em; margin-top:25px; width:205px;">date:
+        <input id="datepicker" class="datepicker" value="06/14/2008" type="text" style="font-size:12px;padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
+        <div id="messageSent"  style="font-size:12px";>
+          robots do not know the future :( 
+          <br/>
+          &#8230;yet
+        </div>
+      </div>
+	  <br />
+	  <canvas id="totalTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
+		</canvas>
+		<canvas id="avgTimeGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">
+		</canvas>
+		<div id="key" style="margin-top:-40px">
+		  <div id="totalGraphKey" style="width:300px; text-align:center; display: inline-block;">
+            total time on the web
+		  </div>
+		  <div id="avgGraphKey" style="float:right; width:300px; text-align:center; display: inline-block;">
+            average time spent on a webpage
+		  </div>
+        </div>
+
+	  <div class="leftcolumn" style="width:340px;">
+		<h2 style="border-top:none">Top urls</h2>
+		<div class="viewboxhome" id="latestviews">
+		</div>
+	  </div>
+	  <div class="rightcolumn" style="width:340px; vertical-align:top">
+		<h2 style="border-top:none">Trending urls</h2>
+		<div class="viewboxhome" id="topusers">
+		</div>
+	  </div>
+	</div>
+</div>
+{% endblock %}
