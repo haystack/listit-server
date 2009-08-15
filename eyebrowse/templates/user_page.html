@@ -32,9 +32,29 @@
             this.zoom = zoom;
 
             this.getLatestPages(this.endTime - 86400000, this.endTime); // 1 day
+			this.getProfile();
             this.initLiteGraph(this.endTime - 604800000, this.endTime); // 604800000 is 1 week// 15778458000 = the beginning of time (6 months ago)
             this.getTopPages(this.endTime - zoom, this.endTime);
         },
+		getProfile: function(){
+            try {
+                jQuery.get("http://localhost:8000/get_user_profile_queries/{{ username }}/", {
+						   }, function(data){
+							   if (data.code == 200) {								   
+								   var newData = data.results;
+								   jQuery("#totalTime").html("<b>total time spent: </b> " + timeCounterLongAbv(newData.totalTime));
+								   jQuery("#num").html("<b>total visits: </b>" + newData.number);
+								   jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv(newData.average));			
+							   }
+							   else {
+								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							   }
+						   }, "json");
+            } 
+            catch (e) {
+                console.log(e);
+            }
+		},
         drawTopPagesList: function(data){
             var this_ = this;
             var newData = data;
@@ -101,16 +121,6 @@
 							   to: endTime
 						   }, function(data){
 							   if (data.code == 200) {								   
-								   // prolly shouldnt be in here
-								   // but it should run at this time using this data
-								   // shows total web viewed and average webviewd
-								   var fooTotal = 0;
-								   for (var i = 0; i < data.results.length; i++) {
-									   fooTotal += data.results[i].end - data.results[i].start;
-								   }
-								   jQuery("#totalTime").html("<b>total time spent: </b> " + timeCounter(fooTotal / 1000));
-								   jQuery("#num").html("<b>total visits: </b>" + data.results.length);
-								   jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv((fooTotal / (data.results.length * 2)) / 1000));
 								   this_.drawLiteGraph(data.results, startTime, endTime);
 							   }
 							   else {
@@ -203,7 +213,7 @@
 			html = "<ul >";
             for (var i = newData.length - 1; i > newData.length - 16; i--) {
                 html += "<li id=\"url" + i +  "\">";
-                html += "<h6><b><a href=\"" + newData[i].entity.id + "\">" + newData[i].title + "</a></b></h6>";
+                html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
 				html += "<a href=\"javascript:self.viz.deletePage('" + newData[i].url + "','" + i + "');\" style=\"float:right; margin-right:6px; margin-left:6px;\" >";
 				html += "<img src=\"/lib/img/cancel_16.png\" /></a>";
                 html += "<h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
@@ -233,8 +243,7 @@
         getLatestPages: function(startTime, endTime){
             this_ = this;
             try {
-                jQuery.get("http://localhost:8000/get_views_user/{{ username }}/", {
-                //jQuery.get("http://localhost:8000/get_users_most_recent_urls/{{ username }}/15/", {
+                jQuery.get("http://localhost:8000/get_recent_web_page_views_user/{{ username }}/15/", {
 							   from: startTime,
 							   to: endTime
 						   }, function(data){

@@ -18,6 +18,10 @@ Array.prototype.min = function(){
     return min;
 };
 
+String.prototype.trim = function () {
+    return this.replace( /^\\s*(\\S*(\\s+\\S+)*)\\s*$/, "$1");
+}
+
 selectColorForDomain = function(domain) {
 	// now we need to turn this domain into a color.
 	if (this.__color_cache === undefined) { this.__color_cache = {}; }

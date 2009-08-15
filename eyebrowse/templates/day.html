@@ -160,8 +160,8 @@ jQuery(document).ready(function(){
 						   var myWidth = undefined;
 						   var myHeight = undefined;
 						   
-						   myWidth = window.innerWidth - 400;
-						   myHeight = 510;//window.innerHeight;
+						   myWidth = getClientCords().width - 410;// window.innerWidth - 400;
+						   myHeight = 510;
 						   document.getElementById("main").setAttribute("width", myWidth);
 						   document.getElementById("main").setAttribute("height", myHeight);
 						   jQuery("#maxDate").css("width", myWidth - 70);

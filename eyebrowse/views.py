@@ -21,6 +21,8 @@ from jv3.models import Event ## from listit, ya.
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 # beaker
 from eyebrowse.beakercache import cache
+# import annotate(Sum())
+from django.db.models import Sum
 
 #TEMPORARY
 def pluginhover(request):
@@ -739,7 +741,7 @@ def get_title_from_evt(evt):
     return   
 
 def round_time_to_day(time):
-    new_time = int(math.floor(time / 86400000) * 86400000)
+    new_time = int(math.floor(int(time) / 86400000) * 86400000)
     return new_time        
 
 class EVENT_SELECTORS:
@@ -763,13 +765,13 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
     if type(user) == django.db.models.query.QuerySet:
         mine_events = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec)
     else:
-        mine_events = _get_pages_for_user(user, from_msec, to_msec)
+        mine_events = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
         
     uniq_urls  = set( grouped_by.access(mine_events) )
     times_per_url = {}
     for url in uniq_urls:
         # might be faster to define a variable here rather than doing filter 2x for the if and the reduce
-        grouped_by_filtered = grouped_by.filter_queryset(mine_events,url).values_list('start','end')
+        grouped_by_filtered = grouped_by.filter_queryset(mine_events,url).values_list('startTime','endTime')
         # to make sure not to reduce an empty item 
         if grouped_by_filtered:
             times_per_url[url] = long(reduce(lambda x,y: x+y, [ startend[1]-startend[0] for startend in grouped_by_filtered ] ))
@@ -782,65 +784,95 @@ def defang_pageview(pview):
 
 #@login_required
 def get_web_page_views(request):
-    if request.user is None:
-          ## the person is asking us for access to another user's activity log.
-        return json_response({"code":401,"message":"Access forbidden, please log in first"})
+    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
+    from_msec_rounded = round_time_to_day(from_msec_raw)
+    to_msec_rounded = round_time_to_day(to_msec_raw)
 
-    from_msec,to_msec = _unpack_from_to_msec(request)
+    @cache.region('short_term')
+    def fetch_data(from_msec, to_msec, user):
+        hits =  _get_pages_for_user(request.user,from_msec,to_msec)
+        return [ defang_pageview(evt) for evt in hits ]
 
-    hits = _get_pages_for_user(request.user,from_msec,to_msec)
-    print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
-    
-    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits ] });
+    results = fetch_data(from_msec_rounded, to_msec_rounded, request.user)
+
+    return json_response({ "code":200, "results": results });
 
 def get_web_page_views_user(request, username):
-    ## gimme get parameters :
-    ## from: start time
-    ## to: end time
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
 
-    from_msec,to_msec = _unpack_from_to_msec(request)
+    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
+    from_msec_rounded = round_time_to_day(from_msec_raw)
+    to_msec_rounded = round_time_to_day(to_msec_raw)
 
-    hits = _get_pages_for_user(user ,from_msec,to_msec)
+    @cache.region('short_term')
+    def fetch_data(from_msec, to_msec, user):
+        hits = _get_pages_for_user(user ,from_msec,to_msec)
+        return [ defang_pageview(evt) for evt in hits ]
 
-    print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
-    
-    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits ] });
+    results = fetch_data(from_msec_rounded, to_msec_rounded, user)
 
-#@login_required
-def get_time_per_page(request):
-    if request.user is None:
-          ## the person is asking us for access to another user's activity log.
-        return json_response({"code":401,"message":"Access forbidden, please log in first"})
-    from_msec,to_msec = _unpack_from_to_msec(request)
-    times_per_url = _get_time_per_page(request.user,from_msec,to_msec)    
-    return json_response({ "code":200, "results": times_per_url })
-        
-def get_top_pages(request,username, n):
-    user = User.objects.filter(username=username)
+    return json_response({ "code":200, "results": results });
+
+
+# ****should not have to sort to return recent view***** that is crazzzy expensive
+def get_recent_web_page_view_user(request, username, n):
+    user = get_object_or_404(User, username=username)
     n = int(n)
-    # removed privacy settings 
-    #if request.user is None:
-          ## the person is asking us for access to another user's activity log.
-    #    return json_response({"code":401,"message":"Access forbidden, please log in first"})
-    from_msec,to_msec = _unpack_from_to_msec(request)
-    times_per_url = _get_time_per_page(request.user,from_msec,to_msec)
-    urls_ordered = times_per_url.keys()
-    urls_ordered.sort(lambda u1,u2: int(times_per_url[u2] - times_per_url[u1]))
+    #from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
+    results = PageView.objects.filter(user=user).order_by('-startTime')[:n]
+    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in results ] });
+
+def get_user_profile_queries(request, username):
+    user = get_object_or_404(User, username=username)
+
+    @cache.region('short_term')
+    def fetch_data(user):
+        number = PageView.objects.filter(user=user).count()
+        totalTime = PageView.objects.filter(user=user).aggregate(Sum('duration'))
+        average = int((totalTime['duration__sum'])/1000)/int(number)
+        return { 'number': number, 'totalTime': int(totalTime['duration__sum']/1000), 'average': average }
+
+    results = fetch_data(user)
+    return json_response({ "code":200, "results": results });
+
+def get_global_profile_queries(request):
+    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
+    from_msec_rounded = round_time_to_day(from_msec_raw)
+    to_msec_rounded = round_time_to_day(to_msec_raw)
+
+    #@cache.region('long_term')
+    def fetch_data(from_msec, to_msec):
+        totalTime  = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec).aggregate(Sum('duration'))
+        number =  PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec).count()
+        average = int((totalTime['duration__sum'])/1000)/int(number)
+        return { 'number': number, 'totalTime': int(totalTime['duration__sum']/1000), 'average': average }
+
+    results = fetch_data(from_msec_rounded, to_msec_rounded)
+    return json_response({ "code":200, "results": results });
+
+def get_page_profile_queries(request):
+    inputURL = request.GET['url'].strip()
+    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
+    from_msec_rounded = round_time_to_day(from_msec_raw)
+    to_msec_rounded = round_time_to_day(to_msec_raw)
+
+    @cache.region('long_term')
+    def fetch_data(from_msec, to_msec, inputURL):
+        totalTime  = PageView.objects.filter(url=inputURL,startTime__gte=from_msec,endTime__lte=to_msec).aggregate(Sum('duration'))
+        number =  PageView.objects.filter(url=inputURL,startTime__gte=from_msec,endTime__lte=to_msec).count()
+        average = int((totalTime['duration__sum'])/1000)/int(number)
+        return { 'number': number, 'totalTime': int(totalTime['duration__sum']/1000), 'average': average }
+
+    results = fetch_data(from_msec_rounded, to_msec_rounded, inputURL)
+    return json_response({ "code":200, "results": results });
 
 
-    return json_response({ "code":200, "results": [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] }) 
-
-    
-def get_top_hosts(request,username, n):
-    user = User.objects.filter(username=username)
+def get_top_hosts(request, n):
+    users = User.objects.all()
     n = int(n)
-    if request.user is None:
-          ## the person is asking us for access to another user's activity log.
-        return json_response({"code":401,"message":"Access forbidden, please log in first"})
     from_msec,to_msec = _unpack_from_to_msec(request)
-    times_per_url = _get_time_per_page(request.user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Host)
+    times_per_url = _get_time_per_page(users,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Host)
     urls_ordered = times_per_url.keys()
     urls_ordered.sort(lambda u1,u2: int(times_per_url[u2] - times_per_url[u1]))
 
@@ -889,7 +921,7 @@ def get_top_hosts_comparison(request, username, n):
         
     return json_response({ "code":200, "results": return_results }) 
 
-def get_top_hosts_comparison_global(request, username, n):    
+def get_top_hosts_comparison_global(request, n):    
     n = int(n)
 
     first_start,first_end,second_start,second_end = _unpack_times(request)
@@ -900,7 +932,7 @@ def get_top_hosts_comparison_global(request, username, n):
 
     @cache.region('long_term')
     def fetch_data(first_start, first_end, second_start, second_end):
-        users = User.objects.all();
+        users = User.objects.all()
 
         times_per_url_first = _get_top_hosts_n(users,first_start,first_end)
         times_per_url_second = _get_top_hosts_n(users,second_start,second_end)
@@ -928,36 +960,6 @@ def get_top_hosts_comparison_global(request, username, n):
     return_results = fetch_data(first_start,first_end,second_start,second_end)
         
     return json_response({ "code":200, "results": return_results }) 
-    
-    
-def get_top_urls(request, n):
-    user = User.objects.all();
-    user = get_object_or_404(User, username="zamiang") # this is a user object
-    ## not sure how to iterate through the users and run averages on them?
-
-    n = int(n)
-    first_start,first_end,second_start,second_end = _unpack_times(request)
-    times_per_url_first = _get_top_n(user,first_start,first_end)
-    times_per_url_second = _get_top_n(user,second_start,second_end)
-
-    def index_of(what, where):
-        try:
-            return [ h[0] for h in where ].index(what)
-        except:
-            print sys.exc_info()
-            pass
-        return None
-
-    results = []
-    for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
-        old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
-        if old_rank is not None:
-            diff = - (i - old_rank)  # we want the gain not the difference
-            results.append(times_per_url_second[i] + (diff,) )
-        else:
-            results.append( times_per_url_second[i] )
-
-    return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] })
 
 def get_top_urls_following(request, n):
     user = get_object_or_404(User, username=username)
@@ -1003,22 +1005,48 @@ def get_views_url(request):
 
     return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in results ] } )
 
-# doesnt work 
-# supposed to get ranked list of the urls gone to before and after the ur passed in the request
+
+# gets ranked list of the urls gone to before and after the url passed in the request
 def get_to_from_url(request, n):
-    from_msec,to_msec = _unpack_from_to_msec(request)
+    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
+    from_msec_rounded = round_time_to_day(from_msec_raw)
+    to_msec_rounded = round_time_to_day(to_msec_raw)
     url = request.GET['url'].strip()
     n = int(n)
 
-    # so this needs to do something to 
-    # create results.to and results.from
-    # the return needs to look something like this
-    results_to = {"title": "bar", "url":"bar", "value": "bar"} # array of these
-    results_from = {"title": "bar", "url":"bar", "value": "bar"} # array of these
+    @cache.region('long_term')
+    def fetch_data(from_msec, to_msec):
+        accesses = PageView.objects.filter(url=url,startTime__gte=from_msec,endTime__lte=to_msec)
+        pre = {}
+        next = {}
+        for access in accesses:
+            try:
+                # get the page we logged IMMEDIATELY before access for the particular access's user in question
+                prev_access = PageView.objects.filter(startTime__lt=access.startTime,user=access.user).order_by("-startTime")[0]
+                pre[prev_access.url] = pre.get(prev_access.url,0) + 1
+            except:
+                pass
+            try:
+                # get the page we logged IMMEDIATELY before access for the particular access's user in question
+                next_access = PageView.objects.filter(startTime__gt=access.startTime,user=access.user).order_by("startTime")[0]
+                next[next_access.url] = next.get(next_access.url,0) + 1
+            except:
+                pass
+            
+        def sort_by_counts(count_dict):
+            l = count_dict.items()
+            l.sort(key=lambda x: -x[1])
+            return l
+        
+        pre_sorted = sort_by_counts(pre)
+        next_sorted = sort_by_counts(next)
+        
+        return { 'pre':pre_sorted[:10], 'next':next_sorted[:10] }
 
-    results = PageView.objects.filter(url=url,startTime__gte=from_msec,endTime__lte=to_msec)
+    return_results = fetch_data(from_msec_rounded, to_msec_rounded)
 
-    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in results ] } )
+    return json_response({ "code":200, "results": return_results })
+
 
 def get_trending_urls(request, n):
     user = User.objects.all();
@@ -1093,7 +1121,7 @@ def get_top_users_for_url(request, n):
 
     return_results = fetch_data(from_msec_rounded, to_msec_rounded, get_url)
 
-    return json_response({ "code":200, "results": results[0:n] })
+    return json_response({ "code":200, "results": return_results })
 
 def get_most_recent_urls(request, n):
     n = int(n)
@@ -1117,11 +1145,11 @@ def get_users_most_recent_urls(request, username, n):
     from_msec,to_msec = _unpack_from_to_msec(request)
 
     hits = _get_pages_for_user(user,from_msec,to_msec)
-    print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
+   # print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
 
     return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits[0:n] ] });    
 
-# complex to cache as will have to rerun if they start following more users        
+# complex to cache as will have to re-run if they start following more users        
 def get_following_views(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
@@ -1131,7 +1159,7 @@ def get_following_views(request, username):
     from_msec_rounded = round_time_to_day(from_msec)
     to_msec_rounded = round_time_to_day(to_msec)
 
-    # potentially i can just not pass it the following param hrmz
+    # potentially i can just not pass it the 'following' param hrmz
     @cache.region('long_term')
     def fetch_data(from_msec, to_msec, user, following):
         friends_results = []
@@ -1151,7 +1179,6 @@ def get_following_views(request, username):
     results = fetch_data(from_msec_rounded, to_msec_rounded, user, following)
 
     return json_response({ "code":200, "results": results });    
-
         
 # search stuff down here
 def user_search_page(request):

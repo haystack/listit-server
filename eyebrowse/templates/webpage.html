@@ -2,6 +2,7 @@
 {% block title %}search{% endblock %}
 {% block imports %}
 <link rel="stylesheet" type="text/css" href="/lib/CSS/datepicker.css" />
+</style>
 <script src="/lib/js/watchMeGraph.js">
 </script>
 <script src="/lib/js/canvas.text.js">
@@ -31,10 +32,33 @@
             this.drag = undefined;
             this.zoom = zoom;
 			this.url = url;
+			this.getProfile(this.startTime, this.endTime, url); 
             this.initSmallGraphs(this.startTime, this.endTime, url); 
 			this.initUrlGraph(this.startTime, this.endTime, url);
 			this.initTopUsers(this.startTime, this.endTime, url);
         },
+		getProfile: function(startTime, endTime, url){
+            try {
+                jQuery.get("http://localhost:8000/get_page_profile_queries/", {
+							   from: startTime,
+							   to: endTime,
+							   url:url
+						   }, function(data){
+							   if (data.code == 200) {		
+								   var newData = data.results;
+								   jQuery("#totalTime").html("<b>total time spent: </b> " + timeCounterLongAbv(newData.totalTime));
+								   jQuery("#num").html("<b>total visits: </b>" + newData.number);
+								   jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv(newData.average));			
+							   }
+							   else {
+								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							   }
+						   }, "json");
+            } 
+            catch (e) {
+                console.log(e);
+            }
+		},
 		initTopUsers: function(startTime, endTime, url){
 			var this_ = this;	
 			try {
@@ -67,15 +91,16 @@
 		},
 		initUrlGraph: function(startTime, endTime, url){
 			var this_ = this;	
-			var urlGraph = undefined;
-			
+			var urlGraph = undefined;			
             try {
+				jQuery("#loadimg").show();
                 jQuery.get("http://localhost:8000/get_to_from_url/10/", {
 							   url: url,
-							   from: startTime,
+							   from: startTime - 262974300000,
 							   to: endTime
 						   }, function(data){
 							   if (data.code == 200) {	
+								   jQuery("#loadimg").hide();
 								   this_.drawUrlGraph(data.results, startTime, endTime);							   			            
 							   }
 							   else {
@@ -127,18 +152,7 @@
 							   to: endTime
 						   }, function(data){
 							   if (data.code == 200) {								   
-								   // prolly shouldnt be in here
-								   // but it should run at this time using this data
-								   // shows total web viewed and average webviewd
-								   var fooTotal = 0;
-								   for (var i = 0; i < data.results.length; i++) {
-									   fooTotal += data.results[i].end - data.results[i].start;
-								   }
-								   jQuery("#totalTime").html("<b>total time spent: </b> " + timeCounter(fooTotal / 1000));
-								   jQuery("#num").html("<b>total visits: </b>" + data.results.length);
-								   jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv((fooTotal / (data.results.length * 2)) / 1000));
 								   this_.drawLiteGraph(data.results, startTime, endTime);
-
 							   }
 							   else {
 								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
@@ -225,7 +239,7 @@
             var this_ = this;
             this_.endTime = endTime;
             this_.startTime = startTime;
-			
+			var url = jQuery("#urladdtextinput").val();
 			this_.initSmallGraphs(this_.startTime, this_.endTime, url); 
 			this_.initUrlGraph(this_.startTime, this_.endTime, url);
 			this_.initTopUsers(this_.startTime, this_.endTime, url);
@@ -236,6 +250,7 @@ jQuery(document).ready(function(){
 						   var myWidth = window.innerWidth - 16;
 						   var myHeight = window.innerHeight - 250;
 						   var input = jQuery("#urladdtextinput").val();
+
 						   jQuery("#datepicker").val(currentDate.format('mm/dd/yyyy'));						   
 						   jQuery('#datepicker').DatePicker({
 																format: 'm/d/Y',
@@ -262,7 +277,7 @@ jQuery(document).ready(function(){
 																	jQuery('#datepicker').DatePickerHide();
 																	
 																}
-															});				
+															});						  						 						   
 
 						   document.getElementById("totalTimeGraph").setAttribute("width", 335);
 						   document.getElementById("totalTimeGraph").setAttribute("height", 200);
@@ -271,7 +286,6 @@ jQuery(document).ready(function(){
 						   document.getElementById("pathgraph").setAttribute("width", 950);
 						   document.getElementById("pathgraph").setAttribute("height", 350);
 
-						   
 						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 604800000, input);// 1 week
 					   });
 </script>
@@ -280,16 +294,14 @@ jQuery(document).ready(function(){
 <div class="loader" id="loadimg"></div>
 <div id="profile_content" style="width:950px; margin-left:auto;margin-right:auto; ">
 	  <h1>search</h1><br />
-	<div id="dateselector" style="font-size:1.1em; float:right; padding-top:10px; width:210px">
-	week ending:
-    <input id="datepicker" class="datepicker" value="06/14/2008" type="text" style="font-size:12px"/>
-	<img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px; margin-bottom:2px;"/>
-    <div id="messageSent">
-      robots do not know the future :( 
-	  <br/>
-	  &#8230;yet
+      <div id="dateselector" style="float:right; font-size:1.1em; margin-top:6px; width:205px;">week ending:
+        <input id="datepicker" class="datepicker" value="06/14/2008" type="text" style="font-size:12px"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
+        <div id="messageSent"  style="font-size:12px";>
+          robots do not know the future :( 
+          <br/>
+          &#8230;yet
+        </div>
 	</div>
-  </div>
 
 
   <form name="list" id="urladdform">

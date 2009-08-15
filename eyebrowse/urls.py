@@ -44,8 +44,6 @@ urlpatterns = patterns('',
                        (r'^accounts/login/$', 'django.contrib.auth.views.login'),#login_page),
                        (r'^register/$', register_page),
                        (r'^register/success/$', register_success_page),
-                     #  (r'^register/success/$', direct_to_template,
-                     #   { 'template': 'registration/register_success.html' }),
                        (r'^logout/$', logout_page),
 
                        # search
@@ -54,20 +52,21 @@ urlpatterns = patterns('',
                        # ajax
                        (r'^get_views$', get_web_page_views),
                        (r'^get_views_user/(\w+)/$', get_web_page_views_user),
-                       (r'^get_time_per_page$', get_time_per_page),
-                       #(r'^get_top_pages/(\w+)/$', get_top_pages),
-                       (r'^get_top_pages/(\w+)/(\d+)/$', get_top_pages),
                        (r'^get_top_hosts_comparison/(\w+)/(\d+)/$', get_top_hosts_comparison),
-                       (r'^get_users_most_recent_urls/(\w+)/(\d+)/$', get_users_most_recent_urls),
+                       (r'^get_top_hosts_comparison_global/(\d+)/$', get_top_hosts_comparison_global),
+                       (r'^get_recent_web_page_views_user/(\w+)/(\d+)/$', get_recent_web_page_view_user),
                        (r'^get_following_views/(\w+)/$', get_following_views),
                        (r'^get_views_url/$', get_views_url),
                        (r'^get_top_users_for_url/(\d+)/$', get_top_users_for_url),
                        (r'^get_to_from_url/(\d+)/$', get_to_from_url),
+                       (r'^get_trending_urls/(\d+)/$', get_trending_urls),
+                       (r'^get_top_hosts/(\d+)/$', get_top_hosts),
+                       (r'^get_page_profile_queries/$', get_page_profile_queries),
+                       (r'^get_global_profile_queries/$', get_global_profile_queries),
+                       (r'^get_user_profile_queries/(\w+)/$', get_user_profile_queries),
 
                        # homepage ajax
                        (r'^get_most_recent_urls/(\d+)/$', get_most_recent_urls),
-                       (r'^get_trending_urls/(\d+)/$', get_trending_urls),
-                       (r'^get_top_urls/(\d+)/$', get_top_urls),
                        (r'^get_top_users/(\d+)/$', get_top_users),
 
                        # user privacy ajax

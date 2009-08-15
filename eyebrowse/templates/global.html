@@ -37,12 +37,34 @@ padding:6px;
             this.interp = zoom / 192;
             this.drag = undefined;
             this.zoom = zoom;
-
+			this.getProfile(this.startTime, this.endTime);
             this.getRecentPages(10, 3600000);
             this.initLiteGraph(this.startTime, this.endTime);
             this.getTopUsers(this.startTime, this.endTime, 10);
-			//  this.getTopPages(this.startTime, this.endTime);
+			//this.getTrending(this.startTime, this.endTime, 10);
+	        //this.getTopPages(this.startTime, this.endTime);
         },
+		getProfile: function(startTime, endTime){
+            try {
+                jQuery.get("http://localhost:8000/get_global_profile_queries/", {
+							   from: startTime,
+							   to: endTime
+						   }, function(data){
+							   if (data.code == 200) {								   
+								   var newData = data.results;
+								   jQuery("#totalTime").html("<b>total time spent: </b> " + timeCounterLongAbv(newData.totalTime));
+								   jQuery("#num").html("<b>total visits: </b>" + newData.number);
+								   jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv(newData.average));			
+							   }
+							   else {
+								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							   }
+						   }, "json");
+            } 
+            catch (e) {
+                console.log(e);
+            }
+		},
 		getTopUsers: function(startTime, endTime, num){
             var this_ = this;
 			jQuery("#loadimg").show();
@@ -54,6 +76,7 @@ padding:6px;
 						   jQuery("#loadimg").hide();
 						   if (data.code == 200) {
 							   var newData = data.results;
+							   jQuery("#topusers").html("");
 							   for (var i = 0; i < newData.length; i++) {
 								   var html = "";
 								   html += "<li>";
@@ -99,13 +122,13 @@ padding:6px;
                 html += "</li>";
             }
 			html += "</ul>";
-            jQuery("#list").html(html);
+            jQuery("#topurls").html(html);
         },
         getTopPages: function(startTime, endTime, data){
             var this_ = this;
             try {
 				jQuery("#loadimg").show();
-                jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ username }}/25/", {
+                jQuery.get("http://localhost:8000/get_top_hosts_comparison_global/25/", {
 							   first_start: startTime - 86400000,
 							   first_end: endTime - 86400000,
 							   second_start: startTime,
@@ -133,16 +156,6 @@ padding:6px;
 							   to: endTime
 						   }, function(data){
 							   if (data.code == 200) {								   
-								   // prolly shouldnt be in here
-								   // but it should run at this time using this data
-								   // shows total web viewed and average webviewd
-								   var fooTotal = 0;
-								   for (var i = 0; i < data.results.length; i++) {
-									   fooTotal += data.results[i].end - data.results[i].start;
-								   }
-								   jQuery("#totalTime").html("<b>total time spent: </b> " + timeCounter(fooTotal / 1000));
-								   jQuery("#num").html("<b>total visits: </b>" + data.results.length);
-								   jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv((fooTotal / (data.results.length * 2)) / 1000));
 								   this_.drawLiteGraph(data.results, startTime, endTime);
 							   }
 							   else {
@@ -257,28 +270,12 @@ padding:6px;
             var this_ = this;
             this_.endTime = endTime;
             this_.startTime = startTime;
-            
-            try {
-				jQuery("#loadimg").show();
-				jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ username }}/25/", {
-							   first_start: startTime - 86400000,
-							   first_end: endTime - 86400000,
-							   second_start: startTime,
-							   second_end: endTime
-						   }, 
-						   function(data){
-							   jQuery("#loadimg").hide();
-							   if (data.code == 200) {
-								   this_.drawTopPagesList(data.results);
-							   }
-							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-				console.log(e);
-            }
+
+			this.getProfile(this.startTime, this.endTime);
+            this.initLiteGraph(this.startTime, this.endTime);
+            this.getTopUsers(this.startTime, this.endTime, 10);
+			//this.getTrending(this.startTime, this.endTime, 10);
+	        //this.getTopPages(this.startTime, this.endTime);
 		}
     };
 jQuery(document).ready(function(){
@@ -340,7 +337,7 @@ jQuery(document).ready(function(){
             <b>total time spent: </b>
         </div>
         <div id="avgTime">
-            <b>average spent:</b>
+            <b>average time spent:</b>
         </div>
         <h2>Now</h2>
         <div class="viewboxhome" id="latestviews">
@@ -361,23 +358,23 @@ jQuery(document).ready(function(){
           &#8230;yet
         </div>
       </div>
-	  <br />
-	  <canvas id="totalTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
+<div id="charts">
+				  <canvas id="totalTimeGraph" style="margin: 0px; display: inline-block">
 		</canvas>
-		<canvas id="avgTimeGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">
+		<canvas id="avgTimeGraph" style="margin: 0px; margin-left:24px; display: inline-block">
 		</canvas>
 		<div id="key" style="margin-top:-40px">
-		  <div id="totalGraphKey" style="width:300px; text-align:center; display: inline-block;">
+		  <div id="totalGraphKey" style="width:300px; text-align:center; display:inline-block;">
             total time on the web
 		  </div>
 		  <div id="avgGraphKey" style="float:right; width:300px; text-align:center; display: inline-block;">
             average time spent on a webpage
 		  </div>
         </div>
-
+</div>
 	  <div class="leftcolumn" style="width:340px;">
 		<h2 style="border-top:none">Top urls</h2>
-		<div class="viewboxhome" id="latestviews">
+		<div class="viewboxhome" id="topurls">
 		</div>
 	  </div>
 	  <div class="rightcolumn" style="width:340px; vertical-align:top">
