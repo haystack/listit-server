@@ -46,11 +46,8 @@ def get_enduser_for_user(user):
     return enduser
 
 
-def privacy_settings_page(request, username):
-    user = get_object_or_404(User, username=username)
-    if username != request.user.username:
-        return HttpResponseForbidden('Only %s can edit this profile' % username)
-
+def privacy_settings_page(request):
+    user = get_object_or_404(User, username=request.user.username)
     privacysettings = user.privacysettings_set.all()[0] ## ?
 
     listmode = privacysettings.listmode
@@ -65,9 +62,8 @@ def privacy_settings_page(request, username):
         form = PrivacySaveForm(request.POST)
         if form.is_valid():
             user = _privacy_save(request, form)  
-            return HttpResponseRedirect(
-                '/profile/%s/' % request.user.username
-                )
+            return HttpResponseRedirect('/profile/') 
+
         variables = RequestContext(request, {'form': form, 'error': True, 'request_user': request.user})
         return render_to_response('whitelist.html', variables)
     variables = RequestContext(request, {'form': form, 'list':list, 'request_user': request.user })
@@ -81,11 +77,10 @@ def _privacy_save(request, form):
     privacysettings.listmode = form.cleaned_data['listmode']
     privacysettings.exposure = form.cleaned_data['exposure']
     privacysettings.save()
-
     return user
 
-
-def get_privacy_urls(request, username):
+@login_required
+def get_privacy_urls(request):
     username = request.user.username
     user = get_object_or_404(User, username=username)
     privacysettings = user.privacysettings_set.all()[0] ## ?     
@@ -97,9 +92,9 @@ def get_privacy_urls(request, username):
 
     return json_response({ "code":200, "results": list }) 
 
-def delete_privacy_url(request, username):
-    if username != request.user.username:
-        return HttpResponseRedirect('/userprivacy/%s/'% username)
+@login_required
+def delete_privacy_url(request):
+    username = request.user.username
     user = get_object_or_404(User, username=username)
     privacysettings = user.privacysettings_set.all()[0] ## ?
     listmode = privacysettings.listmode
@@ -111,12 +106,13 @@ def delete_privacy_url(request, username):
         privacysettings.blacklist = ' '.join([ x for x in privacysettings.blacklist.split() if not x == input])
 
     privacysettings.save()
-    return HttpResponseRedirect('/settings/%s/' % user.username)
+    return HttpResponseRedirect('/settings/')
 
-def add_privacy_url(request, username):
-    if username != request.user.username:
-        return HttpResponseRedirect('/userprivacy/%s/'% username)
+@login_required
+def add_privacy_url(request):
+    username = request.user.username
     user = get_object_or_404(User, username=username)
+
     privacysettings = user.privacysettings_set.all()[0] ## ?
     listmode = privacysettings.listmode
     input = request.GET['input'].strip()
@@ -135,12 +131,12 @@ def add_privacy_url(request, username):
             privacysettings.blacklist = input
     # Save 
     privacysettings.save()
-    return HttpResponseRedirect('/settings/%s/' % user.username)
+    return HttpResponseRedirect('/settings/')
 
 
-def userprivacy(request, username):
+def userprivacy(request):
     t = loader.get_template("user_privacy.html")
-    c = Context({ 'requestuser': request.user.username, 'username': username })
+    c = Context({ 'username': request.user.username })
 
     return HttpResponse(t.render(c))
 
@@ -378,36 +374,28 @@ def register_success_page(request):
                 return HttpResponseRedirect('/profile/')
             else:
                 # disabled account
-             #   return direct_to_template(request, 'inactive_account.html')
                 variables = RequestContext(request, {'form': form, 'error': True})
                 return render_to_response('login.html', variables)
-
     else:
         variables = RequestContext(request, {'form': form})
         return render_to_response('registration/register_success.html', variables)
-    #        return direct_to_template(request, 'invalid_login.html')
         
 @login_required
-def profile_save_page(request, username):
-    if username != request.user.username:
-        return HttpResponseRedirect('/')
-    user = get_object_or_404(User, username=username)
+def profile_save_page(request):
+    user = get_object_or_404(User, username=request.user.username)
     enduser = get_enduser_for_user(user)
-    #friends = [friendship.to_friend for friendship in user.friend_set.all()]
     friends = enduser.friends.all()
     friends_results = []
     for friend in friends:
         friends_results.append( {"username": friend.user.username, "number": Event.objects.filter(owner=friend.user,type="www-viewed").count()} )
     friends_results.sort(key=lambda x:(x["username"], x["number"]))
 
-
     if request.method == 'POST':
         form = ProfileSaveForm(request.POST, request.FILES)
         if form.is_valid():
             user = _profile_save(request, form)            
-            return HttpResponseRedirect(
-                '/profile/%s/' % request.user.username
-                )
+            return HttpResponseRedirect('/profile/')
+                
     else:        
         first_name = ''
         last_name = ''
@@ -520,8 +508,6 @@ def delete_url_entry(request):
     enduser = get_enduser_for_user(request.user)        
 
     inputURL = request.POST['URL'].strip()
-    #inputPage = Page.objects.filter(url=inputURL)
-    #url_entry = PageView.objects.filter(user=enduser.user.username).filter(page=inputPage)
     url_entry = Event.objects.filter(owner=enduser.user,type="www-viewed",entityid=inputURL)
 
     for url in url_entry:
@@ -532,8 +518,6 @@ def delete_url_entry(request):
 
 
 def friends_page(request, username):
-    if username != request.user.username:
-        return HttpResponseRedirect('/userprivacy/%s/'% username)
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
 
@@ -573,10 +557,6 @@ def friend_add(request): # this sends a friend request to the user
             request.user.message_set.create(
                 message='you are now following %s.' % friend.username
                 )
-       # except:
-       #     request.user.message_set.create(
-       #         message='%s is already your friend.' % friend.username
-       #         )
         return HttpResponseRedirect(
             '/friends/manage/%s/' % request.user.username
             )

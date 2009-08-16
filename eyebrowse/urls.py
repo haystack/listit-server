@@ -73,9 +73,9 @@ urlpatterns = patterns('',
                        (r'^get_top_users/(\d+)/$', get_top_users),
 
                        # user privacy ajax
-                       (r'^add_privacy_url/(\w+)$', add_privacy_url),
-                       (r'^get_privacy_urls/(\w+)$', get_privacy_urls),
-                       (r'^delete_privacy_url/(\w+)$', delete_privacy_url),
+                       (r'^add_privacy_url/$', add_privacy_url),
+                       (r'^get_privacy_urls/$', get_privacy_urls),
+                       (r'^delete_privacy_url/$', delete_privacy_url),
                        (r'^delete_url_entry/$', delete_url_entry),
 
                        # home
@@ -84,9 +84,9 @@ urlpatterns = patterns('',
                        (r'^terms/$', terms),
 
                        # account management
-                       (r'^profile/(\w+)/$', profile_save_page),
-                       (r'^settings/(\w+)/$',  privacy_settings_page),
-                       (r'^userprivacy/(\w+)/$', userprivacy),
+                       (r'^profile/$', profile_save_page),
+                       (r'^settings/$',  privacy_settings_page),
+                       (r'^userprivacy/$', userprivacy),
 
                        (r'^lib/(?P<path>.*)$', 'django.views.static.serve',
                         { 'document_root': lib }),
