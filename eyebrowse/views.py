@@ -951,7 +951,6 @@ def get_top_urls_following(request, n):
     times_per_url_first = _get_top_n(user,first_start,first_end)
     times_per_url_second = _get_top_n(user,second_start,second_end)
 
-
     for friend in following:
         friend_user = get_object_or_404(User, username=friend.username)
         times_per_url_first.append(_get_top_n(friend_user,first_start,first_end))
