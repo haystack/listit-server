@@ -28,7 +28,7 @@ jQuery(document).ready(function(){
 		  }
 	self.addURL = function(){
 		var input = jQuery("#urladdtextinput").val();
-		jQuery("<li>" + input + "<a href=\"http://localhost:8000/delete_privacy_url/{{ user.username }}?input=" + input + "\"/><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").appendTo('#urladdul');
+		jQuery("<li>" + input + "<a href=\"http://localhost:8000/delete_privacy_url/{{ user.username }}?input=" + input + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").appendTo('#urladdul');
 		jQuery.get("http://localhost:8000/add_privacy_url/{{ user.username }}", {input:input}); 
 	};
 });
@@ -51,8 +51,8 @@ edited list from alexa top 500 and dmoz
             <label for="list">
               Add URL:
             </label>
-			<input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:228px;" value="http://localhost:8000/" onkeypress="{if (event.keyCode==13)viz.refresh()}"/>
-			<input type="submit" id="urladd" value="add" onkeypress="{if (event.keyCode==13)addURL()}" onClick="viz.addURL()" style="width:auto;" />
+			<input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:228px;" value="http://localhost:8000/" onkeypress="{if (event.keyCode==13)addURL()}"/>
+			<input type="submit" id="urladd" value="add" onkeypress="{if (event.keyCode==13)addURL()}" onClick="addURL()" style="width:auto;" />
             <ul id="urladdul" style="padding-left:7px;">
           </ul>
 		</div>

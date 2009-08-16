@@ -886,23 +886,24 @@ var compareFactory  = ({
 							   this.yOffset = params.yOffset;
 							   this.lineWidth = params.lineWidth;
 							   this.data = params.data;
-							   this.minH = params.minH;
-							   this.maxH = params.maxH;							   
+							   this.minH = params.minH - 1;
+							   this.maxH = params.maxH + 1;							   
+							   var dataArray = [];
+							   for (var i = 0; i < this.data.pre.length; i++){								   
+								   dataArray.push(this.data.pre[i][1]);
+							   }
+							   this.dataMin = dataArray.min();// + 1;
+							   this.dataMax = dataArray.max() + 0.1;// -1;
 							   this.draw();
 						   },
 						   draw: function(){
 							   var ctx = this.canvas.getContext('2d');
 							   var this_ = this;
-							   var minArray = [];
-							   for (var i = 0; i < this_.data.pre.length; i++){								   
-								   minArray.push(this_.data.pre[i][1]);
-							   }
-							   var maxLineWidth = minArray.max();
-							   var minLineWidth = minArray.min() - 1;
 							   var startY = 20;
 							   for (var i = 0; i < this_.data.pre.length; i++){
-								   ctx.lineWidth = this_.lineWidth * ((this_.data.pre[i][1] - minLineWidth)/(maxLineWidth - minLineWidth)) + 0.1;
-								   ctx.strokeStyle = "hsl(" + this_.maxH * ((this_.data.pre[i][1] - this_.minH)/(this_.maxH - this_.minH)) + this_.minH + ", 100%, 50%)";
+								   ctx.lineWidth = this_.lineWidth * ((this_.data.pre[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin)) + 0.2;
+								   ctx.strokeStyle = "hsl(" + (this_.maxH * ((this_.data.pre[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin))) + this_.minH + ", 100%, 50%)";
+								   
 								   ctx.beginPath();
 								   ctx.moveTo(250, startY );
 								   ctx.lineTo(this_.windowWidth/2, this_.windowHeight/2);
@@ -913,8 +914,9 @@ var compareFactory  = ({
 
 							   startY = 20;
 							   for (var i = 0; i < this_.data.next.length; i++){
-								   ctx.lineWidth = this_.lineWidth * ((this_.data.next[i][1] - minLineWidth)/(maxLineWidth - minLineWidth)) + 0.1;
-								   ctx.strokeStyle = "hsl(" + this_.maxH * ((this_.data.next[i][1] - this_.minH)/(this_.maxH - this_.minH)) + this_.minH + ", 100%, 50%)";
+								   ctx.lineWidth = this_.lineWidth * ((this_.data.pre[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin)) + 0.1;
+								   ctx.strokeStyle = "hsl(" + (this_.maxH * ((this_.data.pre[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin))) + this_.minH + ", 100%, 50%)";
+
 								   ctx.beginPath();
 								   ctx.moveTo(this_.windowWidth - 250, startY );
 								   ctx.lineTo(this_.windowWidth/2, this_.windowHeight/2);

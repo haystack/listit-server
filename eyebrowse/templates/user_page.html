@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ username}}{% endblock %}
+{% block title %}{{ username }}{% endblock %}
 {% block imports %}
 <link rel="stylesheet" type="text/css" href="/lib/CSS/datepicker.css" />
 <script src="/lib/js/watchMeGraph.js">
@@ -30,10 +30,9 @@
             this.interp = zoom / 192;
             this.drag = undefined;
             this.zoom = zoom;
-
             this.getLatestPages(this.endTime - 86400000, this.endTime); // 1 day
 			this.getProfile();
-            this.initLiteGraph(this.endTime - 604800000, this.endTime); // 604800000 is 1 week// 15778458000 = the beginning of time (6 months ago)
+            this.initLiteGraph(this.endTime - 604800000, this.endTime); // 604800000 is 1 week
             this.getTopPages(this.endTime - zoom, this.endTime);
         },
 		getProfile: function(){
@@ -41,7 +40,7 @@
                 jQuery.get("http://localhost:8000/get_user_profile_queries/{{ username }}/", {
 						   }, function(data){
 							   if (data.code == 200) {								   
-								   var newData = data.results;
+								   var newData = data.results;	
 								   jQuery("#totalTime").html("<b>total time spent: </b> " + timeCounterLongAbv(newData.totalTime));
 								   jQuery("#num").html("<b>total visits: </b>" + newData.number);
 								   jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv(newData.average));			
@@ -98,7 +97,7 @@
 							   first_end: endTime - 86400000,
 							   second_start: startTime,
 							   second_end: endTime
-						   }, // this gets top 25 pages
+						   },
 						   function(data){
 							   jQuery("#loadimg").hide();
 							   if (data.code == 200) {
@@ -152,7 +151,6 @@
             catch (e) {
                 console.log(e);
             }
-            // ideally this call will be cached as it is EXPENSIVE AS ALL HELL		    
         },
         drawLatestPagesList: function(data){
 			var this_ = this;
@@ -172,23 +170,6 @@
 			jQuery("#latestlist").append(html);
 			
         },
-		deletePage: function(pageURL, num){
-			try {
-				jQuery.post("/delete_url_entry/", {
-							   'URL': "" + pageURL
-						   }, function(data){							   
-							   if (data.code == 200) {
-								   jQuery("\#url" + num).hide("slow");
-							   }
-							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-                console.log(e);
-            }			
-		},
         getLatestPages: function(startTime, endTime){
             this_ = this;
             try {
@@ -208,6 +189,23 @@
                 console.log(e);
             }
         },
+		deletePage: function(pageURL, num){
+			try {
+				jQuery.post("/delete_url_entry/", {
+							   'URL': "" + pageURL
+						   }, function(data){							   
+							   if (data.code == 200) {
+								   jQuery("\#url" + num).hide("slow");
+							   }
+							   else {
+								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							   }
+						   }, "json");
+            } 
+            catch (e) {
+                console.log(e);
+            }			
+		},
 		refresh: function(startTime, endTime){
             var this_ = this;
             this_.endTime = endTime;

@@ -7,7 +7,7 @@
 overflow:hidden;
 }
 h6 {
-	padding-bottom:32px;
+	padding-bottom:31px;
 	overflow:hidden;
 }
 </style>
@@ -131,11 +131,11 @@ h6 {
 			// 1 canvas bg
 			var totalTimeG = newify(compareFactory, this_, {
 										canvas: document.getElementById("pathgraph"),
-										windowHeight: 300,
+										windowHeight: 253,
 										windowWidth: 950,
 										lineWidth: 10,
-										minH: 176,
-										maxH: 280, // hue
+										minH: 180,
+										maxH: 300, // hue
 										data: data
 									});			
 		},
@@ -213,9 +213,9 @@ jQuery(document).ready(function(){
 	<input type="submit" id="urladd" value="submit" onkeypress="{if (event.keyCode==13)viz.refresh()}" onClick="viz.refresh()" style="width:auto;" />
  
 <div style="width:950; height:350; position:relative; z-index:0">
-<div id="urlLeft" class="viewboxhome" style="position:absolute; left:-82px; top:10px; text-align:right;"></div>
-<div id="urlRight" class="viewboxhome" style="position:absolute; left:712px; top:10px;"></div>
-<div id="urlCenter" style="position:absolute; left:410px; top:135px; background:#ffffff;padding:6px; border:1px solid lightgrey"></div>
+<div id="urlLeft" class="viewboxhome" style="position:absolute; left:-82px; top:12px; text-align:right;"></div>
+<div id="urlRight" class="viewboxhome" style="position:absolute; left:712px; top:12px;"></div>
+<div id="urlCenter" style="position:absolute; left:410px; top:110px; background:#ffffff;padding:6px; border:1px solid lightgrey"></div>
 </div>
 			
   <canvas id="pathgraph" style="z-index:-2">

@@ -1173,7 +1173,7 @@ def get_top_users(request, n):
     from_msec_rounded = round_time_to_day(from_msec)
     to_msec_rounded = round_time_to_day(to_msec)
 
-    @cache.region('long_term')
+    @cache.region('top_users_long_term')
     def fetch_data(from_msec, to_msec):
         results = []
         for user in users:
@@ -1195,8 +1195,9 @@ def get_top_users_for_url(request, n):
     from_msec_rounded = round_time_to_day(from_msec)
     to_msec_rounded = round_time_to_day(to_msec)
 
-    @cache.region('long_term')
-    def fetch_data(from_msec, to_msec, url):
+    barbar = "foo"
+    @cache.region('top_users_long_term')
+    def fetch_data(from_msec, to_msec, url, barbar):
         results = []
         for user in users:
             number = PageView.objects.filter(user=user,url=url,startTime__gte=from_msec,endTime__lte=to_msec).count()
@@ -1205,7 +1206,7 @@ def get_top_users_for_url(request, n):
         results.sort(key=lambda x:(x["user"], x["number"]))
         return results[0:n]
 
-    return_results = fetch_data(from_msec_rounded, to_msec_rounded, get_url)
+    return_results = fetch_data(from_msec_rounded, to_msec_rounded, get_url, barbar)
 
     return json_response({ "code":200, "results": return_results })
 
