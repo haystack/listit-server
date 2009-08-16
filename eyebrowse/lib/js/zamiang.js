@@ -22,33 +22,6 @@ String.prototype.trim = function () {
     return this.replace( /^\\s*(\\S*(\\s+\\S+)*)\\s*$/, "$1");
 }
 
-selectColorForDomain = function(domain) {
-	// now we need to turn this domain into a color.
-	if (this.__color_cache === undefined) { this.__color_cache = {}; }
-	if (this.__color_cache[domain] === undefined) {
-		var mystery_prime =  3021377; //13646456457645727890239087; //1283180923023829; //3021377;
-		
-		// rgb generator
-		var rgb_generator = function(d) {
-			var biggest_color = parseInt("ffffff",16);
-			var code = d.length > 0 ?
-				d.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; }) * mystery_prime % biggest_color :
-			65535;
-			return "#"+code.toString(16);
-		};
-		
-		// hsl generator
-		var hsl_generator = function(domain) {
-			var h = domain.length > 0 ?  domain.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; })  % 360 : 172;
-			var s = "100%";
-			var l = "50%";
-			return   "hsl("+[""+h,s,l].join(",")+")";
-		};
-
-		this.__color_cache[domain] = hsl_generator(domain); //rgb_generator(domain); //hsl_generator(domain);
-	}
-	return this.__color_cache[domain];
-}
 
 //This prototype is provided by the Mozilla foundation and
 //is distributed under the MIT license.
@@ -115,6 +88,34 @@ String.prototype.wordWrap = function(m, b, c){
             j.input.length + (j = s.slice(m).match(/^\S*/)).input.length;
     return r.join("\n");
 };
+
+function selectColorForDomain(domain) {
+	// now we need to turn this domain into a color.
+	if (this.__color_cache === undefined) { this.__color_cache = {}; }
+	if (this.__color_cache[domain] === undefined) {
+		var mystery_prime =  3021377; //13646456457645727890239087; //1283180923023829; //3021377;
+		
+		// rgb generator
+		var rgb_generator = function(d) {
+			var biggest_color = parseInt("ffffff",16);
+			var code = d.length > 0 ?
+				d.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; }) * mystery_prime % biggest_color :
+			65535;
+			return "#"+code.toString(16);
+		};
+		
+		// hsl generator
+		var hsl_generator = function(domain) {
+			var h = domain.length > 0 ?  domain.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; })  % 360 : 172;
+			var s = "100%";
+			var l = "50%";
+			return   "hsl("+[""+h,s,l].join(",")+")";
+		};
+
+		this.__color_cache[domain] = hsl_generator(domain); //rgb_generator(domain); //hsl_generator(domain);
+	}
+	return this.__color_cache[domain];
+}
 
 function rectToPoly(p){
   return [{

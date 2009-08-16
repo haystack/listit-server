@@ -11,8 +11,6 @@
             this.endTime = new Date().valueOf();
             this.startTime = this.endTime - zoom; // 12 hours
 			this.endTimeRecent = this.endTime;
-            this.endDate = new Date(this.endTime);
-            this.startDate = new Date(this.startTime);
             this.now = new Date().valueOf();
             this.timeZoneCorrect = 0;
             this.zoom = zoom;
@@ -22,10 +20,51 @@
 			this.windowHeight = height;
 			this.windowWidth = width;
 
-            this.getTopUsers(this.startTime, this.endTime, 10);
-            this.getRecentPages(10, 3600000);
 			// I want to pass graph data the top user and have it run the function for the top user that would be super
 			this.getGraphData(this.startTime, this.endTime);	
+
+            this.getTopUsers(this.startTime, this.endTime, 10);
+            this.getRecentPages(10, 3600000);
+        },
+		getGraphData: function(startTime, endTime){
+			var this_ = this;
+            jQuery.get("http://localhost:8000/get_views_user/zamiang/", {
+                           from: startTime,
+                           to: endTime
+                       }, function(data){
+                           if (data.code == 200) {
+                               this_.drawMiniGraph(data.results);
+                           }						   
+                       }, "json");
+		},       
+		getRecentPages: function(num, startBuffer){
+            var this_ = this;
+			this_.startTimeRecent = this_.endTimeRecent - startBuffer; // just for init to offset the time and make sure something comes in
+            this_.endTimeRecent = new Date().valueOf();
+			jQuery("#loadimg").show();
+			jQuery.get("http://localhost:8000/get_most_recent_urls/" + num + "/", {
+						   from: this_.startTimeRecent,
+						   to: this_.endTimeRecent
+					   }, function(data){
+						   jQuery("#loadimg").hide();
+						   if (data.code == 200) {
+							   var newData = data.results;
+							   this_.data = newData;
+							   for (var i = 0; i < newData.length; i++) {
+								   var html = "";
+								   html += "<li>";
+								   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
+								   html += "<br /><h7>" + timeCounterLong((this_.endTime - newData[i].end) / 1000) + " ago by ";
+								   html += "<a href=\"/user/" + newData[i].user + "/\">" + newData[i].user + "</a></h7>";
+								   html += "</li>";
+								   jQuery("#latestviews").prepend(html);
+								   jQuery(".listItemSmall:first").slideDown("slow");
+							   }
+						   }
+						   else {
+							   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+						   }
+					   }, "json");
         },
 		getTopUsers: function(startTime, endTime, num){
             var this_ = this;
@@ -64,17 +103,19 @@
 			var hour = 2900000; // fudged a litte 1 hour = 3600000
 			var bg = {};
 			bg.canvas = document.getElementById("bgcanvas");
-			bg.windowHeight = window.innerHeight - 10;
-			bg.windowWidth = window.innerWidth - 10;
+			bg.windowHeight = window.innerHeight - 50;
+			bg.windowWidth = getClientCords().width - 10;
 			document.getElementById("bgcanvas").setAttribute("width", bg.windowWidth - 10);
 			document.getElementById("bgcanvas").setAttribute("height",bg.windowHeight - 10);
 			
 			for (var i = 0; i < (zoom / hour); i++) {
                 var fooData = newData.filter(function(view){
+												// console.log(view.end + "    " + newEndTime + "    " + view.start);
 												 if (view.end < (newEndTime - (hour * i)) && (view.start > (newEndTime - hour - (hour * i)))) {
 													 return view;
 												 }
 											 });
+				//console.log(fooData);
                 wwwBarsArray[i] = newify(statusFactory, viz, {
 											 canvas: bg.canvas,
 											 windowHeight: bg.windowHeight,
@@ -92,18 +133,6 @@
 										 });				
             }
 			return wwwBarsArray;
-		},
-		getGraphData: function(startTime, endTime){
-			var this_ = this;
-            jQuery.get("http://localhost:8000/get_views_user/zamiang/", {
-                           from: startTime,
-                           to: endTime
-                       }, function(data){
-                           if (data.code == 200) {
-							  // this_.drawBG(data.results, startTime, endTime);
-                               this_.drawMiniGraph(data.results);
-                           }						   
-                       }, "json");
 		},
 		drawMiniGraph: function(data){
 			var this_ = this;
@@ -149,7 +178,6 @@
             }();
             // function to get total time on websites per time instance (ie count)
             for (var i = 0; i < newData.length; i++) {
-                // oh man this is ineffecient hrm
                 for (var j = 0; j < count; j++) {
                     if (j >= count) {
                         if (newData[i].start.valueOf() > dateArray[j]) {
@@ -193,35 +221,6 @@
             this_.isStatic = true; // does not move or make more ajax calls
             var mainEvtHandlers = newify(evtHandlers, this_);
 		},
-        getRecentPages: function(num, startBuffer){
-            var this_ = this;
-			this_.startTimeRecent = this_.endTimeRecent - startBuffer; // just for init to offset the time and make sure something comes in
-            this_.endTimeRecent = new Date().valueOf();
-			jQuery("#loadimg").show();
-			jQuery.get("http://localhost:8000/get_most_recent_urls/" + num + "/", {
-						   from: this_.startTimeRecent,
-						   to: this_.endTimeRecent
-					   }, function(data){
-						   jQuery("#loadimg").hide();
-						   if (data.code == 200) {
-							   var newData = data.results;
-							   this_.data = newData;
-							   for (var i = 0; i < newData.length; i++) {
-								   var html = "";
-								   html += "<li>";
-								   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
-								   html += "<br /><h7>" + timeCounterLong((this_.endTime - newData[i].end) / 1000) + " ago by ";
-								   html += "<a href=\"/user/" + newData[i].user + "/\">" + newData[i].user + "</a></h7>";
-								   html += "</li>";
-								   jQuery("#latestviews").prepend(html);
-								   jQuery(".listItemSmall:first").slideDown("slow");
-							   }
-						   }
-						   else {
-							   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-						   }
-					   }, "json");
-        },
         draw: function(){
             if (this.canvas !== undefined && this.canvas.getContext) {
                 var ctx = this.canvas.getContext('2d');
