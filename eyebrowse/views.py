@@ -1006,17 +1006,102 @@ def get_views_url(request):
     return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in results ] } )
 
 
-# gets ranked list of the urls gone to before and after the url passed in the request
-def get_to_from_url(request, n):
+def _get_graph_points_for_results(results, to_msec, from_msec, n):
+    interp = (to_msec - from_msec) / n
+    counts = int(math.floor((to_msec - from_msec) / interp))
+    ttData = [0]*(counts + 1) # total time spent per time block
+    avgDataNum = [0]*(counts + 1) # number of websites per time block
+    def get_date_array():
+        foo = [0]*(counts + 1)
+        for count in range(0, counts):
+            foo[count] = from_msec + (interp * count)
+        return foo
+    dateArray = get_date_array()
+
+    # gets total time on websites per time block(count)
+    for result in results:
+        for count in range(0, counts):
+            if count >= counts:
+                if result.startTime > dateArray[count]:
+                    ttData[count] += int(result.endTime - result.startTime)
+                    avgDataNum[count] += 1
+                else:
+                    pass
+            else:
+                if result.startTime > dateArray[count] and result.startTime < dateArray[count + 1]:
+                    ttData[count] += int(result.endTime - result.startTime)
+                    avgDataNum[count] += 1
+                else:
+                    pass
+                    
+    def get_avg_data():
+        foo = [0]*counts
+        for count in range(0, counts): 
+            foo[count] = ttData[count] / (avgDataNum[count] + 1)
+        return foo
+    avgData = get_avg_data()
+
+    return { "avgData": avgData, "ttData": ttData }
+
+
+def get_graph_points_url(request, n):
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
     from_msec_rounded = round_time_to_day(from_msec_raw)
     to_msec_rounded = round_time_to_day(to_msec_raw)
     url = request.GET['url'].strip()
+    n = int(n) # number of points on the graph
+
+    @cache.region('to_from_url')
+    def fetch_data(to_msec, from_msec, url):
+        results = PageView.objects.filter(url=url,startTime__gte=from_msec,endTime__lte=to_msec)
+        return _get_graph_points_for_results(results, to_msec, from_msec, n)
+
+    results = fetch_data(to_msec_rounded, from_msec_rounded, url)
+    return json_response({ "code":200, "results": results } )
+
+
+def get_graph_points_user(request, username, n):
+    user = User.objects.filter(username=username)
+    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
+    from_msec_rounded = round_time_to_day(from_msec_raw)
+    to_msec_rounded = round_time_to_day(to_msec_raw)
+    n = int(n) # number of points on the graph
+
+    @cache.region('to_from_url')
+    def fetch_data(to_msec, from_msec, user):
+        results = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
+        return _get_graph_points_for_results(results, to_msec, from_msec, n)
+
+    results = fetch_data(to_msec_rounded, from_msec_rounded, user)
+    return json_response({ "code":200, "results": results } )
+
+
+def get_graph_points_global(request, n):
+    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
+    from_msec_rounded = round_time_to_day(from_msec_raw)
+    to_msec_rounded = round_time_to_day(to_msec_raw)
+    n = int(n) # number of points on the graph
+
+    @cache.region('to_from_url')
+    def fetch_data(to_msec, from_msec):
+        results = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec)
+        return _get_graph_points_for_results(results, to_msec, from_msec, n)
+
+    results = fetch_data(to_msec_rounded, from_msec_rounded)
+    return json_response({ "code":200, "results": results } )
+
+
+# gets ranked list of the urls gone to before and after the url passed in the request
+def get_to_from_url(request, n):
+    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
+    #from_msec_rounded = round_time_to_day(from_msec_raw)
+    to_msec_rounded = round_time_to_day(to_msec_raw)
+    url = request.GET['url'].strip()
     n = int(n)
 
-    @cache.region('long_term')
-    def fetch_data(from_msec, to_msec):
-        accesses = PageView.objects.filter(url=url,startTime__gte=from_msec,endTime__lte=to_msec)
+    @cache.region('to_from_url')
+    def fetch_data(to_msec, url):
+        accesses = PageView.objects.filter(url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
         pre = {}
         next = {}
         for access in accesses:
@@ -1041,9 +1126,9 @@ def get_to_from_url(request, n):
         pre_sorted = sort_by_counts(pre)
         next_sorted = sort_by_counts(next)
         
-        return { 'pre':pre_sorted[:10], 'next':next_sorted[:10] }
+        return { 'pre':pre_sorted[:7], 'next':next_sorted[:7] }
 
-    return_results = fetch_data(from_msec_rounded, to_msec_rounded)
+    return_results = fetch_data(to_msec_rounded, url)
 
     return json_response({ "code":200, "results": return_results })
 
@@ -1078,6 +1163,7 @@ def get_trending_urls(request, n):
             
     return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] })
 
+    
 
 def get_top_users(request, n):
     users = User.objects.all();

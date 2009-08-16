@@ -2,6 +2,14 @@
 {% block title %}search{% endblock %}
 {% block imports %}
 <link rel="stylesheet" type="text/css" href="/lib/CSS/datepicker.css" />
+<style>
+.viewboxhome{
+overflow:hidden;
+}
+h6 {
+	padding-bottom:32px;
+	overflow:hidden;
+}
 </style>
 <script src="/lib/js/watchMeGraph.js">
 </script>
@@ -34,14 +42,12 @@
 			this.url = url;
 			this.getProfile(this.startTime, this.endTime, url); 
             this.initSmallGraphs(this.startTime, this.endTime, url); 
-			this.initUrlGraph(this.startTime, this.endTime, url);
+			this.initUrlGraph(url);
 			this.initTopUsers(this.startTime, this.endTime, url);
         },
 		getProfile: function(startTime, endTime, url){
             try {
                 jQuery.get("http://localhost:8000/get_page_profile_queries/", {
-							   from: startTime,
-							   to: endTime,
 							   url:url
 						   }, function(data){
 							   if (data.code == 200) {		
@@ -63,9 +69,7 @@
 			var this_ = this;	
 			try {
                 jQuery.get("http://localhost:8000/get_top_users_for_url/10/", {
-							   url: url,
-							   from: startTime,
-							   to: endTime
+							   url: url
 						   }, function(data){
 							   if (data.code == 200) {	
 								   this_.drawTopUsers(data.results);							   			            
@@ -89,19 +93,17 @@
 			}
 			jQuery("#topvisitors").html(html);					   			
 		},
-		initUrlGraph: function(startTime, endTime, url){
+		initUrlGraph: function(url){
 			var this_ = this;	
 			var urlGraph = undefined;			
             try {
 				jQuery("#loadimg").show();
                 jQuery.get("http://localhost:8000/get_to_from_url/10/", {
-							   url: url,
-							   from: startTime - 262974300000,
-							   to: endTime
+							   url: url
 						   }, function(data){
 							   if (data.code == 200) {	
 								   jQuery("#loadimg").hide();
-								   this_.drawUrlGraph(data.results, startTime, endTime);							   			            
+								   this_.drawUrlGraph(data.results);							   			            
 							   }
 							   else {
 								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
@@ -112,47 +114,60 @@
                 console.log(e);
             }
 		},
-		drawUrlGraph: function(data, startTime, endTime){
+		drawUrlGraph: function(data){
 			var this_ = this;
-
-
 			// 3 columns of divs
 			var leftHTML = "";
 			var rightHTML = "";
-			var centerHTML = "<h6><a href=\"" + this_.url + "\">" + this_.url + "</a></h6>";
-			for (var i =0; i < data.from.length; i++){
-				leftHTML += "<h6><a href=\"" + this_.from.url[i] + "\">" + this_.url.from.url[i] + "</a></h6>";
-			}
-			for (var i =0; i < data.to.length; i++){
-				rightHTML += "<h6><a href=\"" + this_.url.to.url[i] + "\">" + this_.url.to.url[i] + "</a></h6>";
+			var centerHTML = "<h6 style=\"padding:0px\"><a href=\"" + this_.url + "\">" + this_.url + "</a></h6>";
+			for (var i =0; i < data.pre.length; i++){
+				leftHTML += "<h6><a href=\"" + data.pre[i][0] + "\">" + data.pre[i][0] + "</a></h6><br />";
+				rightHTML += "<h6><a href=\"" + data.next[i][0] + "\">" + data.next[i][0] + "</a></h6><br />";
 			}			
 			jQuery("#urlLeft").html(leftHTML);
 			jQuery("#urlRight").html(rightHTML);
 			jQuery("#urlCenter").html(centerHTML);					   			
 
 			// 1 canvas bg
-			var totalTimeG = newify(pathGraph, {
-										canvas: document.getElementById("pathGraph"),
-										startTime: startTime,
-										endTime: endTime,
-										windowHeight: this_.windowHeight,
-										windowWidth: this_.windowWidth,
+			var totalTimeG = newify(compareFactory, this_, {
+										canvas: document.getElementById("pathgraph"),
+										windowHeight: 300,
+										windowWidth: 950,
 										lineWidth: 10,
-										minH: 160,
-										maxH: 250, // hue
+										minH: 176,
+										maxH: 280, // hue
 										data: data
 									});			
 		},
 		initSmallGraphs: function(startTime, endTime, url){
-            var this_ = this;
+			var this_ = this;
             try {
-                jQuery.get("http://localhost:8000/get_views_url/", {
-							   url: url,
+                jQuery.get("http://localhost:8000/get_graph_points_url/28/", {
 							   from: startTime,
-							   to: endTime
+							   to: endTime,
+							   url: url
 						   }, function(data){
-							   if (data.code == 200) {								   
-								   this_.drawLiteGraph(data.results, startTime, endTime);
+							   if (data.code == 200) {						
+								   var totalTimeG = newify(lineGraphFactoryLite, {
+															   canvas: document.getElementById("totalTimeGraph"),
+															   startTime: startTime,
+															   endTime: endTime,
+															   windowHeight: this_.windowHeight,
+															   windowWidth: this_.windowWidth,
+															   interp: (endTime - startTime) / 28,
+															   color: "#ff00ff",
+															   data: data.results.ttData
+														   });
+								   var avgTimeG = newify(lineGraphFactoryLite, {
+															 canvas: document.getElementById("avgTimeGraph"),
+															 startTime: startTime,
+															 endTime: endTime,
+															 windowHeight: this_.windowHeight,
+															 windowWidth: this_.windowWidth,
+															 interp: (endTime - startTime) / 28,
+															 color: "#ff00ff",
+															 data: data.results.avgData
+														 });
 							   }
 							   else {
 								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
@@ -163,85 +178,12 @@
                 console.log(e);
             }
         },
-        drawLiteGraph: function(data, startTime, endTime){
-			var this_ = this;
-            var newData = data;
-            var startTime = startTime; //newData[1].start.valueOf();
-			var endTime = endTime;
-            var interpNum = 28; // ALARM yea this is number of points on graph
-            // fix this. it should be dynamic or a variable
-            var interp = (endTime - startTime) / interpNum;
-            var count = (Math.floor((endTime - startTime) / interp));
-            
-            // format the data
-            var ttData = []; // total time per count
-            var avgDataNum = []; // number of websites
-            var dateArray = function(){
-                var foo = [];
-                for (var i = 0; i < count; i++) {
-                    foo[i] = startTime + (interp * i);
-                    // set all arrays to 0 so i can increment them
-                    ttData[i] = 0;
-                    avgDataNum[i] = 0;
-                }
-                return foo;
-            }();
-            
-            // function to get total time on websites per time instance (ie count)
-            for (var i = 0; i < newData.length; i++) {
-                // oh man this is ineffecient hrm
-                for (var j = 0; j < count; j++) {
-                    if (j >= count) {
-                        if (newData[i].start.valueOf() > dateArray[j]) {
-                            ttData[j] += newData[i].end - newData[i].start;
-                            avgDataNum[j] += 1;
-                        }
-                    }
-                    else {
-                        if ((newData[i].start.valueOf() > dateArray[j]) && (newData[i].start.valueOf() < dateArray[j + 1])) {
-                            ttData[j] += newData[i].end - newData[i].start;
-                            avgDataNum[j] += 1;
-                        }
-                    }
-                }
-            }
-            
-            var avgData = function(){
-                var foo = [];
-                for (var i = 0; i < count; i++) {
-                    foo[i] = (ttData[i] / (avgDataNum[i] + 1));
-                }
-                return foo;
-            }();
-            
-            var totalTimeG = newify(lineGraphFactoryLite, {
-										canvas: document.getElementById("totalTimeGraph"),
-										startTime: startTime,
-										endTime: endTime,
-										windowHeight: this_.windowHeight,
-										windowWidth: this_.windowWidth,
-										interp: (endTime - startTime) / interpNum,
-										color: "#ff00ff",
-										data: ttData
-									});
-            var avgTimeG = newify(lineGraphFactoryLite, {
-									  canvas: document.getElementById("avgTimeGraph"),
-									  startTime: startTime,
-									  endTime: endTime,
-									  windowHeight: this_.windowHeight,
-									  windowWidth: this_.windowWidth,
-									  interp: (endTime - startTime) / interpNum,
-									  color: "#ff00ff",
-									  data: avgData
-								  });
-        },
-		refresh: function(startTime, endTime){
+		refresh: function(){
             var this_ = this;
-            this_.endTime = endTime;
-            this_.startTime = startTime;
 			var url = jQuery("#urladdtextinput").val();
+			this_.getProfile(this_.startTime, this_.endTime, url); 
+			this_.initUrlGraph(url);
 			this_.initSmallGraphs(this_.startTime, this_.endTime, url); 
-			this_.initUrlGraph(this_.startTime, this_.endTime, url);
 			this_.initTopUsers(this_.startTime, this_.endTime, url);
 		}
     };
@@ -251,34 +193,6 @@ jQuery(document).ready(function(){
 						   var myHeight = window.innerHeight - 250;
 						   var input = jQuery("#urladdtextinput").val();
 
-						   jQuery("#datepicker").val(currentDate.format('mm/dd/yyyy'));						   
-						   jQuery('#datepicker').DatePicker({
-																format: 'm/d/Y',
-																date: jQuery('#datepicker').val(),
-																current: jQuery('#datepicker').val(),
-																starts: 1,
-																position: 'bottom',
-																current: '2009-07-29',
-																
-																onBeforeShow: function(){
-																	jQuery('#datepicker').DatePickerSetDate(jQuery('#datepicker').val(), true);
-																},
-																onChange: function(formated, dates){
-																	var fooDate = jQuery.datepicker.formatDate("@", new Date(jQuery('#datepicker').DatePickerGetDate(true)));
-																	if (fooDate > new Date().valueOf()) {
-																		fooDate = new Date().valueOf();
-																		jQuery('#datepicker').val(currentDate.format('mm/dd/yyyy'));
-																		jQuery("#messageSent").show("slow");
-																	}
-																	else {
-																		jQuery('#datepicker').val(formated);
-																		self.viz.refresh(parseInt(fooDate) - self.viz.zoom, parseInt(fooDate)), jQuery("#messageSent").hide("slow");
-																	}
-																	jQuery('#datepicker').DatePickerHide();
-																	
-																}
-															});						  						 						   
-
 						   document.getElementById("totalTimeGraph").setAttribute("width", 335);
 						   document.getElementById("totalTimeGraph").setAttribute("height", 200);
 						   document.getElementById("avgTimeGraph").setAttribute("width", 335);
@@ -286,7 +200,7 @@ jQuery(document).ready(function(){
 						   document.getElementById("pathgraph").setAttribute("width", 950);
 						   document.getElementById("pathgraph").setAttribute("height", 350);
 
-						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 604800000, input);// 1 week
+						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 2419200000, input);// 4 weeks
 					   });
 </script>
 {% endblock %}
@@ -294,23 +208,17 @@ jQuery(document).ready(function(){
 <div class="loader" id="loadimg"></div>
 <div id="profile_content" style="width:950px; margin-left:auto;margin-right:auto; ">
 	  <h1>search</h1><br />
-      <div id="dateselector" style="float:right; font-size:1.1em; margin-top:6px; width:205px;">week ending:
-        <input id="datepicker" class="datepicker" value="06/14/2008" type="text" style="font-size:12px"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
-        <div id="messageSent"  style="font-size:12px";>
-          robots do not know the future :( 
-          <br/>
-          &#8230;yet
-        </div>
-	</div>
 
-
-  <form name="list" id="urladdform">
-	<input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:228px;" value="http://localhost:8000/"/>
-	<div id="urladd" style="width:auto">search</div>
-	<input type="submit" id="urladd" value="add" style="display:none;"/>
-  </form>
-
-  <canvas id="pathgraph" style="z-index:-1">
+	<input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:228px;" value="http://localhost:8000/" onkeypress="{if (event.keyCode==13)viz.refresh()}"/>
+	<input type="submit" id="urladd" value="submit" onkeypress="{if (event.keyCode==13)viz.refresh()}" onClick="viz.refresh()" style="width:auto;" />
+ 
+<div style="width:950; height:350; position:relative; z-index:0">
+<div id="urlLeft" class="viewboxhome" style="position:absolute; left:-82px; top:10px; text-align:right;"></div>
+<div id="urlRight" class="viewboxhome" style="position:absolute; left:712px; top:10px;"></div>
+<div id="urlCenter" style="position:absolute; left:410px; top:135px; background:#ffffff;padding:6px; border:1px solid lightgrey"></div>
+</div>
+			
+  <canvas id="pathgraph" style="z-index:-2">
   </canvas>
 </div>
 
