@@ -154,20 +154,21 @@ def add_privacy_url(request):
 
     privacysettings = user.privacysettings_set.all()[0] ## ?
     listmode = privacysettings.listmode
-    input = request.GET['input'].strip()
+    inpt = request.GET['input'].strip()
 
     if privacysettings.listmode == "W":
         if privacysettings.whitelist is not None:
-            if not input in privacysettings.whitelist.split():
+            if not inpt in privacysettings.whitelist.split():
                 privacysettings.whitelist = ' '.join(privacysettings.whitelist.split() + [input])
         else:
             privacysettings.whitelist = input
     if privacysettings.listmode == "B":
         if privacysettings.blacklist is not None:
-            if not input in privacysettings.blacklist.split():
+            if not inpt in privacysettings.blacklist.split():
                 privacysettings.blacklist = ' '.join(privacysettings.blacklist.split() + [input])
         else:
-            privacysettings.blacklist = input
+            privacysettings.blacklist = inpt
+
     # Save 
     privacysettings.save()
     return HttpResponseRedirect('/settings/')
