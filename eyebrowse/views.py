@@ -255,12 +255,12 @@ def user_page(request, username):
 
     if request.user.username:
         request_enduser = get_enduser_for_user(request.user)
-        is_friend = user.friend_set.all().filter(id=request.user.id)
+        is_friend = user.to_friend_set.all().filter(from_friend=request.user)
     else: 
         is_friend = False;
 
-    followers = [friendship.to_friend for friendship in user.friend_set.all()]
-    following = [friendship.from_friend for friendship in user.to_friend_set.all()]
+    following = [friendship.to_friend for friendship in user.friend_set.all()]
+    followers = [friendship.from_friend for friendship in user.to_friend_set.all()]
 
     privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
     exposure = privacysettings.exposure
@@ -708,6 +708,7 @@ def _unpack_times(request):
     return (long(request.GET['first_start']), long(request.GET['first_end']), long(request.GET['second_start']), long(request.GET['second_end']))
 
 def _get_top_hosts_n(users,start,end):
+    print users
     time_per_host = _get_time_per_page(users,start,end,grouped_by=EVENT_SELECTORS.Host) 
 
     ordered_visits = [h for h in time_per_host.iteritems()]
@@ -744,9 +745,12 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
     import django.db.models.query
     if type(user) == django.db.models.query.QuerySet:
         mine_events = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec)
+    elif type(user) == list:
+        mine_events = PageView.objects.filter(user__in=user,startTime__gte=from_msec,endTime__lte=to_msec)
     else:
         mine_events = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
-        
+    
+
     uniq_urls  = set( grouped_by.access(mine_events) )
     times_per_url = {}
     for url in uniq_urls:
@@ -762,15 +766,14 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
 def defang_pageview(pview):
     return {"start" : long(pview.startTime), "end" : long(pview.endTime), "url" : pview.url, "host": pview.host, "title": pview.title}
 
-#@login_required
 def get_web_page_views(request):
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
     from_msec_rounded = round_time_to_day(from_msec_raw)
     to_msec_rounded = round_time_to_day(to_msec_raw)
 
-    @cache.region('short_term')
+    #@cache.region('short_term')
     def fetch_data(from_msec, to_msec, user):
-        hits =  _get_pages_for_user(request.user,from_msec,to_msec)
+        hits =  _get_pages_for_user(user,from_msec,to_msec)
         return [ defang_pageview(evt) for evt in hits ]
 
     results = fetch_data(from_msec_rounded, to_msec_rounded, request.user)
@@ -782,15 +785,15 @@ def get_web_page_views_user(request, username):
     enduser = get_enduser_for_user(user)
 
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
-    from_msec_rounded = round_time_to_day(from_msec_raw)
-    to_msec_rounded = round_time_to_day(to_msec_raw)
+  #  from_msec_rounded = round_time_to_day(from_msec_raw)
+  #  to_msec_rounded = round_time_to_day(to_msec_raw)
 
-    @cache.region('short_term')
+    #@cache.region('short_term')
     def fetch_data(from_msec, to_msec, user):
         hits = _get_pages_for_user(user ,from_msec,to_msec)
         return [ defang_pageview(evt) for evt in hits ]
 
-    results = fetch_data(from_msec_rounded, to_msec_rounded, user)
+    results = fetch_data(from_msec_raw, to_msec_raw, user)
 
     return json_response({ "code":200, "results": results });
 
@@ -806,7 +809,7 @@ def get_recent_web_page_view_user(request, username, n):
 def get_user_profile_queries(request, username):
     user = get_object_or_404(User, username=username)
 
-    @cache.region('short_term')
+    @cache.region('long_term')
     def fetch_data(user):
         number = PageView.objects.filter(user=user).count()
         totalTime = PageView.objects.filter(user=user).aggregate(Sum('duration'))
@@ -821,7 +824,7 @@ def get_global_profile_queries(request):
     from_msec_rounded = round_time_to_day(from_msec_raw)
     to_msec_rounded = round_time_to_day(to_msec_raw)
 
-    #@cache.region('long_term')
+    @cache.region('long_term')
     def fetch_data(from_msec, to_msec):
         totalTime  = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec).aggregate(Sum('duration'))
         number =  PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec).count()
@@ -901,6 +904,52 @@ def get_top_hosts_comparison(request, username, n):
         
     return json_response({ "code":200, "results": return_results }) 
 
+
+
+def get_top_hosts_comparison_friends(request, username, n):    
+    user = get_object_or_404(User, username=username)
+
+    following = [friendship.to_friend for friendship in user.friend_set.all()]
+    n = int(n)
+
+    first_start,first_end,second_start,second_end = _unpack_times(request)
+    first_start = round_time_to_day(first_start)
+    first_end = round_time_to_day(first_end)
+    second_start = round_time_to_day(second_start)
+    second_end = round_time_to_day(second_end)
+
+    @cache.region('long_term')
+    def fetch_data(following, first_star, first_end, second_start, second_end):
+        print following
+        times_per_url_first = _get_top_hosts_n(following,first_start,first_end)
+        print times_per_url_first
+        times_per_url_second = _get_top_hosts_n(following,second_start,second_end)
+
+        def index_of(what, where):
+            try:
+                return [ h[0] for h in where ].index(what)
+            except:
+                print sys.exc_info()
+                pass
+            return None
+
+        results = []
+
+        for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
+            old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
+            if old_rank is not None:
+                diff = - (i - old_rank)  # we want the gain not the difference
+                results.append(times_per_url_second[i] + (diff,) )
+            else:
+                results.append( times_per_url_second[i] )
+
+        return results[0:n]
+
+    return_results = fetch_data(following,first_start,first_end,second_start,second_end)
+        
+    return json_response({ "code":200, "results": return_results }) 
+
+
 def get_top_hosts_comparison_global(request, n):    
     n = int(n)
 
@@ -941,10 +990,10 @@ def get_top_hosts_comparison_global(request, n):
         
     return json_response({ "code":200, "results": return_results }) 
 
-def get_top_urls_following(request, n):
+def get_top_urls_following(request, username, n):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
-    following = [friendship.from_friend for friendship in user.to_friend_set.all()]
+    following = [friendship.to_friend for friendship in user.friend_set.all()]
 
     n = int(n)
     first_start,first_end,second_start,second_end = _unpack_times(request)
@@ -1136,10 +1185,7 @@ def get_trending_urls(request, n):
             results.append(times_per_url_second[i] + (diff,) )
         else:
             results.append( times_per_url_second[i] )
-    
-    ## this needs to sort by the diff
-    ## results.sort(lambda u1,u2: int(times_per_url_second[u2] - times_per_url[u1]))
-            
+                
     return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] })
 
     
@@ -1151,9 +1197,12 @@ def get_top_users(request, n):
 
     from_msec_rounded = round_time_to_day(from_msec)
     to_msec_rounded = round_time_to_day(to_msec)
+    
+    # this is to give the cache a unique reference
+    bozon = "bozon"
 
     @cache.region('top_users_long_term')
-    def fetch_data(from_msec, to_msec):
+    def fetch_data(from_msec, to_msec, bozon):
         results = []
         for user in users:
             results.append( {"user": user.username, "number": PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec).count() } )
@@ -1161,7 +1210,7 @@ def get_top_users(request, n):
         results.sort(key=lambda x:(x["number"], x["user"]))
         return results[0:n]
         
-    return_results = fetch_data(from_msec_rounded, to_msec_rounded)
+    return_results = fetch_data(from_msec_rounded, to_msec_rounded, bozon)
 
     return json_response({ "code":200, "results": return_results })
 
@@ -1174,7 +1223,7 @@ def get_top_users_for_url(request, n):
     from_msec_rounded = round_time_to_day(from_msec)
     to_msec_rounded = round_time_to_day(to_msec)
 
-    barbar = "foo"
+    barbar = "foo" # to keep this unique err somethign stupic cache thing gaa
     @cache.region('top_users_long_term')
     def fetch_data(from_msec, to_msec, url, barbar):
         results = []
@@ -1190,9 +1239,8 @@ def get_top_users_for_url(request, n):
     return json_response({ "code":200, "results": return_results })
 
 def get_most_recent_urls(request, n):
+    from_msec,to_msec = _unpack_from_to_msec(request)    
     n = int(n)
-    
-    from_msec,to_msec = _unpack_from_to_msec(request)
     
     hits = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec).order_by("-startTime")
 
@@ -1202,16 +1250,12 @@ def get_most_recent_urls(request, n):
         return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits ] });
 
 def get_users_most_recent_urls(request, username, n):
-    users = User.objects.filter(username=username)
-    if len(users) == 0:
-        return json_response({"code":401,"message":"Unknown user %s" % username})
-    user = users[0]    
+    user = get_object_or_404(User, username=username)
     n = int(n)
 
     from_msec,to_msec = _unpack_from_to_msec(request)
 
     hits = _get_pages_for_user(user,from_msec,to_msec)
-   # print "Got a request to do it from %d to %d (got %d) " % (int(from_msec),int(to_msec),len(hits))    
 
     return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits[0:n] ] });    
 
@@ -1219,14 +1263,14 @@ def get_users_most_recent_urls(request, username, n):
 def get_following_views(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
-    following = [friendship.from_friend for friendship in user.to_friend_set.all()]
+    following = [friendship.to_friend for friendship in user.friend_set.all()]
 
     from_msec,to_msec = _unpack_from_to_msec(request)
     from_msec_rounded = round_time_to_day(from_msec)
     to_msec_rounded = round_time_to_day(to_msec)
 
     # potentially i can just not pass it the 'following' param hrmz
-    @cache.region('long_term')
+    #@cache.region('long_term')
     def fetch_data(from_msec, to_msec, user, following):
         friends_results = []
 

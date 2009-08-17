@@ -260,7 +260,7 @@ jQuery(document).ready(function(){
 						   document.getElementById("avgTimeGraph").setAttribute("width", 330);
 						   document.getElementById("avgTimeGraph").setAttribute("height", 200);
 						   
-						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 43200000);// 12 hrs
+						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 86400000);// 12 hrs
 						   setInterval("self.viz.getRecentPages(10, 0)", 30000);
 					   });
 </script>
@@ -291,7 +291,7 @@ jQuery(document).ready(function(){
       <div class="userhead">
         <h1>Global</h1>
       </div>
-      <div id="dateselector" style="float:right; font-size:1.1em; margin-top:25px; width:205px;">date:
+      <div id="dateselector" style="float:right; font-size:1.1em; margin-top:25px; width:156px;">date:
         <input id="datepicker" class="datepicker" value="06/14/2008" type="text" style="font-size:12px;padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
         <div id="messageSent"  style="font-size:12px";>
           robots do not know the future :( 

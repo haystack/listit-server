@@ -19,16 +19,12 @@
 			this.height = height;
 			this.windowHeight = height;
 			this.windowWidth = width;
-
-			// I want to pass graph data the top user and have it run the function for the top user that would be super
-			this.getGraphData(this.startTime, this.endTime);	
-
             this.getTopUsers(this.startTime, this.endTime, 10);
             this.getRecentPages(10, 3600000);
         },
-		getGraphData: function(startTime, endTime){
+		getGraphData: function(startTime, endTime, user){
 			var this_ = this;
-            jQuery.get("http://localhost:8000/get_views_user/zamiang/", {
+            jQuery.get("http://localhost:8000/get_views_user/" + user + "/", {
                            from: startTime,
                            to: endTime
                        }, function(data){
@@ -77,6 +73,10 @@
 						   jQuery("#loadimg").hide();
 						   if (data.code == 200) {
 							   var newData = data.results;
+
+							   // this will run get graph data for the top user
+							   this_.getGraphData(this_.startTime, this_.endTime, newData[0].user);	
+							   
 							   for (var i = 0; i < newData.length; i++) {
 								   var html = "";
 								   html += "<li>";

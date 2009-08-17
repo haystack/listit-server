@@ -190,7 +190,7 @@
             var this_ = this;
             try {
 				jQuery("#loadimg").show();
-                jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ username }}/25/", {
+                jQuery.get("http://localhost:8000/get_top_hosts_comparison_friends/{{ username }}/25/", {
 							   first_start: startTime - 86400000,
 							   first_end: endTime - 86400000,
 							   second_start: startTime,
@@ -361,7 +361,7 @@
   </div>
 <br />  
   <div class="user_page_top" style="width:700px; margin-left:auto;margin-right:auto;">
-    <div id="dateselector" style="float:right; margin-top:15px; width:230px; margin-right:0px;">
+    <div id="dateselector" style="float:right; margin-top:15px; width:193px; margin-right:0px;">
 	  week ending:
 	  <input id="datepickertop" class="datepicker" value="06/14/2008" type="text" style="font-size:12px;padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/>
 	  <img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
