@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Privacy Settings{% endblock %}
 {% block imports %}
-<script>
-function addSites(type){
-
-};
+    <script src="/lib/js/urllist.js">
+    </script>
+	<script>
+	function addSites(type){
+		console.log(pageList);
+	};
 
 jQuery(document).ready(function(){
     try {
@@ -49,13 +51,12 @@ jQuery(document).ready(function(){
 	  <br />
 	  <h2>add popular sites</h2>
 	  <br />
-	  <a href="javascript:addSites('news')">news + </a><br /> 
-	  <a href="javascript:addSites('blogs')">blogs + </a><br />
-	  <a href="javascript:addSites('media')">media + </a><br /> 
-	  <a href="javascript:addSites('shopping')">shopping + </a><br /> 
-	  <a href="javascript:addSites('social')">social + </a><br /> 
-	  <a href="javascript:addSites('reference')">reference + </a> 
-	  
+	  <a href="javascript:addSites('news')" id="news">news + </a><br /> 
+	  <a href="javascript:addSites('blogs')" id="blogs">blogs + </a><br />
+	  <a href="javascript:addSites('media')" id="media">media + </a><br /> 
+	  <a href="javascript:addSites('shopping')" id="shopping">shopping + </a><br /> 
+	  <a href="javascript:addSites('social')" id="social">social + </a><br /> 
+	  <a href="javascript:addSites('reference')" id="reference">reference + </a> 
 	</div>
     <div id="faq" style="width:330px; display:inline-block; vertical-align:top">
         <h1>Privacy Settings</h1>

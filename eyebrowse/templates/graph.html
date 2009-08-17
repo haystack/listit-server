@@ -250,9 +250,9 @@
     {% ifnotequal request_user username %}
     <br/>
     <div class="underuser" style="margin-top:13px; margin-bottom:8px;">
-        <h3 style="display:inline-block; font-size:1.1em"><a href="/user/{{ username }}/" style="text-decoration:none">{{ username }}</a>&#58;&nbsp;</h3>
-        <a href="/graph/{{ username }}/">graph</a>&nbsp; &#124; &nbsp;<a href="/days/{{ username }}/">days</a>&nbsp; &#124; &nbsp;<a href="/user/{{ username }}/">profile</a>
+        <h3 style="display:inline-block; font-size:1.1em"><a href="/profile/{{ username }}/" style="text-decoration:none">{{ username }}</a>&#58;&nbsp;</h3>
+        <a href="/graph/{{ username }}/">timeline</a>&nbsp; &#124; &nbsp;<a href="/days/{{ username }}/">20 days</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ username }}/">friends</a>
+        {% endifnotequal %}
     </div>
-    {% endifnotequal %}
 </div>
 {% endblock %}

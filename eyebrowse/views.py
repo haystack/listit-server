@@ -45,7 +45,7 @@ def get_enduser_for_user(user):
         raise Http404('Internal error. Call brennan or emax. Something is wrong. Houston.')    
     return enduser
 
-
+@login_required
 def privacy_settings_page(request):
     user = get_object_or_404(User, username=request.user.username)
     enduser = get_enduser_for_user(user)
