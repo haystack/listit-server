@@ -114,14 +114,27 @@ def get_user_by_email(email):
         return matches[0]
     return None
 
-def _authenticate_user(emailaddr,password):
+def _authenticate_user(emailaddr_or_username,password):
     try:
-        user = get_user_by_email(emailaddr)
-        if user and user.check_password(password):
-            ## print "User authenticated : " + user.email
-            return user;
+        if len(emailaddr_or_username) == 0:
+            return None
+        
+        if settings.LISTIT_SERVER:
+            user = get_user_by_email(emailaddr_or_username)
+            if user and user.check_password(password):                
+                return user;
+
+        if settings.EYEBROWSE_SERVER:
+
+            user = authmodels.User.objects.filter(username=emailaddr_or_username)
+            print "authenticating eyebrowse server style %s -- %d password %s " % (emailaddr_or_username, user.count(), password)
+            if user.count() == 1 and user[0].check_password(password):
+                print "returning %s "%  user[0]
+                return user[0];            
+            
     except authmodels.User.DoesNotExist:
         pass
+    
     return None        
 
 def basicauth_get_user_by_emailaddr(request):
@@ -139,7 +152,9 @@ def basicauth_decode_email_password(request):
         authblob = request.META.get('HTTP_AUTHORIZATION', None)
         if authblob is None:
             auth_get = request.GET.get("HTTP_AUTHORIZATION",None)
-            authblob = urllib.unquote(auth_get) 
+            if authblob is None:
+                return None
+            authblob = urllib.unquote(auth_get)
         (authmeth, auth) = authblob.split(' ', 1)
         assert authmeth.strip().lower() == 'basic', "auth token 1 must be basic %s " % authmeth.lower()
         auth = auth.strip().decode('base64')
@@ -147,6 +162,7 @@ def basicauth_decode_email_password(request):
         return (emailaddr,password)        
     except:
         print sys.exc_info();
+    
     return None        
 
 def decode_emailaddr(request):
@@ -159,8 +175,10 @@ def decode_emailaddr(request):
         return decoded[0]
     return None
 
-def json_response(dict_obj):
-    return HttpResponse(JSONEncoder().encode(dict_obj), "text/json")
+def json_response(dict_obj,code=200):
+    resp = HttpResponse(JSONEncoder().encode(dict_obj), "text/json")
+    resp.status_code = code
+    return resp        
 
 USERNAME_MAXCHARS = 30
 

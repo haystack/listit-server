@@ -5,6 +5,7 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.defaults import *
 from eyebrowse.views import *
+import eyebrowse.plugin_views
 from django.views.generic.simple import direct_to_template
 from django.conf.urls.defaults import *
 
@@ -101,5 +102,11 @@ urlpatterns = patterns('',
 
                        #TEMPORARY
                        (r'^pluginhover/$', pluginhover),  
-                       (r'^pluginlogin/$', pluginlogin),  
+                       (r'^pluginlogin/$', pluginlogin),
+
+                       ## plugin_views
+                       (r'^plugin_login$', eyebrowse.plugin_views.login),  
+                       (r'^plugin_get_max_event$', eyebrowse.plugin_views.get_most_recent_event_time),
+                       (r'^plugin_post_events/$', eyebrowse.plugin_views.post_events),
+
 )
