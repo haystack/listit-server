@@ -36,6 +36,12 @@ jQuery(document).ready(function(){
 </script>
 {% endblock %}
 {% block content %}
+<div id="report" style="width:750px">
+    <div id="profile_edit">
+        <h2>Edit Your Profile</h2>
+        {% include 'profile_save_form.html' %}
+    </div>
+
     <div id="faq" style="width:300px;">
         <h1>Privacy Settings</h1>
         <br/>
@@ -57,5 +63,6 @@ edited list from alexa top 500 and dmoz
           </ul>
 		</div>
 	</div>
+</div>
 {% endblock %}
 	

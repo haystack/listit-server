@@ -28,7 +28,7 @@ urlpatterns = patterns('',
                        (r'^graph/(\w+)/$', graph),
                        (r'^friends/(\w+)/$', friends),
                        (r'^search/$', page_profile),
-                       (r'^global/$', world),
+                       (r'^everyone/$', world),
                        
                        # user pages
                        (r'^profile/(\w+)/$', user_page),

@@ -48,26 +48,65 @@ def get_enduser_for_user(user):
 
 def privacy_settings_page(request):
     user = get_object_or_404(User, username=request.user.username)
-    privacysettings = user.privacysettings_set.all()[0] ## ?
+    enduser = get_enduser_for_user(user)
+    #privacysettings = user.privacysettings_set.all()[0] 
 
-    listmode = privacysettings.listmode
-    exposure = privacysettings.exposure
+    #listmode = privacysettings.listmode
+    #exposure = privacysettings.exposure
     
-    form = PrivacySaveForm({
-            'exposure': exposure,
-            'listmode': listmode,
-            })
-
     if request.method == 'POST':
-        form = PrivacySaveForm(request.POST)
+        profileForm = ProfileSaveForm(request.POST, request.FILES)
+        privacyForm = PrivacySaveForm(request.POST)
         if form.is_valid():
-            user = _privacy_save(request, form)  
+            user = _privacy_save(request, profileForm, privacyForm)  
             return HttpResponseRedirect('/profile/') 
 
         variables = RequestContext(request, {'form': form, 'error': True, 'request_user': request.user})
         return render_to_response('whitelist.html', variables)
-    variables = RequestContext(request, {'form': form, 'list':list, 'request_user': request.user })
+               
+    first_name = ''
+    last_name = ''
+    email = ''
+    location = ''
+    tags = ''
+    homepage = ''
+    birthdate = ''
+    gender = ''
+    photo = ''
+    try:
+        first_name = enduser.user.first_name
+        last_name = enduser.user.last_name
+        email = enduser.user.email
+        location = enduser.location
+        homepage = enduser.homepage
+        birthdate = enduser.birthdate
+        photo = enduser.photo
+        gender = enduser.gender
+        tags = ' '.join(
+            tag.name for tag in enduser.tags.all()
+            )
+    except:
+        print sys.exc_info()
+
+    form = ProfileSaveForm({
+            'first_name': first_name,
+            'last_name': last_name,
+            'email': email,
+            'location': location,
+            'tags': tags,
+            'homepage': homepage,
+            'birthdate': birthdate,
+            'gender': gender,
+            'photo': photo
+            })
+
+    variables = RequestContext(request, {
+        'form': form,
+        'request_user': request.user
+        })
+
     return render_to_response('whitelist.html', variables )
+
 
 def _privacy_save(request, form):
     username = request.user.username
@@ -85,12 +124,15 @@ def get_privacy_urls(request):
     user = get_object_or_404(User, username=username)
     privacysettings = user.privacysettings_set.all()[0] ## ?     
     
+    lst = ""
     if privacysettings.listmode == "W":
-        list = privacysettings.whitelist.split()  ## redefin'in a reserved keyword since 2009.. CHANGE 'list' TO SOMETHING ELSE! plz. kthx
+        if privacysettings.whitelist is not None:
+            lst = privacysettings.whitelist.split()  ## redefin'in a reserved keyword since 2009.. CHANGE 'list' TO SOMETHING ELSE! plz. kthx
     if privacysettings.listmode == "B":
-        list = privacysettings.blacklist.split()
+        if privacysettings.whitelist is not None:
+            lst = privacysettings.blacklist.split()
 
-    return json_response({ "code":200, "results": list }) 
+    return json_response({ "code":200, "results": lst }) 
 
 @login_required
 def delete_privacy_url(request):
