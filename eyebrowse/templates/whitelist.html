@@ -2,6 +2,10 @@
 {% block title %}Privacy Settings{% endblock %}
 {% block imports %}
 <script>
+function addSites(type){
+
+};
+
 jQuery(document).ready(function(){
     try {
       // no params :(
@@ -36,30 +40,38 @@ jQuery(document).ready(function(){
 </script>
 {% endblock %}
 {% block content %}
-<div id="report" style="width:750px">
-    <div id="profile_edit">
+<div id="report" style="width:880px">
+    <div id="profile_edit" style="border:1px solid grey; width:210px; margin-right:40px; margin-top:50px;float:none; display:inline-block" >
         <h2>Edit Your Profile</h2>
         {% include 'profile_save_form.html' %}
     </div>
-
-    <div id="faq" style="width:300px;">
+	<div id="profile_edit" style="float:right; border:none; margin-top:40px;">
+	  <br />
+	  <h2>add popular sites</h2>
+	  <br />
+	  <a href="javascript:addSites('news')">news + </a><br /> 
+	  <a href="javascript:addSites('blogs')">blogs + </a><br />
+	  <a href="javascript:addSites('media')">media + </a><br /> 
+	  <a href="javascript:addSites('shopping')">shopping + </a><br /> 
+	  <a href="javascript:addSites('social')">social + </a><br /> 
+	  <a href="javascript:addSites('reference')">reference + </a> 
+	  
+	</div>
+    <div id="faq" style="width:330px; display:inline-block; vertical-align:top">
         <h1>Privacy Settings</h1>
         <br/>
         <div class="bodytext">
-Only the websites you add to this list will be logged. At any time you can use <b><a href="http://support.mozilla.com/en-US/kb/Private+Browsing">private browsing</a></b> in Firefox to temporarily turn off logging.
-<br /><br />
-for your own safty, please do not log sites such as google.com, bank webpages or email sites
-	<br /><br />
-add popular <a href="addNews">news sites</a>, <a href="addBlogs">blogs</a>,  
-edited list from alexa top 500 and dmoz 
+		  Only the websites you add to this list will be logged. At any time you can use <b><a href="http://support.mozilla.com/en-US/kb/Private+Browsing">private browsing</a></b> in Firefox to temporarily turn off logging.
+		  <br /><br />
+		  for your own safty, please do not log sites such as google.com, facebook.com, bank webpages or your emails
         </div>
-		<div id="listlist">
-            <label for="list">
-              Add URL:
-            </label>
-			<input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:228px;" value="http://localhost:8000/" onkeypress="{if (event.keyCode==13)addURL()}"/>
-			<input type="submit" id="urladd" value="add" onkeypress="{if (event.keyCode==13)addURL()}" onClick="addURL()" style="width:auto;" />
-            <ul id="urladdul" style="padding-left:7px;">
+		<div id="listlist" style="border:none; padding-left:0px">
+          <label for="list">
+            Add URL:
+          </label>
+		  <input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:227px;" value="http://localhost:8000/" onkeypress="{if (event.keyCode==13)addURL()}"/>
+		  <input type="submit" id="urladd" value="add" onkeypress="{if (event.keyCode==13)addURL()}" onClick="addURL()" style="width:auto;" />
+          <ul id="urladdul" style="padding-left:7px;">
           </ul>
 		</div>
 	</div>

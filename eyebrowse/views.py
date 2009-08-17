@@ -49,21 +49,7 @@ def get_enduser_for_user(user):
 def privacy_settings_page(request):
     user = get_object_or_404(User, username=request.user.username)
     enduser = get_enduser_for_user(user)
-    #privacysettings = user.privacysettings_set.all()[0] 
-
-    #listmode = privacysettings.listmode
-    #exposure = privacysettings.exposure
     
-    if request.method == 'POST':
-        profileForm = ProfileSaveForm(request.POST, request.FILES)
-        privacyForm = PrivacySaveForm(request.POST)
-        if form.is_valid():
-            user = _privacy_save(request, profileForm, privacyForm)  
-            return HttpResponseRedirect('/profile/') 
-
-        variables = RequestContext(request, {'form': form, 'error': True, 'request_user': request.user})
-        return render_to_response('whitelist.html', variables)
-               
     first_name = ''
     last_name = ''
     email = ''
@@ -100,6 +86,15 @@ def privacy_settings_page(request):
             'photo': photo
             })
 
+    if request.method == 'POST':
+        form = ProfileSaveForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = _profile_save(request, form)  
+            return HttpResponseRedirect('/settings/') 
+
+        variables = RequestContext(request, {'form': form, 'error': True, 'request_user': request.user})
+        return render_to_response('whitelist.html', variables)
+               
     variables = RequestContext(request, {
         'form': form,
         'request_user': request.user
@@ -413,7 +408,7 @@ def register_success_page(request):
             if user.is_active:
                 login(request, user)
                 # success
-                return HttpResponseRedirect('/profile/')
+                return HttpResponseRedirect('/settings/')
             else:
                 # disabled account
                 variables = RequestContext(request, {'form': form, 'error': True})
@@ -436,7 +431,7 @@ def profile_save_page(request):
         form = ProfileSaveForm(request.POST, request.FILES)
         if form.is_valid():
             user = _profile_save(request, form)            
-            return HttpResponseRedirect('/profile/')
+            return HttpResponseRedirect('/settings/')
                 
     else:        
         first_name = ''

@@ -384,7 +384,7 @@ jQuery(document).ready(function(){
         <ul class="friends" style="margin-top:10px">
             {% for friend in followers %}
             <li>
-                <a href="/user/{{ friend.username }}/">{{ friend.username }}</a><h7> {{ friend.number }}</h7>
+                <a href="/profile/{{ friend.username }}/">{{ friend.username }}</a><h7> {{ friend.number }}</h7>
             </li>
             {% endfor %}
         </ul>
@@ -402,7 +402,7 @@ jQuery(document).ready(function(){
         <ul class="friends" style="margin-top:10px;">
             {% for friend in following %}
             <li>
-                <a href="/user/{{ friend.username }}/">{{ friend.username }}</a><h7> {{ friend.number }}</h7>
+                <a href="/profile/{{ friend.username }}/">{{ friend.username }}</a><h7> {{ friend.number }}</h7>
             </li>
             {% endfor %}
         </ul>
