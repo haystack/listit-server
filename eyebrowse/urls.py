@@ -31,7 +31,7 @@ urlpatterns = patterns('',
                        (r'^global/$', world),
                        
                        # user pages
-                       (r'^user/(\w+)/$', user_page),
+                       (r'^profile/(\w+)/$', user_page),
                        (r'^friends/manage/(\w+)/$', friends_page),
                        (r'^friend/add$', friend_add),
                        (r'^friend/save$', friend_save),
@@ -85,7 +85,7 @@ urlpatterns = patterns('',
                        (r'^terms/$', terms),
 
                        # account management
-                       (r'^profile/$', profile_save_page),
+                       (r'^profile_old/$', profile_save_page),
                        (r'^settings/$',  privacy_settings_page),
                        (r'^userprivacy/$', userprivacy),
 

@@ -750,7 +750,6 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
     else:
         mine_events = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
     
-
     uniq_urls  = set( grouped_by.access(mine_events) )
     times_per_url = {}
     for url in uniq_urls:
@@ -802,8 +801,10 @@ def get_web_page_views_user(request, username):
 def get_recent_web_page_view_user(request, username, n):
     user = get_object_or_404(User, username=username)
     n = int(n)
-    #from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
-    results = PageView.objects.filter(user=user).order_by('-startTime')[:n]
+    from_msec,to_msec = _unpack_from_to_msec(request)
+    results = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec).order_by('-startTime')[:n]
+    if results.count() < 1:
+        results = PageView.objects.filter(user=user).order_by('-startTime')[:n]    
     return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in results ] });
 
 def get_user_profile_queries(request, username):
@@ -813,8 +814,10 @@ def get_user_profile_queries(request, username):
     def fetch_data(user):
         number = PageView.objects.filter(user=user).count()
         totalTime = PageView.objects.filter(user=user).aggregate(Sum('duration'))
-        average = int((totalTime['duration__sum'])/1000)/int(number)
-        return { 'number': number, 'totalTime': int(totalTime['duration__sum']/1000), 'average': average }
+        if number > 0:
+            average = int((totalTime['duration__sum'])/1000)/int(number)
+            return { 'number': number, 'totalTime': int(totalTime['duration__sum']/1000), 'average': average }
+        return { 'number': 0, 'totalTime': 0, 'average': 0 }
 
     results = fetch_data(user)
     return json_response({ "code":200, "results": results });

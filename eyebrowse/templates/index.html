@@ -29,7 +29,9 @@
                            to: endTime
                        }, function(data){
                            if (data.code == 200) {
-                               this_.drawMiniGraph(data.results);
+							   if (data.results.length > 0){
+								   this_.drawMiniGraph(data.results);								   
+							   }
                            }						   
                        }, "json");
 		},       

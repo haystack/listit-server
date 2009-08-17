@@ -50,7 +50,9 @@
                     }, function(data){
 						jQuery("#loadimg1").hide();
                         if (data.code == 200) {
-                            viz.createTheWorld(data.results, startTime, endTime, viz);
+							if (data.results.length > 0){							
+								viz.createTheWorld(data.results, startTime, endTime, viz);
+							}
                         }
                         else {
                             console.log("yaaaa!!!H!H!H!" + data.code + " ");
@@ -141,24 +143,26 @@
                 try {
 					jQuery("#loadimg1").show();
                     jQuery.get("http://localhost:8000/get_views_user/{{ username }}/", {
-                        from: startTime,
-                        to: endTime
-                    }, function(data){
-						jQuery("#loadimg1").hide();
-                        if (data.code == 200) {
-                            for (var i = 0; i < this_.drawArray.length; i++) {
-                                for (var k = 0; k < this_.drawArray[i].length; k++) {
-                                    this_.drawArray[i][k].mouseUp({
-                                        p: 0,
-                                        newData: data.results
-                                    });
-                                }
-                            }
-                        }
-                        else {
-                            console.log("yaaaa!!!H!H!H!" + data.code + " ");
-                        }
-                    }, "json");
+								   from: startTime,
+								   to: endTime
+							   }, function(data){
+								   jQuery("#loadimg1").hide();
+								   if (data.code == 200) {
+									   if(data.results.length > 0){
+										   for (var i = 0; i < this_.drawArray.length; i++) {
+											   for (var k = 0; k < this_.drawArray[i].length; k++) {
+												   this_.drawArray[i][k].mouseUp({
+																					 p: 0,
+																					 newData: data.results
+																				 });
+											   }
+										   }
+									   }
+								   }
+								   else {
+									   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+								   }
+							   }, "json");
                 } 
                 catch (e) {
                     console.log(e);
@@ -166,8 +170,7 @@
             }(startTime, endTime, this_); // passing this around like a hot tomalie       	    
         },
 		arrowBack: function(){
-			var this_ = this;
-
+			var this_ = this;		
 			jQuery("#datepicker").val(new Date(this_.endTime - 860000000).format('mm/dd/yyyy'));
 			this_.refresh(this_.endTime - 860000000, this_.startTime - 860000000);
 		},
@@ -176,8 +179,6 @@
 			jQuery("#datepicker").val(new Date(this_.endTime + 860000000).format('mm/dd/yyyy'));
 			this_.refresh(this_.endTime + 860000000, this_.startTime + 860000000);
 		},
-
-											
     };
     
     
