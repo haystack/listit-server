@@ -23,6 +23,7 @@ from django.utils.simplejson import JSONEncoder, JSONDecoder
 from eyebrowse.beakercache import cache
 # import annotate(Sum())
 from django.db.models import Sum
+from jv3.utils import json_response
 
 #TEMPORARY
 def pluginhover(request):
@@ -149,6 +150,7 @@ def delete_privacy_url(request):
 
 @login_required
 def add_privacy_url(request):
+    import urlparse
     username = request.user.username
     user = get_object_or_404(User, username=username)
 
@@ -156,22 +158,40 @@ def add_privacy_url(request):
     listmode = privacysettings.listmode
     inpt = request.GET['input'].strip()
 
-    if privacysettings.listmode == "W":
-        if privacysettings.whitelist is not None:
-            if not inpt in privacysettings.whitelist.split():
-                privacysettings.whitelist = ' '.join(privacysettings.whitelist.split() + [input])
-        else:
-            privacysettings.whitelist = input
-    if privacysettings.listmode == "B":
-        if privacysettings.blacklist is not None:
-            if not inpt in privacysettings.blacklist.split():
-                privacysettings.blacklist = ' '.join(privacysettings.blacklist.split() + [input])
-        else:
-            privacysettings.blacklist = inpt
+    print urlparse.urlparse(inpt)
+    if inpt.startswith('http'):
+        host = urlparse.urlparse(inpt)[1].strip()
+    else:
+        host = inpt
+        if "/" in host:
+            host = host[0:host.find("/")]
 
-    # Save 
-    privacysettings.save()
-    return HttpResponseRedirect('/settings/')
+    val = {}
+
+    if len(host) > 0:
+        if privacysettings.listmode == "W":
+            if privacysettings.whitelist is not None:
+                wlist = privacysettings.whitelist.split(' ')
+                if not host in wlist:
+                    privacysettings.whitelist = ' '.join(wlist + [host])
+                    val["host"] = host
+            else:
+                privacysettings.whitelist = host
+                val["host"] = host
+            
+        if privacysettings.listmode == "B":
+            if privacysettings.blacklist is not None:
+                if not host in privacysettings.blacklist.split():
+                    privacysettings.blacklist = ' '.join(privacysettings.blacklist.split() + [host])
+                    val["host"] = host
+            else:
+                privacysettings.blacklist = host
+                val["host"] = host
+        # Save 
+        privacysettings.save()
+
+    ## val will be non-null iff it's new
+    return json_response(val,200)
 
 
 def userprivacy(request):
@@ -728,9 +748,6 @@ def create_www_pageviews_for_each_event(sender, created=None, instance=None, **k
             pageview.save()
                 
 post_save.connect(create_www_pageviews_for_each_event, sender=Event)
-
-def json_response(dict_obj):
-    return HttpResponse(JSONEncoder().encode(dict_obj), "text/json")
                         
 ## ajax views for graphs, etc.
 
