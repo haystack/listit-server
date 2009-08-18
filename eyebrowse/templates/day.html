@@ -33,7 +33,7 @@
 				jQuery("#loadimg1").show();
                 try {
 
-                    jQuery.get("http://localhost:8000/get_views_user/{{ username }}/", {
+                    jQuery.get("/get_views_user/{{ username }}/", {
 								   from: startTime,
 								   to: endTime
 							   }, function(data){

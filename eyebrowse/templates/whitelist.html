@@ -23,20 +23,22 @@ width:200px;
 			}
 		);
 		var html = "";
-		var encoded = "";
 		var typesArray = ["news","blogs","media","shopping","social","reference"];
 		for (var i = 0; i < typesArray.length; i++){			
-			html = "<a href=\"http://localhost:8000/add_privacy_url/?input=" + encodeURIComponent("" + pageList[typesArray[i]]) + "\"> add all</a>";
+			html = "<a href=\"javascript:addPrivacyURL(\'" + pageList[typesArray[i]] + "\');\"> add all</a>";
 			for (var j = 0; j < pageList[typesArray[i]].length; j++){
-				encoded = encodeURIComponent(pageList[typesArray[i]][j]);
-				console.log(encoded);
 				html += "<li>";
-				html += "<a href=\"http://localhost:8000/add_privacy_url/?input=" + encoded + "\">" + pageList[typesArray[i]][j] + "</a>";
+				html += "<a href=\"javascript:addPrivacyURL(\'" + pageList[typesArray[i]][j] + "\');\">" + pageList[typesArray[i]][j] + "</a>";
 				html += "</li>";			
 			}
 			jQuery("#" + typesArray[i]).html(html);
 		}
 	};
+function addPrivacyURL(url){
+	var urlEncoded = encodeURIComponent(url);
+	jQuery("<li>" + url + "<a href=\"http://localhost:8000/delete_privacy_url/?input=" + url + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").appendTo('#urladdul');
+	jQuery.get("http://localhost:8000/add_privacy_url/", {input:url}); 
+};
 
 jQuery(document).ready(function(){
     initMenu();

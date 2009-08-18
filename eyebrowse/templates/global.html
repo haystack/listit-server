@@ -40,7 +40,7 @@
         },
 		getProfile: function(startTime, endTime){
             try {
-                jQuery.get("http://localhost:8000/get_global_profile_queries/", {
+                jQuery.get("/get_global_profile_queries/", {
 							   from: startTime,
 							   to: endTime
 						   }, function(data){
@@ -62,7 +62,7 @@
 		getTopUsers: function(startTime, endTime, num){
             var this_ = this;
 			jQuery("#loadimg").show();
-			jQuery.get("http://localhost:8000/get_top_users/10/", {
+			jQuery.get("/get_top_users/10/", {
 						   from: this_.startTime,
 						   to: this_.endTime,
 						   num: num
@@ -123,7 +123,7 @@
             var this_ = this;
             try {
 				jQuery("#loadimg").show();
-                jQuery.get("http://localhost:8000/get_top_hosts_comparison_global/25/", {
+                jQuery.get("/get_top_hosts_comparison_global/25/", {
 							   first_start: startTime - 86400000,
 							   first_end: endTime - 86400000,
 							   second_start: startTime,
@@ -146,7 +146,7 @@
         initLiteGraph: function(startTime, endTime){
             var this_ = this;
             try {
-				jQuery.get("http://localhost:8000/get_graph_points_global/28/", {
+				jQuery.get("/get_graph_points_global/28/", {
 							   from: startTime,
 							   to: endTime
 						   }, function(data){
@@ -186,7 +186,7 @@
 			this_.startTimeRecent = this_.endTimeRecent - startBuffer; // startbuffer is just for init to offset the time and make sure something comes in
             this_.endTimeRecent = new Date().valueOf();
 			jQuery("#loadimg").show();
-			jQuery.get("http://localhost:8000/get_most_recent_urls/" + num + "/", {
+			jQuery.get("/get_most_recent_urls/" + num + "/", {
 						   from: this_.startTimeRecent,
 						   to: this_.endTimeRecent
 					   }, function(data){

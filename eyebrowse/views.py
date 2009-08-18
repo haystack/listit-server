@@ -118,7 +118,7 @@ def _privacy_save(request, form):
 def get_privacy_urls(request):
     username = request.user.username
     user = get_object_or_404(User, username=username)
-    privacysettings = user.privacysettings_set.all()[0] ## ?     
+    privacysettings = user.privacysettings_set.all()[0] #  
     
     lst = ""
     if privacysettings.listmode == "W":
@@ -127,7 +127,7 @@ def get_privacy_urls(request):
             lst = privacysettings.whitelist.split() 
     if privacysettings.listmode == "B":
         lst = []
-        if privacysettings.whitelist is not None:
+        if privacysettings.blacklist is not None:            
             lst = privacysettings.blacklist.split()
 
     return json_response({ "code":200, "results": lst }) 
@@ -136,14 +136,14 @@ def get_privacy_urls(request):
 def delete_privacy_url(request):
     username = request.user.username
     user = get_object_or_404(User, username=username)
-    privacysettings = user.privacysettings_set.all()[0] ## ?
-    listmode = privacysettings.listmode
-    input = request.GET['input'].strip()
+    privacysettings = user.privacysettings_set.all()[0] 
+
+    inpt = request.GET['input'].strip()
 
     if privacysettings.listmode == "W":
-        privacysettings.whitelist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == input])
+        privacysettings.whitelist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == inpt])
     if privacysettings.listmode == "B":
-        privacysettings.blacklist = ' '.join([ x for x in privacysettings.blacklist.split() if not x == input])
+        privacysettings.blacklist = ' '.join([ x for x in privacysettings.blacklist.split() if not x == inpt])
 
     privacysettings.save()
     return HttpResponseRedirect('/settings/')
@@ -154,10 +154,11 @@ def add_privacy_url(request):
     username = request.user.username
     user = get_object_or_404(User, username=username)
 
-    privacysettings = user.privacysettings_set.all()[0] ## ?
+    privacysettings = user.privacysettings_set.all()[0]
+
     listmode = privacysettings.listmode
     inpt = request.GET['input'].strip()
-
+ 
     print urlparse.urlparse(inpt)
     if inpt.startswith('http'):
         host = urlparse.urlparse(inpt)[1].strip()

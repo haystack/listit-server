@@ -31,7 +31,7 @@ var evtHandlers = ({
 						   this.OGendTime = this.endTime;
 						   this.dragBeginX = 0;
 						   this.isStatic = viz.isStatic; // does not make more calls
-						   this.getURL = "http://localhost:8000/get_views_user/" + viz.user + "/";
+						   this.getURL = "/get_views_user/" + viz.user + "/";
 						   this._ev_handlers();
 					   },
 					   _ev_handlers: function(){

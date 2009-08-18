@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Graph{% endblock %}
+{% block title %}Timeline{% endblock %}
 {% block imports %}
 <link rel="stylesheet" type="text/css" href="/lib/CSS/datepicker.css" />
 <script src="/lib/js/watchMeGraph.js">
@@ -44,7 +44,7 @@
                 // uses the django model get_views to return www viewed events between start and end times
 				jQuery("#loadimg1").show();
                 try {
-                    jQuery.get("http://localhost:8000/get_views_user/{{ username }}/", {
+                    jQuery.get("/get_views_user/{{ username }}/", {
                         from: startTime,
                         to: endTime
                     }, function(data){
@@ -142,7 +142,7 @@
                 // uses the django model get_views to return www viewed events between start and end times
                 try {
 					jQuery("#loadimg1").show();
-                    jQuery.get("http://localhost:8000/get_views_user/{{ username }}/", {
+                    jQuery.get("/get_views_user/{{ username }}/", {
 								   from: startTime,
 								   to: endTime
 							   }, function(data){

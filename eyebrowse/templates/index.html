@@ -24,7 +24,7 @@
         },
 		getGraphData: function(startTime, endTime, user){
 			var this_ = this;
-            jQuery.get("http://localhost:8000/get_views_user/" + user + "/", {
+            jQuery.get("/get_views_user/" + user + "/", {
                            from: startTime,
                            to: endTime
                        }, function(data){
@@ -40,7 +40,7 @@
 			this_.startTimeRecent = this_.endTimeRecent - startBuffer; // just for init to offset the time and make sure something comes in
             this_.endTimeRecent = new Date().valueOf();
 			jQuery("#loadimg").show();
-			jQuery.get("http://localhost:8000/get_most_recent_urls/" + num + "/", {
+			jQuery.get("/get_most_recent_urls/" + num + "/", {
 						   from: this_.startTimeRecent,
 						   to: this_.endTimeRecent
 					   }, function(data){
@@ -67,7 +67,7 @@
 		getTopUsers: function(startTime, endTime, num){
             var this_ = this;
 			jQuery("#loadimg").show();
-			jQuery.get("http://localhost:8000/get_top_users/10/", {
+			jQuery.get("/get_top_users/10/", {
 						   from: this_.startTime,
 						   to: this_.endTime,
 						   num: num

@@ -37,7 +37,7 @@
         },
 		getProfile: function(){
             try {
-                jQuery.get("http://localhost:8000/get_user_profile_queries/{{ username }}/", {
+                jQuery.get("/get_user_profile_queries/{{ username }}/", {
 						   }, function(data){
 							   if (data.code == 200) {								   
 								   var newData = data.results;	
@@ -92,7 +92,7 @@
             var this_ = this;
             try {
 				jQuery("#loadimg").show();
-                jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ username }}/25/", {
+                jQuery.get("/get_top_hosts_comparison/{{ username }}/25/", {
 							   first_start: startTime - 86400000,
 							   first_end: endTime - 86400000,
 							   second_start: startTime,
@@ -116,7 +116,7 @@
             var this_ = this;
 			jQuery("#loadimg").show();
             try {
-                jQuery.get("http://localhost:8000/get_graph_points_user/{{ username }}/28/", {
+                jQuery.get("/get_graph_points_user/{{ username }}/28/", {
 							   from: startTime,
 							   to: endTime
 						   }, function(data){
@@ -174,7 +174,7 @@
         getLatestPages: function(startTime, endTime){
             this_ = this;
             try {
-                jQuery.get("http://localhost:8000/get_recent_web_page_views_user/{{ username }}/15/", {
+                jQuery.get("/get_recent_web_page_views_user/{{ username }}/15/", {
 							   from: startTime,
 							   to: endTime
 						   }, function(data){
@@ -214,7 +214,7 @@
             
             try {
 				jQuery("#loadimg").show();
-				jQuery.get("http://localhost:8000/get_top_hosts_comparison/{{ username }}/25/", {
+				jQuery.get("/get_top_hosts_comparison/{{ username }}/25/", {
 							   first_start: startTime - 86400000,
 							   first_end: endTime - 86400000,
 							   second_start: startTime,

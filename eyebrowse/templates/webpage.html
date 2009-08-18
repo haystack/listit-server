@@ -47,7 +47,7 @@ h6 {
         },
 		getProfile: function(startTime, endTime, url){
             try {
-                jQuery.get("http://localhost:8000/get_page_profile_queries/", {
+                jQuery.get("/get_page_profile_queries/", {
 							   url:url
 						   }, function(data){
 							   if (data.code == 200) {		
@@ -68,7 +68,7 @@ h6 {
 		initTopUsers: function(startTime, endTime, url){
 			var this_ = this;	
 			try {
-                jQuery.get("http://localhost:8000/get_top_users_for_url/10/", {
+                jQuery.get("/get_top_users_for_url/10/", {
 							   url: url
 						   }, function(data){
 							   if (data.code == 200) {	
@@ -98,7 +98,7 @@ h6 {
 			var urlGraph = undefined;			
             try {
 				jQuery("#loadimg").show();
-                jQuery.get("http://localhost:8000/get_to_from_url/10/", {
+                jQuery.get("/get_to_from_url/10/", {
 							   url: url
 						   }, function(data){
 							   if (data.code == 200) {	
