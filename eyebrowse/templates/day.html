@@ -1,15 +1,12 @@
 {% extends "base.html" %}
 {% block title %}20 Days{% endblock %}
 {% block imports %}
-<link rel="stylesheet" type="text/css" href="/lib/CSS/datepicker.css" />
+<style>
+  @import url("/lib/css/datepicker.css");
+</style>
 <script src="/lib/js/watchMeGraph.js">
 </script>
-<script src="/lib/js/jquery-ui-1.7.2.custom.min.js">
-</script>
 <script src="/lib/js/datepicker.js">
-</script>
-<script>
-    jQuery.noConflict();
 </script>
 <script>
     var WatchmeVisualisation = {

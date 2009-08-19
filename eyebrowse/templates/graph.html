@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Timeline{% endblock %}
 {% block imports %}
-<link rel="stylesheet" type="text/css" href="/lib/CSS/datepicker.css" />
+<style>
+  @import url("/lib/css/datepicker.css");
+</style>
 <script src="/lib/js/watchMeGraph.js">
 </script>
 <script src="/lib/js/canvas.text.js">
@@ -9,9 +11,6 @@
 <script src="/lib/js/faces/helvetiker-normal-normal.js">
 </script>
 <script src="/lib/js/datepicker.js">
-</script>
-<script>
-    jQuery.noConflict();
 </script>
 <script>
     var WatchmeVisualisation = {

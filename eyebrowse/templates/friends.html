@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Your Friends{% endblock %}
 {% block imports %}
-<link rel="stylesheet" type="text/css" href="/lib/CSS/datepicker.css" />
+<style>
+  @import url("/lib/css/datepicker.css");
+</style>
 <script src="/lib/js/watchMeGraph.js">
 </script>
 <script src="/lib/js/canvas.text.js">
@@ -11,15 +13,11 @@
 <script src="/lib/js/datepicker.js">
 </script>
 <script>
-    jQuery.noConflict();
-</script>
-<script>
     var WatchmeVisualisation = {
         initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, endTime, zoom, data, startDate){
             this.canvas = canvas;
             this.windowWidth = windowWidth;
             this.windowHeight = windowHeight;
-			this.OGwindowHeight = windowHeight;
             this.timeZoneCorrect = timeZoneCorrect;
             this.endDate = new Date(endTime);
             if (startDate) {
