@@ -10,7 +10,7 @@
 {% if following %}
 <ul class="friends">
 {% for friend in following %}
-<li><a href="/user/{{ friend.username }}/">
+<li><a href="/friend/{{ friend.username }}/">
 {{ friend.username }}</a>
 <h7><a href="/friend/unfollow/{{ username }}/?friend={{ friend.username }}"><img src="/lib/img/cancel_16.png" /></a></h7>
 </li>
@@ -26,7 +26,7 @@
 {% if followers %}
 <ul class="friends">
 {% for friend in followers %}
-<li><a href="/user/{{ friend.username }}/">
+<li><a href="/profile/{{ friend.username }}/">
 {{ friend.username }}</a></li>
 {% endfor %}
 </ul>

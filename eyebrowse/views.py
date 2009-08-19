@@ -582,8 +582,8 @@ def friends_page(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
 
-    followers = [friendship.to_friend for friendship in user.friend_set.all()]
-    following = [friendship.from_friend for friendship in user.to_friend_set.all()]
+    following = [friendship.to_friend for friendship in user.friend_set.all()]
+    followers = [friendship.from_friend for friendship in user.to_friend_set.all()]
 
     variables = RequestContext(request, {
         'username': username,
