@@ -66,15 +66,14 @@ class EventLogCollection(Collection):
         if not request_user:
             return self.responder.error(request, 401, ErrorDict({"autherror":"Incorrect user/password combination"}))
 
-        user_events = Event.objects.filter(owner=request_user,client=self._get_client(request))
         committed = [];
         for item in JSONDecoder().decode(request.raw_post_data):
             try:
-                if len(user_events.filter(start=item['start'],entityid=item["entityid"])) > 0:
-                    # print "event log : skipping duplicate entry %d " % item['start'];
-                    continue
-                ##print "Committing %s item %s " % (entry.owner.email,repr(item))
-                entry = Event()
+                matches = Event.objects.filter(owner=request_user,client=item['client'],start=item['start'],entityid=item["entityid"])
+                if matches.count() > 0:
+                    entry = matches[0]
+                else:
+                    entry = Event()
                 entry.owner = request_user
                 entry.start = item['start']
                 entry.end = item['end']
@@ -105,7 +104,8 @@ def post_events(request):
     
     for item in JSONDecoder().decode(request.raw_post_data):
         try:
-            entry = Event.objects.filter(owner=request_user, start=item['start'], type=item['type'],  entityid=item['entityid'],  entitytype=item['entitytype'],client=item['client'])
+            entry = Event.objects.filter(owner=request_user, start=item['start'], type=item['type'],  entityid=item['entityid'],
+                                         entitytype=item['entitytype'],client=item['client'])
             if entry.count() == 0 :
                 print "creating new event %s -> %s " % (repr(item['start']),item['entityid'])
                 entry = Event();

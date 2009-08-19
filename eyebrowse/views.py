@@ -114,10 +114,20 @@ def _privacy_save(request, form):
     privacysettings.save()
     return user
 
-@login_required
+
+## emax changed this because plugin needs to grab these
+## @login_required
 def get_privacy_urls(request):
-    username = request.user.username
-    user = get_object_or_404(User, username=username)
+
+    ## added by emax:
+    import eyebrowse.plugin_views
+    user = eyebrowse.plugin_views.authenticate_user(request)
+    if user is None:
+        json_response({ "code":404, "error": "Username or password incorrect" }) 
+    
+    #username = request.user.username
+    #user = get_object_or_404(User, username=username)
+    
     privacysettings = user.privacysettings_set.all()[0] #  
     
     lst = ""
@@ -132,10 +142,17 @@ def get_privacy_urls(request):
 
     return json_response({ "code":200, "results": lst }) 
 
-@login_required
+## @login_required
 def delete_privacy_url(request):
-    username = request.user.username
-    user = get_object_or_404(User, username=username)
+    ## added by emax:
+    import eyebrowse.plugin_views
+    user = eyebrowse.plugin_views.authenticate_user(request)
+    if user is None:
+        json_response({ "code":404, "error": "Username or password incorrect" }) 
+    
+    #username = request.user.username
+    #user = get_object_or_404(User, username=username)
+
     privacysettings = user.privacysettings_set.all()[0] 
 
     inpt = request.GET['input'].strip()
@@ -148,12 +165,20 @@ def delete_privacy_url(request):
     privacysettings.save()
     return HttpResponseRedirect('/settings/')
 
-@login_required
+## @login_required
 def add_privacy_url(request):
-    import urlparse
-    username = request.user.username
-    user = get_object_or_404(User, username=username)
 
+
+    ## added by emax:
+    import eyebrowse.plugin_views
+    user = eyebrowse.plugin_views.authenticate_user(request)
+    if user is None:
+        json_response({ "code":404, "error": "Username or password incorrect" }) 
+    
+    #username = request.user.username
+    #user = get_object_or_404(User, username=username)
+        
+    import urlparse    
     privacysettings = user.privacysettings_set.all()[0]
 
     listmode = privacysettings.listmode

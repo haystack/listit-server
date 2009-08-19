@@ -101,8 +101,8 @@ urlpatterns = patterns('',
                        #  (r'^admin/', include(admin.site.urls)),
 
                        #TEMPORARY
-                       (r'^pluginhover/$', pluginhover),  
-                       (r'^pluginlogin/$', pluginlogin),
+                       # (r'^pluginhover/$', pluginhover),  
+                       # (r'^pluginlogin/$', pluginlogin),
 
                        ## plugin_views
                        (r'^plugin_login$', eyebrowse.plugin_views.login),  
