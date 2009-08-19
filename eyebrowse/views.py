@@ -890,8 +890,10 @@ def get_global_profile_queries(request):
     def fetch_data(from_msec, to_msec):
         totalTime  = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec).aggregate(Sum('duration'))
         number =  PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec).count()
-        average = int((totalTime['duration__sum'])/1000)/int(number)
-        return { 'number': number, 'totalTime': int(totalTime['duration__sum']/1000), 'average': average }
+        if number > 0:
+            average = int((totalTime['duration__sum'])/1000)/int(number)
+            return { 'number': number, 'totalTime': int(totalTime['duration__sum']/1000), 'average': average }
+        return { 'number': 0, 'totalTime': 0, 'average': 0 }
 
     results = fetch_data(from_msec_rounded, to_msec_rounded)
     return json_response({ "code":200, "results": results });
@@ -906,8 +908,10 @@ def get_page_profile_queries(request):
     def fetch_data(from_msec, to_msec, inputURL):
         totalTime  = PageView.objects.filter(url=inputURL,startTime__gte=from_msec,endTime__lte=to_msec).aggregate(Sum('duration'))
         number =  PageView.objects.filter(url=inputURL,startTime__gte=from_msec,endTime__lte=to_msec).count()
-        average = int((totalTime['duration__sum'])/1000)/int(number)
-        return { 'number': number, 'totalTime': int(totalTime['duration__sum']/1000), 'average': average }
+        if number > 0:
+            average = int((totalTime['duration__sum'])/1000)/int(number)
+            return { 'number': number, 'totalTime': int(totalTime['duration__sum']/1000), 'average': average }
+        return { 'number': 0, 'totalTime': 0, 'average': 0 }
 
     results = fetch_data(from_msec_rounded, to_msec_rounded, inputURL)
     return json_response({ "code":200, "results": results });
