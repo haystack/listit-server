@@ -72,10 +72,6 @@ def post_events(request):
     
     for item in JSONDecoder().decode(request.raw_post_data):
         try:
-            if len(user_events.filter(start=item['start'],entityid=item["entityid"])) > 0:
-                # print "event log : skipping duplicate entry %d " % item['start'];
-                continue
-                ##print "Committing %s item %s " % (entry.owner.email,repr(item))
             entry = Event.objects.filter(owner=request_user,
                                          start=item['start'],
                                          type=item['type'],

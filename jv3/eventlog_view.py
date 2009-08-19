@@ -14,7 +14,7 @@ from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note, NoteForm
 import jv3.utils
 from jv3.models import Event
-from jv3.utils import get_most_recent, basicauth_get_user_by_emailaddr
+from jv3.utils import get_most_recent, basicauth_get_user_by_emailaddr,json_response
 import time
 from django.template.loader import get_template
 import sys
@@ -45,10 +45,12 @@ class EventLogCollection(Collection):
 
     def _handle_max_log_request(self,user,request):
         ## return the max id (used by the client to determine which recordsneed to be retrieved.)
+        print "_handle_max_log_request get client is : %s "  % self._get_client(request)
         most_recent_activity = Event.objects.filter(owner=user,client=self._get_client(request)).order_by("-start");
         if most_recent_activity:
             return HttpResponse(JSONEncoder().encode({'value':int(most_recent_activity[0].start)}), self.responder.mimetype)
         #print "returning 404-------"
+        print "no activity found, returning 404"
         return self.responder.error(request, 404, ErrorDict({"value":"No activity found"}));
 
     def _get_client(self,request):
@@ -90,3 +92,40 @@ class EventLogCollection(Collection):
         response = HttpResponse(JSONEncoder().encode({'committed':committed}), self.responder.mimetype)
         response.status_code = 200;
         return response
+
+def post_events(request):
+    """
+    lets the user post new activity in a giant single array of activity log elements
+    """
+    request_user = authenticate_user(request);
+    if not request_user:
+        return json_response({"error":"Incorrect user/password combination"}, 401)
+
+    committed = [];
+    
+    for item in JSONDecoder().decode(request.raw_post_data):
+        try:
+            entry = Event.objects.filter(owner=request_user, start=item['start'], type=item['type'],  entityid=item['entityid'],  entitytype=item['entitytype'],client=item['client'])
+            if entry.count() == 0 :
+                print "creating new event %s -> %s " % (repr(item['start']),item['entityid'])
+                entry = Event();
+                entry.owner = request_user
+                entry.start = item['start']
+                entry.type = item['type']
+                entry.entityid = item['entityid']
+                entry.entitytype = item['entitytype']
+                entry.client = item['client']
+            else:
+                entry = entry[0]
+                print "updating old event %s " % entry.start
+
+
+            entry.end = item['end']
+            entry.entitydata = item.get('entitydata',"")
+            entry.save()
+            committed.append(item['start'])
+        except StandardError, error:
+            print "Error with entry %s item %s " % (repr(error),repr(item))
+            pass
+    return json_response({"committed":committed}, 200)
+    
