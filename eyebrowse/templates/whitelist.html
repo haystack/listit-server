@@ -36,21 +36,21 @@ width:200px;
 	};
 function addPrivacyURL(url){
 	var urlEncoded = encodeURIComponent(url);
-	jQuery("<li>" + url + "<a href=\"http://localhost:8000/delete_privacy_url/?input=" + url + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").appendTo('#urladdul');
-	jQuery.get("http://localhost:8000/add_privacy_url/", {input:url}); 
+	jQuery("<li>" + url + "<a href=\"/delete_privacy_url/?input=" + url + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").appendTo('#urladdul');
+	jQuery.get("/add_privacy_url/", {input:url}); 
 };
 
 jQuery(document).ready(function(){
     initMenu();
     // no params :(
-    jQuery.get("http://localhost:8000/get_privacy_urls/", {}, 
+    jQuery.get("/get_privacy_urls/", {}, 
 	       function(data){
 		 if (data.code == 200) {
 		   var html = "";
 		   for (var i = 0; i < data.results.length; i++) {
 		     html += "<li>";
 		     html += data.results[i];
-		     html += "<a href=\"http://localhost:8000/delete_privacy_url/?input=" + data.results[i] + "\"><img src=\"/lib/img/cancel_16.png\"/></a>";
+		     html += "<a href=\"/delete_privacy_url/?input=" + data.results[i] + "\"><img src=\"/lib/img/cancel_16.png\"/></a>";
 		     html += "</li>";
 		     //console.log(data.results[i]);
 		   }
@@ -69,7 +69,7 @@ jQuery(document).ready(function(){
 	    data:{input:input},
 	    success:function(data){
 	    if (data.host && data.host.length > 0) {
-	      jQuery("<li>" + data.host + "<a href=\"http://localhost:8000/delete_privacy_url/?input=" + data.host + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").appendTo('#urladdul');
+	      jQuery("<li>" + data.host + "<a href=\"/delete_privacy_url/?input=" + data.host + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").appendTo('#urladdul');
 	    }
 	  },
 	    error:function() {}
@@ -134,7 +134,7 @@ jQuery(document).ready(function(){
           <label for="list">
             Add URL:
           </label>
-		  <input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:227px;" value="http://localhost:8000/" onkeypress="{if (event.keyCode==13)addURL()}"/>
+		  <input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:227px;" value="nytimes.com/" onkeypress="{if (event.keyCode==13)addURL()}"/>
 		  <input type="submit" id="urladd" value="add" onkeypress="{if (event.keyCode==13)addURL()}" onClick="addURL()" style="width:auto;" />
           <ul id="urladdul" style="padding-left:7px;">
           </ul>
