@@ -167,17 +167,12 @@ def delete_privacy_url(request):
 
 ## @login_required
 def add_privacy_url(request):
-
-
     ## added by emax:
     import eyebrowse.plugin_views
     user = eyebrowse.plugin_views.authenticate_user(request)
     if user is None:
         json_response({ "code":404, "error": "Username or password incorrect" }) 
     
-    #username = request.user.username
-    #user = get_object_or_404(User, username=username)
-        
     import urlparse    
     privacysettings = user.privacysettings_set.all()[0]
 
