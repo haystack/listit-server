@@ -197,7 +197,6 @@ var dateSlider = ({
 						  ctx.strokeStyle = "#0f0f0f";
 						  var fooHour = 0;
 						  var numHrs = 7;
-						  //console.log(this_.endTime);
 						  var endDateVal = (Math.floor((this_.endTime / (this_.viz.zoom / numHrs))) * (this_.viz.zoom / numHrs)) + 1800000; 
 						  
 						  for (var hrCount = 0; hrCount < numHrs; hrCount++) {
@@ -356,9 +355,11 @@ var lineGraphFactoryLite = ({
 									ctx.beginPath();
 									ctx.lineWidth = 2;
 									ctx.strokeStyle = this_.color;
-									ctx.moveTo(this_.xPoints[0], this_.yPoints[0]);
-									for (var y = 1; y < this_.yPoints.length; y++) {
-										ctx.lineTo(this_.xPoints[y], this_.yPoints[y]);
+									if (this_.xPoints[0]){
+										ctx.moveTo(this_.xPoints[0], this_.yPoints[0]);
+										for (var y = 1; y < this_.yPoints.length; y++) {
+											ctx.lineTo(this_.xPoints[y], this_.yPoints[y]);
+										}										
 									}
 									// the fill graph has no key 
 									if (this_.fillGraph){
@@ -502,7 +503,11 @@ var lineGraphFactory = ({
 								this.OGstartTime = viz.startTime;
 								this.OGendTime = viz.endTime;
 								this.interp = viz.interp;
-								this.padding = params.padding;
+								if (params.windowWidth) {
+									this.padding = params.padding;
+								} else {
+									this.padding = 310; // for the friends graph
+								}
 								this.topPadding = params.topPadding;
 								this.dashed = params.dashed;
 								this.color = params.color;
@@ -530,9 +535,12 @@ var lineGraphFactory = ({
 								ctx.beginPath();
 								ctx.lineWidth = 2;
 								ctx.strokeStyle = this_.color;
-								ctx.moveTo(this_.xPoints[0], this_.yPoints[0]);
-								for (var y = 1; y < this_.yPoints.length; y++) {
-									ctx.lineTo(this_.xPoints[y], this_.yPoints[y]);
+
+								if (this_.xPoints[0] && this_.yPoints[0]){
+									ctx.moveTo(this_.xPoints[0], this_.yPoints[0]);
+									for (var y = 1; y < this_.yPoints.length; y++) {
+										ctx.lineTo(this_.xPoints[y], this_.yPoints[y]);
+									}
 								}
 								ctx.stroke();
 								ctx.closePath();
@@ -636,7 +644,6 @@ var lineGraphFactory = ({
 									}
 									return webHrArray;
 								}();
-
 								for (var i = 1; i < this_.count; i++) {
 									this_.xPoints.push(this_.windowWidth * ((fooX[i] - this_.startTime) / (this_.endTime - this_.startTime)));
 									this_.yPoints.push((this_.padding - this_.topPadding) * ((-(newWebViewed[i]) - this_.minData) / (this_.maxData - this_.minData)) + this_.padding);

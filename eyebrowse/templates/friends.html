@@ -18,6 +18,7 @@
             this.canvas = canvas;
             this.windowWidth = windowWidth;
             this.windowHeight = windowHeight;
+            this.OGwindowHeight = windowHeight;
             this.timeZoneCorrect = timeZoneCorrect;
             this.endDate = new Date(endTime);
             if (startDate) {
@@ -74,11 +75,13 @@
 			var friendLineGraph = []; // kinda silly to do this but makes sure names are all unique
 
 			this_.windowHeight = this_.OGwindowHeight;
-
 			var friendLineGraph = newify(lineGraphFactory, this_, {
 											 canvas: this_.graphCanvas,
+											 windowHeight: this_.windowHeight,
+											 windowWidth: this_.windowWidth,
 											 xOffset: 0,
 											 yOffset: 0,
+											 padding: 0,
 											 topPadding: 10,
 											 padding: this_.windowHeight - 63,
 											 color: selectColorForDomain(newData.username),
@@ -91,17 +94,18 @@
 
 			this_.windowHeight = height;
 			var wwwBars = newify(statusFactory, this_, {
-										startTime: this_.startTime,
-										endTime: this_.endTime,
-										xOffset: 0,
-										yOffset: 0,
-										marginTop: 25 * i + 18,
-										height: 20,
-										staticStatic: true,
-     									fooTxtY: 450,
-									    fooTxtX: (getClientCords().width - this_.windowWidth)/2,
-										data: newData.events
-									});
+									 startTime: this_.startTime,
+									 endTime: this_.endTime,
+									 xOffset: 0,
+									 yOffset: 0,
+									 padding:0,
+									 marginTop: 25 * i + 18,
+									 height: 20,
+									 staticStatic: true,
+     								 fooTxtY: 450,
+									 fooTxtX: (getClientCords().width - this_.windowWidth)/2,
+									 data: newData.events
+								 });
 			this_.statusArray.push(wwwBars);            
 			var fooColor = undefined;
 			fooColor = selectColorForDomain(newData.username);

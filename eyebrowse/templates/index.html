@@ -53,7 +53,8 @@
 								   html += "<li>";
 								   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
 								   html += "<br /><h7>" + timeCounterLong((this_.endTimeRecent - newData[i].end) / 1000) + " ago by ";
-								   html += "<a href=\"/user/" + newData[i].user + "/\">" + newData[i].user + "</a></h7>";
+								   // would like to have this in here but username is not returned from the server right now
+								   //  html += "<a href=\"/user/" + newData[i].user + "/\">" + newData[i].user + "</a></h7>";
 								   html += "</li>";
 								   jQuery("#latestviews").append(html);
 								   jQuery(".listItemSmall:first").slideDown("slow");
@@ -128,7 +129,7 @@
 											 yOffset: 0,
 											 marginTop: 25 * i + 11,
 											 height: 20,
-											 color: "#0000ff",
+											 color: "#00ff76",
 											 staticStatic: true,
 											 data: fooData,
 											 noHover: true
@@ -150,7 +151,7 @@
 									 yOffset: 0,
 									 marginTop: 55,
 									 height: 20,
-									 color: "#0000ff",
+									 color: "#00ff76",
 									 staticStatic: true,
 									 data: newData,
 									 fooTxtY: 390,
