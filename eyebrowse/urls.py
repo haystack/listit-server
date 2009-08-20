@@ -93,7 +93,7 @@ urlpatterns = patterns('',
                        (r'^lib/(?P<path>.*)$', 'django.views.static.serve',
                         { 'document_root': lib }),
 
-                       (r'^uploads/(?P<path>.*)$', 'django.views.static.serve',
+                       (r'^profiles/(?P<path>.*)$', 'django.views.static.serve',
                         { 'document_root': profile_uploads }),
 
                        # admin
