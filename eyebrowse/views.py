@@ -323,7 +323,7 @@ def friends(request, username):
     friends_results = []
     for friend in friends:
         friends_results.append( {"username": friend.user.username, "number": Event.objects.filter(owner=friend.user,type="www-viewed").count()} )
-    friends_results.sort(key=lambda x:(x["username"], x["number"]))
+    friends_results.sort(key=lambda x: -x["number"])
     
     request_user = request.user.username
 
@@ -363,7 +363,7 @@ def user_page(request, username):
     friends_results = []
     for friend in friends:
         friends_results.append( {"username": friend.user.username, "number": Event.objects.filter(owner=friend.user,type="www-viewed").count()} )
-    friends_results.sort(key=lambda x:(x["username"], x["number"]))
+    friends_results.sort(key=lambda x: -x["number"])
     
     tags = ' '.join(
         tag.name for tag in enduser.tags.all()
@@ -474,7 +474,7 @@ def profile_save_page(request):
     friends_results = []
     for friend in friends:
         friends_results.append( {"username": friend.user.username, "number": Event.objects.filter(owner=friend.user,type="www-viewed").count()} )
-    friends_results.sort(key=lambda x:(x["username"], x["number"]))
+    friends_results.sort(key=lambda x:-x["number"])
 
     if request.method == 'POST':
         form = ProfileSaveForm(request.POST, request.FILES)
@@ -549,15 +549,15 @@ def _profile_save(request, form):
             enduser.photo.delete()
         else:
             pass
-        try:
+        
+        if True:
             # save the original image   
             img = request.FILES['photo']
             name = "%d.%s"% (enduser.user.id, img.name.strip().split(".")[-1])
             file_exts = ('.png', '.jpg', '.jpeg',)
             if splitext(img.name)[1].lower() not in file_exts:
                 print file_exts
-                raise forms.ValidationError("Only following Picture types accepted: %s"
-                                            % ", ".join([f.strip('.') for f in file_exts]))
+                raise forms.ValidationError("Only following Picture types accepted: %s" % ", ".join([f.strip('.') for f in file_exts]))
             else:
                 enduser.photo.save(name, img)
 
@@ -582,9 +582,6 @@ def _profile_save(request, form):
 
             enduser.photo.delete()
             enduser.photo.save(suf.name, suf)            
-        except:
-            print sys.exc_info()
-            pass
 
     enduser.save()
     return user
@@ -1294,13 +1291,15 @@ def get_top_users(request, n):
     # this is to give the cache a unique reference
     bozon = "bozon"
 
-    @cache.region('top_users_long_term')
+    ## @cache.region('top_users_long_term')
     def fetch_data(from_msec, to_msec, bozon):
         results = []
         for user in users:
             results.append( {"user": user.username, "number": PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec).count() } )
-            
-        results.sort(key=lambda x:(x["number"], x["user"]))
+
+        # brenn's precious code:
+        #results.sort(key=lambda x:(x["number"], x["user"]))
+        results.sort(key=lambda x:-x["number"])
         return results[0:n]
         
     return_results = fetch_data(from_msec_rounded, to_msec_rounded, bozon)
@@ -1323,8 +1322,10 @@ def get_top_users_for_url(request, n):
         for user in users:
             number = PageView.objects.filter(user=user,url=url,startTime__gte=from_msec,endTime__lte=to_msec).count()
             results.append( {"user": user.username, "number": number } )
+
             
-        results.sort(key=lambda x:(x["user"], x["number"]))
+        #results.sort(key=lambda x:(x["user"], x["number"]))
+        results.sort(key=lambda x: -x["number"])
         return results[0:n]
 
     return_results = fetch_data(from_msec_rounded, to_msec_rounded, get_url, barbar)

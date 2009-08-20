@@ -90,17 +90,11 @@ urlpatterns = patterns('',
                        (r'^settings/$',  privacy_settings_page),
                        (r'^userprivacy/$', userprivacy),
 
-                       (r'^lib/(?P<path>.*)$', 'django.views.static.serve',
-                        { 'document_root': lib }),
-
-                       (r'^profiles/(?P<path>.*)$', 'django.views.static.serve',
-                        { 'document_root': profile_uploads }),
-
-                       # admin
+                       # admin SHOULD DIE PERMANENTLY
                        #  (r'^admin/doc/', include('django.contrib.admindocs.urls')),
                        #  (r'^admin/', include(admin.site.urls)),
 
-                       #TEMPORARY
+                       #TEMPORARY IS DEAD
                        # (r'^pluginhover/$', pluginhover),  
                        # (r'^pluginlogin/$', pluginlogin),
 
@@ -110,3 +104,11 @@ urlpatterns = patterns('',
                        (r'^plugin_post_events/$', eyebrowse.plugin_views.post_events),
 
 )
+
+## enable static serving for standalone server
+if settings.DEVELOPMENT:
+    urlpatterns += patterns('',
+                            (r'^lib/(?P<path>.*)$', 'django.views.static.serve',{ 'document_root': lib }),
+                            (r'^profiles/(?P<path>.*)$', 'django.views.static.serve', { 'document_root': profile_uploads }))
+
+    
