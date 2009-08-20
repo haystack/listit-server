@@ -181,11 +181,11 @@
         },
 		refresh: function(){
             var this_ = this;
-			var url = jQuery("#urladdtextinput").val();
-			this_.getProfile(this_.startTime, this_.endTime, url); 
-			this_.initUrlGraph(url);
-			this_.initSmallGraphs(this_.startTime, this_.endTime, url); 
-			this_.initTopUsers(this_.startTime, this_.endTime, url);
+			this_.url = jQuery("#urladdtextinput").val();
+			this_.getProfile(this_.startTime, this_.endTime, this_.url); 
+			this_.initUrlGraph(this_.url);
+			this_.initSmallGraphs(this_.startTime, this_.endTime, this_.url); 
+			this_.initTopUsers(this_.startTime, this_.endTime, this_.url);
 		}
     };
 jQuery(document).ready(function(){

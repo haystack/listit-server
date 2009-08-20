@@ -55,7 +55,7 @@
 								   html += "<br /><h7>" + timeCounterLong((this_.endTimeRecent - newData[i].end) / 1000) + " ago by ";
 								   html += "<a href=\"/user/" + newData[i].user + "/\">" + newData[i].user + "</a></h7>";
 								   html += "</li>";
-								   jQuery("#latestviews").prepend(html);
+								   jQuery("#latestviews").append(html);
 								   jQuery(".listItemSmall:first").slideDown("slow");
 							   }
 						   }
