@@ -53,8 +53,10 @@
 						jQuery("#loadimg1").hide();
                         if (data.code == 200) {
 							document.getElementById("status").setAttribute("height", data.results.length * 40);
-							for (var i = 0; i < data.results.length; i++){
-								viz.initLineGraph(data.results[i], startTime, endTime, viz, i, data.results.lenght * 40);
+	
+							viz.initLineGraph(data.results[0], startTime, endTime, viz, 0, data.results.length * 40, true);
+							for (var i = 1; i < data.results.length; i++){
+								viz.initLineGraph(data.results[i], startTime, endTime, viz, i, data.results.length * 40, false);
 							}
 							viz.setupDraw();
                         }
@@ -69,9 +71,8 @@
             }(this.startTime, this.endTime, this); // passing this around like a hot 
             this.getTopPages(this.endTime - zoom, this.endTime);
         },
-        initLineGraph: function(newData, startTime, EndTime, viz, i, height){
+        initLineGraph: function(newData, startTime, EndTime, viz, i, height, drawKey){
 			var this_ = this;
-
 			var friendLineGraph = []; // kinda silly to do this but makes sure names are all unique
 
 			this_.windowHeight = this_.OGwindowHeight;
@@ -86,11 +87,17 @@
 											 padding: this_.windowHeight - 63,
 											 color: selectColorForDomain(newData.username),
 											 dashed: false,
-											 key: true,
+											 key: drawKey,
 											 avg: false,
 											 data: newData.events,
-            								 label: "websites viewed"
+            								 label: "websites viewed",
+											 maxData: this_.maxData
 										 });
+												
+			// this is a bit nasty but it lets the 1st init set the maxData for all
+			if (!this_.maxData){
+				this_.maxData = friendLineGraph.maxData;
+			}
 
 			this_.windowHeight = height;
 			var wwwBars = newify(statusFactory, this_, {

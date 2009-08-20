@@ -502,6 +502,8 @@ var lineGraphFactory = ({
 								this.endTime = viz.endTime;
 								this.OGstartTime = viz.startTime;
 								this.OGendTime = viz.endTime;
+								this.minData = 0;
+								this.maxData = params.maxData;
 								this.interp = viz.interp;
 								this.padding = params.padding;
 								this.topPadding = params.topPadding;
@@ -627,9 +629,10 @@ var lineGraphFactory = ({
 									return counts;
 								}();
 
-								this_.minData = 0;
-								this_.maxData = newWebViewed.max();
-								if (this_.maxData < 1) {this_.maxData = 10;} // cant be zero or the world will explode. i chose 10 for shits
+								if (!this_.maxData){
+									this_.maxData = newWebViewed.max();
+									if (this_.maxData < 1) {this_.maxData = 10;} // cant be zero or the world will explode. i chose 10 for shits
+								}
 
 								var fooX = function(){
 									var foo = fooStartTime;

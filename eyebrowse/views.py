@@ -1352,7 +1352,7 @@ def get_users_most_recent_urls(request, username, n):
 
     return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits[0:n] ] });    
 
-# complex to cache as will have to re-run if they start following more users        
+# complex to cache as will run if they start following more users        
 def get_following_views(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
@@ -1367,16 +1367,17 @@ def get_following_views(request, username):
     def fetch_data(from_msec, to_msec, user, following):
         friends_results = []
 
-        for friend in following:
-            friend_user = get_object_or_404(User, username=friend.username)
-            events = PageView.objects.filter(user=friend_user,startTime__gte=from_msec,endTime__lte=to_msec)
-            friends_results.append( {"username": friend.username, "events": [ defang_pageview(evt) for evt in events ] } )
-            
         # add the request.user
         user_events = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
         friends_results.append( {"username": enduser.user.username, "events": [ defang_pageview(evt) for evt in user_events ] } )
-
-        friends_results.sort(key=lambda x:(x["username"], x["username"]))
+        
+        # add friends
+        for friend in following:
+            #friend_user = get_object_or_404(User, username=friend.username)
+            events = PageView.objects.filter(user=friend,startTime__gte=from_msec,endTime__lte=to_msec)
+            friends_results.append( {"username": friend.username, "events": [ defang_pageview(evt) for evt in events ] } )
+            
+        #friends_results.sort(key=lambda x:(x["username"], x["username"]))
         return friends_results
 
     results = fetch_data(from_msec_rounded, to_msec_rounded, user, following)
