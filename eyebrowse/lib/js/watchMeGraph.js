@@ -503,11 +503,7 @@ var lineGraphFactory = ({
 								this.OGstartTime = viz.startTime;
 								this.OGendTime = viz.endTime;
 								this.interp = viz.interp;
-								if (params.windowWidth) {
-									this.padding = params.padding;
-								} else {
-									this.padding = 310; // for the friends graph
-								}
+								this.padding = params.padding;
 								this.topPadding = params.topPadding;
 								this.dashed = params.dashed;
 								this.color = params.color;
