@@ -3,6 +3,9 @@
 {% block imports %}
 <style>
   @import url("/lib/css/datepicker.css");
+	h6{
+		margin-bottom:28px;
+	}
 </style>
 <script src="/lib/js/watchMeGraph.js">
 </script>
@@ -113,7 +116,8 @@
 			var leftHTML = "";
 			var rightHTML = "";
 			var centerHTML = "<h6 style=\"padding:0px\"><a href=\"" + this_.url + "\">" + this_.url + "</a></h6>";
-			for (var i =0; i < data.pre.length; i++){
+
+			for (var i = 0; i < data.pre.length; i++){
 				leftHTML += "<h6><a href=\"" + data.pre[i][0] + "\">" + data.pre[i][0] + "</a></h6><br />";
 				rightHTML += "<h6><a href=\"" + data.next[i][0] + "\">" + data.next[i][0] + "</a></h6><br />";
 			}			
@@ -126,8 +130,8 @@
 										canvas: document.getElementById("pathgraph"),
 										windowHeight: 253,
 										windowWidth: 950,
-										lineWidth: 4,
-										minH: 180,
+										lineWidth: 5,
+										minH: 190,
 										maxH: 300, // hue
 										data: data
 									});			

@@ -907,7 +907,10 @@ var compareFactory  = ({
 							   var this_ = this;
 							   var startY = 20;
 							   for (var i = 0; i < this_.data.pre.length; i++){
-								   ctx.lineWidth = this_.lineWidth * ((this_.data.pre[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin)) + 0.2;
+								   if (!this_.data.pre[i][1]){
+									   continue;
+								   }
+								   ctx.lineWidth = this_.lineWidth * ((this_.data.pre[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin)) + 0.4;
 								   ctx.strokeStyle = "hsl(" + (this_.maxH * ((this_.data.pre[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin))) + this_.minH + ", 100%, 50%)";
 								   
 								   ctx.beginPath();
@@ -920,9 +923,11 @@ var compareFactory  = ({
 
 							   startY = 20;
 							   for (var i = 0; i < this_.data.next.length; i++){
-								   ctx.lineWidth = this_.lineWidth * ((this_.data.pre[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin)) + 0.1;
-								   ctx.strokeStyle = "hsl(" + (this_.maxH * ((this_.data.pre[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin))) + this_.minH + ", 100%, 50%)";
-
+								   if (!this_.data.next[i][1]){
+									   continue;
+								   }
+								   ctx.lineWidth = this_.lineWidth * ((this_.data.next[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin)) + 0.4;
+								   ctx.strokeStyle = "hsl(" + (this_.maxH * ((this_.data.next[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin))) + this_.minH + ", 100%, 50%)";			  
 								   ctx.beginPath();
 								   ctx.moveTo(this_.windowWidth - 250, startY );
 								   ctx.lineTo(this_.windowWidth/2, this_.windowHeight/2);
