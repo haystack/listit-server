@@ -751,4 +751,9 @@ a.selected {
    top:22px;
    left:0px;
    z-index:-1;
+} #faq p {
+	font-size:11pt;
+	line-height:18px;
+	color:#444444;
+	margin-top:12px;
 }

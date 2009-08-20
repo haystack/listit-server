@@ -76,7 +76,7 @@
 								   html += "<h6><b><a href=\"/user/" + newData[i].user +  "/\">" + newData[i].user + "</a></b></h6>";
 								   html += "<br /><h7>" + newData[i].number + " webpages today</h7>";
 								   html += "</li>";
-								   jQuery("#topusers").prepend(html);
+								   jQuery("#topusers").append(html);
 								   jQuery(".listItemSmall:first").slideDown("slow");
 							   }
 						   }

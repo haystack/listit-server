@@ -285,12 +285,14 @@ jQuery(document).ready(function(){
             </p>
             <fieldset>
                 <form method="post" action=".">
-                    {{ form.as_p }}<input type="submit" value="register" id="registerSubmit" style="margin-top:10px;"/>
+                  {{ form.as_p }}
+				  <input type="submit" value="register" id="registerSubmit" style="margin-top:60px;"/>
                 </form>
             </fieldset>
-            <div class="subhead" style="font-size:1em; margin-top:-8px; margin-bottom:10px;">
-                by registering you agree to the <a href="/terms/" style="font-size:1em">terms and conditions and data use policies</a>
-            </div>
+				  <div class="subhead" style="position:relative; top:-115px; font-size:11pt;">
+					by registering you agree to the <a href="/terms/" style="font-size:1em">terms and conditions and data use policies</a>
+				  </div>				  
+
         </div>
     </div>
     <div id="messageSent">
