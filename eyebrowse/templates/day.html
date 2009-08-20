@@ -161,8 +161,8 @@ jQuery(document).ready(function(){
 						   myHeight = 510;
 						   document.getElementById("main").setAttribute("width", myWidth);
 						   document.getElementById("main").setAttribute("height", myHeight);
-						   jQuery("#maxDate").css("width", myWidth - 70);
-						   jQuery("#maxDateTwo").css("width", myWidth - 70);
+						   jQuery("#maxDate").css("width", myWidth - 50);
+						   jQuery("#maxDateTwo").css("width", myWidth - 50);
 						   jQuery("#datepicker").val(currentDate.format('mm/dd/yyyy'));
 						   
 						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), myWidth, myHeight, 0, currentDate.valueOf(), 1728000000); // 20 days 1296000000); // 15 days  2592000000); // 30 days
@@ -171,51 +171,56 @@ jQuery(document).ready(function(){
 {% endblock %}
 {% block content %}
 	<div class="loader" id="loadimg1"></div>
-<div id="dayHeading">
-    <div class="centerLabel">
-    </div>
-    <div class="dateNav" style="display:inline-block; font-size:0.8em; color:#666666;">
+    {% ifnotequal request_user username %}	
+    <div id="profile_content" style="margin-top:10px; margin-left:20px;margin-bottom-0px;padding:0px;height:80px;">
+        <img src="/profiles/{{ id }}.jpg" class="profileimage"/>
+        <div class="userhead">
+            <h1><a href="/profile/{{ username }}/">{{ username }}</a></h1>
+            <br/>
+            <div class="underuser">
+                <a href="/graph/{{ username }}/">timeline</a>&nbsp; &#124; &nbsp;<a href="/days/{{ username }}/">20 days</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ username }}/">friends</a>
+            </div>
+        </div>
+	</div>
+    {% endifnotequal %}
+	<div id="dayHeading">
+      <div class="centerLabel">
+      </div>
+      <div class="dateNav" style="display:inline-block; font-size:0.8em; color:#666666;">
         <div id="minDate" style="width:100px; display:inline-block">
         </div>
-        <div id="maxDate" style="width:100px; float:right; text-align:right; display:inline-block;">
+        <div id="maxDate" style="width:100px; display:inline-block; text-align:right; display:inline-block;">
         </div>
-    </div>
-    <div class="centerLabel" style="float:right;">
-    </div>
-</div>
-<div id="fooDate" class="days" style="float:left; display:inline-block: width:100px">
-</div>
-<div id="fooTotal" class="days" style="float:right; display:inline-block:width:100px">
-</div>
-<canvas id="main">
-</canvas>
-<div class="fooTxt" id="fooTxt">
-</div>
-<br/>
-<div class="centerLabel">
-</div>
-<div class="dateNav">
-    <div id="minDateTwo" style="width:100px; display:inline-block; margin-left:30px;">
-    </div>
-    <div id="maxDateTwo" style="width:100px; float:right; text-align:right; display:inline-block;">
-    </div>
-</div>
-<div id="dateselector">
-<a href="javascript:self.viz.arrowBack()"><img src="/lib/img/arrow_sans_left_16.png" style="vertical-align:middle"/></a>
-    <input id="datepicker" class="datepicker" value="06/14/2008" type="text" />
-<a href="javascript:self.viz.arrowForward()"><img src="/lib/img/arrow_sans_right_16.png" style="vertical-align:middle"/></a>
-    <div id="messageSent">
+      </div>
+      <div class="centerLabel" style="float:right;">
+      </div>
+	</div>
+	<div id="fooDate" class="days" style="float:left; display:inline-block: width:100px">
+	</div>
+	<div id="fooTotal" class="days" style="float:right; display:inline-block:width:100px">
+	</div>
+	<canvas id="main">
+	</canvas>
+	<div class="fooTxt" id="fooTxt">
+	</div>
+	<br/>
+	<div class="centerLabel">
+	</div>
+	<div class="dateNav">
+      <div id="minDateTwo" style="width:100px; display:inline-block; margin-left:30px;">
+      </div>
+      <div id="maxDateTwo" style="width:100px; display:inline-block; text-align:right; display:inline-block;">
+      </div>
+	</div>
+	<div id="dateselector">
+	  <a href="javascript:self.viz.arrowBack()"><img src="/lib/img/arrow_sans_left_16.png" style="vertical-align:middle"/></a>
+      <input id="datepicker" class="datepicker" value="06/14/2008" type="text" />
+	  <a href="javascript:self.viz.arrowForward()"><img src="/lib/img/arrow_sans_right_16.png" style="vertical-align:middle"/></a>
+      <div id="messageSent">
         robots do not know the future :( 
         <br/>
         &#8230;yet
-    </div>
-
-    {% ifnotequal request_user username %}
-    <br/>
-    <div class="underuser" style="margin-top:13px; margin-bottom:8px;">
-        <h3 style="display:inline-block; font-size:1.1em"><a href="/profile/{{ username }}/" style="text-decoration:none">{{ username }}</a>&#58;&nbsp;</h3>
-        <a href="/graph/{{ username }}/">timeline</a>&nbsp; &#124; &nbsp;<a href="/days/{{ username }}/">20 days</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ username }}/">friends</a>
-        {% endifnotequal %}
+      </div>
     </div>
 </div>
 {% endblock %}
