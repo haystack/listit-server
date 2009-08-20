@@ -51,7 +51,12 @@
 							   for (var i = 0; i < newData.length; i++) {
 								   var html = "";
 								   html += "<li>";
-								   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
+								   if (newData[i].title){
+									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
+								   }
+								   else {
+									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url + "</a></b></h6>";
+								   }								   
 								   html += "<br /><h7>" + timeCounterLong((this_.endTimeRecent - newData[i].end) / 1000) + " ago";
 								   // would like to have this in here but username is not returned from the server right now
 								   //  html += "by <a href=\"/user/" + newData[i].user + "/\">" + newData[i].user + "</a></h7>";
