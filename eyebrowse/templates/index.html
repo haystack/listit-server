@@ -52,7 +52,7 @@
 								   var html = "";
 								   html += "<li>";
 								   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
-								   html += "<br /><h7>" + timeCounterLong((this_.endTime - newData[i].end) / 1000) + " ago by ";
+								   html += "<br /><h7>" + timeCounterLong((this_.endTimeRecent - newData[i].end) / 1000) + " ago by ";
 								   html += "<a href=\"/user/" + newData[i].user + "/\">" + newData[i].user + "</a></h7>";
 								   html += "</li>";
 								   jQuery("#latestviews").prepend(html);
@@ -266,7 +266,7 @@ jQuery(document).ready(function(){
 <div id="profile_content" style="margin-top:0px; margin-left:auto;margin-right:auto;">
     <div class="logo">
         <img src="lib/img/eyebrowse.png" />
-    </div><h1 style="font-size:28px; margin-left:10px;">record and visualize your web browsing activity</h1>
+    </div><h1 style="font-size:28px; margin-left:10px;">visualize and share your web browsing activity</h1>
     <h4>eyebrowse is a firefox plugin that records and visualizes your web browsing activity so you can notice trends, self reflect and compare with your friends.</h4>
     <h4 style="margin-left:55px;">Using this plugin will help researchers better understand how people use the web so we can build better tools. Your information is recorded for research use only.</h4>
     <div id="signUpFormContainer">
