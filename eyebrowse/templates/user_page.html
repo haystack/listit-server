@@ -410,11 +410,6 @@ jQuery(document).ready(function(){
             {{ username }} is not following anyone :(
         </p>
         {% endif %}
-
-
-        {% ifequal user.username username %}<br /><a href="/profile/" class="edit">edit your profile</a>
-        <br/>
-        {% endifequal %}
     </div>
     <div id="profile_content">
         <img src="/uploads/{{ id }}.jpg" class="profileimage"/>

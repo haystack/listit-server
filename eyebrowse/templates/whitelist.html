@@ -30,7 +30,7 @@
 				html += "<li>";
 				html += "<a href=\"javascript:addPrivacyURL(\'" + pageList[typesArray[i]][j] + "\');\">" + pageList[typesArray[i]][j] + "</a>";
 				html += "</li>";			
-			}
+								}
 			jQuery("#" + typesArray[i]).html(html);
 		}
 	};
@@ -134,7 +134,7 @@ jQuery(document).ready(function(){
           <label for="list">
             Add URL:
           </label>
-		  <input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:227px;" value="nytimes.com/" onkeypress="{if (event.keyCode==13)addURL()}"/>
+		  <input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:227px;" value="nytimes.com" onkeypress="{if (event.keyCode==13)addURL()}"/>
 		  <input type="submit" id="urladd" value="add" onkeypress="{if (event.keyCode==13)addURL()}" onClick="addURL()" style="width:auto;" />
           <ul id="urladdul" style="padding-left:7px;">
           </ul>
