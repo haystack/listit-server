@@ -161,8 +161,8 @@ jQuery(document).ready(function(){
 						   myHeight = 510;
 						   document.getElementById("main").setAttribute("width", myWidth);
 						   document.getElementById("main").setAttribute("height", myHeight);
-						   jQuery("#maxDate").css("width", myWidth - 50);
-						   jQuery("#maxDateTwo").css("width", myWidth - 50);
+						   jQuery("#maxDate").css("width", myWidth - 40);
+						   jQuery("#maxDateTwo").css("width", myWidth - 40);
 						   jQuery("#datepicker").val(currentDate.format('mm/dd/yyyy'));
 						   
 						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), myWidth, myHeight, 0, currentDate.valueOf(), 1728000000); // 20 days 1296000000); // 15 days  2592000000); // 30 days
