@@ -3,8 +3,8 @@
 {% block imports %}
 <style>
   @import url("/lib/css/datepicker.css");
-	h6{
-		margin-bottom:28px;
+	.viewboxhome h6{
+		margin-bottom:31px;
 	}
 </style>
 <script src="/lib/js/watchMeGraph.js">
@@ -36,8 +36,8 @@
             this.drag = undefined;
             this.zoom = zoom;
 			this.url = url;
-			this.getProfile(this.startTime, this.endTime, url); 
             this.initSmallGraphs(this.startTime, this.endTime, url); 
+			this.getProfile(this.startTime, this.endTime, url); 
 			this.initUrlGraph(url);
 			this.initTopUsers(this.startTime, this.endTime, url);
         },
@@ -212,7 +212,7 @@ jQuery(document).ready(function(){
 <div style="width:950; height:350; position:relative; z-index:0">
 <div id="urlLeft" class="viewboxhome" style="position:absolute; left:-82px; top:12px; text-align:right;"></div>
 <div id="urlRight" class="viewboxhome" style="position:absolute; left:712px; top:12px;"></div>
-<div id="urlCenter" style="position:absolute; left:410px; top:110px; background:#ffffff;padding:6px; border:1px solid lightgrey"></div>
+<div id="urlCenter" style="position:absolute; left:410px; top:110px; background:#ffffff; padding:6px; border:1px solid lightgrey"></div>
 </div>
 			
   <canvas id="pathgraph" style="z-index:-2">
