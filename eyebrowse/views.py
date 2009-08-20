@@ -695,20 +695,22 @@ def friend_unfollow(request, username):
         enduser = get_enduser_for_user(request.user)        
         frienduser = get_enduser_for_user(friend)
         try:
-            friendship = FriendRequest.objects.filter(
-                 from_friend=friend,
-                to_friend=request.user
-                )
-            if friendship:
-                friendship.delete()
+            #following = [friendship.to_friend for friendship in user.friend_set.all()]
+            
+            # friendship = FriendRequest.objects.filter(
+            #     from_friend=friend,
+            #     to_friend=request.user
+            #     )
+            # if friendship:
+            #     friendship.delete()
             # try again with the from_friend to_friend reversed
-            else:
-                friendship = FriendRequest.objects.filter(
-                    from_friend=request.user,
-                    to_friend=friend
-                    )
-                friendship.delete()
-                
+            # else:
+            friendship = FriendRequest.objects.filter(
+                from_friend=request.user,
+                to_friend=friend
+                )
+            friendship.delete()
+            
             request.user.message_set.create(
                 message='you are no longer following %s.' % friend.username
                 )

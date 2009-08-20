@@ -343,7 +343,7 @@ jQuery(document).ready(function(){
         {% if is_friend %}
         {% else %}
 		{% ifequal user.username username %}
-        {% else %}<a href="/friend/add?username={{ username }}">follow {{ username }}</a>
+        {% else %}<a href="/friend/add?username={{ username }}">follow {{ username }} <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a>
         {% endifequal %}
         {% endif %}
         {% endif %}
