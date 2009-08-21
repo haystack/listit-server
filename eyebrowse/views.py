@@ -174,39 +174,44 @@ def add_privacy_url(request):
     privacysettings = user.privacysettings_set.all()[0]
 
     listmode = privacysettings.listmode
-    inpt = request.GET['input'].strip()
- 
-    print urlparse.urlparse(inpt)
-    if inpt.startswith('http'):
-        host = urlparse.urlparse(inpt)[1].strip()
-    else:
-        host = inpt
-        if "/" in host:
-            host = host[0:host.find("/")]
+    request_inpt = request.GET['input'].strip()
+    
+    if request_inpt.split(','):
+        request_inpt = request_inpt.split(',')        
 
-    val = {}
+    #print request_inpt
 
-    if len(host) > 0:
-        if privacysettings.listmode == "W":
-            if privacysettings.whitelist is not None:
-                wlist = privacysettings.whitelist.split(' ')
-                if not host in wlist:
-                    privacysettings.whitelist = ' '.join(wlist + [host])
+    for inpt in request_inpt:
+        if inpt.startswith('http'):
+            host = urlparse.urlparse(inpt)[1].strip()
+        else:
+            host = inpt
+            if "/" in host:
+                host = host[0:host.find("/")]
+
+        val = {}
+
+        if len(host) > 0:
+            if privacysettings.listmode == "W":
+                if privacysettings.whitelist is not None:
+                    wlist = privacysettings.whitelist.split(' ')
+                    if not host in wlist:
+                        privacysettings.whitelist = ' '.join(wlist + [host])
+                        val["host"] = host
+                else:
+                    privacysettings.whitelist = host
                     val["host"] = host
-            else:
-                privacysettings.whitelist = host
-                val["host"] = host
             
-        if privacysettings.listmode == "B":
-            if privacysettings.blacklist is not None:
-                if not host in privacysettings.blacklist.split():
-                    privacysettings.blacklist = ' '.join(privacysettings.blacklist.split() + [host])
+            if privacysettings.listmode == "B":
+                if privacysettings.blacklist is not None:
+                    if not host in privacysettings.blacklist.split():
+                        privacysettings.blacklist = ' '.join(privacysettings.blacklist.split() + [host])
+                        val["host"] = host
+                else:
+                    privacysettings.blacklist = host
                     val["host"] = host
-            else:
-                privacysettings.blacklist = host
-                val["host"] = host
-        # Save 
-        privacysettings.save()
+            # Save 
+            privacysettings.save()
 
     ## val will be non-null iff it's new
     return json_response(val,200)

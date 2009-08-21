@@ -25,7 +25,7 @@
 		var html = "";
 		var typesArray = ["news","blogs","media","shopping","social","reference"];
 		for (var i = 0; i < typesArray.length; i++){			
-			html = "<a href=\"javascript:addPrivacyURL(\'" + pageList[typesArray[i]] + "\');\"> add all</a>";
+			html = "<a href=\"javascript:addAllPrivacyURLS(\'" + pageList[typesArray[i]] + "\');\"> add all</a>";
 			for (var j = 0; j < pageList[typesArray[i]].length; j++){
 				html += "<li>";
 				html += "<a href=\"javascript:addPrivacyURL(\'" + pageList[typesArray[i]][j] + "\');\">" + pageList[typesArray[i]][j] + "</a>";
@@ -38,6 +38,14 @@ function addPrivacyURL(url){
 	var urlEncoded = encodeURIComponent(url);
 	jQuery("<li>" + url + "<a href=\"/delete_privacy_url/?input=" + url + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").appendTo('#urladdul');
 	jQuery.get("/add_privacy_url/", {input:url}); 
+};
+
+function addAllPrivacyURLS(urls){
+	var urlsArray = urls.split(",");
+	for (var i = 0; i < urlsArray.length; i++){
+		jQuery("<li>" + urlsArray[i] + "<a href=\"/delete_privacy_url/?input=" + urlsArray[i] + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").appendTo('#urladdul');		
+	}
+	jQuery.get("/add_privacy_url/", {input:urls}); 
 };
 
 jQuery(document).ready(function(){
@@ -123,12 +131,12 @@ jQuery(document).ready(function(){
 		</ul>
 	  </div>
       <div id="faq" style="width:330px; display:inline-block; vertical-align:top">
-        <h1>Privacy Settings</h1>
+        <h1>Raise your eyebrowse</h1>
         <br/>
         <div class="bodytext">
 		  Only the websites you add to this list will be logged. At any time you can use <b><a href="http://support.mozilla.com/en-US/kb/Private+Browsing">private browsing</a></b> in Firefox to temporarily turn off logging.
 		  <br /><br />
-		  for your own safty, please do not log sites such as google.com, facebook.com, bank webpages or your emails
+		  For your own safty, please do not log sites such as google.com, facebook.com, bank webpages or your emails
         </div>
 		<div id="listlist" style="border:none; padding-left:0px">
           <label for="list">

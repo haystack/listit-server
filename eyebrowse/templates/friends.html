@@ -52,7 +52,7 @@
                     }, function(data){
 						jQuery("#loadimg1").hide();
                         if (data.code == 200) {
-							document.getElementById("status").setAttribute("height", data.results.length * 40);
+							document.getElementById("status").setAttribute("height", data.results.length * 32);
 	
 							viz.initLineGraph(data.results[0], startTime, endTime, viz, 0, data.results.length * 40, true);
 							for (var i = 1; i < data.results.length; i++){
@@ -364,7 +364,7 @@
 	</div>
 	<div id="fooDate" class="days" style="float:left; margin-left:15px; margin-right:0px;width:112px">
 	</div>
-	<div id="fooTotal" class="days" style="float:right; width:122px; margin-right:0px; margin-top:8px;line-height:30px;">
+	<div id="fooTotal" class="days" style="float:right; width:122px; margin-right:0px; margin-top:15px;line-height:25px;">
 	</div>
 	<canvas id="status"></canvas>			
   </div>
