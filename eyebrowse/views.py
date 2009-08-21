@@ -1334,16 +1334,37 @@ def get_top_users_for_url(request, n):
 
     return json_response({ "code":200, "results": return_results })
 
+
+## emax added this to be fancy
+def uniq(lst,key=lambda x: x,n=None):
+    result = []
+    keys = []
+    for ii in range(len(lst)):
+        xi = lst[ii]
+        ki = key(xi)
+        if ki not in keys:
+            keys.append(ki)
+            result.append(xi)
+        if n is not None and len(result) >= n:
+            return result
+    
+    return result        
+
+## get most recent urls now returns elements with distinct titles. no repeats!
 def get_most_recent_urls(request, n):
     from_msec,to_msec = _unpack_from_to_msec(request)    
     n = int(n)
-    
-    hits = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec).order_by("-startTime")
 
-    if n > 0:
-        return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits[0:n] ] });
-    else:
-        return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits ] });
+    # gets unique pages
+    phits = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec).order_by("-startTime")
+
+    if n < 0:
+        n = len(phits)
+
+    uphit = uniq(phits,lambda x:x.title,n)
+    
+    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in uphit ][0:n] })
+
 
 def get_users_most_recent_urls(request, username, n):
     user = get_object_or_404(User, username=username)
