@@ -1358,12 +1358,12 @@ def get_most_recent_urls(request, n):
     # gets unique pages
     phits = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec).order_by("-startTime")
 
-    if n < 0:
+    if n < 0 or n is None:
         n = len(phits)
 
     uphit = uniq(phits,lambda x:x.title,n)
     
-    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in uphit ][0:n] })
+    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in uphit ] })
 
 
 def get_users_most_recent_urls(request, username, n):
