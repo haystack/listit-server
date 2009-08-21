@@ -366,6 +366,11 @@ def user_page(request, username):
         tag.name for tag in enduser.tags.all()
         )
 
+    bday = None
+    
+    if enduser.birthdate is not None:
+        bday = int((int(time.time()) - int(time.mktime(time.strptime(str(enduser.birthdate), '%Y-%m-%d %H:%M:%S'))))/ 31556926)  # large number is seconds in a year
+
     variables = RequestContext(request, {
          'username': username,
          'show_edit': username == request.user.username,
@@ -376,7 +381,7 @@ def user_page(request, username):
          'last_name': enduser.user.last_name,
          'location': enduser.location,
          'homepage': enduser.homepage,
-         'birthdate': int((int(time.time()) - int(time.mktime(time.strptime(str(enduser.birthdate), '%Y-%m-%d %H:%M:%S'))))/ 31556926), # large number is seconds in a year
+         'birthdate': bday,
          'photo': enduser.photo,
          'tags' : tags,
          'gender': enduser.gender,
