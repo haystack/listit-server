@@ -229,7 +229,6 @@
 {% endblock %}
 {% block content %}
 	<div class="loader" id="loadimg1"></div>
-    {% ifnotequal request_user username %}
     <div id="profile_content" style="margin-top:10px; margin-left:20px;margin-bottom-0px;padding:0px;height:80px;">
         <img src="/profiles/{{ id }}.jpg" class="profileimage"/>
         <div class="userhead">
@@ -240,7 +239,6 @@
             </div>
         </div>
 	</div>
-    {% endifnotequal %}
 <canvas id="main">
 </canvas>
 <div class="fooTxt" id="fooTxt">

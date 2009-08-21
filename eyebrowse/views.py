@@ -1,4 +1,4 @@
-import re,sys,time,operator,os,math
+import re,sys,time,operator,os,math, datetime
 from django.template import loader, Context
 from django.http import HttpResponse,HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render_to_response
@@ -150,13 +150,10 @@ def delete_privacy_url(request):
     if user is None:
         json_response({ "code":404, "error": "Username or password incorrect" }) 
     
-    #username = request.user.username
-    #user = get_object_or_404(User, username=username)
-
     privacysettings = user.privacysettings_set.all()[0] 
 
     inpt = request.GET['input'].strip()
-
+    print inpt
     if privacysettings.listmode == "W":
         privacysettings.whitelist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == inpt])
     if privacysettings.listmode == "B":
@@ -363,7 +360,7 @@ def user_page(request, username):
     tags = ' '.join(
         tag.name for tag in enduser.tags.all()
         )
-    
+
     variables = RequestContext(request, {
          'username': username,
          'show_edit': username == request.user.username,
@@ -374,7 +371,7 @@ def user_page(request, username):
          'last_name': enduser.user.last_name,
          'location': enduser.location,
          'homepage': enduser.homepage,
-         'birthdate': enduser.birthdate,
+         'birthdate': int((int(time.time()) - int(time.mktime(time.strptime(str(enduser.birthdate), '%Y-%m-%d %H:%M:%S'))))/ 31556926), # large number is seconds in a year
          'photo': enduser.photo,
          'tags' : tags,
          'gender': enduser.gender,

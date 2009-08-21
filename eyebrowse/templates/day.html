@@ -171,7 +171,6 @@ jQuery(document).ready(function(){
 {% endblock %}
 {% block content %}
 	<div class="loader" id="loadimg1"></div>
-    {% ifnotequal request_user username %}	
     <div id="profile_content" style="margin-top:10px; margin-left:20px;margin-bottom-0px;padding:0px;height:80px;">
         <img src="/profiles/{{ id }}.jpg" class="profileimage"/>
         <div class="userhead">
@@ -182,7 +181,6 @@ jQuery(document).ready(function(){
             </div>
         </div>
 	</div>
-    {% endifnotequal %}
 	<div id="dayHeading">
       <div class="centerLabel">
       </div>
