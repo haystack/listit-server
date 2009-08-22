@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block imports %}
+    <style>
+        #list h1 {
+		font-size:22px;
+		margin:0px;
+		padding:0px;
+		}
+		.userhead{
+		margin:0px;
+		margin-top:4px;
+		padding:0px;
+		width:86%;
+		margin-left:-4px;
+		}
+
+		#list h1 {
+		margin:0px;
+		}
+		
+        #list h2 {
+		font-size:18px;
+		margin:0px;
+		padding:0px;
+		border:none;
+		float:right;
+		}
+		
+        #list img {
+		height:50px;
+		width:50px;
+		display:inline-block
+		}
+
+		.viewboxlarge li{
+		width:600px;
+		}
+
+		.viewboxlarge b{
+		padding:0px;
+		padding-top:0px;
+		}
+
+		.viewboxlarge a{
+		font-size:11px;
+		}
+
+		.underuser {
+		padding:0px;
+		margin:0px;
+		margin-top:-8px;
+		display:block;
+		}
+	</style>
+	<script>
+    var WatchmeVisualisation = {
+        initialize: function(canvas, zoom){
+            this.canvas = canvas;
+			this.now = new Date().valueOf();
+            this.endDate = new Date();
+            this.startDate = new Date(this.endDate.valueOf() - zoom);
+            this.endTime = this.endDate.valueOf();
+            this.startTime = this.startDate.valueOf();
+			this.endTimeRecent = this.endTime;
+            this.interp = zoom / 192;
+            this.zoom = zoom;
+			this.getProfile(this.startTime, this.endTime);
+            this.getTopUsers(this.startTime, this.endTime, 10);
+        },
+		getProfile: function(startTime, endTime){
+            try {
+                jQuery.get("/get_global_profile_queries/", {
+							   from: startTime,
+							   to: endTime
+						   }, function(data){
+							   if (data.code == 200) {								   
+								   var newData = data.results;
+								   jQuery("#totalTime").html("<b>total time spent: </b> " + timeCounterLongAbv(newData.totalTime));
+								   jQuery("#num").html("<b>total visits: </b>" + newData.number);
+								   jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv(newData.average));			
+							   }
+							   else {
+								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							   }
+						   }, "json");
+            } 
+            catch (e) {
+                console.log(e);
+            }
+		},
+		getTopUsers: function(startTime, endTime, num){
+            var this_ = this;
+			jQuery("#loadimg").show();
+			jQuery.get("/get_top_users/10/", {
+						   from: this_.startTime,
+						   to: this_.endTime,
+						   num: num
+					   }, function(data){
+						   jQuery("#loadimg").hide();
+						   if (data.code == 200) {
+							   var newData = data.results;
+							   jQuery("#topusers").html("");
+							   for (var i = 0; i < newData.length; i++) {
+								   var html = "";
+								   html += "<li style=\"width:170px; padding:6px\">";
+								   html += "<h6><b><a href=\"/profile/" + newData[i].user +  "/\">" + newData[i].user + "</a></b></h6>";
+								   html += "<br /><h7>" + newData[i].number + " webpages viewed</h7>";
+								   html += "</li>";
+								   jQuery("#topusers").append(html);
+								   jQuery(".listItemSmall:first").slideDown("slow");
+							   }
+						   }
+						   else {
+							   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+						   }
+					   }, "json");	
+		},
+        refresh: function(startTime, endTime){
+            var this_ = this;
+            this_.endTime = endTime;
+            this_.startTime = startTime;
+
+			this.getProfile(this.startTime, this.endTime);
+            this.initLiteGraph(this.startTime, this.endTime);
+            this.getTopUsers(this.startTime, this.endTime, 10);
+		}
+												   };
+	  jQuery(document).ready(function(){
+	  self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 2629743000*6);// 1 month * 6
+	  });
+	</script>
+	{% endblock %}
+	{% block content %}
+	<div class="loader" id="loadimg"></div>
+	<div id="report" style="width:850px">
+      <div id="profile">
+		<br />
+        <div id="num" style="margin-top:7px;">
+          <b>total visits:</b>
+        </div>
+        <div id="totalTime">
+          <b>total time spent: </b>
+        </div>
+        <div id="avgTime">
+          <b>average time spent:</b>
+        </div>
+        <h2>Top Users</h2>
+		<div class="viewboxhome" id="topusers">
+        </div>
+	  </div>
+      <div id="profile_content" style="width:600px">
+		<h1>Users</h1>
+		<br />
+        <div class="viewboxlarge" id="list">
+		  <ul>
+			{% for user in users %}
+			{% if user.latest_view %}
+			<li>
+			  <div style="display:inline-block;width:70px;">
+				<img src="/profiles/{{ user.id }}.jpg" class="profileimage" />			
+				{% if not user.is_friend %}
+				<br />
+				<a href="/friend/add?username={{ user.username }}">follow <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a>
+				{% endif %}
+			  </div>
+			  <div class="userhead">
+				<a href="/profile/{{ user.username }}/"><h1>{{ user.username }}</h1></a>
+				<h2>{{ user.number }}</h2>			  
+				
+				<div class="underuser">
+				  <br />
+				  {% if user.location %}
+				  <b>location: </b>{{ user.location }}
+				  <br />
+				  {% endif %}
+				  
+				  {% if user.tags %}
+				  <b>tags: </b>{{ user.tags }}
+				  <br />
+				  {% endif %}
+				  
+				  {% if user.website %}
+				  <b>website: </b><a href="{{ user.website }}">{{ user.website }}</a>
+				  <br />
+				  {% endif %}
+				  
+				  
+				  {% if user.followed_by %}
+				  {{ user.username }} is following you
+				  {% endif %}
+				  
+				  {% if user.latest_view %}
+				  {% for page in user.latest_view %}
+				  <b>latest: </b><a href="{{ page.url}}">{{ page.title }}</a>    
+				  {% endfor %}
+				  {% endif %}
+				</div>
+			  </div>
+			</li>
+			{% endif %}
+			{% endfor %}
+		  </ul>
+        </div>
+      </div>
+    </div>
+	{% endblock %}
+
