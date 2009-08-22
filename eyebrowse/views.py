@@ -364,7 +364,7 @@ def users(request):
                 "is_friend": is_friend,
                 "location": friend.location,
                 "website": friend.homepage,                
-                "latest_view": PageView.objects.filter(user=friend)[0:1],
+                "latest_view": PageView.objects.filter(user=friend).order_by("-startTime")[0:1],
                 "followed_by": is_followed_by
                 })
 
