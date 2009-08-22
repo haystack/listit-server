@@ -332,6 +332,51 @@ def friends(request, username):
         })
     return render_to_response('friends.html', variables)
 
+def users(request):
+    request_enduser = get_enduser_for_user(request.user)
+    friends_results = []
+    friends = EndUser.objects.all()
+
+    if request.user.username:
+        user = get_object_or_404(User, username=request.user.username)
+
+    for friend in friends:
+        if user:
+            is_friend = user.to_friend_set.all().filter(from_friend=friend)
+            is_followed_by = user.friend_set.all().filter(to_friend=friend)
+        else: 
+            is_friend = False;
+            is_followed_by = False;
+
+        # not sure if this if else is necissary
+        if friend.tags.all():
+            tags = ' '.join(
+                tag.name for tag in friend.tags.all()
+                )
+        else:
+            tags = ""
+            
+        friends_results.append( {
+                "username": friend.user.username, 
+                "number": Event.objects.filter(owner=friend.user,type="www-viewed").count(), 
+                "tags": tags, 
+                "id": friend.user.id,
+                "is_friend": is_friend,
+                "location": friend.location,
+                "website": friend.homepage,                
+                "latest_view": PageView.objects.filter(user=friend)[0:1],
+                "followed_by": is_followed_by
+                })
+
+        print PageView.objects.filter(user=friend)[0:1]
+    friends_results.sort(key=lambda x: x["username"])
+
+    variables = RequestContext(request, {
+        'users': friends_results,
+        'request_user': request.user.username
+        })
+    return render_to_response('users.html', variables)
+
 def user_page(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
