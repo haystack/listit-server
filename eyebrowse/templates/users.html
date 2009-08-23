@@ -169,7 +169,12 @@
 				<h2>{{ user.number }}</h2>			  
 				
 				<div class="underuser">
+				  <br />				  
+				  {% if user.followed_by %}
+				  {{ user.username }} is following you
 				  <br />
+				  {% endif %}				 
+
 				  {% if user.location %}
 				  <b>location: </b>{{ user.location }}
 				  <br />
@@ -183,14 +188,8 @@
 				  {% if user.website %}
 				  <b>website: </b><a href="{{ user.website }}">{{ user.website }}</a>
 				  <br />
-				  {% endif %}
-				  
-				  
-				  {% if user.followed_by %}
-				  {{ user.username }} is following you
-				  <br />
-				  {% endif %}
-				  
+				  {% endif %}				  
+
 				  {% if user.latest_view %}
 				  {% for page in user.latest_view %}
 				  <b>latest: </b><a href="{{ page.url}}">{{ page.title }}</a>    

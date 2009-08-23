@@ -332,6 +332,15 @@ def friends(request, username):
         })
     return render_to_response('friends.html', variables)
 
+def daybyday(request, username):
+    request_user = request.user.username
+
+    variables = RequestContext(request, {
+        'username': username,
+        'request_user': request_user
+        })
+    return render_to_response('daybyday.html', variables)
+
 def users(request):
     request_enduser = get_enduser_for_user(request.user)
     friends_results = []
@@ -368,7 +377,6 @@ def users(request):
                 "followed_by": is_followed_by
                 })
 
-        print PageView.objects.filter(user=friend)[0:1]
     friends_results.sort(key=lambda x: x["username"])
 
     variables = RequestContext(request, {

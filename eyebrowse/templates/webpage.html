@@ -5,7 +5,13 @@
   @import url("/lib/css/datepicker.css");
 	.viewboxhome h6{
 		margin-bottom:31px;
+        overflow:hidden;
+        height:15px;
+        width:250px;
 	}
+    .viewboxhome .leftside{
+        text-align:right;
+    } 
 </style>
 <script src="/lib/js/watchMeGraph.js">
 </script>
@@ -118,7 +124,7 @@
 			var centerHTML = "<h6 style=\"padding:0px\"><a href=\"" + this_.url + "\">" + this_.url + "</a></h6>";
 
 			for (var i = 0; i < data.pre.length; i++){
-				leftHTML += "<h6><a href=\"" + data.pre[i][0] + "\">" + data.pre[i][0] + "</a></h6><br />";
+				leftHTML += "<h6 class=\"leftside\"><a href=\"" + data.pre[i][0] + "\">" + data.pre[i][0] + "</a></h6><br />";
 				rightHTML += "<h6><a href=\"" + data.next[i][0] + "\">" + data.next[i][0] + "</a></h6><br />";
 			}			
 			jQuery("#urlLeft").html(leftHTML);
