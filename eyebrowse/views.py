@@ -346,8 +346,9 @@ def daybyday(request, username):
         })
     return render_to_response('daybyday.html', variables)
 
-def users(request):
-    request_enduser = get_enduser_for_user(request.user)
+def users(request):    
+    #request_enduser = get_enduser_for_user(request.user)
+    user = request.user
     friends_results = []
     friends = EndUser.objects.all()
 
@@ -355,7 +356,7 @@ def users(request):
         user = get_object_or_404(User, username=request.user.username)
 
     for friend in friends:
-        if user:
+        if user.username:
             is_friend = user.to_friend_set.all().filter(from_friend=friend)
             is_followed_by = user.friend_set.all().filter(to_friend=friend)
         else: 
