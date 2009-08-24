@@ -1409,7 +1409,8 @@ def get_most_recent_urls(request, n):
     n = int(n)
 
     # gets unique pages
-    phits = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec).order_by("-startTime")
+    #phits = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec).order_by("-startTime")
+    phits = PageView.objects.filter().order_by("-startTime")
 
     if n < 0 or n is None:
         n = len(phits)
@@ -1486,3 +1487,14 @@ def user_search_page(request):
         return render_to_response('search_results.html', variables)
     else:
         return render_to_response('search.html', variables)
+
+def get_closest_url(url):
+    ## finds the urls that best match the given url. if there
+    ## is an exact match, only returns that.
+    if PageView.objects.filter(url=url).count() > 0:
+        return json_response({ "code":200, "results": [url] });
+
+    hits = [ d['url'] for url in PageView.objects.filter(url__contains=url).values('url') ]
+    hits.sort( lambda x,y: len(x)-len(y) )
+    return json_response({ "code":200, "results": hits });
+    

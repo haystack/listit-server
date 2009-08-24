@@ -71,6 +71,7 @@ urlpatterns = patterns('',
                        (r'^get_page_profile_queries/$', get_page_profile_queries),
                        (r'^get_global_profile_queries/$', get_global_profile_queries),
                        (r'^get_user_profile_queries/(\w+)/$', get_user_profile_queries),
+                       (r'^get_closest_url/$', get_closest_url),
 
                        # homepage ajax
                        (r'^get_most_recent_urls/(\d+)/$', get_most_recent_urls),
@@ -104,6 +105,8 @@ urlpatterns = patterns('',
                        (r'^plugin_login$', eyebrowse.plugin_views.login),  
                        (r'^plugin_get_max_event$', eyebrowse.plugin_views.get_most_recent_event_time),
                        (r'^plugin_post_events/$', eyebrowse.plugin_views.post_events),
+                       
+                       
 
 )
 
