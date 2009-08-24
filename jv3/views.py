@@ -653,7 +653,7 @@ def get_zen(request):
     
     ## we want to determine order using magic note
     if Note.objects.filter(owner=request_user,jid="-1").count() > 0:
-        magic_note = Note.objects.filter(owner=request_user,jid="-1",deleted=False)[0]
+        magic_note = Note.objects.filter(owner=request_user,jid="-1")[0]
         note_order = JSONDecoder().decode(magic_note.contents)['noteorder']
         notes = [ n for n in Note.objects.filter(owner=request_user,deleted=False).exclude(jid=-1) ]
         def sort_order(nx,ny):
