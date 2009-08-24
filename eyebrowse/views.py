@@ -1298,22 +1298,32 @@ def get_to_from_url(request, n):
     url = request.GET['url'].strip()
     n = int(n)
 
-    @cache.region('to_from_url')
+    # @cache.region('to_from_url')
     def fetch_data(to_msec, url):
         accesses = PageView.objects.filter(url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
         pre = {}
         next = {}
+        titles = {}
         for access in accesses:
             try:
                 # get the page we logged IMMEDIATELY before access for the particular access's user in question
                 prev_access = PageView.objects.filter(startTime__lt=access.startTime,user=access.user).order_by("-startTime")[0]
                 pre[prev_access.url] = pre.get(prev_access.url,0) + 1
+                if prev_access.title is not None:
+                    titles[prev_access.url] = prev_access.title
+                else:
+                    titles[prev_access.url] = prev_access.url
+
             except:
                 pass
             try:
                 # get the page we logged IMMEDIATELY before access for the particular access's user in question
                 next_access = PageView.objects.filter(startTime__gt=access.startTime,user=access.user).order_by("startTime")[0]
                 next[next_access.url] = next.get(next_access.url,0) + 1
+                if next_access.title is not None:
+                    titles[next_access.url] = next_access.title
+                else:
+                    titles[next_access.url] = next_access.url
             except:
                 pass
             
@@ -1324,8 +1334,8 @@ def get_to_from_url(request, n):
         
         pre_sorted = sort_by_counts(pre)
         next_sorted = sort_by_counts(next)
-        
-        return { 'pre':pre_sorted[:7], 'next':next_sorted[:7] }
+
+        return { 'pre':pre_sorted[:7], 'next':next_sorted[:7], 'pre_titles': [ titles[x[0]] for x in pre_sorted[:7] ] , 'next_titles' : [ titles[x[0]] for x in next_sorted[:7] ] }
 
     return_results = fetch_data(to_msec_rounded, url)
 
