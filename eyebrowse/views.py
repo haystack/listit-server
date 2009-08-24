@@ -306,9 +306,14 @@ def world(request): # confusing name fix this
     return HttpResponse(t.render(c))
 
 def page_profile(request): 
+    url = 'http://nytimes.com'
+    if request.GET.has_key('url'):
+        url = request.GET['url']
+    
     variables = RequestContext(request, {
         'username': request.user.username,
-        'request_user': request.user.username
+        'request_user': request.user.username,
+        'url': url
         })
     return render_to_response('webpage.html', variables)
 
@@ -1095,6 +1100,27 @@ def get_top_hosts_comparison_friends(request, username, n):
     return json_response({ "code":200, "results": return_results }) 
 
 
+def get_urls_for_day_of_week(request, username):    
+    user = get_object_or_404(User, username=username)
+    
+    first_start = round_time_to_day(_unpack_times(request))
+
+    @cache.region('long_term')
+    def fetch_data(user, first_start):
+        users = User.objects.all()
+
+        numDays = 49
+        ## going to run through the past 50 days
+        ## should be dynamic maybe use n
+
+        #create the list of urls for each of the 
+        return results
+
+    return_results = fetch_data(user, first_start)
+        
+    return json_response({ "code":200, "results": return_results }) 
+
+
 def get_top_hosts_comparison_global(request, n):    
     n = int(n)
 
@@ -1352,8 +1378,6 @@ def get_top_users(request, n):
         for user in users:
             results.append( {"user": user.username, "number": PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec).count() } )
 
-        # brenn's precious code:
-        #results.sort(key=lambda x:(x["number"], x["user"]))
         results.sort(key=lambda x:-x["number"])
         return results[0:n]
         
@@ -1488,13 +1512,14 @@ def user_search_page(request):
     else:
         return render_to_response('search.html', variables)
 
-def get_closest_url(url):
+def get_closest_url(request):
+    url = request.GET['url']
     ## finds the urls that best match the given url. if there
     ## is an exact match, only returns that.
     if PageView.objects.filter(url=url).count() > 0:
         return json_response({ "code":200, "results": [url] });
-
-    hits = [ d['url'] for url in PageView.objects.filter(url__contains=url).values('url') ]
+    
+    hits = list(set([ url['url'] for url in PageView.objects.filter(url__contains=url).values('url') ]))
     hits.sort( lambda x,y: len(x)-len(y) )
     return json_response({ "code":200, "results": hits });
     

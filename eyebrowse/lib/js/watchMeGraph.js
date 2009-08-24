@@ -937,3 +937,127 @@ var compareFactory  = ({
 							   }
 						   }
 					   });
+
+var stackBarGraph = ({
+						 initialize: function(viz, params){
+							 this.viz = viz;
+							 if (params.canvas) { this.canvas = params.canvas; }
+							 else { this.canvas = viz.canvas;}
+							 if (params.windowHeight){
+								 this.windowHeight = params.windowHeight;
+							 } else {
+								 this.windowHeight = viz.windowHeight;
+							 }
+							 if (params.windowWidth) {
+								 this.windowWidth = params.windowWidth;	 
+							 } else {
+								 this.windowWidth = viz.windowWidth;
+							 }
+							 this.marginTop = params.marginTop;
+							 this.height = params.height;
+							 this.data = params.data;
+							 this.pIH = undefined;
+							 this.trigger = undefined;
+							 this.staticStatic = params.staticStatic;
+							 this.mouseVal = undefined;
+							 this.columnWidth = params.columnWidth;
+							 if (params.noHover){
+								 this.noHover = params.noHover;
+							 }
+							 this.setPos();
+						 },
+						 draw: function(){
+							 var ctx = this.canvas.getContext('2d');
+							 var this_ = this;
+
+							 ctx.font = "0.8pt helvetiker";
+							 ctx.lineWidth = 1;
+							 ctx.strokeStyle = "#0f0f0f";
+							 ctx.fillStyle = "#0f0f0f";
+							 ctx.beginPath();
+							 ctx.fillText(this_.da[k], this_.windowHeight - 20, (this_.windowWidth/this_.da.length * k + 1));
+							 ctx.moveTo(0,this_.windowHeight - 20);
+							 ctx.lineto(this_.windowWidth, this_.windowHeight - 20);							 
+							 ctx.stroke();
+							 ctx.closePath();
+
+							 for (var i = 0; i < this_.da.length; i++){								
+								 // draw the text label								
+								 // the text here needs some work
+								 ctx.fillText(this_.da[i].date, this_.windowHeight - 20, (this_.windowWidth/this_.da.length * i + 1));
+
+								 for (var k = 0; k < this_.da[i].length; k++) {								 
+									 // check for hover state
+									 if (this_.pIH) {
+										 if (isPointInPoly(this_.da[i][k].poly, this_.mouseVal)){
+											 this_.viz.highlight = this_.da[i][k].url;
+											 this_.trigger = true;
+											 if (this_.noHover){
+											 } else {			
+												 jQuery("#fooTxt").html("<a href=\"" + this_.da[i][k].url + "\">" +  this_.da[i][k].title + "</a>");
+												 jQuery("#fooTxt").css({"left" : this_.mouseVal.x + this_.fooTxtX + "px", "padding": "3px", "top" : this_.marginTop + 45 + this_.fooTxtY + "px" });
+											 }
+										 }
+									 }
+									 // draw the lines
+									 ctx.beginPath();
+									 ctx.fillStyle = selectColorForDomain(this_.da[i][k].url);
+									 ctx.fillRect(this_.da[i][k].xPos, this_.da[i][k].yPos, this_.da[i][k].width, this_.da[i][k].height);
+									 if (this_.viz.highlight == this_.domainArray[i]){
+										 ctx.fillStyle = "rgba(255,255,255,0.85)"; //"#00ff00";
+										 ctx.fillRect(this_.da[i][k].xPos, this_.da[i][k].yPos, this_.da[i][k].width, this_.da[i][k].height);
+									 }
+									 ctx.closePath();
+								 }
+							 }
+							 if (!(this_.pIH) && this_.trigger) {
+								 this_.trigger = false;
+								 this_.viz.highlight = "booo";
+								 jQuery("#fooTxt").html("");
+								 jQuery("#fooTxt").css({"padding" : "0px"});
+							 }
+						 },
+						 mouseMove: function(params){
+							 var this_ = this;
+							 this_.mouseVal = params.mouseVal;
+							// this_.pIH = isPointInPoly(this_.poly, params.mouseVal);
+							 this_.pIH = true;
+						 },
+						 mouseDown: function(){
+						 },
+						 mouseUp: function(params){
+						 },
+						 setPos: function(){
+							 var this_ = this;
+							 
+							 this_.dataMax = 
+
+							 this_.da = [];
+							 // here is where i make the data into stuff to draw with.  
+							 for (var i = 0; i < this_.data.length; i++){
+								 for (var k = 0; k < this_.data[i].length; k++){									 
+									 this_.da[i][k].title = this_.data[i][k].title;
+									 this_.da[i][k].url = this_.data[i][k].url;
+									 this_.da[i][k].xPos = this_.windowWidth/this_.data.length;
+									 this_.da[i][k].height = this_.windowHeight * (this_.data[i][k].number / this_.dataMax);
+ 									 this_.da[i][k].yPos = function(){
+										 var yPos = this_.windowHeight - this_.bottomPadding;
+										 // -sum all heights in height array including this one
+										 for (var p = 0; p <= k; p++){
+											 yPos -= this_.da[i][p].height;
+										 }
+										 return yPos;
+									 }();
+									 this_.da[i][k].poly = rectToPoly({
+																		  xPos: this_.da[i][k].xPos,
+																		  yPos: this_.da[i][k].yPos,
+																		  height: this_.da[i][k].height,
+																		  width: this_.columnWidth
+																	  });
+								 }
+							 }
+							 
+							 this_.draw();
+						 }
+					 });
+

@@ -42,10 +42,22 @@
             this.drag = undefined;
             this.zoom = zoom;
 			this.url = url;
-            this.initSmallGraphs(this.startTime, this.endTime, url); 
-			this.getProfile(this.startTime, this.endTime, url); 
-			this.initUrlGraph(url);
-			this.initTopUsers(this.startTime, this.endTime, url);
+			var this_ = this;
+			jQuery.get("/get_closest_url/", { url:this.url },
+					   function(data) {
+						   if (data.code == 200) {
+							   this_.url = data.results.length > 0 ? data.results[0] : "";
+							   jQuery("#urladdtextinput").val(this_.url);
+
+							   this_.getProfile(this_.startTime, this_.endTime, this_.url); 
+							   this_.initUrlGraph(this_.url);
+							   this_.initSmallGraphs(this_.startTime, this_.endTime, this_.url); 
+							   this_.initTopUsers(this_.startTime, this_.endTime, this_.url);			       
+						   } else {
+							   // TODO: replace plz with an error div
+							   console.log("error calling get_closest_url: " + data.code + " " + data);
+						   }
+					   }, "json");	    	    
         },
 		getProfile: function(startTime, endTime, url){
             try {
@@ -182,7 +194,7 @@
             }
         },
 	refresh: function(){
-            var this_ = this;	    
+		var this_ = this;	    
 	    var url = jQuery("#urladdtextinput").val();
 	    jQuery.get("/get_closest_url/", { url:url },
 		       function(data) {
@@ -222,7 +234,7 @@ jQuery(document).ready(function(){
 <div id="profile_content" style="width:950px; margin-left:auto;margin-right:auto; ">
 	  <h1>search</h1><br />
 
-	<input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:228px;" value="http://nytimes.com/"
+	<input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:228px;" value="{{ url }}"
 	       onkeypress="{if (event.keyCode==13)viz.refresh()}"/>
 	<input type="submit" id="urladd" value="submit" onkeypress="{if (event.keyCode==13)viz.refresh()}" onClick="viz.refresh()" style="width:auto;" />
  
