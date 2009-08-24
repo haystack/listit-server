@@ -145,7 +145,7 @@
 		initSmallGraphs: function(startTime, endTime, url){
 			var this_ = this;
             try {
-                jQuery.get("http://localhost:8000/get_graph_points_url/28/", {
+                jQuery.get("/get_graph_points_url/28/", {
 							   from: startTime,
 							   to: endTime,
 							   url: url
@@ -173,7 +173,7 @@
 														 });
 							   }
 							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+								   //console.log("yaaaa!!!H!H!H!" + data.code + " ");
 							   }
 						   }, "json");
             } 
@@ -181,14 +181,24 @@
                 console.log(e);
             }
         },
-		refresh: function(){
-            var this_ = this;
-			this_.url = jQuery("#urladdtextinput").val();
-			this_.getProfile(this_.startTime, this_.endTime, this_.url); 
-			this_.initUrlGraph(this_.url);
-			this_.initSmallGraphs(this_.startTime, this_.endTime, this_.url); 
-			this_.initTopUsers(this_.startTime, this_.endTime, this_.url);
-		}
+	refresh: function(){
+            var this_ = this;	    
+	    var url = jQuery("#urladdtextinput").val();
+	    jQuery.get("/get_closest_url/", { url:url },
+		       function(data) {
+			   if (data.code == 200) {
+			       this_.url = data.results.length > 0 ? data.results[0] : "";
+			       jQuery("#urladdtextinput").val(this_.url);
+			       this_.getProfile(this_.startTime, this_.endTime, this_.url); 
+			       this_.initUrlGraph(this_.url);
+			       this_.initSmallGraphs(this_.startTime, this_.endTime, this_.url); 
+			       this_.initTopUsers(this_.startTime, this_.endTime, this_.url);			       
+			   } else {
+			       // TODO: replace plz with an error div
+			       console.log("error calling get_closest_url: " + data.code + " " + data);
+			   }
+		       }, "json");	    	    
+	}
     };
 jQuery(document).ready(function(){
 						   var currentDate = new Date();																					   
@@ -212,7 +222,8 @@ jQuery(document).ready(function(){
 <div id="profile_content" style="width:950px; margin-left:auto;margin-right:auto; ">
 	  <h1>search</h1><br />
 
-	<input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:228px;" value="http://nytimes.com/" onkeypress="{if (event.keyCode==13)viz.refresh()}"/>
+	<input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:228px;" value="http://nytimes.com/"
+	       onkeypress="{if (event.keyCode==13)viz.refresh()}"/>
 	<input type="submit" id="urladd" value="submit" onkeypress="{if (event.keyCode==13)viz.refresh()}" onClick="viz.refresh()" style="width:auto;" />
  
 <div style="width:950; height:350; position:relative; z-index:0">
