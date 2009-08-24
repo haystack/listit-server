@@ -55,7 +55,7 @@
 							   this_.initTopUsers(this_.startTime, this_.endTime, this_.url);			       
 						   } else {
 							   // TODO: replace plz with an error div
-							   console.log("error calling get_closest_url: " + data.code + " " + data);
+							   //console.log("error calling get_closest_url: " + data.code + " " + data);
 						   }
 					   }, "json");	    	    
         },
@@ -71,12 +71,12 @@
 								   jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv(newData.average));			
 							   }
 							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+								   //console.log("yaaaa!!!H!H!H!" + data.code + " ");
 							   }
 						   }, "json");
             } 
             catch (e) {
-                console.log(e);
+               // console.log(e);
             }
 		},
 		initTopUsers: function(startTime, endTime, url){
@@ -134,7 +134,7 @@
 			var leftHTML = "";
 			var rightHTML = "";
 			var centerHTML = "<h6 style=\"padding:0px\"><a href=\"" + this_.url + "\">" + this_.url + "</a></h6>";
-			console.log(data);
+	
 			for (var i = 0; i < data.pre.length; i++){
 				leftHTML += "<h6 class=\"leftside\"><a href=\"" + data.pre[i][0] + "\">" + data.pre_titles[i] + "</a></h6><br />";
 			}
