@@ -1449,7 +1449,7 @@ def get_top_friend_for_url(request, username):
     return return_results
     #return json_response({ "code":200, "results": return_results })
 
-def get_top_friend_for_url(request, username):
+def get_top_friend_for_url_json(request, username):
     user = get_object_or_404(User, username=username)
     users = [friendship.to_friend for friendship in user.friend_set.all()]
     
@@ -1467,10 +1467,9 @@ def get_top_friend_for_url(request, username):
         return results[0:1]
 
     return_results = fetch_data(get_url, username)
-    return return_results
-    #return json_response({ "code":200, "results": return_results })
+    return json_response({ "code":200, "results": return_results })
 
-def get_number_friends_logged_url_json(request, username):
+def get_number_friends_logged_url(request, username):
     user = get_object_or_404(User, username=username)
     users = [friendship.to_friend for friendship in user.friend_set.all()]
 
