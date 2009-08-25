@@ -12,20 +12,14 @@ users = None
 notes = None
 problem = []
 
-def non_stop_consenting_users_slow(stoplist=None):
-    if stoplist is None:
-        stoplist = ['emax@csail.mit.edu', 'karger@mit.edu', 'kp@csail.mit.edu',
-                    'gvargas@mit.edu', 'karger@csail.mit.edu', 'msbernst@mit.edu',
-                    'wstyke@gmail.com']
+GLOBAL_STOP = ['emax@csail.mit.edu', 'karger@mit.edu', 'kp@csail.mit.edu',  'gvargas@mit.edu', 'karger@csail.mit.edu', 'msbernst@mit.edu', 'wstyke@gmail.com']
+
+def non_stop_consenting_users_slow(stoplist=GLOBAL_STOP):
     stopusers = map(lambda x : User.objects.filter(email=x), stoplist)
     stopusers = [u[0] for u in stopusers if len(u) > 0]
     return filter(lambda u: u not in stopusers, get_consenting_users());
 
-def non_stop_consenting_users(stoplist=None):
-    if stoplist is None:
-        stoplist = ['emax@csail.mit.edu', 'karger@mit.edu', 'kp@csail.mit.edu',
-                    'gvargas@mit.edu', 'karger@csail.mit.edu', 'msbernst@mit.edu',
-                    'wstyke@gmail.com']
+def non_stop_consenting_users(stoplist=GLOBAL_STOP):
     return get_consenting_users().exclude(email__in=stoplist)
 
 def filter_stop_users(ulist):
@@ -33,7 +27,7 @@ def filter_stop_users(ulist):
     stopusers = [u[0] for u in stopusers if len(u) > 0]
     return filter(lambda u: u not in stopusers, ulist);
 
-def non_stop_users():
+def non_stop_users(stoplist=GLOBAL_STOP):
     stopusers = map(lambda x : User.objects.filter(email=x),stoplist)
     stopusers = [u[0] for u in stopusers if len(u) > 0]
     return filter(lambda u: u not in stopusers, User.objects.all())
