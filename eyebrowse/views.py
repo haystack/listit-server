@@ -1344,6 +1344,7 @@ def get_to_from_url(request, n):
     if request.GET.has_key('username'):
         username = request.GET['username']
         friend_stats = {'top_friend': get_top_friend_for_url(request, username), 'num_friends': get_number_friends_logged_url(request, username) }
+    
         return json_response({ "code":200, "results": return_results, "friend_stats": friend_stats })
         
     return json_response({ "code":200, "results": return_results })
@@ -1485,8 +1486,8 @@ def get_number_friends_logged_url(request, username):
 
         return number
     return_results = fetch_data(get_url, username)
-
-    return json_response({ "code":200, "results": return_results })
+    return return_results
+    #return json_response({ "code":200, "results": return_results })
 
 ## emax added this to be fancy
 def uniq(lst,key=lambda x: x,n=None):
