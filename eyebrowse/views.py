@@ -1299,7 +1299,7 @@ def get_to_from_url(request, n):
     url = request.GET['url'].strip()
     n = int(n)
 
-    # @cache.region('to_from_url')
+    @cache.region('to_from_url')
     def fetch_data(to_msec, url):
         accesses = PageView.objects.filter(url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
         pre = {}
@@ -1340,6 +1340,12 @@ def get_to_from_url(request, n):
 
     return_results = fetch_data(to_msec_rounded, url)
 
+    #hopefully this will be out of the cache
+    if request.GET.has_key('username'):
+        username = request.GET['username']
+        friend_stats = {'top_friend': get_top_friend_for_url(request, username), 'num_friends': get_number_friends_logged_url(request, username) }
+        return json_response({ "code":200, "results": return_results, "friend_stats": friend_stats })
+        
     return json_response({ "code":200, "results": return_results })
 
 
@@ -1396,7 +1402,8 @@ def get_top_users(request, n):
 
     return json_response({ "code":200, "results": return_results })
 
-def get_top_users_for_url(request, n):
+
+def get_top_users_for_url(request, username, n):
     users = User.objects.all();
     n = int(n)
     from_msec,to_msec = _unpack_from_to_msec(request)
@@ -1405,7 +1412,7 @@ def get_top_users_for_url(request, n):
     from_msec_rounded = round_time_to_day(from_msec)
     to_msec_rounded = round_time_to_day(to_msec)
 
-    barbar = "foo" # to keep this unique err somethign stupic cache thing gaa
+    barbar = "foo" # to keep cache unique
     @cache.region('top_users_long_term')
     def fetch_data(from_msec, to_msec, url, barbar):
         results = []
@@ -1413,15 +1420,55 @@ def get_top_users_for_url(request, n):
             number = PageView.objects.filter(user=user,url=url,startTime__gte=from_msec,endTime__lte=to_msec).count()
             results.append( {"user": user.username, "number": number } )
 
-            
-        #results.sort(key=lambda x:(x["user"], x["number"]))
         results.sort(key=lambda x: -x["number"])
+
         return results[0:n]
 
     return_results = fetch_data(from_msec_rounded, to_msec_rounded, get_url, barbar)
 
     return json_response({ "code":200, "results": return_results })
 
+def get_top_friend_for_url(request, username):
+    user = get_object_or_404(User, username=username)
+    users = [friendship.to_friend for friendship in user.friend_set.all()]
+    print users
+    
+    get_url = request.GET['url'].strip()
+
+    barbar = "top friend for url" # to keep cache unique
+    @cache.region('top_users_long_term')
+    def fetch_data( url, username, barbar):
+        results = []
+        for user in users:
+            number = PageView.objects.filter(user=user,url=url).count()
+            results.append( {"user": user.username, "number": number } )
+
+        results.sort(key=lambda x: -x["number"])
+        return results[0:1]
+
+    return_results = fetch_data(get_url, username, barbar)
+    return return_results
+    #return json_response({ "code":200, "results": return_results })
+
+def get_number_friends_logged_url(request, username):
+    user = get_object_or_404(User, username=username)
+    users = [friendship.to_friend for friendship in user.friend_set.all()]
+
+    get_url = request.GET['url'].strip()    
+
+    @cache.region('top_users_long_term')
+    def fetch_data(url, username):
+        results = []
+        number = 0
+        for user in users:
+            if PageView.objects.filter(user=user,url=url).count() > 0:
+                number += 1
+
+        return number
+
+    return_results = fetch_data(get_url, username)
+    return return_results
+    #return json_response({ "code":200, "results": return_results })
 
 ## emax added this to be fancy
 def uniq(lst,key=lambda x: x,n=None):

@@ -61,7 +61,9 @@ urlpatterns = patterns('',
                        (r'^get_recent_web_page_views_user/(\w+)/(\d+)/$', get_recent_web_page_view_user),
                        (r'^get_following_views/(\w+)/$', get_following_views),
                        (r'^get_views_url/$', get_views_url),
-                       (r'^get_top_users_for_url/(\d+)/$', get_top_users_for_url),
+                       (r'^get_top_users_for_url/(\w+)/(\d+)/$', get_top_users_for_url),
+                       #(r'^get_top_friend_for_url/(\w+)/$', get_top_friend_for_url),
+                       #(r'^get_number_friends_logged_url/(\w+)/$', get_number_friends_logged_url),
                        (r'^get_to_from_url/(\d+)/$', get_to_from_url),
                        (r'^get_trending_urls/(\d+)/$', get_trending_urls),
                        (r'^get_graph_points_url/(\d+)/$', get_graph_points_url),
@@ -71,6 +73,7 @@ urlpatterns = patterns('',
                        (r'^get_page_profile_queries/$', get_page_profile_queries),
                        (r'^get_global_profile_queries/$', get_global_profile_queries),
                        (r'^get_user_profile_queries/(\w+)/$', get_user_profile_queries),
+
                        (r'^get_closest_url/$', get_closest_url),
 
                        # homepage ajax
