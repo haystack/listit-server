@@ -1449,13 +1449,34 @@ def get_top_friend_for_url(request, username):
     return return_results
     #return json_response({ "code":200, "results": return_results })
 
-def get_number_friends_logged_url(request, username):
+def get_top_friend_for_url(request, username):
+    user = get_object_or_404(User, username=username)
+    users = [friendship.to_friend for friendship in user.friend_set.all()]
+    
+    get_url = request.GET['url'].strip()
+
+    barbar = "top friend for url" # to keep cache unique
+    #@cache.region('top_users_long_term')
+    def fetch_data( url, username):
+        results = []
+        for user in users:
+            number = PageView.objects.filter(user=user,url=url).count()
+            results.append( {"user": user.username, "number": number } )
+
+        results.sort(key=lambda x: -x["number"])
+        return results[0:1]
+
+    return_results = fetch_data(get_url, username)
+    return return_results
+    #return json_response({ "code":200, "results": return_results })
+
+def get_number_friends_logged_url_json(request, username):
     user = get_object_or_404(User, username=username)
     users = [friendship.to_friend for friendship in user.friend_set.all()]
 
     get_url = request.GET['url'].strip()    
 
-    #@cache.region('top_users_long_term')
+    @cache.region('top_users_long_term')
     def fetch_data(url, username):
         results = []
         number = 0
@@ -1466,8 +1487,7 @@ def get_number_friends_logged_url(request, username):
         return number
     return_results = fetch_data(get_url, username)
 
-    return return_results
-    #return json_response({ "code":200, "results": return_results })
+    return json_response({ "code":200, "results": return_results })
 
 ## emax added this to be fancy
 def uniq(lst,key=lambda x: x,n=None):
