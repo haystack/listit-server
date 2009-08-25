@@ -1456,7 +1456,7 @@ def get_top_friend_for_url_json(request, username):
     get_url = request.GET['url'].strip()
 
     barbar = "top friend for url" # to keep cache unique
-    #@cache.region('top_users_long_term')
+    @cache.region('top_users_long_term')
     def fetch_data( url, username):
         results = []
         for user in users:
@@ -1475,7 +1475,7 @@ def get_number_friends_logged_url(request, username):
 
     get_url = request.GET['url'].strip()    
 
-    @cache.region('top_users_long_term')
+    #@cache.region('top_users_long_term')
     def fetch_data(url, username):
         results = []
         number = 0
