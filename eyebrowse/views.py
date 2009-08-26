@@ -938,9 +938,6 @@ def get_views_user(request, username):
   #  from_msec_rounded = round_time_to_day(from_msec_raw)
   #  to_msec_rounded = round_time_to_day(to_msec_raw)
     
-    print from_msec_raw
-    print to_msec_raw
-
     #@cache.region('short_term')
     def fetch_data(from_msec, to_msec, user):
         hits = _get_pages_for_user(user ,from_msec,to_msec)
@@ -1015,13 +1012,24 @@ def get_page_profile_queries(request):
 def get_top_hosts(request, n):
     users = User.objects.all()
     n = int(n)
-    from_msec,to_msec = _unpack_from_to_msec(request)
-    times_per_url = _get_time_per_page(users,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Host)
-    urls_ordered = times_per_url.keys()
-    urls_ordered.sort(lambda u1,u2: int(times_per_url[u2] - times_per_url[u1]))
 
-    #_mimic_entity_schema_from_url
-    return json_response({ "code":200, "results": [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] }) 
+    #from_msec_rounded = round_time_to_day(from_msec_raw)
+    #to_msec_rounded = round_time_to_day(to_msec_raw)
+
+    from_msec = (time.time()*1000) - (2629743*1000) # 1 month
+    to_msec = time.time()*1000
+
+    @cache.region('long_term')
+    def fetch_data(n):
+        from_msec,to_msec = _unpack_from_to_msec(request)
+        times_per_url = _get_time_per_page(users, from_msec, to_msec, grouped_by=EVENT_SELECTORS.Host)
+        urls_ordered = times_per_url.keys()
+        urls_ordered.sort(lambda u1,u2: int(times_per_url[u2] - times_per_url[u1]))
+        return [(u, long(times_per_url[u])) for u in urls_ordered[0:n]]
+
+    results = fetch_data(n)
+
+    return json_response({ "code":200, "results": results }) 
 
     
 def get_top_hosts_comparison(request, username, n):

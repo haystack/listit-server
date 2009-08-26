@@ -25,12 +25,12 @@
 		var html = "";
 		var typesArray = ["news","blogs","media","shopping","social","reference"];
 		for (var i = 0; i < typesArray.length; i++){			
-			html = "<a href=\"javascript:addAllPrivacyURLS(\'" + pageList[typesArray[i]] + "\');\"> add all</a>";
+			html = "<a href=\"javascript:addAllPrivacyURLS(\'" + pageList[typesArray[i]] + "\');\" style=\"font-weight:bold;\"> add all</a>";
 			for (var j = 0; j < pageList[typesArray[i]].length; j++){
 				html += "<li>";
 				html += "<a href=\"javascript:addPrivacyURL(\'" + pageList[typesArray[i]][j] + "\');\">" + pageList[typesArray[i]][j] + "</a>";
 				html += "</li>";			
-								}
+			}
 			jQuery("#" + typesArray[i]).html(html);
 		}
 	};
@@ -49,40 +49,58 @@ function addAllPrivacyURLS(urls){
 };
 
 jQuery(document).ready(function(){
-    initMenu();
-    // no params :(
-    jQuery.get("/get_privacy_urls/", {}, 
-	       function(data){
-		 if (data.code == 200) {
-		   var html = "";
-		   for (var i = 0; i < data.results.length; i++) {
-		     html += "<li>";
-		     html += data.results[i];
-		     html += "<a href=\"/delete_privacy_url/?input=" + data.results[i] + "\"><img src=\"/lib/img/cancel_16.png\"/></a>";
-		     html += "</li>";
-		     //console.log(data.results[i]);
-		   }
-		   jQuery("#urladdul").html(html);
-		 }
-		 else {
-		   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-		 }
-	       }, "json");
-    self.addURL = function(){
-      var input = jQuery("#urladdtextinput").val();
-      jQuery.ajax({
-	type:"GET",
-	    url:"../add_privacy_url/",
-	    dataType:"json",
-	    data:{input:input},
-	    success:function(data){
-	    if (data.host && data.host.length > 0) {
-	      jQuery("<li>" + data.host + "<a href=\"/delete_privacy_url/?input=" + data.host + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").appendTo('#urladdul');
-	    }
-	  },
-	    error:function() {}
-	});
-    };
+						   initMenu();
+						   // no params :(
+						   jQuery.get("/get_privacy_urls/", {}, 
+									  function(data){
+										  if (data.code == 200) {
+											  var html = "";
+											  for (var i = 0; i < data.results.length; i++) {
+												  html += "<li>";
+												  html += data.results[i];
+												  html += "<a href=\"/delete_privacy_url/?input=" + data.results[i] + "\"><img src=\"/lib/img/cancel_16.png\"/></a>";
+												  html += "</li>";
+												  //console.log(data.results[i]);
+											  }
+											  jQuery("#urladdul").html(html);
+										  }
+										  else {
+											  console.log("yaaaa!!!H!H!H!" + data.code + " ");
+										  }
+									  }, "json");
+
+						   jQuery.get("/get_top_hosts/25/", {}, 
+									  function(data){
+										  if (data.code == 200) {
+											  var html = "";
+											  for (var i = 0; i < data.results.length; i++) {
+												  html += "<li>";
+												  html += "<a href=\"javascript:addPrivacyURL(\'" + data.results[i][0] + "\');\">" + data.results[i][0] + "</a>";
+												  html += "</li>";			
+											  }
+											  jQuery("#top_logged").html(html);
+										  }
+										  else {
+											  console.log("yaaaa!!!H!H!H!" + data.code + " ");
+										  }
+									  }, "json");
+
+
+						   self.addURL = function(){
+							   var input = jQuery("#urladdtextinput").val();
+							   jQuery.ajax({
+											   type:"GET",
+											   url:"../add_privacy_url/",
+											   dataType:"json",
+											   data:{input:input},
+											   success:function(data){
+												   if (data.host && data.host.length > 0) {
+													   jQuery("<li>" + data.host + "<a href=\"/delete_privacy_url/?input=" + data.host + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").appendTo('#urladdul');
+												   }
+											   },
+											   error:function() {}
+										   });
+						   };
   });
 
 </script>
@@ -98,6 +116,11 @@ jQuery(document).ready(function(){
 		<h2>add popular sites</h2>
 		<br />
 		<ul id="popularsites">
+		  <li>
+			<a href="#top_logged">most logged sites + </a> 
+			<ul id="top_logged">
+			</ul>
+		  </li>
 		  <li>
 			<a href="#news">news + </a> 
 			<ul id="news">
