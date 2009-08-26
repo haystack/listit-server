@@ -101,24 +101,25 @@ sigscroll_duration = lambda prev_count,ssevt: prev_count + ssevt["exitTime"] - s
 sigscroll_count = lambda prev_count,ssevt: prev_count + 1
 
 def sigscroll_reads(note,aggregation=sigscroll_count):
-   
-    if sigscroll_cache.has_key(note.id):
-        return sigscroll_cache[note.id]
+    print note.jid
+    if sigscroll_count_cache.has_key(note.owner.id):
+        return sigscroll_count_cache[note.owner.id].get(note.jid,0)
 
     print "computing sigscroll reads for user %s " % repr(note.owner)
 
     new_cache = {}
     for al in ActivityLog.objects.filter(action="significant-scroll",owner=note.owner):
-        for nv in JSONDecoder().decode(al.search)["note-visibilities"]:
-            nvid = nv["id"]
+        if al.search is None:
+            continue
+        for nv in JSONDecoder().decode(al.search)["note_visibilities"]:
+            nvid = int(nv["id"])
             new_cache[nvid] = aggregation(new_cache.get(nvid,0),nv)
 
     global sigscroll_count_cache
-    
-    for k,v in new_cache.iteritems():
-        sigscroll_count_cache[k] = v
 
-    return sigscroll_count_cache[note.id]
+    sigscroll_count_cache[note.owner.id] = new_cache
+
+    return sigscroll_count_cache[note.owner.id].get(note.jid,0)
 
 
 
