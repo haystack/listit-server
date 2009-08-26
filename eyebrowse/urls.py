@@ -54,7 +54,7 @@ urlpatterns = patterns('',
 
                        # ajax
                        (r'^get_views$', get_web_page_views),
-                       (r'^get_views_user/(\w+)/$', get_web_page_views_user),
+                       (r'^get_views_user/(\w+)/$', get_views_user),
                        (r'^get_top_hosts_comparison/(\w+)/(\d+)/$', get_top_hosts_comparison),
                        (r'^get_top_hosts_comparison_friends/(\w+)/(\d+)/$', get_top_hosts_comparison_friends),
                        (r'^get_top_hosts_comparison_global/(\d+)/$', get_top_hosts_comparison_global),

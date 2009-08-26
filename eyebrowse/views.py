@@ -153,7 +153,7 @@ def delete_privacy_url(request):
     privacysettings = user.privacysettings_set.all()[0] 
 
     inpt = request.GET['input'].strip()
-    print inpt
+
     if privacysettings.listmode == "W":
         privacysettings.whitelist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == inpt])
     if privacysettings.listmode == "B":
@@ -617,7 +617,7 @@ def _profile_save(request, form):
             name = "%d.%s"% (enduser.user.id, img.name.strip().split(".")[-1])
             file_exts = ('.png', '.jpg', '.jpeg',)
             if splitext(img.name)[1].lower() not in file_exts:
-                print file_exts
+                #print file_exts
                 raise forms.ValidationError("Only following Picture types accepted: %s" % ", ".join([f.strip('.') for f in file_exts]))
             else:
                 enduser.photo.save(name, img)
@@ -852,7 +852,7 @@ def _unpack_times(request):
     return (long(request.GET['first_start']), long(request.GET['first_end']), long(request.GET['second_start']), long(request.GET['second_end']))
 
 def _get_top_hosts_n(users,start,end):
-    print users
+    # print users
     time_per_host = _get_time_per_page(users,start,end,grouped_by=EVENT_SELECTORS.Host) 
 
     ordered_visits = [h for h in time_per_host.iteritems()]
@@ -868,6 +868,11 @@ def get_title_from_evt(evt):
 def round_time_to_day(time):
     new_time = int(math.floor(int(time) / 86400000) * 86400000)
     return new_time        
+
+def round_time_to_half_day(time):
+    new_time = int(math.floor(int(time) / 43200000) * 43200000)
+    return new_time        
+
 
 class EVENT_SELECTORS:
     class Page:
@@ -911,25 +916,30 @@ def defang_pageview(pview):
 
 def get_web_page_views(request):
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
-    from_msec_rounded = round_time_to_day(from_msec_raw)
-    to_msec_rounded = round_time_to_day(to_msec_raw)
+
+    # no need to round if it isnt cached
+    #from_msec_rounded = round_time_to_day(from_msec_raw)
+    #to_msec_rounded = round_time_to_day(to_msec_raw)
 
     #@cache.region('short_term')
     def fetch_data(from_msec, to_msec, user):
         hits =  _get_pages_for_user(user,from_msec,to_msec)
         return [ defang_pageview(evt) for evt in hits ]
 
-    results = fetch_data(from_msec_rounded, to_msec_rounded, request.user)
+    results = fetch_data(from_msec_raw, to_msec_raw, request.user)
 
     return json_response({ "code":200, "results": results });
 
-def get_web_page_views_user(request, username):
+def get_views_user(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
 
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
   #  from_msec_rounded = round_time_to_day(from_msec_raw)
   #  to_msec_rounded = round_time_to_day(to_msec_raw)
+    
+    print from_msec_raw
+    print to_msec_raw
 
     #@cache.region('short_term')
     def fetch_data(from_msec, to_msec, user):
@@ -1071,9 +1081,9 @@ def get_top_hosts_comparison_friends(request, username, n):
 
     @cache.region('long_term')
     def fetch_data(following, first_star, first_end, second_start, second_end):
-        print following
+        #print following
         times_per_url_first = _get_top_hosts_n(following,first_start,first_end)
-        print times_per_url_first
+        #print times_per_url_first
         times_per_url_second = _get_top_hosts_n(following,second_start,second_end)
 
         def index_of(what, where):
@@ -1384,8 +1394,8 @@ def get_top_users(request, n):
     n = int(n)
     from_msec,to_msec = _unpack_from_to_msec(request)
 
-    from_msec_rounded = round_time_to_day(from_msec)
-    to_msec_rounded = round_time_to_day(to_msec)
+    from_msec_rounded = round_time_to_half_day(from_msec)
+    to_msec_rounded = round_time_to_half_day(to_msec)
     
     # this is to give the cache a unique reference
     bozon = "bozon"
@@ -1404,14 +1414,14 @@ def get_top_users(request, n):
     return json_response({ "code":200, "results": return_results })
 
 
-def get_top_users_for_url(request, username, n):
+def get_top_users_for_url(request, n):
     users = User.objects.all();
     n = int(n)
     from_msec,to_msec = _unpack_from_to_msec(request)
     get_url = request.GET['url'].strip()
 
-    from_msec_rounded = round_time_to_day(from_msec)
-    to_msec_rounded = round_time_to_day(to_msec)
+    from_msec_rounded = round_time_to_half_day(from_msec)
+    to_msec_rounded = round_time_to_half_day(to_msec)
 
     barbar = "foo" # to keep cache unique
     @cache.region('top_users_long_term')
@@ -1506,11 +1516,9 @@ def uniq(lst,key=lambda x: x,n=None):
 
 ## get most recent urls now returns elements with distinct titles. no repeats!
 def get_most_recent_urls(request, n):
-    from_msec,to_msec = _unpack_from_to_msec(request)    
     n = int(n)
 
     # gets unique pages
-    #phits = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec).order_by("-startTime")
     phits = PageView.objects.filter().order_by("-startTime")
 
     if n < 0 or n is None:
@@ -1518,7 +1526,21 @@ def get_most_recent_urls(request, n):
 
     uphit = uniq(phits,lambda x:x.title,n)
     
-    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in uphit ] })
+    results = [ defang_pageview(evt) for evt in uphit ]
+
+    if request.GET.has_key('start'):
+        start = int(request.GET['start'])
+        if start > 100000:
+            filter_results = []
+            for result in results:
+                if int(result['start']) > start:
+                    filter_results.append(result)
+            if len(filter_results) > 0:
+                return json_response({ "code":200, "results": filter_results })
+            else:
+                return json_response({ "code":204 })
+
+    return json_response({ "code":200, "results": results })
 
 
 def get_users_most_recent_urls(request, username, n):
