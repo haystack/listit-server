@@ -344,4 +344,22 @@ def make_fake_reg_for_admin_user(email,couhes):
     ## print "user couhes is %s " % repr(type(user.couhes))
     ureg.cookie = gen_cookie();
     ureg.save();
+
     
+def deactivate_users(users):
+    if type(users) == authmodels.User:
+        users = [users]
+    for u in users:
+        print "deactivating %s " % repr(u)
+        u.is_active = False
+        u.email = "deactivated__%s" % u.email
+        u.save()
+
+def reactivate_users(users):
+    ## towrite
+    pass
+    
+
+        
+    
+
