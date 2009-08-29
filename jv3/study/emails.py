@@ -871,4 +871,26 @@ Inside, there will be a directory called "xxxxxxxx.default", where "xxxxxxxx" is
 on Linux:
 Look for a directory named ~/.mozilla/firefox/xxxxxxxx.default where "xxxxxxxx" is some string of random characters (e.g. something like "y8fkj1lk2.default").  Open that directory.  Inside is a file called plum.store.sqlite  Attach that to an email and send it to us.
 
+"""),
+           
+"deactivate_user" : ("[List-it] Account %(email)s removed",
+"""
+Dear %(email)s,
+
+We received a request to remove your list-it account, and have done so.
+We have also removed you from the mailing list, so you will not receive
+future e-mails from us.
+
+Thanks for trying list-it and we're sorry you did not find it useful.
+
+If you ever want to try list-it again, you can download list-it again at
+http://listit.csail.mit.edu and create a new account through the Preferences
+page. 
+
+Again, if you have any questions please don't hesitate to email us at
+listit@csail.mit.edu
+
+Yours,
+the list-it team.
+http://listit.csail.mit.edu
 """)}

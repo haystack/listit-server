@@ -346,14 +346,24 @@ def make_fake_reg_for_admin_user(email,couhes):
     ureg.save();
 
     
-def deactivate_users(users):
+def deactivate_users(users, email_user=False):
+    import jv3.study.emails as emails
+    
     if type(users) == authmodels.User:
         users = [users]
-    for u in users:
-        print "deactivating %s " % repr(u)
+        
+    for u in users:        
+        if u.is_active == False:
+            continue
+        
+        if email_user:
+            subj,body = emails.emails['deactivate_user']
+            email_users([u],subj,body)
+        
         u.is_active = False
         u.email = "deactivated__%s" % u.email
         u.save()
+
 
 def reactivate_users(users):
     ## towrite
