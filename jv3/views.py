@@ -688,7 +688,7 @@ def post_usage_statistics(request):
         if request_user:
             slog.user = request_user
         slog.when = current_time_decimal()
-        slog.type = "usage_statistics"
+        slog.action = "usage_statistics"
         slog.info = request.raw_post_data
         slog.host = ""
         slog.url="post_diagnostics"
