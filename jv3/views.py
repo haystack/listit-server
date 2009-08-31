@@ -13,7 +13,7 @@ from django_restapi.resource import Resource
 from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note, NoteForm
 import jv3.utils
-from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport
+from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport, ServerLog
 from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username, get_user_by_email, is_consenting_study1, is_consenting_study2, json_response, set_consenting
 import time
 from django.template.loader import get_template
@@ -676,3 +676,31 @@ def get_zen(request):
     response = HttpResponse(htmlblob, 'text/html');
     response.status_code = 200
     return response
+
+
+def post_usage_statistics(request):
+    print "usage stats"
+    print request.raw_post_data
+    
+    try:
+        slog = ServerLog()    
+        request_user = basicauth_get_user_by_emailaddr(request);    
+        if request_user:
+            slog.user = request_user
+        slog.when = current_time_decimal()
+        slog.type = "usage_statistics"
+        slog.info = request.raw_post_data
+        slog.host = ""
+        slog.url="post_diagnostics"
+        slog.request=""
+        slog.save()
+        return json_response("[]", 200);
+    except:
+        excinfo = sys.exc_info()
+        response = HttpResponse(repr(excinfo), 'text/html');
+        response.status_code = 500
+        return response
+    
+    
+    
+        

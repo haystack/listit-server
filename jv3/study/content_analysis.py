@@ -16,13 +16,11 @@ import sys
 
 _activity_log_cache = None
 def populate_activity_logs(notes):
+    ## gets activity logs for all users of all notes passed in 
     global _activity_log_cache
     owners = [ note["owner"] for note in notes ]
-    #_activity_log_cache = ActivityLog.objects.filter( owner__in=owners ).values("id","action","owner","when","client","noteid","search","noteText")
+    #leaves them cached: _activity_log_cache = ActivityLog.objects.filter( owner__in=owners ).values("id","action","owner","when","client","noteid","search","noteText")
     _activity_log_cache = [ a for a in ActivityLog.objects.filter( owner__in=owners ).values("id","action","owner","when","client","noteid","search","noteText") ]
-    
-    # grab just jids, no good for sig scroll
-    # _activity_log_cache = ActivityLog.objects.filter(noteid__in=[ x["jid"] for x in notes ]).values("id","action","owner","when","client","noteid","search")
     
 def activity_logs_for_note(n,action="note-edit"):
     global _activity_log_cache
