@@ -14,10 +14,12 @@
 			this.start = 0;
             this.now = new Date().valueOf();
             this.timeZoneCorrect = 0;
+			this.newDataEnd = 0;
             this.zoom = zoom;
             this.canvas = canvas;
 			this.width = width;
 			this.height = height;
+			this.recentID = 0;
 			this.windowHeight = height;
 			this.windowWidth = width;
             this.getTopUsers(this.startTime, this.endTime, 10);
@@ -36,37 +38,34 @@
                            }						   
                        }, "json");
 		},       
-		getRecentPages: function(num, startBuffer){
+		getRecentPages: function(num){
             var this_ = this;
 			this_.startTimeRecent = this_.endTimeRecent; // just for init to offset the time and make sure something comes in
             this_.endTimeRecent = new Date().valueOf();
 			jQuery("#loadimg").show();
 			jQuery.get("/get_most_recent_urls/" + num + "/", {
-						   start: this_.start
+                           id: this_.recentID
 					   }, function(data){
 						   jQuery("#loadimg").hide();
 						   if (data.code == 200) {
 							   var newData = data.results;
-							   this_.data = newData;
-							   if (newData[0].start){
-								   this_.start = newData[0].start;
-							   }
-							   for (var i = newData.length - 1; i >=  0; i--) {
-								   var html = "";
-								   html += "<li>";
-								   if (newData[i].title){
-									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
+							   var html = "";
+							   for (var i = newData.length -1; i >= 0; i--) {
+								   if (newData[i].end > this_.newDataEnd){
+									   html = "<li id=\"" + this_.endTimeRecent + i +  "\">";
+									   if (newData[i].title){
+										   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
+									   }
+									   else{
+										   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url + "</a></b></h6>";
+									   }
+									   html += "<h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
+									   html += "</li>";
+									   jQuery("#latestviews ul").prepend(html);
+									   jQuery("#" + this_.endTimeRecent + i).slideDown("slow");
 								   }
-								   else {
-									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url + "</a></b></h6>";
-								   }								   
-								   html += "<br /><h7>" + timeCounterLong((this_.endTimeRecent - newData[i].start) / 1000) + " ago</h7>";
-								   // would like to have this in here but username is not returned from the server right now
-								   //  html += "by <a href=\"/user/" + newData[i].user + "/\">" + newData[i].user + "</a></h7>";
-								   html += "</li>";
-								   jQuery("#latestviews").prepend(html);
-								   // (".listItemSmall:first").slideDown("slow");
 							   }
+							   this_.recentID = newData[0].id;
 						   }
 						   else {
 							   return;
@@ -262,7 +261,7 @@ jQuery(document).ready(function(){
 						   document.getElementById("main").setAttribute("width", myWidth);
 						   document.getElementById("main").setAttribute("height", myHeight);
 						   self.viz = newify(WatchmeVisualisation, 86400000, document.getElementById("main"), myWidth, myHeight); //43200000 12 hrs  // possibly should be 86400000
-						   setInterval("self.viz.getRecentPages(10, 0)", 9000);
+						   //setInterval("self.viz.getRecentPages(10, 0)", 9000);
 					   });
 </script>
 {% endblock %}
@@ -320,6 +319,8 @@ jQuery(document).ready(function(){
     <div class="leftcolumn" style="width:340px;">
         <h2>now</h2>
         <div class="viewboxhome" id="latestviews">
+		  <ul>
+		  </ul>
         </div>
     </div>
     <div class="rightcolumn" style="width:340px; vertical-align:top">

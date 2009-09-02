@@ -929,15 +929,33 @@ def get_views_user(request, username):
     return json_response({ "code":200, "results": results });
 
 
-# ****should not have to sort to return recent view***** that is crazzzy expensive
 def get_recent_web_page_view_user(request, username, n):
     user = get_object_or_404(User, username=username)
     n = int(n)
-    from_msec,to_msec = _unpack_from_to_msec(request)
-    results = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec).order_by('-startTime')[:n]
-    if results.count() < 1:
-        results = PageView.objects.filter(user=user).order_by('-startTime')[:n]    
-    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in results ] });
+
+    # gets unique pages
+    phits = PageView.objects.filter(user=user).order_by("-startTime")
+
+    if n < 0 or n is None:
+        n = len(phits)
+
+    uphit = uniq(phits,lambda x:x.title,n)
+    
+    results = [ defang_pageview(evt) for evt in uphit ]
+
+    if request.GET.has_key('id'):
+        urlID = int(request.GET['id'])
+        filter_results = []
+        for result in results:
+            if int(result['id']) > urlID:
+                filter_results.append(result)
+        if len(filter_results) > 0:
+            return json_response({ "code":200, "results": filter_results })
+        else:
+            return json_response({ "code":204 })
+
+    return json_response({ "code":200, "results": results });
+
 
 def get_user_profile_queries(request, username):
     user = get_object_or_404(User, username=username)
@@ -1517,17 +1535,16 @@ def get_most_recent_urls(request, n):
     
     results = [ defang_pageview(evt) for evt in uphit ]
 
-    if request.GET.has_key('start'):
-        start = int(request.GET['start'])
-        if start > 100000:
-            filter_results = []
-            for result in results:
-                if int(result['start']) > start:
-                    filter_results.append(result)
-            if len(filter_results) > 0:
-                return json_response({ "code":200, "results": filter_results })
-            else:
-                return json_response({ "code":204 })
+    if request.GET.has_key('id'):
+        urlID = int(request.GET['id'])
+        filter_results = []
+        for result in results:
+            if int(result['id']) > urlID:
+                filter_results.append(result)
+        if len(filter_results) > 0:
+            return json_response({ "code":200, "results": filter_results })
+        else:
+            return json_response({ "code":204 })
 
     return json_response({ "code":200, "results": results })
 

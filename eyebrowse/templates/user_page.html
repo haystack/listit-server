@@ -31,6 +31,7 @@
             this.startTime = this.startDate.valueOf();
             this.OGendTime = this.endDate.valueOf();
             this.OGstartTime = this.startDate.valueOf();
+			this.urlID = 0;
             this.interp = zoom / 192;
             this.drag = undefined;
             this.zoom = zoom;
@@ -180,12 +181,11 @@
             html += "</ul>";
 			jQuery("#latestlist").prepend(html);			
         },
-        getLatestPages: function(startTime, endTime){
+        getLatestPages: function(){
             this_ = this;
             try {
                 jQuery.get("/get_recent_web_page_views_user/{{ username }}/15/", {
-							   from: startTime,
-							   to: endTime
+								id: this_.urlID
 						   }, function(data){
 							   if (data.code == 200) {
 								   this_.drawLatestPagesList(data.results);

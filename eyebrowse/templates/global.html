@@ -10,10 +10,6 @@
 	  width:14px;
 	  height:14px;
   }
-  #latestviews li{
-	  display:none;
-  }
-
 </style>
 <script>
     var WatchmeVisualisation = {
@@ -30,11 +26,12 @@
             this.OGendTime = this.endDate.valueOf();
             this.OGstartTime = this.startDate.valueOf();
 			this.newDataEnd = 0;
+			this.recentID = 0;
 			this.endTimeRecent = this.endTime;
             this.interp = zoom / 192;
             this.drag = undefined;
             this.zoom = zoom;
-            this.getRecentPages(30, 3600000);
+            this.getRecentPages(30);
             this.getTopUsers(this.startTime, this.endTime, 10);
 	        this.getTopPages(this.startTime, this.endTime);
         },
@@ -51,12 +48,12 @@
 								   jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv(newData.average));			
 							   }
 							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+								   //console.log("yaaaa!!!H!H!H!" + data.code + " ");
 							   }
 						   }, "json");
             } 
             catch (e) {
-                console.log(e);
+               // console.log(e);
             }
 		},
 		getTopUsers: function(startTime, endTime, num){
@@ -142,39 +139,34 @@
                 console.log(e);
             }
         },
-        getRecentPages: function(num, startBuffer){
+        getRecentPages: function(num){
             var this_ = this;
-			this_.startTimeRecent = this_.endTimeRecent - startBuffer; // startbuffer is just for init to offset the time and make sure something comes in
-            this_.endTimeRecent = new Date().valueOf();
 			this_.getProfile(this_.startTime, this.endTimeRecent);
 			jQuery("#loadimg").show();
 			jQuery.get("/get_most_recent_urls/" + num + "/", {
-						   from: this_.startTimeRecent,
-						   to: this_.endTimeRecent
+						   id: this_.recentID
 					   }, function(data){
 						   jQuery("#loadimg").hide();
 						   if (data.code == 200) {
 							   var newData = data.results;
 							   var html = "";
 							   for (var i = newData.length -1; i >= 0; i--) {
-								   if (newData[i].end > this_.newDataEnd){
-									   html = "<li id=\"" + this_.endTimeRecent + i +  "\">";
-									   if (newData[i].title){
-										   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
-									   }
-									   else{
-										   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url + "</a></b></h6>";
-									   }
-									   html += "<h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
-									   html += "</li>";
-									   jQuery("#latestviews ul").prepend(html);
-									   jQuery("#" + this_.endTimeRecent + i).slideDown("slow");
+								   html = "<li id=\"" + this_.endTimeRecent + i +  "\">";
+								   if (newData[i].title){
+									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
 								   }
+								   else{
+									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url + "</a></b></h6>";
+								   }
+									   html += "<h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
+								   html += "</li>";
+								   jQuery("#latestviews ul").prepend(html);
+								   jQuery("#" + this_.endTimeRecent + i).slideDown("slow");
 							   }
-							   this_.newDataEnd = newData[newData.length - 1].end;
+							   this_.recentID = newData[0].id;
 						   }
 						   else {
-							   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							  // console.log("yaaaa!!!H!H!H!" + data.code + " ");
 						   }
 					   }, "json");
         }
@@ -187,7 +179,7 @@ jQuery(document).ready(function(){
 						   myHeight = window.innerHeight - 250;
 
 						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 86400000);// 12 hrs
-						 //  setInterval("self.viz.getRecentPages(30, 0)", 9000);
+						   setInterval("self.viz.getRecentPages(30)", 9000);
 					   });
 </script>
 {% endblock %}
