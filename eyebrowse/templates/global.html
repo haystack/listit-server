@@ -192,13 +192,19 @@
 						   jQuery("#loadimg").hide();
 						   if (data.code == 200) {
 							   var newData = data.results;
-							   for (var i = 0; i < newData.length; i++) {
+							   for (var i = newData.length - 1; i >=  0; i--) {
 								   var html = "";
 								   html += "<li>";
-								   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
-								   html += "<br /><h7>" + timeCounterLong((this_.endTime - newData[i].end) / 1000) + " ago by</h7> ";								   
+								   if (newData[i].title){
+									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
+								   }
+								   else {
+									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url + "</a></b></h6>";
+								   }								   
+								   html += "<br /><h7>" + timeCounterLong((this_.endTimeRecent - newData[i].start) / 1000) + " ago</h7>";
 								   html += "</li>";
-								   jQuery("#latestviews").append(html);
+								   jQuery("#latestviews").prepend(html);
+								   //("#latestviews:first").slideDown("slow");
 							   }
 						   }
 						   else {

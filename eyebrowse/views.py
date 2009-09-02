@@ -179,8 +179,6 @@ def add_privacy_url(request):
     if request_inpt.split(','):
         request_inpt = request_inpt.split(',')        
 
-    #print request_inpt
-
     for inpt in request_inpt:
         if inpt.startswith('http'):
             host = urlparse.urlparse(inpt)[1].strip()
@@ -227,6 +225,8 @@ def userprivacy(request):
 def index(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
+        #if request.user.username:
+        #    return HttpResponseRedirect('/settings/' + request.user.username)
         if form.is_valid():
             user = User.objects.create_user(
                 username=form.cleaned_data['username'],
@@ -649,17 +649,12 @@ def _profile_save(request, form):
 
 @login_required
 def delete_url_entry(request):
-    enduser = get_enduser_for_user(request.user)        
+    urlID = request.POST['ID'].strip()
 
-    inputURL = request.POST['URL'].strip()
-    url_entry = Event.objects.filter(owner=enduser.user,type="www-viewed",entityid=inputURL)
+    url_entry = PageView.objects.filter(id=urlID)
+    url_entry.delete()
 
-    for url in url_entry:
-        url.delete()
-
-    # TEMPORARY until i get it to remove all the same events from the page
     return json_response({ "code":200 });
-
 
 def friends_page(request, username):
     user = get_object_or_404(User, username=username)
@@ -912,7 +907,7 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
     return times_per_url
 
 def defang_pageview(pview):
-    return {"start" : long(pview.startTime), "end" : long(pview.endTime), "url" : pview.url, "host": pview.host, "title": pview.title}
+    return {"start" : long(pview.startTime), "end" : long(pview.endTime), "url" : pview.url, "host": pview.host, "title": pview.title, "id":pview.id}
 
 def get_web_page_views(request):
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
@@ -935,8 +930,9 @@ def get_views_user(request, username):
     enduser = get_enduser_for_user(user)
 
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
-  #  from_msec_rounded = round_time_to_day(from_msec_raw)
-  #  to_msec_rounded = round_time_to_day(to_msec_raw)
+    # no need to round if it isnt cached
+    #  from_msec_rounded = round_time_to_day(from_msec_raw)
+    #  to_msec_rounded = round_time_to_day(to_msec_raw)
     
     #@cache.region('short_term')
     def fetch_data(from_msec, to_msec, user):

@@ -36,14 +36,14 @@
 	};
 function addPrivacyURL(url){
 	var urlEncoded = encodeURIComponent(url);
-	jQuery("<li>" + url + "<a href=\"/delete_privacy_url/?input=" + url + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").appendTo('#urladdul');
+	jQuery("<li>" + url + "<a href=\"/delete_privacy_url/?input=" + url + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").prependTo('#urladdul');
 	jQuery.get("/add_privacy_url/", {input:url}); 
 };
 
 function addAllPrivacyURLS(urls){
 	var urlsArray = urls.split(",");
 	for (var i = 0; i < urlsArray.length; i++){
-		jQuery("<li>" + urlsArray[i] + "<a href=\"/delete_privacy_url/?input=" + urlsArray[i] + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").appendTo('#urladdul');		
+		jQuery("<li>" + urlsArray[i] + "<a href=\"/delete_privacy_url/?input=" + urlsArray[i] + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").prependTo('#urladdul');		
 	}
 	jQuery.get("/add_privacy_url/", {input:urls}); 
 };
@@ -60,7 +60,6 @@ jQuery(document).ready(function(){
 												  html += data.results[i];
 												  html += "<a href=\"/delete_privacy_url/?input=" + data.results[i] + "\"><img src=\"/lib/img/cancel_16.png\"/></a>";
 												  html += "</li>";
-												  //console.log(data.results[i]);
 											  }
 											  jQuery("#urladdul").html(html);
 										  }
@@ -95,17 +94,16 @@ jQuery(document).ready(function(){
 											   data:{input:input},
 											   success:function(data){
 												   if (data.host && data.host.length > 0) {
-													   jQuery("<li>" + data.host + "<a href=\"/delete_privacy_url/?input=" + data.host + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").appendTo('#urladdul');
+													   jQuery("<li>" + data.host + "<a href=\"/delete_privacy_url/?input=" + data.host + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").prependTo('#urladdul');
 												   }
 											   },
 											   error:function() {}
 										   });
 						   };
-  });
-
+					   });
 </script>
-{% endblock %}
-{% block content %}
+	{% endblock %}
+	{% block content %}
 	<div id="report" style="width:880px">
       <div id="profile_edit" style="border:1px solid grey; width:210px; margin-right:50px; margin-top:50px;float:none; display:inline-block" >
         <h2>Edit Your Profile</h2>

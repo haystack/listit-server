@@ -170,7 +170,7 @@
 				else{
 					html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url + "</a></b></h6>";
 				}
-				html += "<a href=\"javascript:self.viz.deletePage('" + newData[i].url + "','" + i + "');\" style=\"float:right; margin-right:6px; margin-left:6px;\" >";
+				html += "<a href=\"javascript:self.viz.deletePage('" + newData[i].id + "','" + i + "');\" style=\"float:right; margin-right:6px; margin-left:6px;\" >";
 				html += "<img src=\"/lib/img/cancel_16.png\" /></a>";
                 html += "<h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
                 html += "</li>";
@@ -197,10 +197,10 @@
                 console.log(e);
             }
         },
-		deletePage: function(pageURL, num){
+		deletePage: function(urlID, num){
 			try {
 				jQuery.post("/delete_url_entry/", {
-							   'URL': "" + pageURL
+							   'ID': "" + urlID
 						   }, function(data){							   
 							   if (data.code == 200) {
 								   jQuery("\#url" + num).hide("slow");

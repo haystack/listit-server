@@ -1,3 +1,4 @@
+
 import re
 import os,sys
 import views
@@ -35,6 +36,7 @@ urlpatterns = patterns('',
                        
                        # user pages
                        (r'^profile/(\w+)/$', user_page),
+                       #(r'^(\w+)/$', user_page), # could be dangerous 
                        (r'^friends/manage/(\w+)/$', friends_page),
                        (r'^friend/add$', friend_add),
                        (r'^friend/save$', friend_save),
@@ -100,17 +102,10 @@ urlpatterns = patterns('',
                        #  (r'^admin/doc/', include('django.contrib.admindocs.urls')),
                        #  (r'^admin/', include(admin.site.urls)),
 
-                       #TEMPORARY IS DEAD
-                       # (r'^pluginhover/$', pluginhover),  
-                       # (r'^pluginlogin/$', pluginlogin),
-
                        ## plugin_views
                        (r'^plugin_login$', eyebrowse.plugin_views.login),  
                        (r'^plugin_get_max_event$', eyebrowse.plugin_views.get_most_recent_event_time),
                        (r'^plugin_post_events/$', eyebrowse.plugin_views.post_events),
-                       
-                       
-
 )
 
 ## enable static serving for standalone server
