@@ -6,121 +6,69 @@ from nltk.corpus import names,wordnet,stopwords
 from nltk.tokenize import WordTokenizer
 from jv3.study.study import non_stop_consenting_users,non_stop_users
 from jv3.study.exporter import str_n_urls
-from jv3.utils import current_time_decimal
+from jv3.utils import current_time_decimal,is_tutorial_note
 from django.utils.simplejson import JSONEncoder, JSONDecoder
-from rpy2 import robjects
+from rpy2 import robjects as ro
+import nltk.cluster as cluster
+r = ro.r
 import jv3
-import random
-import sys
+import random,sys,re
+import numpy
 
+# ternary
+q=lambda a,b,c: (b,c)[not a]
 
-_activity_log_cache = None
-def populate_activity_logs(notes):
-    ## gets activity logs for all users of all notes passed in 
-    global _activity_log_cache
-    owners = [ note["owner"] for note in notes ]
-    #leaves them cached: _activity_log_cache = ActivityLog.objects.filter( owner__in=owners ).values("id","action","owner","when","client","noteid","search","noteText")
-    _activity_log_cache = [ a for a in ActivityLog.objects.filter( owner__in=owners ).values("id","action","owner","when","client","noteid","search","noteText") ]
-    
-def activity_logs_for_note(n,action="note-edit"):
-    global _activity_log_cache
-    assert _activity_log_cache is not None, "activity logs is none"
-    return [x for x in _activity_log_cache if x["noteid"] == n["jid"] and x["owner"] == n["owner"] and x["action"] == action]
+# lm 
+r = ro.r
 
-def activity_logs_for_user(user,action="note-edit"):
-    global _activity_log_cache
-    assert _activity_log_cache is not None, "activity logs is none"
-    return [x for x in _activity_log_cache if x["owner"] == user and x["action"] == action ]    
-
-#activity_logs_for_note = lambda n,action="note-edit": jv3.models.ActivityLog.objects.filter(action=action,owner=n["owner"],noteid=n["jid"])
-
-def random_notes_slow(n=1000,consenting=True):
-    """ returns random subset of notes """
-    if consenting:
-        users = non_stop_consenting_users()
-    else:
-        users = non_stop_users()
-        
-    results = []
-    keys = []
-    notes = Note.objects.filter(owner__in=users)
-    i = 0
-    while len(results) < n and i < n+10000:
-        note = notes[random.randint(0,notes.count()-1)]
-        if note.id not in keys:
-            keys.append(note.id)
-            results.append(note)            
-        i = i + 1
-        print "%d " % len(results)
-    return results
-
-def _random_notes(n=1000,created_before=None):
-    results = []
-    keys = []
-    
-    if created_before is None:
-        notes = Note.objects.all()
-    else:
-        notes = Note.objects.filter(created__lte=created_before)
-        
-    count = notes.count()
-    i = 0
-    while len(results) < n and i < n+10000:
-        note = notes[random.randint(0,count-1)]
-        if note.id not in keys:
-            keys.append(note.id)
-            results.append(note)            
-        i = i + 1
-        #print "%g " % (len(results)*1.0/n)
-    return results
-
-
+## PREPROCESSING ##################################################
+## tokeniz
 all_pass = lambda x: True
 striplow = lambda x: x.strip().lower()
 stopword_low = [striplow(x) for x in stopwords.words()]
 stopword = lambda x: x not in stopword_low
 
-def random_notes(n=10000,sscroll_filter=False,created_before=None):    
-    if created_before is None:
-        notes = Note.objects.all()
+_notes_to_values = lambda note: note.values('id','owner','contents',"jid","created","deleted","edited")
+_actlogs_to_values = lambda actlog: actlog.values("id","action","owner","when","client","noteid","search","noteText")
+
+eliminate_urls = lambda s: " ".join(re.compile("http://[^\s]*").split(s))
+
+def activity_logs_for_note(n,action="note-edit",days_ago=None):
+    import datetime
+    if days_ago is None:
+        alv = _actlogs_to_values(ActivityLog.objects.filter(action=action,noteid=n["jid"],owner=n["owner"]))
+        print ' returning %d ' % len(alv)
+        return alv
     else:
-        notes = Note.objects.filter(created__lte=created_before)
-    
-    count = notes.count()
-    print "starting with %d " % count
+        today_msec = current_time_decimal()
+        n_days_ago = today_msec - days_ago*24*60*60*1000
+        print "actlogs starting with %d // %s" % (n_days_ago,repr(datetime.datetime.fromtimestamp(n_days_ago/1000.0)))
+        alv = _actlogs_to_values(ActivityLog.objects.filter(action=action,noteid=n["jid"],owner=n["owner"],when__gt=n_days_ago))
+        print ' returning %d ' % len(alv)
+        return alv
 
-    random_ids = []
-    while len(random_ids) < n:
-        r = random.randint(0,count-1)
-        if r not in random_ids:
-            random_ids.append(r)
+def activity_logs_for_user(user,action="note-edit",days_ago=None):
+    import datetime
+    if days_ago is None:
+        return _actlogs_to_values(ActivityLog.objects.filter(action=action,owner=user))
+    else:
+        today_msec = current_time_decimal()
+        n_days_ago = today_msec - days_ago*24*60*60*1000
+        print "starting with %d // %s" % (n_days_ago,repr(datetime.datetime.fromtimestamp(n_days_ago/1000.0)))
+        return _actlogs_to_values(ActivityLog.objects.filter(action=action,owner=user,when__gt=n_days_ago))
 
-    random_ids.sort()
-    print "random ids len %d " % len(random_ids)
-
-    ## load em all at once
-    notes = notes.filter(id__in=random_ids).values('id','owner','contents',"jid","created")
-
-    results = []
-    keys = []
-    
-    for note in notes:
-        if sscroll_filter:
-            if ActivityLog.objects.filter(owner=note["owner"],action="significant-scroll").count() < 10:
-                continue;
-            
-        if note["id"] not in keys:
-            keys.append(note["id"])
-            results.append(note)
-            print "%d" % len(results)
-        if len(results) == n:
-            break;
-
-    return results
-
+def random_notes(n=1000,consenting=True):
+    if consenting:
+        users = non_stop_consenting_users()
+    else:
+        users = non_stop_users()
+    good_ids = [x[0] for x in Note.objects.filter(owner__in=users).values_list("pk","jid","contents") if x[1] >= 0 and not is_tutorial_note(x[2])]
+    random.shuffle(good_ids)
+    notes = Note.objects.filter(pk__in=good_ids[:n])
+    print "returning %d notes " % len(notes)
+    return _notes_to_values(notes)
 
 def update_dictionary(words,dictionary):
-    # takes words
     for w in words:
         dictionary[w] = dictionary.get(w,0) + 1
     pass
@@ -129,228 +77,163 @@ def to_feature_vec(tokens,wordlist):
     fv = {}
     for t in tokens:
         if t in wordlist:
-            idx = wordlist.index(t)
-            fv[idx] = fv.get(idx,0)+1
-
+            fv[t] = fv.get(t,0)+1
     return fv
 
-def vectify(notes, text=lambda x: x["contents"], word_proc=striplow, word_filter=all_pass, lexicon=None, min_word_freq=2):
+def notes_to_bow_features(notes, text=lambda x: eliminate_urls(x["contents"]), word_proc=striplow, word_filter=all_pass, lexicon=None,
+                          lexicon_size_limit=float('Inf'), min_word_freq=0):
     tokenizer = WordTokenizer()
     notewords = lambda x : [ word_proc(x) for x in tokenizer.tokenize(text(n)) if word_filter(x) ]
-    tokenized = [ notewords(n) for n in notes ]
+    tokenized_notes = dict( [ (n["id"],notewords(n)) for n in notes ] )
     dictionary = {}    
     if lexicon is None:
         ## build lexicon, otherwise use dictionary passed in
-        [ update_dictionary(tn,dictionary) for tn in tokenized ] 
+        [ update_dictionary(tn,dictionary) for nid,tn in tokenized_notes.iteritems() ]
         lexicon = [k for k in dictionary.keys() if dictionary[k] > min_word_freq]
         lexicon.sort(lambda x,y : dictionary[y] - dictionary[x])
+        if lexicon_size_limit < float('Inf'):
+            lexicon = lexicon[:lexicon_size_limit]
+        pass
+    ## print tokenized_notes 
+    return (dict( [(nid, to_feature_vec(notewords,lexicon)) for nid,notewords in tokenized_notes.iteritems()] ),lexicon,dictionary)
 
-    return lexicon,[to_feature_vec(tn,lexicon) for tn in tokenized],dictionary
+
     
 # reconstitute
 recon = lambda n,d : [d[x] for x in n.keys()]
 
-# lm 
-r = robjects.r
 
-## context predictors 
-note_lifetime = lambda x : float(current_time_decimal() - x["created"])/1000.0
-note_length = lambda x : len(x["contents"])
-lifetime_length_context = lambda x : [ float(current_time_decimal() - x["created"])/1000.0, len(x["contents"]) ]
-note_n_urls = lambda note: str_n_urls(note["contents"])
+## FEATURE COMPUTERS ##################################################################################
+## given a note, returns features of that note
 
-num_edits = lambda(note) : len(activity_logs_for_note(note))
-did_edit = lambda(note) : num_edits(note) > 0
+note_lifetime = lambda note : {'note_lifetime_s': float((q(note["deleted"],long(note["edited"]),current_time_decimal()) - long(note["created"]))/1000.0)}
+note_owner = lambda note: {'note_owner': repr(note["owner"])}
+note_length = lambda x : {'note_length':len(x["contents"])}
+note_words = lambda x : {'note_words':len(nltk.word_tokenize(eliminate_urls(x["contents"])))}
+note_edits = lambda(note) : {'note_edits':len(activity_logs_for_note(note,"note-edit"))}
+note_did_edit = lambda(note) : {'note_did_edit': note_edits(note) > 0}
+note_deleted = lambda(note) : {'note_deleted': q(note["deleted"],True,False)}
+note_urls = lambda note: {'note_urls': str_n_urls(note["contents"])}
+
+def note_pos_features(note):
+    POS = ["CC","CD","DT","EX","FW","IN","JJ","LS","MD","NN","NNS","NNP","NNPS","PDT","POS","PRP","PRP$","RB","RBR","RBS","RP","SYM","TO","UH","VB","VBD","VBG","VBN","VBP","VBZ","WDT","WP","WP$","WRB"]
+    counts = dict([ (x, 0) for x in POS ])
+    for k,pos in nltk.pos_tag(nltk.word_tokenize(note["contents"])):
+        if pos in POS:
+            counts[pos] = counts[pos]+ 1
+    return counts
+
+_names = None
+def note_names(note):
+    global _names
+    if _names is None:   _names = [x.lower() for x in names.read()]
+    return {'names': len([ x for x in nltk.word_tokenize(note["contents"]) if x in _names ])}
+    
+## signifiant scroll stuff ##
+sigscroll_cache_days_ago = None
 sigscroll_count_cache = {}
+sigscroll_dur_cache = {}
+sigscroll_count = lambda prev_count,ssevt: prev_count + 1
 
-def sigscroll_duration(prev_count,ssevt):
+def sigscroll_dur(prev_count,ssevt):
     if ssevt.has_key("exitTime") and ssevt.has_key("entryTime"):
         return prev_count + (ssevt["exitTime"] - ssevt["entryTime"])/60000.0
     return prev_count
 
-sigscroll_count = lambda prev_count,ssevt: prev_count + 1
-
-## note metadata/context features
-## user_id - factor
-
-def context_frame(notes):
-    features = {
-        "owner" : r.factor(apply(r.c, [ int(note['owner']) for note in notes])),
-        "lifetime": apply(r.c, [ note_lifetime(x) for x in notes ]),
-        "length": apply(r.c, [ note_length(x) for x in notes ]),
-        "urls" : apply(r.c, [ note_n_urls(x) for x in notes ])
-    };                                  
-    return features
-
-def sigscroll_reads(note,aggregation=sigscroll_duration):
-    global sigscroll_count_cache    
-    if sigscroll_count_cache.has_key(note["owner"]):
-        return sigscroll_count_cache[note["owner"]].get(note["jid"],0)
-
-    new_cache = {}
-
-    for al in activity_logs_for_user(note["owner"],action="significant-scroll"): #ActivityLog.objects.filter(action="significant-scroll",owner=note.owner):
+def note_ss(note,days_ago=None):
+    global sigscroll_cache_days_ago
+    global sigscroll_count_cache
+    global sigscroll_dur_cache
+    
+    if sigscroll_count_cache.has_key(note["owner"]) and days_ago == sigscroll_cache_days_ago:
+        # cache hit, and we are reading the right data
+        return {'sigscroll_counts': sigscroll_count_cache[note["owner"]].get(note["jid"],0),  'sigscroll_duration': sigscroll_dur_cache[note["owner"]].get(note["jid"],0) }
+    # reset.
+    if not days_ago == sigscroll_cache_days_ago:
+        sigscroll_cache_days_ago = days_ago
+        sigscroll_count_cache = {}
+        sigscroll_dur_cache = {}        
+    ## recompute!
+    new_count = {}
+    new_dur = {}
+    for al in activity_logs_for_user(note["owner"],"significant-scroll",days_ago): 
         if al["search"] is None:
             continue
         for nv in JSONDecoder().decode(al["search"])["note_visibilities"]:
             nvid = int(nv["id"])
-            new_cache[nvid] = aggregation(new_cache.get(nvid,0),nv)
+            new_count[nvid] = sigscroll_count(new_count.get(nvid,0),nv)
+            new_dur[nvid] = sigscroll_dur(new_dur.get(nvid,0),nv)
+    sigscroll_count_cache[note["owner"]] = new_count
+    sigscroll_dur_cache[note["owner"]] = new_dur
+    return {'sigscroll_counts': sigscroll_count_cache[note["owner"]].get(note["jid"],0),
+            'sigscroll_duration': sigscroll_dur_cache[note["owner"]].get(note["jid"],0) }
 
-    sigscroll_count_cache[note["owner"]] = new_cache
-    return sigscroll_count_cache[note["owner"]].get(note["jid"],0)
+## now feature compilation stuff
+default_note_feature_fns = [
+    note_lifetime,
+    note_owner,
+    note_length,
+    note_words,
+    note_deleted,
+    note_names,
+    note_urls,
+    note_ss,
+]
 
-edits_and_reads = lambda x: sigscroll_reads(x)/10000 + num_edits(x)
+#    note_edits,
 
-def lm(notes=None,min_word_freq=3,labeler=num_edits,context_fn=lifetime_length_context,min_content_features_per_note=1,lexicon=None):
 
-    if notes is None:
-        full_notes = random_notes()
+def notes_to_features(notes,include_bow_features=True,bow_parameters={},note_feature_fns=default_note_feature_fns):
+    # generates feature vectors like this:
+    # [ "notepkid": { "f1" : 12398 , "f2" : 102938, ... } ... ]
+    lexicon = None
+    lexicon_freq = None
+    if include_bow_features:
+        note_fvs,lexicon,lexicon_freq = notes_to_bow_features(notes,**bow_parameters)
+    else:
+        note_fvs = dict( [ (tn["id"],{}) for tn in notes ] )
 
-    # computes a dictionary and transforms note into that dictionary
-    terms,fvs,dicts = vectify(full_notes,min_word_freq=min_word_freq,lexicon=lexicon)
-    # print "terms : %s " % terms[0:20]
-    # 
-    filtered_notes = []
-    filtered_fvs = []    
-    # filters notes for those that at least have min_content_features words
-    filtered_combo = [ (full_notes[ii],fvs[ii]) for ii in range(len(full_notes)) if len(fvs[ii]) > min_content_features_per_note ]
-    notes = [ fc[0] for fc in filtered_combo ]
-    fvs = [ fc[1] for fc in filtered_combo ]
+    for n in notes:
+        print "generating %s:%s " % (n["id"],n["contents"])
+        [ note_fvs[n["id"]].update( ff(n) ) for ff in note_feature_fns ]
 
-    ##
-    print "notes reduced to %s/%s, populating act logs  " % (len(notes),len(fvs))
-    populate_activity_logs(notes)
-    
-    labels = apply(r.c, [labeler(n) for n in notes])
-    
-    print "done with labels : %d " % len(labels)
-    print labels
+    # get all keys
+    keys = {}
+    [ keys.update(fv) for fv in note_fvs.values() ]
+    keys = keys.keys()
+    return keys,note_fvs
 
-    content_dim = len(terms)
-    termmatrix = r.c()
+def kmeans_note_fvs(keys,nfvs,n=10,metric=cluster.euclidean_distance):
+    # turn fvs into vectors
+    vectors = []
+    for n in nfvs:
+        vectors.append( numpy.array([ n.get(k,0) for k in keys ]) )
+    clusterer = cluster.KMeansClusterer(n, metric)
+    clusterer.cluster(vectors, True)
+    return clusterer
 
-    print "termify"
-    for n_i in range(len(notes)):
-        fv = fvs[n_i]
-        note = notes[n_i]
-        
-        ## content features
-        content_row=r.rep(0,times=content_dim)
-        print fv
-        for k,v in fv.iteritems():
-            content_row[k]=v
-        termmatrix = r.c(termmatrix,content_row)
 
-    print "done termify"
-    ## reshape into a matrix plz
-    termmatrix = r.t(r.matrix(termmatrix,ncol=len(notes),nrow=content_dim))
+# def context_frame(notes):
+#     features = {
+#         "owner" : r.factor(apply(r.c, [ int(note['owner']) for note in notes])),
+#         "lifetime": apply(r.c, [ note_lifetime(x) for x in notes ]),
+#         "length": apply(r.c, [ note_length(x) for x in notes ]),
+#         "urls" : apply(r.c, [ note_urls(x) for x in notes ])
+#     };                                  
+#     return features
 
-    global contextframe
-    contextframe = context_frame(notes)
-    contextframe["terms"] = termmatrix
-    contextframe = r["data.frame"](**contextframe)
-    print contextframe
 
-    robjects.globalenv["l"] = labels
-    robjects.globalenv["x"] = contextframe    
+def hist_ss(notes,days_ago=None):
+    if type(notes[0]) == Note:   notes = _notes_to_values(notes)
+    raws = [sigscroll_reads(n,days_ago=days_ago) for n in notes]
+    return (r.hist(apply(r.c,raws)),raws)
 
-    ## kaboom
-    ## result = r.lm("l ~ %s " % " + ".join([ "x$%s" % col for col in contextframe.colnames ]))
-
-    pvals = {}
-    global results
-    results = []
-    for col in contextframe.colnames:
-        result = r.lm("l ~ x$%s " % col )
-        results.append(result)
-        try:
-            if 'terms.' in col:
-                pvals[col[5:]] = r['summary'](result)[3][7]
-            else:
-                pvals[col] = r['summary'](result)[3][7]
-            
-        except:
-            pass
-        
-    print pvals
-    
-#     for ii in range(content_dim):
-#         print "%s:%g" % (terms[ii],r.coefficients(result)[ii+1])
-
-    print decompose_results(terms,pvals)
-
-    return full_notes,notes,terms,labels,termmatrix,results,pvals
-
-decompose_results = lambda terms,pvals,pval_thresh=0.10: [ ( terms[ int(term[1:]) - 1],val) for term,val in pvals.iteritems() if val < pval_thresh and term[0] == '.' ]
-    
-
-# def lm(notes=None,min_word_freq=3,labeler=num_edits,context_fn=lifetime_length_context,min_content_features_per_note=1,lexicon=None):
-
-#     if notes is None:
-#         full_notes = random_notes()
-
-#     terms,fvs,dicts = vectify(full_notes,min_word_freq=min_word_freq,lexicon=lexicon)
-#     filtered_notes = []
-#     filtered_fvs = []
-
-#     print "# of notes/fvs %d %d " % (len(full_notes),len(fvs))
-
-#     filtered_combo = [ (full_notes[ii],fvs[ii]) for ii in range(len(full_notes)) if len(fvs[ii]) > min_content_features_per_note ]
-
-#     notes = [ fc[0] for fc in filtered_combo ]
-#     fvs = [ fc[1] for fc in filtered_combo ]    
-
-#     print "reduced to %s " % len(fvs)
-#     print "terms(%d) : %s " % (len(terms),repr(terms))
-    
-#     labels = apply(r.c, [labeler(n) for n in notes])    
-#     content_dim = len(terms)
-
-#     # final thing to return
-#     predictors = r.c()
-
-#     context_dim = 0
-
-#     for n_i in range(len(notes)):
-#         fv = fvs[n_i]
-#         note = notes[n_i]
-
-#         context_row = context_fn(note)
-#         context_dim = len(context_row)
-
-#         ## content features
-#         content_row=r.rep(0,times=content_dim)
-#         print fv
-#         for k,v in fv.iteritems():
-#             content_row[k]=v
-#         predictors = r.c(predictors,apply(r.c, context_row),content_row)
-
-#     ## reshape into a matrix plz
-#     mpredictors = r.t(r.matrix(predictors,ncol=len(notes),nrow=content_dim+context_dim))
-
-#     print mpredictors
-#     print labels
-
-#     fmla = robjects.Formula('yo ~ xo')
-#     fmla.environment['xo'] = mpredictors
-#     fmla.environment['yo'] = labels
-    
-#     print "type of predicts %s " % repr(type( fmla.environment['xo'] ))
-#     print "type of labels %s " % repr(type( fmla.environment['yo'] ))
-    
-#     result = None
-#     try :
-#         result = r.lm(fmla)
-#         print(r.summary(result))
-#     except :
-#         sys.exc_info();
-
-#     for ii in range(content_dim):
-#         print "%s:%g" % (terms[ii],r.coefficients(result)[ii+context_dim+1])
-    
-#     return full_notes,notes,terms,labels,mpredictors,result
-    
-    
-    
-
+def print_random_events(n=25000):
+    import jv3.study.study as study
+    from jv3.utils import is_consenting_study2
+    stop_users = User.objects.filter(email__in=study.GLOBAL_STOP)
+    good_event_ids = [x[0] for x in Event.objects.all().exclude(owner__in=stop_users).values_list("pk")]
+    random.shuffle(good_event_ids)
+    for e in Event.objects.filter(pk__in=good_event_ids[:n]):
+        print e.entityid
 
