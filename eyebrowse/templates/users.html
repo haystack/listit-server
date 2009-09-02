@@ -158,7 +158,9 @@
 			{% if user.latest_view %}
 			<li>
 			  <div style="display:inline-block;width:70px;">
+				{% if user.photo %}
 				<img src="/profiles/{{ user.id }}.jpg" class="profileimage" />			
+				{% endif %}
 				{% if request_user %}
 				{% if not user.is_friend %}
 				<br />

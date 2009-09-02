@@ -420,80 +420,83 @@ jQuery(document).ready(function(){
         {% endif %}
     </div>
     <div id="profile_content">
-        <img src="/profiles/{{ id }}.jpg" class="profileimage"/>
-        <div class="userhead">
-            <h1><a href="/profile/{{ username }}/">{{ username }}</a></h1>
-            <br/>
-            <div class="underuser">
-                <a href="/graph/{{ username }}/">timeline</a>&nbsp; &#124; &nbsp;<a href="/days/{{ username }}/">20 days</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ username }}/">friends</a>
-            </div>
-        </div>
+	  {% if photo %}
+      <img src="/profiles/{{ id }}.jpg" class="profileimage"/>
+	  {% endif %}
+      <div class="userhead">
+        <h1><a href="/profile/{{ username }}/">{{ username }}</a></h1>
         <br/>
-        <div id="listNav">
-            <div class="user_page_top">
-            <div id="dateselectorlatest" style="float:right; margin-top:15px; width:100px;">
-                <input id="datepickerlatest" class="datepicker" value="06/14/2008" type="text" style="font-size:12px;padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
-                <div id="messageSentLatest"  style="font-size:12px; display:none;">
-                    robots do not know the future :( 
-                    <br/>
-                    &#8230;yet
-                </div>
-            </div>
-					<h2>Latest</h2>
-
-            </div>
-					</div>
-        <div class="viewboxprofile" id="latestlist">
+        <div class="underuser">
+          <a href="/graph/{{ username }}/">timeline</a>&nbsp; &#124; &nbsp;<a href="/days/{{ username }}/">20 days</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ username }}/">friends</a>
         </div>
-<br />
-        <div id="listNav">
-            <div class="user_page_top">
-            <div id="dateselector" style="float:right; margin-top:15px; width:193px;">week ending:
-                <input id="datepickergraph" class="datepicker" value="06/14/2008" type="text" style="font-size:12px;padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
-                <div id="messageSentGraph"  style="font-size:12px; display:none";>
-                    robots do not know the future :( 
-                    <br/>
-                    &#8230;yet
-                </div>
+      </div>
+      <br/>
+      <div id="listNav">
+        <div class="user_page_top">
+          <div id="dateselectorlatest" style="float:right; margin-top:15px; width:100px;">
+            <input id="datepickerlatest" class="datepicker" value="06/14/2008" type="text" style="font-size:12px;padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
+            <div id="messageSentLatest"  style="font-size:12px; display:none;">
+              robots do not know the future :( 
+              <br/>
+              &#8230;yet
             </div>
-<h2>Graphs</h2>
-</div>
-<br />
+          </div>
+		  <h2>Latest</h2>
+		  
+        </div>
+	  </div>
+      <div class="viewboxprofile" id="latestlist">
+      </div>
+	  <br />
+      <div id="listNav">
+        <div class="user_page_top">
+          <div id="dateselector" style="float:right; margin-top:15px; width:193px;">week ending:
+            <input id="datepickergraph" class="datepicker" value="06/14/2008" type="text" style="font-size:12px;padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
+            <div id="messageSentGraph"  style="font-size:12px; display:none";>
+              robots do not know the future :( 
+              <br/>
+              &#8230;yet
+            </div>
+          </div>
+		  <h2>Graphs</h2>
+		</div>
+		<br />
         <canvas id="totalTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
         </canvas>
         <canvas id="avgTimeGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">
         </canvas>
         <div id="key" style="margin-top:-40px">
-            <div id="totalGraphKey" style="width:300px; text-align:center; display: inline-block;">
-                total time on the web
-            </div>
-            <div id="avgGraphKey" style="float:right; width:300px; text-align:center; display: inline-block;">
-                average time spent on a webpage
-            </div>
+          <div id="totalGraphKey" style="width:300px; text-align:center; display: inline-block;">
+            total time on the web
+          </div>
+          <div id="avgGraphKey" style="float:right; width:300px; text-align:center; display: inline-block;">
+            average time spent on a webpage
+          </div>
         </div>
         <div id="listNav">
-            <div class="user_page_top">
+          <div class="user_page_top">
             <div id="dateselector" style="float:right; margin-top:15px; width:193px;">week ending:
-                <input id="datepicker" class="datepicker" value="06/14/2008" type="text" style="font-size:12px;padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
-                <div id="messageSent"  style="font-size:12px";>
-                    robots do not know the future :( 
-                    <br/>
-                    &#8230;yet
-                </div>
+              <input id="datepicker" class="datepicker" value="06/14/2008" type="text" style="font-size:12px;padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
+              <div id="messageSent"  style="font-size:12px";>
+                robots do not know the future :( 
+                <br/>
+                &#8230;yet
+              </div>
             </div>
-                {% ifequal user.username username %}<h2>Your Top 25</h2>
-                {% else %}{% if user.username %}
-						<h2 style="font-size:14px;padding-top:12px;padding-bottom:12px">
-                    <a href="#top10" onclick="window.viz.top()">top 25</a>&nbsp; &#124; &nbsp;<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp; &#124; &nbsp;<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a>
-							</h2>
-            </div>
-            {% else %}<h2>{{ username}}'s top 25</h2>
-            {% endif %}
-            {% endifequal %}
+            {% ifequal user.username username %}<h2>Your Top 25</h2>
+            {% else %}{% if user.username %}
+			<h2 style="font-size:14px;padding-top:12px;padding-bottom:12px">
+              <a href="#top10" onclick="window.viz.top()">top 25</a>&nbsp; &#124; &nbsp;<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp; &#124; &nbsp;<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a>
+			</h2>
+          </div>
+          {% else %}<h2>{{ username}}'s top 25</h2>
+          {% endif %}
+          {% endifequal %}
         </div>
         <div class="viewboxlarge" id="list" style="width:700px;">
         </div>
-    </div>
-    <br/>
-</div>
-{% endblock %}
+      </div>
+      <br/>
+	</div>
+	{% endblock %}
+	

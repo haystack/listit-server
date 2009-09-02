@@ -25,20 +25,6 @@ from eyebrowse.beakercache import cache
 from django.db.models import Sum
 from jv3.utils import json_response
 
-#TEMPORARY
-def pluginhover(request):
-    t = loader.get_template("plugin_hover.html")
-    c = Context({ 'request_user': request.user.username })
-
-    return HttpResponse(t.render(c))
-
-#TEMPORARY
-def pluginlogin(request):
-    t = loader.get_template("client_login.html")
-    c = Context({ 'request_user': request.user.username })
-
-    return HttpResponse(t.render(c))
-
 def get_enduser_for_user(user):
     if EndUser.objects.filter(user=user).count() > 0:
         enduser = EndUser.objects.filter(user=user)[0]
@@ -376,6 +362,7 @@ def users(request):
                 "number": Event.objects.filter(owner=friend.user,type="www-viewed").count(), 
                 "tags": tags, 
                 "id": friend.user.id,
+                "photo": friend.photo,
                 "is_friend": is_friend,
                 "location": friend.location,
                 "website": friend.homepage,                
@@ -436,8 +423,6 @@ def user_page(request, username):
          'following': following,
          'followers': followers,
          'is_friend': is_friend,
-         'first_name': enduser.user.first_name,
-         'last_name': enduser.user.last_name,
          'location': enduser.location,
          'homepage': enduser.homepage,
          'birthdate': bday,
