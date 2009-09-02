@@ -32,7 +32,7 @@ urlpatterns = patterns('',
                        (r'^friends/(\w+)/$', friends),
                        (r'^users/$', users),
                        (r'^search/$', page_profile),
-                       (r'^everyone/$', world),
+                       (r'^ticker/$', ticker),
                        
                        # user pages
                        (r'^profile/(\w+)/$', user_page),

@@ -286,7 +286,7 @@ def graph(request, username):
     c = Context({ 'username': enduser.user.username, 'id': enduser.user.id, 'request_user': request_user })
     return HttpResponse(t.render(c))
 
-def world(request): # confusing name fix this
+def ticker(request):
     t = loader.get_template("global.html")
     c = Context({ 'username': request.user.username, 'id': request.user.id, 'request_user': request.user.username })
     return HttpResponse(t.render(c))

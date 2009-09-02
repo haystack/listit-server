@@ -7,6 +7,8 @@
 			width: 420px;
 		}
 	</style>
+	<script src="/lib/js/jquery.corner.js">
+	</script>
 	<script src="/lib/js/watchMeGraph.js">
 	</script>
 	<script src="/lib/js/canvas.text.js">
@@ -242,7 +244,10 @@
             }
 		}
     };
+
+
 jQuery(document).ready(function(){
+								jQuery(".imgborder").corner();
 						   var currentDate = new Date();
 						   jQuery("#datepickerlatest").val(currentDate.format('mm/dd/yyyy'));
 						   
@@ -421,7 +426,9 @@ jQuery(document).ready(function(){
     </div>
     <div id="profile_content">
 	  {% if photo %}
-      <img src="/profiles/{{ id }}.jpg" class="profileimage"/>
+	  <div class="imgborder" style="display:inline-block;">
+      <img src="/profiles/{{ id }}.jpg" class="profileimage" />
+	  </div>
 	  {% endif %}
       <div class="userhead">
         <h1><a href="/profile/{{ username }}/">{{ username }}</a></h1>

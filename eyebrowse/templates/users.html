@@ -11,7 +11,7 @@
 		margin:0px;
 		margin-top:4px;
 		padding:0px;
-		width:86%;
+		width:85%;
 		margin-left:-4px;
 		}
 
@@ -28,8 +28,8 @@
 		}
 		
         #list img {
-		height:50px;
-		width:50px;
+		height:69px;
+		width:69px;
 		display:inline-block
 		}
 
@@ -52,7 +52,12 @@
 		margin-top:-8px;
 		display:block;
 		}
+		#profile {
+		margin-top:21px;
+		}
 	</style>
+	<script src="/lib/js/jquery.corner.js">
+	</script>
 	<script>
     var WatchmeVisualisation = {
         initialize: function(canvas, zoom){
@@ -127,6 +132,7 @@
 		}
 												   };
 	  jQuery(document).ready(function(){
+								jQuery(".imgborder").corner();
 	  self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 2629743000*6);// 1 month * 6
 	  });
 	</script>
@@ -157,14 +163,16 @@
 			{% for user in users %}
 			{% if user.latest_view %}
 			<li>
-			  <div style="display:inline-block;width:70px;">
+			  <div style="display:inline-block;width:90px;">
 				{% if user.photo %}
-				<img src="/profiles/{{ user.id }}.jpg" class="profileimage" />			
+				<div class="imgborder">
+				  <img src="/profiles/{{ user.id }}.jpg" class="profileimage" />			
+				</div>
 				{% endif %}
 				{% if request_user %}
 				{% if not user.is_friend %}
 				<br />
-				<a href="/friend/add?username={{ user.username }}">follow <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a>
+				<a href="/friend/add?username={{ user.username }}" style="margin-left:9px;">follow <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a>
 				{% endif %}
 				{% endif %}
 			  </div>

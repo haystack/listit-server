@@ -223,6 +223,9 @@ a.selected {
 } .viewboxprofile li{
 	border-bottom:1px solid lightgrey;
 	 padding:3px;
+    margin-left: auto;
+    margin-right: auto;
+	width:690px;
 } .viewboxlarge {
     width: 700px;
     margin-left: 11px;
@@ -260,6 +263,35 @@ a.selected {
 	text-align:right;
 	width:40%;
 	vertical-align:top;
+} .viewboxright {
+    width: 200px;
+    margin-left: 11px;
+    height: auto;
+    border: none;
+	margin-top:0px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+} .viewboxright a {
+	font-weight:bold;
+} .viewboxright li {
+    padding: 2px;
+    border-bottom: 1px solid lightgrey;
+    padding-right: 0px;
+}
+.viewboxright .imgbox {
+    float: right;
+    padding: 0px;
+    margin: 0px;
+	margin-top:1px;
+    text-align: left;
+    font-size: 1.1em;
+    vertical-align: top;
+	width:43px;
+} .viewboxright b{
+	vertical-align:top;
+	padding-top:2px;
+	padding-left:5px;
 } .viewboxhome {
     width: 320px;
     height: auto;
@@ -288,6 +320,8 @@ a.selected {
     padding-left: 10px;
 	text-align:left;
 	float:none;
+} .viewboxhome li h6 {
+	line-height:11px;
 } .viewboxhome .imgBox {
     float: right;
     padding: 0pox;
@@ -519,12 +553,12 @@ a.selected {
     height: 69px;
     width: 69px;
     padding-right: 4px;
-	margin-top:10px;
 } #profile h2 {
     font-size: 1.4em;
     font-weight: bold;
     margin-top: 10px;
     padding: 8px;
+	padding-bottom:6px;
     padding-left: 0px;
 } #profile p {
     padding: 8px;
@@ -756,4 +790,10 @@ a.selected {
 	line-height:18px;
 	color:#444444;
 	margin-top:12px;
+} .imgborder {
+	width:69px;
+	height:69px; 
+	margin-right:3px;
+	margin-top:12px;
+	display:inline-block;
 }
