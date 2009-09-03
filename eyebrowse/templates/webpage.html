@@ -60,7 +60,8 @@
 
 							   this_.getProfile(this_.startTime, this_.endTime, this_.url); 
 							   this_.initUrlGraph(this_.url);
-							   this_.initSmallGraphs(this_.startTime, this_.endTime, this_.url); 
+							   this_.initLineGraphs(this_.startTime, this_.endTime, this_.url); 
+							   this_.initBarGraphs(this_.url); 
 							   this_.initTopUsers(this_.startTime, this_.endTime, this_.url);			       
 						   } else {
 							   // TODO: replace plz with an error div
@@ -179,7 +180,7 @@
 										data: data
 									});			
 		},
-		initSmallGraphs: function(startTime, endTime, url){
+		initLineGraphs: function(startTime, endTime, url){
 			var this_ = this;
             try {
                 jQuery.get("/get_graph_points_url/28/", {
@@ -196,6 +197,7 @@
 															   windowWidth: this_.windowWidth,
 															   interp: (endTime - startTime) / 28,
 															   color: "#ff00ff",
+															   fillGraph: true,
 															   data: data.results.ttData
 														   });
 								   var avgTimeG = newify(lineGraphFactoryLite, {
@@ -206,7 +208,65 @@
 															 windowWidth: this_.windowWidth,
 															 interp: (endTime - startTime) / 28,
 															 color: "#ff00ff",
+															 fillGraph: true,
 															 data: data.results.avgData
+														 });
+							   }
+							   else {
+								   //console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							   }
+						   }, "json");
+            } 
+            catch (e) {
+                console.log(e);
+            }
+        },
+		initBarGraphs: function(url){
+			var this_ = this;
+
+            //(r'^get_time_of_day_graph_for_url)/$', get_time_of_day_graph_for_url),
+            // (r'^get_day_of_week_graph_for_url)/$', get_day_of_week_graph_for_url),
+            try {
+                jQuery.get("/get_day_of_week_graph_for_url/", {
+							   url: url
+						   }, function(data){
+							   if (data.code == 200) {				
+								   var dayWeekGraph = newify(barGraphLite, {
+																 canvas: document.getElementById("dayWeekGraph"),
+																 windowHeight: this_.windowHeight,
+																 windowWidth: this_.windowWidth,
+																 bottomPadding:30,
+																 barPadding:10,
+																 textPadding:4,
+																 columnWidth:20,																 
+																 label: ['Monday', 'Tuesday', 'Wednes', 'Thursday', '  Friday', 'Saturday', 'Sunday'],
+																 data: data.results
+														 });
+							   }
+							   else {
+								   //console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							   }
+						   }, "json");
+            } 
+            catch (e) {
+                console.log(e);
+            }
+            try {
+                jQuery.get("/get_time_of_day_graph_for_url/", {
+							   url: url
+						   }, function(data){
+							   if (data.code == 200) {						
+								   var timeDayGraph = newify(barGraphLite, {
+																 canvas: document.getElementById("dayTimeGraph"),
+																 windowHeight: this_.windowHeight,
+																 windowWidth: this_.windowWidth,
+																 color: "#ff00ff",
+																 bottomPadding:30,
+																 columnWidth:8,
+																 barPadding:0,
+																 textPadding:0,
+																 label: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
+																 data: data.results
 														 });
 							   }
 							   else {
@@ -228,7 +288,8 @@
 							   jQuery("#urladdtextinput").val(this_.url);
 							   this_.getProfile(this_.startTime, this_.endTime, this_.url); 
 							   this_.initUrlGraph(this_.url);
-							   this_.initSmallGraphs(this_.startTime, this_.endTime, this_.url); 
+							   this_.initLineGraphs(this_.startTime, this_.endTime, this_.url); 
+							   this_.initBarGraphs(this_.url); 
 							   this_.initTopUsers(this_.startTime, this_.endTime, this_.url);			       
 						   } else {
 							   // TODO: replace plz with an error div
@@ -246,6 +307,11 @@ jQuery(document).ready(function(){
 						   var myWidth = window.innerWidth - 16;
 						   var myHeight = window.innerHeight - 250;
 						   var input = jQuery("#urladdtextinput").val();
+
+						   document.getElementById("dayTimeGraph").setAttribute("width", 335);
+						   document.getElementById("dayTimeGraph").setAttribute("height", 200);
+						   document.getElementById("dayWeekGraph").setAttribute("width", 335);
+						   document.getElementById("dayWeekGraph").setAttribute("height", 200);
 
 						   document.getElementById("totalTimeGraph").setAttribute("width", 335);
 						   document.getElementById("totalTimeGraph").setAttribute("height", 200);
@@ -294,7 +360,20 @@ jQuery(document).ready(function(){
   </div>
   <div id="profile_content" style="margin-top:0px">
     <div style="border-top:1px solid #999999">&nbsp;</div>
-	<br />
+    <div id="key" style="margin-top:-7px;margin-bottom:4px">
+      <div id="totalGraphKey" style="width:300px; text-align:center; display: inline-block;">
+        number of visits per hour of day
+      </div>
+      <div id="avgGraphKey" style="float:right; width:300px; text-align:center; display: inline-block;">
+        number visits per day of week
+      </div>
+    </div>   
+
+    <canvas id="dayTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
+    </canvas>
+    <canvas id="dayWeekGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">
+    </canvas>
+	<br /><br />
     <canvas id="totalTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
     </canvas>
     <canvas id="avgTimeGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">

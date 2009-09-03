@@ -366,78 +366,76 @@ var lineGraphFactoryLite = ({
 									// the fill graph has no key 
 									if (this_.fillGraph){
 										ctx.fillStyle = this_.color;										
-										//ctx.fill();
-										ctx.stroke();
+										ctx.fill();
+										//ctx.stroke();
 										ctx.closePath();
-										ctx.restore();
+									}
+
+									ctx.stroke();
+									ctx.closePath();
+									ctx.restore();
+
+									// draw the lines
+									// lines for each 12 hrs
+									ctx.beginPath();
+									ctx.fillStyle = "#666666";
+									var fooHour = 0;
+									var numHrs = 7;
+									var endDateVal = (Math.floor((this_.endTime / (this_.zoom / numHrs))) * (this_.zoom / numHrs)) + 1800000; 						  
+									// not sure why i have to subtract this but it ensures that the dates are on a 12 hr scale						  
+									for (var hrCount = 0; hrCount < numHrs; hrCount++) {
+										var dayText = new Date(endDateVal - fooHour);
+										var q = this_.windowWidth * ((endDateVal - fooHour - this_.startDate) / (this_.endDate - this_.startDate));
+										ctx.fillStyle = "#000000";
+										ctx.fillRect(q, this_.windowHeight - 50, 1, 6);							  
+										fooHour += (this_.zoom / numHrs);
+									}
+									ctx.closePath();
+
+
+									// lines for each hour
+									ctx.beginPath();
+									ctx.fillStyle = "#666666";
+									fooHour = 0;
+									numHrs = this_.zoom/3600000;
+									endDateVal = (Math.floor((this_.endTime / (this_.zoom / numHrs))) * (this_.zoom / numHrs)) + 1800000; 						  
+									// not sure why i have to add this but it ensures that the dates are on a 12 hr scale
+									for (hrCount = 0; hrCount < numHrs + 24; hrCount++) {
+										var dayText = new Date(endDateVal - fooHour);
+										var q = this_.windowWidth * ((endDateVal - fooHour - this_.startDate) / (this_.endDate - this_.startDate));
+										ctx.fillRect(q, this_.windowHeight - 50, 0.5, 3);
+										fooHour += (this_.zoom / numHrs);
+									}
+									ctx.closePath();
+
+
+
+									// draw the key
+									ctx.beginPath();
+									ctx.fillStyle = "#333333";
+									ctx.fillRect(0, this_.padding, this_.windowWidth, 1);
+
+									ctx.strokeStyle = "#666666";
+									ctx.font = ".7pt helvetiker";
+									ctx.fillStyle = "#666666";
+									ctx.lineWidth = 0.5;
+									if (this_.endTime - this_.startTime > 43200000){								
+										ctx.fillText("" + this_.startDate.format('mmmm d'), 10, this_.padding + 20);
+										ctx.fillText("" + this_.endDate.format('mmmm d'), this_.windowWidth - Math.round(ctx.measureText("" + this_.endDate.format('mmmm d')).width) - 2, this_.padding + 20);
 									}
 									else {
-										ctx.stroke();
-										ctx.closePath();
-										ctx.restore();
-
-										// draw the lines
-										// lines for each 12 hrs
-										ctx.beginPath();
-										ctx.fillStyle = "#666666";
-										var fooHour = 0;
-										var numHrs = 7;
-										var endDateVal = (Math.floor((this_.endTime / (this_.zoom / numHrs))) * (this_.zoom / numHrs)) + 1800000; 						  
-										// not sure why i have to subtract this but it ensures that the dates are on a 12 hr scale						  
-										for (var hrCount = 0; hrCount < numHrs; hrCount++) {
-											var dayText = new Date(endDateVal - fooHour);
-											var q = this_.windowWidth * ((endDateVal - fooHour - this_.startDate) / (this_.endDate - this_.startDate));
-											ctx.fillStyle = "#000000";
-											ctx.fillRect(q, this_.windowHeight - 50, 1, 6);							  
-											fooHour += (this_.zoom / numHrs);
-										}
-										ctx.closePath();
-
-
-										// lines for each hour
-										ctx.beginPath();
-										ctx.fillStyle = "#666666";
-										fooHour = 0;
-										numHrs = this_.zoom/3600000;
-										endDateVal = (Math.floor((this_.endTime / (this_.zoom / numHrs))) * (this_.zoom / numHrs)) + 1800000; 						  
-										// not sure why i have to add this but it ensures that the dates are on a 12 hr scale
-										for (hrCount = 0; hrCount < numHrs + 24; hrCount++) {
-											var dayText = new Date(endDateVal - fooHour);
-											var q = this_.windowWidth * ((endDateVal - fooHour - this_.startDate) / (this_.endDate - this_.startDate));
-											ctx.fillRect(q, this_.windowHeight - 50, 0.5, 3);
-											fooHour += (this_.zoom / numHrs);
-										}
-										ctx.closePath();
-
-
-
-										// draw the key
-										ctx.beginPath();
-										ctx.fillStyle = "#333333";
-										ctx.fillRect(0, this_.padding, this_.windowWidth, 1);
-
-										ctx.strokeStyle = "#666666";
-										ctx.font = ".7pt helvetiker";
-										ctx.fillStyle = "#666666";
-										ctx.lineWidth = 0.5;
-										if (this_.endTime - this_.startTime > 43200000){											
-											ctx.fillText("" + this_.startDate.format('mmmm d'), 10, this_.padding + 20);
-											ctx.fillText("" + this_.endDate.format('mmmm d'), this_.windowWidth - 50, this_.padding + 20); // need to make this x value dyanmic base dod on size of text using measureText(0
-										}
-										else {
-											ctx.fillText("" + this_.startDate.format('hh:mm TT'), 10, this_.padding + 18);
-											ctx.fillText("" + this_.endDate.format('hh:mm TT'), this_.windowWidth - 48, this_.padding + 20); // need to make this x value dyanmic base dod on size of text using measureText(0											
-										}
-										ctx.save();
-										ctx.translate(0,0-10);
-										ctx.fillText("" + timeCounterClock(this_.maxData/ 1000), 9, this_.topPadding + 10);
-										ctx.fillText("" + 0, 9, this_.padding + 3);
-										for (var i = 1; i < 3; i++) {
-											ctx.fillText("" + timeCounterClock(Math.floor(((this_.maxData - this_.minData) / 3) * i) / 1000), 9, (this_.padding + 3 + -(((this_.padding + 3) - (this_.topPadding + 5)) / 3) * i));
-										}
-										ctx.restore();
-										ctx.closePath();									
+										ctx.fillText("" + this_.startDate.format('hh:mm TT'), 10, this_.padding + 18);
+										ctx.fillText("" + this_.endDate.format('hh:mm TT'), this_.windowWidth - 48, this_.padding + 20); // need to make this x value dyanmic base dod on size of text using measureText(0											
 									}
+									ctx.save();
+									ctx.translate(0,0-10);
+									ctx.fillText("" + timeCounterClock(this_.maxData/ 1000), 9, this_.topPadding + 10);
+									ctx.fillText("" + 0, 9, this_.padding + 3);
+									for (var i = 1; i < 3; i++) {
+										ctx.fillText("" + timeCounterClock(Math.floor(((this_.maxData - this_.minData) / 3) * i) / 1000), 9, (this_.padding + 3 + -(((this_.padding + 3) - (this_.topPadding + 5)) / 3) * i));
+									}
+									ctx.restore();
+									ctx.closePath();																	
 								},
 								setXY: function(){
 									var this_ = this;
@@ -900,6 +898,9 @@ var compareFactory  = ({
 							   for (var i = 0; i < this.data.pre.length; i++){								   
 								   dataArray.push(this.data.pre[i][1]);
 							   }
+							   for (var i = 0; i < this.data.next.length; i++){								   
+								   dataArray.push(this.data.next[i][1]);
+							   }
 							   this.dataMin = dataArray.min();// + 1;
 							   this.dataMax = dataArray.max() + 0.1;// -1;
 							   this.draw();
@@ -909,17 +910,16 @@ var compareFactory  = ({
 							   var this_ = this;
 							   var startY = 20;
 
-							   ctx.clearRect(0,0,this_.windowWidth,this_.windowHeight);
+							   ctx.clearRect(0,0,this_.windowWidth,this_.windowHeight*2);
 
 							   for (var i = 0; i < this_.data.pre.length; i++){
 								   if (!this_.data.pre[i][1]){
 									   continue;
 								   }
-								   ctx.lineWidth = this_.lineWidth * ((this_.data.pre[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin)) + 0.4;
-								   ctx.strokeStyle = "hsl(" + (this_.maxH * ((this_.data.pre[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin))) + this_.minH + ", 100%, 50%)";
-								   
+								   ctx.lineWidth = (this_.lineWidth - 0.4) * ((this_.data.pre[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin)) + 0.4;
+								   ctx.strokeStyle = "hsl("+ Math.round((this_.maxH - this_.minH) *((this_.data.pre[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin)) + this_.minH) + ",100%,50%)";
 								   ctx.beginPath();
-								   ctx.moveTo(250, startY );
+								   ctx.moveTo(250, startY);
 								   ctx.lineTo(this_.windowWidth/2, this_.windowHeight/2);
 								   ctx.stroke();
 								   ctx.closePath();								   
@@ -931,8 +931,8 @@ var compareFactory  = ({
 								   if (!this_.data.next[i][1]){
 									   continue;
 								   }
-								   ctx.lineWidth = this_.lineWidth * ((this_.data.next[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin)) + 0.4;
-								   ctx.strokeStyle = "hsl(" + (this_.maxH * ((this_.data.next[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin))) + this_.minH + ", 100%, 50%)";			  
+								   ctx.lineWidth = (this_.lineWidth - 0.4) * ((this_.data.next[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin)) + 0.4;
+								   ctx.strokeStyle = "hsl("+ Math.round((this_.maxH - this_.minH) *((this_.data.next[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin)) + this_.minH) + ",100%,50%)";
 								   ctx.beginPath();
 								   ctx.moveTo(this_.windowWidth - 250, startY );
 								   ctx.lineTo(this_.windowWidth/2, this_.windowHeight/2);
@@ -975,6 +975,7 @@ var stackBarGraph = ({
 							 var ctx = this.canvas.getContext('2d');
 							 var this_ = this;
 
+							 ctx.clearRect(0,0,this_.windowWidth,this_.windowHeight);
 							 ctx.font = "0.8pt helvetiker";
 							 ctx.lineWidth = 1;
 							 ctx.strokeStyle = "#0f0f0f";
@@ -1066,43 +1067,34 @@ var stackBarGraph = ({
 					 });
 
 var barGraphLite = ({
-						initialize: function(viz, params){
-							this.viz = viz;
-							if (params.canvas) { this.canvas = params.canvas; }
-							else { this.canvas = viz.canvas;}
-							if (params.windowHeight){
-								this.windowHeight = params.windowHeight;
-							} else {
-								this.windowHeight = viz.windowHeight;
-							}
-							if (params.windowWidth) {
-								this.windowWidth = params.windowWidth;	 
-							} else {
-								this.windowWidth = viz.windowWidth;
-							}
-							this.marginTop = params.marginTop;
-							this.height = params.height;
-							this.trigger = undefined;
+						initialize: function(params){
+							this.canvas = params.canvas; 
+							this.windowHeight = params.windowHeight;
+							this.windowWidth = params.windowWidth;	 
+							this.windowWidth = params.windowWidth;
+							this.bottomPadding = params.bottomPadding;
+							this.barPadding = params.barPadding;
+							this.textPadding = params.textPadding;
+							this.padding = 5;
+							this.topPadding = 0;
 							this.columnWidth = params.columnWidth;
-							if (params.noHover){
-								this.noHover = params.noHover;
-							}
+							this.label = params.label;
+							this.maxH = 320;
+							this.minH = 170;
 							this.setPos(params.data);
-							this.maxH = 300;
-							this.minH = 270;
 						},
 						draw: function(){
 							var ctx = this.canvas.getContext('2d');
 							var this_ = this;
-
+							 ctx.clearRect(0,0,this_.windowWidth,this_.windowHeight);
 							ctx.save();
 							ctx.translate(0,0-10);
 							ctx.beginPath();
-							
+						
 							// draw the bars
 							for (var i = 0; i < this_.da.length; i++){
 								ctx.fillStyle = this_.da[i].fillColor;
-								ctx.fillRect(this_.da[i].xPos, this_.windowHeight - this_.bottomPadding, this_.columnWidth, this_.da[i].height);
+								ctx.fillRect(this_.da[i].xPos + this_.barPadding, this_.windowHeight - this_.bottomPadding, this_.columnWidth, this_.da[i].height);
 							}
 
 							ctx.closePath();
@@ -1111,7 +1103,7 @@ var barGraphLite = ({
 							// draw the key
 							ctx.beginPath();
 							ctx.fillStyle = "#333333";
-							ctx.fillRect(0, this_.padding, this_.windowWidth, 1);
+							ctx.fillRect(0, this_.windowHeight - this_.bottomPadding-4, this_.windowWidth, 1);
 							
 							ctx.strokeStyle = "#666666";
 							ctx.font = ".7pt helvetiker";
@@ -1119,18 +1111,15 @@ var barGraphLite = ({
 							ctx.lineWidth = 0.5;
 
 							// draw the labels
-							for (var i = 0; i < this_.labels.length; i++){
-								ctx.fillText(this_.labels[i], this_.da[i].xPos - 5, this_.windowHeight - this_.bottomPadding + 10);
+							for (var i = 0; i < this_.label.length; i++){
+								ctx.fillText("" + this_.label[i], this_.da[i].xPos + this_.textPadding, this_.windowHeight - this_.bottomPadding + 12);
 							}
 
-							ctx.save();
-							ctx.translate(0,0-10);
-							ctx.fillText("" + timeCounterClock(this_.maxData/ 1000), 9, this_.topPadding + 10);
-							ctx.fillText("" + 0, 9, this_.padding + 3);
-							for (var i = 1; i < 3; i++) {
-								ctx.fillText("" + timeCounterClock(Math.floor(((this_.maxData - this_.minData) / 3) * i) / 1000), 9, (this_.padding + 3 + -(((this_.padding + 3) - (this_.topPadding + 5)) / 3) * i));
+							ctx.fillText("" + this_.maxData, 2, 10);
+							//ctx.fillText("" + 0, 9, this_.windowHeight - this_.bottomPadding - 3);
+							for (var i = 1; i < 3; i++) {								
+								ctx.fillText("" + Math.floor(((this_.maxData - this_.minData) / 3) * (3 - i)), 2, ((this_.windowHeight - this_.bottomPadding) / 3) * i + 8);
 							}
-							ctx.restore();
 							ctx.closePath();									
 						},
 						mouseMove: function(params){
@@ -1141,17 +1130,18 @@ var barGraphLite = ({
 						},
 						setPos: function(data){
 							var this_ = this;
-							var newData = data.bars;
-							this_.labels = data.labels;
-							this_.maxData = data.max;							 
+							var newData = data;
+							this_.maxData = data.max();							 
 							this_.minData = 0;							 
 
+							this_.da = [];
 							for (var i = 0; i < newData.length; i++){
-								this_.da[i].xPos = (this_.windowWidth/newData.length) * i;
-								this_.da[i].height = -((this_.windowHeight- this_.bottomPadding) * (newData[i].number / this_.maxData));
-								this_.da[i].fillColor = "hsl("+ this_.maxH * (newData[i].number / this_.maxData) + ",100%,50%)";
+								var newBar = {};
+								newBar.xPos = (this_.windowWidth/newData.length) * i;
+								newBar.height = -((this_.windowHeight - this_.bottomPadding) * (newData[i] / this_.maxData));
+								newBar.fillColor = "hsl("+ Math.round((this_.maxH - this_.minH) * (newData[i] / this_.maxData) + this_.minH) + ",100%,50%)";
+								this_.da.push(newBar);
 							}
-
 							this_.draw();
 						}
 					});

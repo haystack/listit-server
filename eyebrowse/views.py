@@ -1139,6 +1139,88 @@ def get_urls_for_day_of_week(request, username):
     return json_response({ "code":200, "results": return_results }) 
 
 
+def get_day_of_week_graph_for_url(request):    
+    inputURL = request.GET['url'].strip()
+
+    @cache.region('long_term')
+    def fetch_data(url, week):
+        views = PageView.objects.filter(url=url)
+
+        weekPts = [0,0,0,0,0,0,0]
+        for view in views:
+            weekday = datetime.datetime.fromtimestamp(view.startTime/1000).weekday()
+            # returns the day of the week as an integer, where Monday is 0 and Sunday is 6. 
+            weekPts[weekday] += 1
+
+        return weekPts
+
+    # to make caching have a unique id
+    return_results = fetch_data(inputURL, "week")
+        
+    return json_response({ "code":200, "results": return_results }) 
+
+def get_time_of_day_graph_for_url(request):    
+    inputURL = request.GET['url'].strip()
+
+    @cache.region('long_term')
+    def fetch_data(url, day):
+        views = PageView.objects.filter(url=url)
+        hrPts = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+
+        for view in views:
+            hour = datetime.datetime.fromtimestamp(view.startTime/1000).hour
+            hrPts[hour] += 1
+            
+        return hrPts
+
+    # to make caching have a unique id
+    return_results = fetch_data(inputURL, "day")
+        
+    return json_response({ "code":200, "results": return_results }) 
+
+
+def get_day_of_week_graph_for_user(request):    
+    username = request.GET['user'].strip()
+    inputUser = get_object_or_404(User, username=username)
+
+    @cache.region('long_term')
+    def fetch_data(user, week):
+        views = PageView.objects.filter(user=user)
+
+        weekPts = [0,0,0,0,0,0,0]
+        for view in views:
+            weekday = datetime.datetime.fromtimestamp(view.startTime/1000).weekday()
+            # returns the day of the week as an integer, where Monday is 0 and Sunday is 6. 
+            weekPts[weekday] += 1
+
+        return weekPts
+
+    # to make caching have a unique id
+    return_results = fetch_data(inputUser, "week")
+        
+    return json_response({ "code":200, "results": return_results }) 
+
+def get_time_of_day_graph_for_user(request):    
+    username = request.GET['user'].strip()
+    inputUser = get_object_or_404(User, username=username)
+
+    @cache.region('long_term')
+    def fetch_data(user, day):
+        views = PageView.objects.filter(user=user)
+        hrPts = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+
+        for view in views:
+            hour = datetime.datetime.fromtimestamp(view.startTime/1000).hour
+            hrPts[hour] += 1
+            
+        return hrPts
+
+    # to make caching have a unique id
+    return_results = fetch_data(inputUser, "day")
+        
+    return json_response({ "code":200, "results": return_results }) 
+
+
 def get_top_hosts_comparison_global(request, n):    
     n = int(n)
 

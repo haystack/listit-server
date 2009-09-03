@@ -75,6 +75,10 @@ urlpatterns = patterns('',
                        (r'^get_page_profile_queries/$', get_page_profile_queries),
                        (r'^get_global_profile_queries/$', get_global_profile_queries),
                        (r'^get_user_profile_queries/(\w+)/$', get_user_profile_queries),
+                       (r'^get_time_of_day_graph_for_url/$', get_time_of_day_graph_for_url),
+                       (r'^get_day_of_week_graph_for_url/$', get_day_of_week_graph_for_url),
+                       (r'^get_time_of_day_graph_for_user/$', get_time_of_day_graph_for_user),
+                       (r'^get_day_of_week_graph_for_user/$', get_day_of_week_graph_for_user),
 
                        (r'^get_closest_url/$', get_closest_url),
 
