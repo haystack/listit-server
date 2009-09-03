@@ -1326,22 +1326,27 @@ def get_to_from_url(request, n):
             try:
                 # get the page we logged IMMEDIATELY before access for the particular access's user in question
                 prev_access = PageView.objects.filter(startTime__lt=access.startTime,user=access.user).order_by("-startTime")[0]
-                pre[prev_access.url] = pre.get(prev_access.url,0) + 1
-                if prev_access.title is not None:
-                    titles[prev_access.url] = prev_access.title
+                if prev_access.url != url:
+                    pre[prev_access.url] = pre.get(prev_access.url,0) + 1
+                    if prev_access.title is not None:
+                        titles[prev_access.url] = prev_access.title
+                    else:
+                        titles[prev_access.url] = prev_access.url
                 else:
-                    titles[prev_access.url] = prev_access.url
-
+                    pass
             except:
                 pass
             try:
                 # get the page we logged IMMEDIATELY before access for the particular access's user in question
                 next_access = PageView.objects.filter(startTime__gt=access.startTime,user=access.user).order_by("startTime")[0]
-                next[next_access.url] = next.get(next_access.url,0) + 1
-                if next_access.title is not None:
-                    titles[next_access.url] = next_access.title
+                if next_access.url != url:
+                    next[next_access.url] = next.get(next_access.url,0) + 1
+                    if next_access.title is not None:
+                        titles[next_access.url] = next_access.title
+                    else:
+                        titles[next_access.url] = next_access.url
                 else:
-                    titles[next_access.url] = next_access.url
+                    pass
             except:
                 pass
             

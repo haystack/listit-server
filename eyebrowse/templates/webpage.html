@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}search{% endblock %}
+{% block title %}page stats{% endblock %}
 {% block imports %}
 <style>
   @import url("/lib/css/datepicker.css");
@@ -12,6 +12,15 @@
     .viewboxhome .leftside{
         text-align:right;
     } 
+    input[type="text"] {
+        font-size:4.5em;
+		font-weight:bold;
+		width:845px;
+		height:57px;
+		border:none;
+		border-bottom:0px solid lightgrey;
+		display:inline-block;		
+     }
 </style>
 <script src="/lib/js/watchMeGraph.js">
 </script>
@@ -66,9 +75,9 @@
 						   }, function(data){
 							   if (data.code == 200) {		
 								   var newData = data.results;
-								   jQuery("#totalTime").html("<b>total time spent: </b> " + timeCounterLongAbv(newData.totalTime));
+								   jQuery("#totalTime").html("&nbsp; &#124; &nbsp;<b>total time spent: </b> " + timeCounterLongAbv(newData.totalTime));
 								   jQuery("#num").html("<b>total visits: </b>" + newData.number);
-								   jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv(newData.average));			
+								   jQuery("#avgTime").html("&nbsp; &#124; &nbsp;<b>average time spent: </b>" + timeCounterLongAbv(newData.average));			
 							   }
 							   else {
 								   //console.log("yaaaa!!!H!H!H!" + data.code + " ");
@@ -76,7 +85,7 @@
 						   }, "json");
             } 
             catch (e) {
-               // console.log(e);
+				// console.log(e);
             }
 		},
 		initTopUsers: function(startTime, endTime, url){
@@ -133,13 +142,27 @@
 			// 3 columns of divs
 			var leftHTML = "";
 			var rightHTML = "";
-			var centerHTML = "<h6 style=\"padding:0px\"><a href=\"" + this_.url + "\">" + this_.url + "</a></h6>";
-	
+			var centerHTML = "<h6 style=\"padding:0px\"><a href=\"" + this_.url + "\" style=\"font-weight:bold\">" + this_.url + "</a></h6>";
+			
 			for (var i = 0; i < data.pre.length; i++){
-				leftHTML += "<h6 class=\"leftside\"><a href=\"" + data.pre[i][0] + "\">" + data.pre_titles[i] + "</a></h6><br />";
+				if (data.pre_titles[i]){
+					leftHTML += "<h6 class=\"leftside\"><a href=\"javascript: viz.swopURL('" + data.pre[i][0] + "')\">" + data.pre_titles[i] + "</a></h6>";
+				}
+				else{
+					leftHTML += "<h6 class=\"leftside\"><a href=\"javascript: viz.swopURL('" + data.pre[i][0] + "')\">" + data.pre[i][0] + "</a></h6>";
+				}
+				leftHTML += "&nbsp;<a href=\"" + data.pre[i][0] + "\" target=”_blank”><img src=\"/lib/img/arrow_full_upperright_16.png\"/></a>";
+				leftHTML += "<br />";
 			}
 			for (var i = 0; i < data.next.length; i++){
-				rightHTML += "<h6><a href=\"" + data.next[i][0] + "\">" + data.next_titles[i] + "</a></h6><br />";
+				rightHTML += "<a href=\"" + data.next[i][0] + "\" target=”_blank”><img src=\"/lib/img/arrow_full_upperright_16.png\"/></a>&nbsp;";
+				if (data.next_titles[i]){
+					rightHTML += "<h6><a href=\"javascript: viz.swopURL('" + data.next[i][0] + "')\">" + data.next_titles[i] + "</a></h6>";
+				}
+				else{
+					rightHTML += "<h6><a href=\"javascript: viz.swopURL('" + data.next[i][0] + "')\">" + data.next[i][0] + "</a></h6>";					
+				}
+				rightHTML += "<br />";
 			}			
 			jQuery("#urlLeft").html(leftHTML);
 			jQuery("#urlRight").html(rightHTML);
@@ -195,24 +218,28 @@
                 console.log(e);
             }
         },
-	refresh: function(){
-		var this_ = this;	    
-	    var url = jQuery("#urladdtextinput").val();
-	    jQuery.get("/get_closest_url/", { url:url },
-		       function(data) {
-			   if (data.code == 200) {
-			       this_.url = data.results.length > 0 ? data.results[0] : "";
-			       jQuery("#urladdtextinput").val(this_.url);
-			       this_.getProfile(this_.startTime, this_.endTime, this_.url); 
-			       this_.initUrlGraph(this_.url);
-			       this_.initSmallGraphs(this_.startTime, this_.endTime, this_.url); 
-			       this_.initTopUsers(this_.startTime, this_.endTime, this_.url);			       
-			   } else {
-			       // TODO: replace plz with an error div
-			       console.log("error calling get_closest_url: " + data.code + " " + data);
-			   }
-		       }, "json");	    	    
-	}
+		refresh: function(){
+			var this_ = this;	    
+			var url = jQuery("#urladdtextinput").val();
+			jQuery.get("/get_closest_url/", { url:url },
+					   function(data) {
+						   if (data.code == 200) {
+							   this_.url = data.results.length > 0 ? data.results[0] : "";
+							   jQuery("#urladdtextinput").val(this_.url);
+							   this_.getProfile(this_.startTime, this_.endTime, this_.url); 
+							   this_.initUrlGraph(this_.url);
+							   this_.initSmallGraphs(this_.startTime, this_.endTime, this_.url); 
+							   this_.initTopUsers(this_.startTime, this_.endTime, this_.url);			       
+						   } else {
+							   // TODO: replace plz with an error div
+							  // console.log("error calling get_closest_url: " + data.code + " " + data);
+						   }
+					   }, "json");	    	    
+		},
+		swopURL: function(newURL){
+			jQuery("#urladdtextinput").val(newURL);
+			viz.refresh();
+		}
     };
 jQuery(document).ready(function(){
 						   var currentDate = new Date();																					   
@@ -234,57 +261,53 @@ jQuery(document).ready(function(){
 {% block content %}
 <div class="loader" id="loadimg"></div>
 <div id="profile_content" style="width:950px; margin-left:auto;margin-right:auto; ">
-	  <h1>search</h1><br />
-
-	<input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:228px;" value="{{ url }}"
-	       onkeypress="{if (event.keyCode==13)viz.refresh()}"/>
-	<input type="submit" id="urladd" value="submit" onkeypress="{if (event.keyCode==13)viz.refresh()}" onClick="viz.refresh()" style="width:auto;" />
- 
-<div style="width:950; height:350; position:relative; z-index:0">
-<div id="urlLeft" class="viewboxhome" style="position:absolute; left:-82px; top:12px; text-align:right;"></div>
-<div id="urlRight" class="viewboxhome" style="position:absolute; left:712px; top:12px;"></div>
-<div id="urlCenter" style="position:absolute; left:410px; top:110px; background:#ffffff; padding:6px; border:1px solid lightgrey"></div>
-</div>
-			
-  <canvas id="pathgraph" style="z-index:-2">
+  <img src="/lib/img/statistics.png" onkeypress="{if (event.keyCode==13)viz.refresh()}" onClick="viz.refresh()" style="vertical-align:middle;float:left;margin-bottom:24px;" />
+  <input type="text" name="list" id="urladdtextinput" value="{{ url }}" onkeypress="{if (event.keyCode==13)viz.refresh()}"/>
+  <div id="urlstats">
+    <div id="num" style="display:inline-block">
+      <b>total visits:</b>
+    </div>
+    <div id="totalTime" style="display:inline-block">
+      <b>&nbsp; &#124; &nbsp;total time spent: </b>
+    </div>
+    <div id="avgTime" style="display:inline-block">
+      <b>&nbsp; &#124; &nbsp;average time spent:</b>
+    </div>
+  </div>
+  <div style="border-top:1px solid #999999">&nbsp;</div>
+  <div style="width:950; height:350; position:relative; z-index:0">
+	<div id="urlLeft" class="viewboxhome" style="position:absolute; left:-82px; top:12px; text-align:right;"></div>
+	<div id="urlRight" class="viewboxhome" style="position:absolute; left:712px; top:12px;"></div>
+	<div id="urlCenter" style="position:absolute; left:410px; top:110px; background:#ffffff; padding:6px; border:1px solid lightgrey"></div>
+  </div>			
+  <canvas id="pathgraph" style="z-index:-2;">
   </canvas>
 </div>
 
 
 <div id="report">
-    <div id="profile" style="margin-top:-10px">
-	  <div style="border-top:1px solid #999999">&nbsp;</div>
-        <div id="num">
-            <b>total visits:</b>
-        </div>
-        <div id="totalTime">
-            <b>total time spent: </b>
-        </div>
-        <div id="avgTime">
-            <b>average time spent:</b>
-        </div>
-	  <h2 style="border-top:none">Top Visitors</h2>
-			  <br />
-        <ul class="friends" id="topvisitors">
-			  
-        </ul>
-    </div>
-    <div id="profile_content" style="margin-top:0px">
-        	  <div style="border-top:1px solid #999999">&nbsp;</div>
-		<br />
-        <canvas id="totalTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
-        </canvas>
-        <canvas id="avgTimeGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">
-        </canvas>
-        <div id="key" style="margin-top:-40px">
-            <div id="totalGraphKey" style="width:300px; text-align:center; display: inline-block;">
-                total time spent
-            </div>
-            <div id="avgGraphKey" style="float:right; width:300px; text-align:center; display: inline-block;">
-                average time spent
-            </div>
-        </div>   
-    </div>
-    <br/>
+  <div id="profile" style="margin-top:-50px">
+	<h2 style="border-top:none">Top Visitors</h2>
+	<br />
+    <ul class="friends" id="topvisitors">	  
+    </ul>
+  </div>
+  <div id="profile_content" style="margin-top:0px">
+    <div style="border-top:1px solid #999999">&nbsp;</div>
+	<br />
+    <canvas id="totalTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
+    </canvas>
+    <canvas id="avgTimeGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">
+    </canvas>
+    <div id="key" style="margin-top:-40px">
+      <div id="totalGraphKey" style="width:300px; text-align:center; display: inline-block;">
+        total time spent
+      </div>
+      <div id="avgGraphKey" style="float:right; width:300px; text-align:center; display: inline-block;">
+        average time spent
+      </div>
+    </div>   
+  </div>
+  <br/>
 </div>
 {% endblock %}

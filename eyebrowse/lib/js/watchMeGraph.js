@@ -908,6 +908,9 @@ var compareFactory  = ({
 							   var ctx = this.canvas.getContext('2d');
 							   var this_ = this;
 							   var startY = 20;
+
+							   ctx.clearRect(0,0,this_.windowWidth,this_.windowHeight);
+
 							   for (var i = 0; i < this_.data.pre.length; i++){
 								   if (!this_.data.pre[i][1]){
 									   continue;
@@ -1022,7 +1025,7 @@ var stackBarGraph = ({
 						 mouseMove: function(params){
 							 var this_ = this;
 							 this_.mouseVal = params.mouseVal;
-							// this_.pIH = isPointInPoly(this_.poly, params.mouseVal);
+							 // this_.pIH = isPointInPoly(this_.poly, params.mouseVal);
 							 this_.pIH = true;
 						 },
 						 mouseDown: function(){
@@ -1032,10 +1035,9 @@ var stackBarGraph = ({
 						 setPos: function(){
 							 var this_ = this;
 							 
-							 this_.dataMax = 
+							 this_.dataMax = 0;
 
 							 this_.da = [];
-							 // here is where i make the data into stuff to draw with.  
 							 for (var i = 0; i < this_.data.length; i++){
 								 for (var k = 0; k < this_.data[i].length; k++){									 
 									 this_.da[i][k].title = this_.data[i][k].title;
@@ -1062,4 +1064,95 @@ var stackBarGraph = ({
 							 this_.draw();
 						 }
 					 });
+
+var barGraphLite = ({
+						initialize: function(viz, params){
+							this.viz = viz;
+							if (params.canvas) { this.canvas = params.canvas; }
+							else { this.canvas = viz.canvas;}
+							if (params.windowHeight){
+								this.windowHeight = params.windowHeight;
+							} else {
+								this.windowHeight = viz.windowHeight;
+							}
+							if (params.windowWidth) {
+								this.windowWidth = params.windowWidth;	 
+							} else {
+								this.windowWidth = viz.windowWidth;
+							}
+							this.marginTop = params.marginTop;
+							this.height = params.height;
+							this.trigger = undefined;
+							this.columnWidth = params.columnWidth;
+							if (params.noHover){
+								this.noHover = params.noHover;
+							}
+							this.setPos(params.data);
+							this.maxH = 300;
+							this.minH = 270;
+						},
+						draw: function(){
+							var ctx = this.canvas.getContext('2d');
+							var this_ = this;
+
+							ctx.save();
+							ctx.translate(0,0-10);
+							ctx.beginPath();
+							
+							// draw the bars
+							for (var i = 0; i < this_.da.length; i++){
+								ctx.fillStyle = this_.da[i].fillColor;
+								ctx.fillRect(this_.da[i].xPos, this_.windowHeight - this_.bottomPadding, this_.columnWidth, this_.da[i].height);
+							}
+
+							ctx.closePath();
+							ctx.restore();
+							
+							// draw the key
+							ctx.beginPath();
+							ctx.fillStyle = "#333333";
+							ctx.fillRect(0, this_.padding, this_.windowWidth, 1);
+							
+							ctx.strokeStyle = "#666666";
+							ctx.font = ".7pt helvetiker";
+							ctx.fillStyle = "#666666";
+							ctx.lineWidth = 0.5;
+
+							// draw the labels
+							for (var i = 0; i < this_.labels.length; i++){
+								ctx.fillText(this_.labels[i], this_.da[i].xPos - 5, this_.windowHeight - this_.bottomPadding + 10);
+							}
+
+							ctx.save();
+							ctx.translate(0,0-10);
+							ctx.fillText("" + timeCounterClock(this_.maxData/ 1000), 9, this_.topPadding + 10);
+							ctx.fillText("" + 0, 9, this_.padding + 3);
+							for (var i = 1; i < 3; i++) {
+								ctx.fillText("" + timeCounterClock(Math.floor(((this_.maxData - this_.minData) / 3) * i) / 1000), 9, (this_.padding + 3 + -(((this_.padding + 3) - (this_.topPadding + 5)) / 3) * i));
+							}
+							ctx.restore();
+							ctx.closePath();									
+						},
+						mouseMove: function(params){
+						},
+						mouseDown: function(){
+						},
+						mouseUp: function(params){
+						},
+						setPos: function(data){
+							var this_ = this;
+							var newData = data.bars;
+							this_.labels = data.labels;
+							this_.maxData = data.max;							 
+							this_.minData = 0;							 
+
+							for (var i = 0; i < newData.length; i++){
+								this_.da[i].xPos = (this_.windowWidth/newData.length) * i;
+								this_.da[i].height = -((this_.windowHeight- this_.bottomPadding) * (newData[i].number / this_.maxData));
+								this_.da[i].fillColor = "hsl("+ this_.maxH * (newData[i].number / this_.maxData) + ",100%,50%)";
+							}
+
+							this_.draw();
+						}
+					});
 
