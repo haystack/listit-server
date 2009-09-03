@@ -128,6 +128,7 @@ var evtHandlers = ({
 													  else {
 														  this_.viz.drag = false;
 													  }
+													  this_.draw();
 												  });
 					   }
 				   });
@@ -317,6 +318,7 @@ var dateSlider = ({
 													 width: this_.sliderTriWidth
 												 });
 
+						  this_.draw();
 					  }
 				  });
 

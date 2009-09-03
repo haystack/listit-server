@@ -145,7 +145,7 @@
 		draw: function(){
             if (this.canvas !== undefined && this.canvas.getContext) {
                 var ctx = this.canvas.getContext('2d');
-                ctx.clearRect(0, 0, this.windowWidth, this.windowHeight);
+                ctx.clearRect(0, 0, this.windowWidth, this.OGwindowHeight);
                 for (var i = 0; i < this.drawArray.length; i++) {
                     for (var k = 0; k < this.drawArray[i].length; k++) {
                         this.drawArray[i][k].draw();
@@ -238,7 +238,7 @@
 							for (var i = 0; i < data.results.length; i++){
 								viz.initLineGraph(data.results[i], startTime, endTime, viz, i);
 							}
-							viz.setupDraw();
+							this_.setupDraw();
                         }
                         else {
                             console.log("yaaaa!!!H!H!H!" + data.code + " ");
@@ -249,18 +249,7 @@
                     console.log(e);
                 }
             }(startTime, endTime, this_); // passing this around like a hot tomalie       
-        },
-		arrowBack: function(){
-			var this_ = this;
-
-			jQuery("#datepicker").val(new Date(this_.endTime - 860000000).format('mm/dd/yyyy'));
-			this_.refresh(this_.endTime - 860000000, this_.startTime - 860000000);
-		},
-		arrowForward: function(){
-			var this_ = this;
-			jQuery("#datepicker").val(new Date(this_.endTime + 860000000).format('mm/dd/yyyy'));
-			this_.refresh(this_.endTime + 860000000, this_.startTime + 860000000);
-		},
+        }
     };
     
     

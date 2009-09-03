@@ -182,7 +182,7 @@
 			jQuery("#latestlist").prepend(html);			
         },
         getLatestPages: function(){
-            this_ = this;
+            var this_ = this;
             try {
                 jQuery.get("/get_recent_web_page_views_user/{{ username }}/15/", {
 								id: this_.urlID
@@ -247,65 +247,10 @@
 
 
 jQuery(document).ready(function(){
-								jQuery(".imgborder").corner();
+						   jQuery(".imgborder").corner();
 						   var currentDate = new Date();
-						   jQuery("#datepickerlatest").val(currentDate.format('mm/dd/yyyy'));
-						   
-						   jQuery('#datepickerlatest').DatePicker({
-																	  format: 'm/d/Y',
-																	  date: jQuery('#datepickerlatest').val(),
-																	  current: jQuery('#datepickerlatest').val(),
-																	  starts: 1,
-																	  position: 'top',
-																	  current: '2009-07-29',
-																	  
-																	  onBeforeShow: function(){
-																		  jQuery('#datepickerlatest').DatePickerSetDate(jQuery('#datepickerlatest').val(), true);
-																	  },
-																	  onChange: function(formated, dates){
-																		  var fooDate = jQuery.datepicker.formatDate("@", new Date(jQuery('#datepickerlatest').DatePickerGetDate(true)));
-																		  if (fooDate > new Date().valueOf()) {
-																			  fooDate = new Date().valueOf();
-																			  jQuery('#datepickerlatest').val(currentDate.format('mm/dd/yyyy'));
-																			  jQuery("#messageSentLatest").show("slow");
-																		  }
-																		  else {
-																			  jQuery('#datepickerlatest').val(formated);
-																			  self.viz.getLatestPages(parseInt(fooDate) - 86400000, parseInt(fooDate)), jQuery("#messageSentLatest").hide("slow");
-																		  }
-																		  jQuery('#datepickerlatest').DatePickerHide();
-																		  
-																	  }
-																  });	
-						   jQuery("#datepickergraph").val(currentDate.format('mm/dd/yyyy'));						   
-						   jQuery('#datepickergraph').DatePicker({
-																	  format: 'm/d/Y',
-																	  date: jQuery('#datepickergraph').val(),
-																	  current: jQuery('#datepickergraph').val(),
-																	  starts: 1,
-																	  position: 'top',
-																	  current: '06-29-09',
-																	  
-																	  onBeforeShow: function(){
-																		  jQuery('#datepickergraph').DatePickerSetDate(jQuery('#datepickergraph').val(), true);
-																	  },
-																	  onChange: function(formated, dates){
-																		  var fooDate = jQuery.datepicker.formatDate("@", new Date(jQuery('#datepickergraph').DatePickerGetDate(true)));
-																		  if (fooDate > new Date().valueOf()) {
-																			  fooDate = new Date().valueOf();
-																			  jQuery('#datepickergraph').val(currentDate.format('mm/dd/yyyy'));
-																			  jQuery("#messageSentGraph").show("slow");
-																		  }
-																		  else {
-																			  jQuery('#datepickergraph').val(formated);
-																			  self.viz.initLiteGraph(parseInt(fooDate) - 604800000, parseInt(fooDate)), jQuery("#messageSentGraph").hide("slow");
-																		  }
-																		  jQuery('#datepickergraph').DatePickerHide();																		  
-																	  }
-																  });																		
-					   
 						   jQuery("#datepicker").val(currentDate.format('mm/dd/yyyy'));						   
-						   jQuery('#datepicker').DatePicker({
+						   jQuery("#datepicker").DatePicker({
 																format: 'm/d/Y',
 																date: jQuery('#datepicker').val(),
 																current: jQuery('#datepicker').val(),
@@ -328,7 +273,33 @@ jQuery(document).ready(function(){
 																		self.viz.refresh(parseInt(fooDate) - self.viz.zoom, parseInt(fooDate)), jQuery("#messageSent").hide("slow");
 																	}
 																	jQuery('#datepicker').DatePickerHide();
-																	
+																}
+															});						  						 						   
+
+						   jQuery("#datepickergraph").val(currentDate.format('mm/dd/yyyy'));						   
+						   jQuery("#datepickergraph").DatePicker({
+																format: 'm/d/Y',
+																date: jQuery('#datepickergraph').val(),
+																current: jQuery('#datepickergraph').val(),
+																starts: 1,
+																position: 'top',
+																current: '2009-07-29',
+																
+																onBeforeShow: function(){
+																	jQuery('#datepickergraph').DatePickerSetDate(jQuery('#datepickergraph').val(), true);
+																},
+																onChange: function(formated, dates){
+																	var fooDate = jQuery.datepicker.formatDate("@", new Date(jQuery('#datepickergraph').DatePickerGetDate(true)));
+																	if (fooDate > new Date().valueOf()) {
+																		fooDate = new Date().valueOf();
+																		jQuery('#datepickergraph').val(currentDate.format('mm/dd/yyyy'));
+																		jQuery("#messageSent").show("slow");
+																	}
+																	else {
+																		jQuery('#datepickergraph').val(formated);
+																		self.viz.initLiteGraph(parseInt(fooDate) - self.viz.zoom, parseInt(fooDate)), jQuery("#messageSent").hide("slow");
+																	}
+																	jQuery('#datepickergraph').DatePickerHide();
 																}
 															});						  						 						   
 						   var myWidth = undefined;
@@ -440,16 +411,7 @@ jQuery(document).ready(function(){
       <br/>
       <div id="listNav">
         <div class="user_page_top">
-          <div id="dateselectorlatest" style="float:right; margin-top:15px; width:100px;">
-            <input id="datepickerlatest" class="datepicker" value="06/14/2008" type="text" style="font-size:12px;padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
-            <div id="messageSentLatest"  style="font-size:12px; display:none;">
-              robots do not know the future :( 
-              <br/>
-              &#8230;yet
-            </div>
-          </div>
-		  <h2>Latest</h2>
-		  
+		  <h2>Latest</h2>		  
         </div>
 	  </div>
       <div class="viewboxprofile" id="latestlist">
