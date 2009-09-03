@@ -14,6 +14,7 @@ r = ro.r
 import jv3
 import random,sys,re
 import numpy
+import ca_datetime
 
 # ternary
 q=lambda a,b,c: (b,c)[not a]
@@ -22,7 +23,7 @@ q=lambda a,b,c: (b,c)[not a]
 r = ro.r
 
 ## PREPROCESSING ##################################################
-## tokeniz
+## tokenize
 all_pass = lambda x: True
 striplow = lambda x: x.strip().lower()
 stopword_low = [striplow(x) for x in stopwords.words()]
@@ -31,8 +32,26 @@ stopword = lambda x: x not in stopword_low
 _notes_to_values = lambda note: note.values('id','owner','contents',"jid","created","deleted","edited")
 _actlogs_to_values = lambda actlog: actlog.values("id","action","owner","when","client","noteid","search","noteText")
 
-eliminate_urls = lambda s: " ".join(re.compile("http://[^\s]*").split(s))
+eliminate_regexp = lambda regexp,s: "".join(re.compile(regexp).split(s))
+eliminate_urls = lambda s: eliminate_regexp("https?://[^\s]*",s)
 
+_re_cache = {}
+def count_regex_matches(res,s):
+    import re
+    global _re_cache
+    exp = None
+    if _re_cache.get(res,None):
+        exp = _re_cache[res]
+    else:
+        exp = re.compile(res)
+    hits = 0
+    hit = exp.search(s)
+    while hit:
+        s = s[hit.end():]
+        hits = hits + 1
+        hit = exp.search(s)
+    return hits
+    
 def activity_logs_for_note(n,action="note-edit",days_ago=None):
     import datetime
     if days_ago is None:
@@ -62,11 +81,14 @@ def random_notes(n=1000,consenting=True):
         users = non_stop_consenting_users()
     else:
         users = non_stop_users()
-    good_ids = [x[0] for x in Note.objects.filter(owner__in=users).values_list("pk","jid","contents") if x[1] >= 0 and not is_tutorial_note(x[2])]
+    good_ids = [x[0] for x in Note.objects.filter(owner__in=users).values_list("pk","jid","contents") if
+                len(x[2]) > 0 and x[1] >= 0 and not is_tutorial_note(x[2])]
     random.shuffle(good_ids)
     notes = Note.objects.filter(pk__in=good_ids[:n])
     print "returning %d notes " % len(notes)
-    return _notes_to_values(notes)
+    values = [v for v in _notes_to_values(notes)]
+    random.shuffle(values)
+    return values
 
 def update_dictionary(words,dictionary):
     for w in words:
@@ -114,6 +136,12 @@ note_edits = lambda(note) : {'note_edits':len(activity_logs_for_note(note,"note-
 note_did_edit = lambda(note) : {'note_did_edit': note_edits(note) > 0}
 note_deleted = lambda(note) : {'note_deleted': q(note["deleted"],True,False)}
 note_urls = lambda note: {'note_urls': str_n_urls(note["contents"])}
+
+note_phone_numbers = lambda x: count_regex_matches("([0-9]( |-)?)?(\(?[0-9]{3}\)?|[0-9]{3})( |-)?([0-9]{3}( |-)?[0-9]{4}|[a-zA-Z0-9]{7})",x)
+note_datetimes = lambda x : count_dows(x) + count_times(x) + count_mdy(x)
+## addresses?
+## dates/times
+
 
 def note_pos_features(note):
     POS = ["CC","CD","DT","EX","FW","IN","JJ","LS","MD","NN","NNS","NNP","NNPS","PDT","POS","PRP","PRP$","RB","RBR","RBS","RP","SYM","TO","UH","VB","VBD","VBG","VBN","VBP","VBZ","WDT","WP","WP$","WRB"]
@@ -237,3 +265,11 @@ def print_random_events(n=25000):
     for e in Event.objects.filter(pk__in=good_event_ids[:n]):
         print e.entityid
 
+def export_notes(notes,filename="/tmp/notes.csv"):
+    import csv
+    f = open(filename, 'wb')
+    writer = csv.writer(f, dialect="excel", delimiter=',', quoting=csv.QUOTE_MINIMAL)
+    for n in notes:
+        u = User.objects.filter(id=n["owner"])
+        writer.writerow([n["id"],n["jid"],u[0].email,n["contents"].encode('utf-8','ignore')[:32767]])
+    f.close()
