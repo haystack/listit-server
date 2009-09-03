@@ -1,7 +1,6 @@
 import re
-from jv3.study.content_analysis import count_regex_matches,q
 
-dow_exprs = ["mon", "monday", "lundi",
+dows = ["mon", "monday", "lundi",
              "tues", "tue", "tuesday", "mardi",
              "wed", "wednesday", "weds", "mercredi",
              "thu", "thurs", "thur", "thursday", "jeudi",
@@ -22,12 +21,14 @@ month_exprs = ["jan","january","janvier"
                "dec","december","decembre"]
 
 
+# 1-9,10,11,12
 # in: jan 3rd, 2009  | aug 12, 2009 | sept 2 2009
 full_mdy = [ "%s( )+\d{1,2}(nd|th|rd)?,?(( )+\d{2,4})?" % m for m in month_exprs ]
 short_mdy = [ "\d{1,2}[/.-]\d{1,2}([/.-]\d{2,4})?" ]
-time = [ "((0?[1-9]|1[012]):[0-5]\d(\ ?[ap]m))$|([01]\d|2[0-3])(:[0-5]\d){1}" ]
 
-# time = [ "((0?[1-9]|1[012])(:[0-5]\d){0,2}(\ ?[ap]m))$|([01]\d|2[0-3])(:[0-5]\d){0,2}" ]
+## 8:00pm or 8:00 or 8pm or 22:00 or 22:00h
+time = ["((0?[1-9])|(1[012]))(:[0-5]\d)(\ ?[ap]m)|((0?[1-9])|(1[012]))(:[0-5]\d)|((0?[1-9])|(1[012]))(\ ?[ap]m)|(([01]?\d)|(2[0-3]))(:[0-5]\d)(h)?"]
+dow_exprs = [ ("%s(( )*(@|(at))( )*(((([012]?[1-9])|(1[012]))(:?[0-5]\d)?(\ ?[ap]m)?)))?" % d) for d in dows]  ## not exactly right, since tues@22:33pm is valid
 
 all_ = dow_exprs + full_mdy + short_mdy + time
 
@@ -53,17 +54,20 @@ def date_matches(s,ress=all_):
             span = hit.span()
             intersecting_spans = find_isect_with_starts(span)            
             spen = list(set([span] + intersecting_spans ))
-            print spen
             widest_span = spen[argmax( [width(x) for x in spen ])]
             [starts.remove(i) for i in intersecting_spans if i in starts]
             starts.add(widest_span)            
             hit = exp.search(s,hit.end())
         pass
+    print starts
     return starts
 
 note_date_count = lambda s: len(date_matches(s)) ##reduce(plus, [ count_regex_matches(f,s) for f in all_ ])
-    
 
+def d(s):
+    dm = list(date_matches(s))
+    for d in dm:
+        print s[d[0]:d[1]]
 
         # "(?n:^(?=\d)((?<month>(0?[13578])|1[02]|(0?[469]|11)(?!.31)|0?2(?(.29)(?=.29.((1[6-9]|[2-9]\d)(0[48]|[2468][048]|[13579][26])|(16|[2468][048]|[3579][26])00))|(?!.3[01])))(?<sep>[-./])(?<day>0?[1-9]|[12]\d|3[01])\k<sep>(?<year>(1[6-9]|[2-9]\d)\d{2})(?(?=\x20\d)\x20|$))?(?<time>((0?[1-9]|1[012])(:[0-5]\d){0,2}(?i:\x20[AP]M))|([01]\d|2[0-3])(:[0-5]\d){1,2})?$)"
 
