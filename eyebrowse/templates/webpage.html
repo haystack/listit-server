@@ -167,8 +167,10 @@
 			}			
 			jQuery("#urlLeft").html(leftHTML);
 			jQuery("#urlRight").html(rightHTML);
+			jQuery("#urlCenter").css({'left' : 475 - (this_.url.length * 7)/2 + "px"});					   			
 			jQuery("#urlCenter").html(centerHTML);					   			
-
+			
+			//(ctx.measureText("" + this_.endDate.format('mmmm d')).width) - 2, this_.padding + 20);
 			// 1 canvas bg
 			var totalTimeG = newify(compareFactory, this_, {
 										canvas: document.getElementById("pathgraph"),
@@ -223,9 +225,6 @@
         },
 		initBarGraphs: function(url){
 			var this_ = this;
-
-            //(r'^get_time_of_day_graph_for_url)/$', get_time_of_day_graph_for_url),
-            // (r'^get_day_of_week_graph_for_url)/$', get_day_of_week_graph_for_url),
             try {
                 jQuery.get("/get_day_of_week_graph_for_url/", {
 							   url: url
