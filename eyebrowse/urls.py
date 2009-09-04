@@ -79,6 +79,8 @@ urlpatterns = patterns('',
                        (r'^get_day_of_week_graph_for_url/$', get_day_of_week_graph_for_url),
                        (r'^get_time_of_day_graph_for_user/$', get_time_of_day_graph_for_user),
                        (r'^get_day_of_week_graph_for_user/$', get_day_of_week_graph_for_user),
+                       (r'^get_day_of_week_graph_for_user/$', get_day_of_week_graph_for_user),
+                       (r'^get_hourly_daily_top_urls_user/(\w+)/(\d+)/$', get_hourly_daily_top_urls_user),
 
                        (r'^get_closest_url/$', get_closest_url),
 

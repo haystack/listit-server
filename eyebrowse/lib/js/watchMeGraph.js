@@ -128,7 +128,6 @@ var evtHandlers = ({
 													  else {
 														  this_.viz.drag = false;
 													  }
-													  this_.draw();
 												  });
 					   }
 				   });
@@ -946,76 +945,95 @@ var compareFactory  = ({
 var stackBarGraph = ({
 						 initialize: function(viz, params){
 							 this.viz = viz;
-							 if (params.canvas) { this.canvas = params.canvas; }
-							 else { this.canvas = viz.canvas;}
-							 if (params.windowHeight){
-								 this.windowHeight = params.windowHeight;
-							 } else {
-								 this.windowHeight = viz.windowHeight;
-							 }
-							 if (params.windowWidth) {
-								 this.windowWidth = params.windowWidth;	 
-							 } else {
-								 this.windowWidth = viz.windowWidth;
-							 }
-							 this.marginTop = params.marginTop;
+							 this.canvas = viz.canvas;
+							 this.windowHeight = params.windowHeight;
+							 this.windowWidth = params.windowWidth;	 
 							 this.height = params.height;
-							 this.data = params.data;
+ 							 this.bottomPadding = params.bottomPadding;
+							 this.textPadding = params.textPadding;
+							 this.barPadding = 7;//params.barPadding;
+							 this.padding = 20;
+							 this.topPadding = 0;
 							 this.pIH = undefined;
 							 this.trigger = undefined;
-							 this.staticStatic = params.staticStatic;
-							 this.mouseVal = undefined;
-							 this.columnWidth = params.columnWidth;
-							 if (params.noHover){
-								 this.noHover = params.noHover;
+							 this.mouseVal = 0;							 
+							 this.labelLeft = params.labelLeft;
+							 this.labelRight = params.labelRight;														
+							 this.minData = 0;
+							 this.dataMax = 0;
+							 this.labelLeftXpos = [];
+							 this.labelRightXpos = [];
+							 this.setPos(params.data);
+							 this.fooTxtY = params.fooTxtY;
+							 this.fooTxtX = params.fooTxtX;
+							 if (!(this.fooTxtY)){
+								 this.fooTxtY = 0;
 							 }
-							 this.setPos();
+							 if (!(this.fooTxtX)){
+								 this.fooTxtX = 0;
+							 }
 						 },
 						 draw: function(){
-							 var ctx = this.canvas.getContext('2d');
-							 var this_ = this;
+							var ctx = this.canvas.getContext('2d');
+							var this_ = this;
+							ctx.clearRect(0,0,this_.windowWidth,this_.windowHeight);
+							ctx.save();
+							ctx.translate(0,0-10);
+							ctx.beginPath();
+						
+							// draw the bars
+							for (var i = 0; i < this_.da.length; i++){
+								for (var k = 0; k < this_.da[i].length; k++){
+									for (var l = 0; l < this_.da[i][k].length; l++){
+										if (isPointInPoly(this_.da[i][k][l].poly, this_.mouseVal)){
+											this_.viz.highlight = this_.da[i][k][l].url;
+											this_.trigger = true;
+											jQuery("#fooTxt").html("<a href=\"" + this_.da[i][k][l].url + "\">" +  this_.da[i][k][l].title + "</a>");
+											jQuery("#fooTxt").css({"left" : this_.mouseVal.x + this_.fooTxtX + "px", "padding": "3px", "top" : this_.marginTop + 45 + this_.fooTxtY + "px" });							
+										}																		
+										ctx.fillStyle = this_.da[i][k][l].fillStyle;
+										ctx.fillRect(this_.da[i][k][l].xPos, this_.da[i][k][l].yPos, this_.da[i].width, this_.da[i][k][l].height);
+										if (this_.viz.highlight == this_.da[i][k][l].url){
+											ctx.fillStyle = "rgba(255,255,255,0.85)"; 
+											ctx.fillRect(this_.da[i][k][l].xPos, this_.da[i][k][l].yPos, this_.da[i].width, this_.da[i][k][l].height);
+										}								
+									}
+								}
+							}
 
-							 ctx.clearRect(0,0,this_.windowWidth,this_.windowHeight);
-							 ctx.font = "0.8pt helvetiker";
-							 ctx.lineWidth = 1;
-							 ctx.strokeStyle = "#0f0f0f";
-							 ctx.fillStyle = "#0f0f0f";
-							 ctx.beginPath();
-							 ctx.fillText(this_.da[k], this_.windowHeight - 20, (this_.windowWidth/this_.da.length * k + 1));
-							 ctx.moveTo(0,this_.windowHeight - 20);
-							 ctx.lineto(this_.windowWidth, this_.windowHeight - 20);							 
-							 ctx.stroke();
+							ctx.closePath();
+							ctx.restore();
+							
+							 
+							// draw the key
+							ctx.beginPath();
+							ctx.fillStyle = "#333333";
+							ctx.fillRect(0, this_.windowHeight - this_.bottomPadding - 4, this_.windowWidth, 1);
+							
+							ctx.strokeStyle = "#666666";
+							ctx.font = ".7pt helvetiker";
+							ctx.fillStyle = "#666666";
+							ctx.lineWidth = 0.5;
+
+
+
+							// draw the labels
+							for (var i = 0; i < this_.labelLeft.length; i++){
+								ctx.fillText("" + this_.labelLeft[i], this_.labelLeftXpos[i] + this_.textPadding + (this_.labelLeftWidth - ctx.measureText(this_.labelLeft[i]).width)/2, this_.windowHeight - this_.bottomPadding + 12);
+							}
+
+							for (var i = 0; i < this_.labelRight.length; i++){
+								ctx.fillText("" + this_.labelRight[i], this_.labelRightXpos[i] + this_.textPadding + (this_.labelRightWidth - ctx.measureText(this_.labelRight[i]).width)/2 - 3, this_.windowHeight - this_.bottomPadding + 12);
+
+							}
+
+							ctx.fillText("" + this_.dataMax + "  hits", 2, 10);
+
+							 for (var i = 1; i < 3; i++) {								
+								ctx.fillText("" + Math.floor(((this_.dataMax) / 3) * (3 - i)), 2, ((this_.windowHeight - this_.bottomPadding) / 3) * i + 8);
+							}
 							 ctx.closePath();
-
-							 for (var i = 0; i < this_.da.length; i++){								
-								 // draw the text label								
-								 // the text here needs some work
-								 ctx.fillText(this_.da[i].date, this_.windowHeight - 20, (this_.windowWidth/this_.da.length * i + 1));
-
-								 for (var k = 0; k < this_.da[i].length; k++) {								 
-									 // check for hover state
-									 if (this_.pIH) {
-										 if (isPointInPoly(this_.da[i][k].poly, this_.mouseVal)){
-											 this_.viz.highlight = this_.da[i][k].url;
-											 this_.trigger = true;
-											 if (this_.noHover){
-											 } else {			
-												 jQuery("#fooTxt").html("<a href=\"" + this_.da[i][k].url + "\">" +  this_.da[i][k].title + "</a>");
-												 jQuery("#fooTxt").css({"left" : this_.mouseVal.x + this_.fooTxtX + "px", "padding": "3px", "top" : this_.marginTop + 45 + this_.fooTxtY + "px" });
-											 }
-										 }
-									 }
-									 // draw the lines
-									 ctx.beginPath();
-									 ctx.fillStyle = selectColorForDomain(this_.da[i][k].url);
-									 ctx.fillRect(this_.da[i][k].xPos, this_.da[i][k].yPos, this_.da[i][k].width, this_.da[i][k].height);
-									 if (this_.viz.highlight == this_.domainArray[i]){
-										 ctx.fillStyle = "rgba(255,255,255,0.85)"; //"#00ff00";
-										 ctx.fillRect(this_.da[i][k].xPos, this_.da[i][k].yPos, this_.da[i][k].width, this_.da[i][k].height);
-									 }
-									 ctx.closePath();
-								 }
-							 }
+							 
 							 if (!(this_.pIH) && this_.trigger) {
 								 this_.trigger = false;
 								 this_.viz.highlight = "booo";
@@ -1025,43 +1043,117 @@ var stackBarGraph = ({
 						 },
 						 mouseMove: function(params){
 							 var this_ = this;
-							 this_.mouseVal = params.mouseVal;
-							 // this_.pIH = isPointInPoly(this_.poly, params.mouseVal);
+							 this_.mouseVal = {
+								 x: params.mouseVal.x,
+								 y: params.mouseVal.y + 6
+							 };
 							 this_.pIH = true;
 						 },
 						 mouseDown: function(){
 						 },
 						 mouseUp: function(params){
 						 },
-						 setPos: function(){
+						 setPos: function(data){
 							 var this_ = this;
-							 
-							 this_.dataMax = 0;
-
 							 this_.da = [];
-							 for (var i = 0; i < this_.data.length; i++){
-								 for (var k = 0; k < this_.data[i].length; k++){									 
-									 this_.da[i][k].title = this_.data[i][k].title;
-									 this_.da[i][k].url = this_.data[i][k].url;
-									 this_.da[i][k].xPos = this_.windowWidth/this_.data.length;
-									 this_.da[i][k].height = this_.windowHeight * (this_.data[i][k].number / this_.dataMax);
- 									 this_.da[i][k].yPos = function(){
+							 var newData = data;
+							 var newBar = {};
+							 var leftData  = newData[0]; 
+							 var rightData  = newData[1]; 
+							 var lObj = [];
+							 var rObj = [];
+							 lObj.width = (this_.windowWidth/2)/(leftData.length)/(this_.padding/leftData.length/2);
+							 rObj.width = (this_.windowWidth/2)/(rightData.length)/(this_.padding/6);///rightData.length/4);
+							 ///rightData.length;
+
+							 this_.labelLeftWidth = (this_.windowWidth/2)/leftData.length - this_.padding; 
+							 this_.labelRightWidth = (this_.windowWidth/2)/rightData.length - this_.padding; 
+
+							 // left graph
+							 this_.dataMax = function(){
+								 var maxArray = [];
+								 var max = 0;
+								 for (var i = 0; i < leftData.length; i++){
+									 max = 0;									 
+									 for (var k = 0; k < leftData[i][1].length; k++){
+										 max += leftData[i][1][k][1];
+									 }									 
+									 maxArray.push(max);
+								 }
+								 return maxArray.max();
+							 }();
+
+							 for (var i = 0; i < leftData.length; i++){
+								 lObj.push([]);
+								 this_.labelLeftXpos.push(((this_.windowWidth/2)/leftData.length)*i + this_.padding/2);
+								 for (var k = 0; k < leftData[i][1].length; k++){									 
+									 newBar = {};
+									 newBar.title = leftData[i][1][k][0];									 
+									 newBar.url = leftData[i][1][k][0];
+									 newBar.fillStyle = selectColorForDomain(leftData[i][1][k][0]);
+									 newBar.height = -(this_.windowHeight - this_.bottomPadding) * (leftData[i][1][k][1] / this_.dataMax);
+									 newBar.xPos = ((this_.windowWidth/2)/leftData.length)*i + this_.barPadding + (this_.padding + leftData.length)/leftData.length;
+ 									 newBar.yPos = function(){
 										 var yPos = this_.windowHeight - this_.bottomPadding;
 										 // -sum all heights in height array including this one
-										 for (var p = 0; p <= k; p++){
-											 yPos -= this_.da[i][p].height;
+										 for (var p = 0; p < lObj[i].length; p++){
+											 yPos += lObj[i][p].height;
 										 }
 										 return yPos;
 									 }();
-									 this_.da[i][k].poly = rectToPoly({
-																		  xPos: this_.da[i][k].xPos,
-																		  yPos: this_.da[i][k].yPos,
-																		  height: this_.da[i][k].height,
-																		  width: this_.columnWidth
-																	  });
+									 newBar.poly = rectToPoly({
+																  xPos: newBar.xPos,
+																  yPos: newBar.yPos,
+																  height: newBar.height,
+																  width: lObj.width
+															  });
+									 lObj[i].push(newBar);
 								 }
 							 }
-							 
+
+							 // right graph
+							 this_.dataMax = function(){
+								 var maxArray = [];
+								 var max = 0;
+								 for (var i = 0; i < rightData.length; i++){
+									 max = 0;									 
+									 for (var k = 0; k < rightData[i][1].length; k++){
+										 max += rightData[i][1][k][1];
+									 }									 
+									 maxArray.push(max);
+								 }
+								 return maxArray.max();
+							 }();
+
+							 for (var i = 0; i < rightData.length; i++){
+								 rObj.push([]);
+								 this_.labelRightXpos.push((this_.windowWidth/2) + (((this_.windowWidth/2)/rightData.length)*i) + this_.padding/2);
+								 for (var k = 0; k < rightData[i][1].length; k++){
+									 newBar = {};
+									 newBar.title = rightData[i][1][k][0];									 
+									 newBar.url = rightData[i][1][k][0];
+									 newBar.fillStyle = selectColorForDomain(rightData[i][1][k][0]);
+									 newBar.height = -(this_.windowHeight - this_.bottomPadding) * (rightData[i][1][k][1] / this_.dataMax);
+									 newBar.xPos = (this_.windowWidth/2) + (((this_.windowWidth/2)/rightData.length)*i) + this_.barPadding + (this_.padding + leftData.length)/leftData.length;//5;/ (this_.padding * rightData.length)/rightData.length;
+ 									 newBar.yPos = function(){
+										 var yPos = this_.windowHeight - this_.bottomPadding;
+										 // -sum all heights in height array including this one
+										 for (var p = 0; p < rObj[i].length; p++){
+											 yPos += rObj[i][p].height;
+										 }
+										 return yPos;
+									 }();
+									 newBar.poly = rectToPoly({
+																  xPos: newBar.xPos,
+																  yPos: newBar.yPos,
+																  height: newBar.height,
+																  width: rObj.width
+															  });
+									 rObj[i].push(newBar);
+								 }
+							 }
+							 this_.da.push(lObj);
+							 this_.da.push(rObj);
 							 this_.draw();
 						 }
 					 });
@@ -1072,7 +1164,7 @@ var barGraphLite = ({
 							this.windowHeight = params.windowHeight;
 							this.windowWidth = params.windowWidth;	 
 							this.windowWidth = params.windowWidth;
-							this.bottomPadding = params.bottomPadding;
+ 							this.bottomPadding = params.bottomPadding;
 							this.barPadding = params.barPadding;
 							this.textPadding = params.textPadding;
 							this.padding = 5;
@@ -1086,7 +1178,7 @@ var barGraphLite = ({
 						draw: function(){
 							var ctx = this.canvas.getContext('2d');
 							var this_ = this;
-							 ctx.clearRect(0,0,this_.windowWidth,this_.windowHeight);
+							ctx.clearRect(0,0,this_.windowWidth,this_.windowHeight);
 							ctx.save();
 							ctx.translate(0,0-10);
 							ctx.beginPath();

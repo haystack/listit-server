@@ -283,7 +283,7 @@ def graph(request, username):
     request_user = request.user.username
 
     t = loader.get_template("graph.html")
-    c = Context({ 'username': enduser.user.username, 'id': enduser.user.id, 'request_user': request_user })
+    c = Context({ 'username': enduser.user.username, 'id': enduser.user.id, 'photo': enduser.photo, 'request_user': request_user })
     return HttpResponse(t.render(c))
 
 def ticker(request):
@@ -1217,6 +1217,48 @@ def get_time_of_day_graph_for_user(request):
 
     # to make caching have a unique id
     return_results = fetch_data(inputUser, "day")
+        
+    return json_response({ "code":200, "results": return_results }) 
+
+def get_hourly_daily_top_urls_user(request, username, n):
+    n = int(n)
+    inputUser = get_object_or_404(User, username=username)
+
+    @cache.region('long_term')
+    def fetch_data(user, n, baaaa):
+        views = PageView.objects.filter(user=user)
+        # super nasty still learning the ways of the python ninja
+        hrPts = {0:{},1:{},2:{},3:{},4:{},5:{},6:{},7:{},8:{},9:{},10:{},11:{},12:{},13:{},14:{},15:{},16:{},17:{},18:{},19:{},20:{},21:{},22:{},23:{},24:{}}
+        weekPts = {0:{},1:{},2:{},3:{},4:{},5:{},6:{}}
+
+        for view in views:
+            weekday = datetime.datetime.fromtimestamp(view.startTime/1000).weekday()
+            hour = datetime.datetime.fromtimestamp(view.startTime/1000).hour
+            
+            if view.url in hrPts[hour]:
+                hrPts[hour][view.url] += 1
+            else:
+                hrPts[hour][view.url] = 1
+
+            if view.url in weekPts[weekday]:
+                weekPts[weekday][view.url] += 1
+            else:
+                weekPts[weekday][view.url] = 1
+
+        lResult = []
+        for x in range(7):
+            phlat = weekPts[x].items()
+            phlat.sort(key=lambda(k,v2):-v2)
+            lResult.append((x,phlat[:n]))
+
+        rResult = []
+        for x in range(24):
+            phlat = hrPts[x].items()
+            phlat.sort(key=lambda(k,v2):-v2)
+            rResult.append((x,phlat[:n]))
+
+        return [lResult,rResult]
+    return_results = fetch_data(inputUser, n, "asdkjfhasd")
         
     return json_response({ "code":200, "results": return_results }) 
 
