@@ -24,18 +24,24 @@ month_exprs = ["jan","january","janvier"
 # 1-9,10,11,12
 # in: jan 3rd, 2009  | aug 12, 2009 | sept 2 2009
 full_mdy = [ "%s( )+\d{1,2}(nd|th|rd)?,?(( )+\d{2,4})?" % m for m in month_exprs ]
-short_mdy = [ "\d{1,2}[/.-]\d{1,2}([/.-]\d{2,4})?" ]
+# lets in too many decimals 22.4 short_mdy = [ "\d{1,2}[/.-]\d{1,2}([/.-]\d{2,4})?" ]
+#|(\d|1[0-2])[\-](\d|[0-3]\d)([\-]\d{2,4})?)|((\d|1[0-2])[.](\d|[0-3]\d)[.]\d{2,4})|((\d|1[0-2])/(\d|[0-3]\d)(/\d{2,4})?)" ]
+## 9/23; 9/23/09; 9/23/2009;  23/9/2009 (european); 23-9 9-23 9/23 9/23/2009, 9.23.2009 but NOT 8.23
+short_mdy = [ "((([0-3]\d)|\d)/(([0-3]\d)|\d)(/\d{2,4})?)|" + "((([0-3]\d)|\d)-(([0-3]\d)|\d)(-\d{2,4})?)|" +  "((\d|([0-3]\d))\.(\d|([0-3]\d))\.\d{2,4})"]
 
 ## 8:00pm or 8:00 or 8pm or 22:00 or 22:00h
 time = ["((0?[1-9])|(1[012]))(:[0-5]\d)(\ ?[ap]m)|((0?[1-9])|(1[012]))(:[0-5]\d)|((0?[1-9])|(1[012]))(\ ?[ap]m)|(([01]?\d)|(2[0-3]))(:[0-5]\d)(h)?"]
-dow_exprs = [ ("%s(( )*(@|(at))( )*(((([012]?[1-9])|(1[012]))(:?[0-5]\d)?(\ ?[ap]m)?)))?" % d) for d in dows]  ## not exactly right, since tues@22:33pm is valid
+
+## mon @ 4pm 
+## not exactly right, since tues@22:33pm is valid
+dow_exprs = [ ("(^|\s+)%s\s+(( )*(@|(at))( )*(((([012]?[1-9])|(1[012]))(:?[0-5]\d)?(\ ?[ap]m)?)))?" % d) for d in dows]  
 
 all_ = dow_exprs + full_mdy + short_mdy + time
 
 _re_cache = {}
 intersects = lambda s1,s2: s1[0] < s2[1] and s1[1] > s2[0]
 width = lambda span: span[1]-span[0]
-argmax = lambda l:  l.index( max(l) )
+maxidx = lambda l:  l.index( max(l) )
 
 ## max-span algorithm
 def date_matches(s,ress=all_):
@@ -54,7 +60,7 @@ def date_matches(s,ress=all_):
             span = hit.span()
             intersecting_spans = find_isect_with_starts(span)            
             spen = list(set([span] + intersecting_spans ))
-            widest_span = spen[argmax( [width(x) for x in spen ])]
+            widest_span = spen[maxidx( [width(x) for x in spen ])]
             [starts.remove(i) for i in intersecting_spans if i in starts]
             starts.add(widest_span)            
             hit = exp.search(s,hit.end())
@@ -62,7 +68,7 @@ def date_matches(s,ress=all_):
     print starts
     return starts
 
-note_date_count = lambda s: len(date_matches(s)) ##reduce(plus, [ count_regex_matches(f,s) for f in all_ ])
+note_date_count = lambda s: {"date_time_exprs" : len(date_matches(s["contents"]))} ##reduce(plus, [ count_regex_matches(f,s) for f in all_ ])
 
 def d(s):
     dm = list(date_matches(s))

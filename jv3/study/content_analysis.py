@@ -14,7 +14,8 @@ r = ro.r
 import jv3
 import random,sys,re
 import numpy
-import ca_datetime
+from ca_datetime import note_date_count
+from ca_util import *
 
 # ternary
 q=lambda a,b,c: (b,c)[not a]
@@ -76,19 +77,20 @@ def activity_logs_for_user(user,action="note-edit",days_ago=None):
         print "starting with %d // %s" % (n_days_ago,repr(datetime.datetime.fromtimestamp(n_days_ago/1000.0)))
         return _actlogs_to_values(ActivityLog.objects.filter(action=action,owner=user,when__gt=n_days_ago))
 
-def random_notes(n=1000,consenting=True):
+def random_notes(n=1000,consenting=True,english_only=True):
     if consenting:
         users = non_stop_consenting_users()
     else:
         users = non_stop_users()
     good_ids = [x[0] for x in Note.objects.filter(owner__in=users).values_list("pk","jid","contents") if
-                len(x[2]) > 0 and x[1] >= 0 and not is_tutorial_note(x[2])]
+                len(x[2].strip()) > 0 and x[1] >= 0 and q(english_only, is_english(x[2]), True) and not is_tutorial_note(x[2])]
     random.shuffle(good_ids)
     notes = Note.objects.filter(pk__in=good_ids[:n])
     print "returning %d notes " % len(notes)
     values = [v for v in _notes_to_values(notes)]
     random.shuffle(values)
     return values
+
 
 def update_dictionary(words,dictionary):
     for w in words:
@@ -136,9 +138,8 @@ note_edits = lambda(note) : {'note_edits':len(activity_logs_for_note(note,"note-
 note_did_edit = lambda(note) : {'note_did_edit': note_edits(note) > 0}
 note_deleted = lambda(note) : {'note_deleted': q(note["deleted"],True,False)}
 note_urls = lambda note: {'note_urls': str_n_urls(note["contents"])}
+note_phone_numbers = lambda x: {'phone_nums':count_regex_matches("([0-9]( |-)?)?(\(?[0-9]{3}\)?|[0-9]{3})( |-)?([0-9]{3}( |-)?[0-9]{4}|[a-zA-Z0-9]{7})",x["contents"])}
 
-note_phone_numbers = lambda x: count_regex_matches("([0-9]( |-)?)?(\(?[0-9]{3}\)?|[0-9]{3})( |-)?([0-9]{3}( |-)?[0-9]{4}|[a-zA-Z0-9]{7})",x)
-note_datetimes = lambda x : count_dows(x) + count_times(x) + count_mdy(x)
 ## addresses?
 ## dates/times
 
@@ -206,6 +207,8 @@ default_note_feature_fns = [
     note_names,
     note_urls,
     note_ss,
+    note_phone_numbers,
+    note_date_count
 ]
 
 #    note_edits,
@@ -264,8 +267,20 @@ def print_random_events(n=25000):
     random.shuffle(good_event_ids)
     for e in Event.objects.filter(pk__in=good_event_ids[:n]):
         print e.entityid
+    pass
 
-def export_notes(notes,filename="/tmp/notes.csv"):
+load_notes = lambda ids:_notes_to_values(Note.objects.filter(pk__in=ids))
+
+def import_notes_csv(filename):
+    import csv
+    f = open(filename,'o')
+    reader = csv.reader(f, dialect="excel", delimiter=',', quoting=csv.QUOTE_MINIMAL)
+    nids = [];
+    for row in reader:
+        nids.append(row[0])
+    return load_notes(nids)
+
+def export_notes_csv(notes,filename="/tmp/notes.csv"):
     import csv
     f = open(filename, 'wb')
     writer = csv.writer(f, dialect="excel", delimiter=',', quoting=csv.QUOTE_MINIMAL)
@@ -273,3 +288,8 @@ def export_notes(notes,filename="/tmp/notes.csv"):
         u = User.objects.filter(id=n["owner"])
         writer.writerow([n["id"],n["jid"],u[0].email,n["contents"].encode('utf-8','ignore')[:32767]])
     f.close()
+
+def var(v):
+    from jv3.study.study import mean
+    ev = mean(v)
+    return sum([(x-ev)**2 for x in v ])/(1.0*len(v)-1)
