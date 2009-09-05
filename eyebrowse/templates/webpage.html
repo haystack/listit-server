@@ -111,10 +111,12 @@
 			var this_ = this;
 			var html = "";
 			for (var i = 0; i < data.length; i++) {
-				html += "<li>";
-                html += "<a href=\"/profile/" + data[i].user + "/\">" + data[i].user + "</a><h7>" + data[i].number + "</h7>";
-				html += "</li>";
-			}
+				if (data[i].number > 0){
+					html += "<li>";
+					html += "<a href=\"/profile/" + data[i].user + "/\">" + data[i].user + "</a><h7>" + data[i].number + "</h7>";
+					html += "</li>";					
+				}
+ 			}
 			jQuery("#topvisitors").html(html);					   			
 		},
 		initUrlGraph: function(url){

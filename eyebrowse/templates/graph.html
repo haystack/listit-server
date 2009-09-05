@@ -37,6 +37,8 @@
 			jQuery('#graph').html("");
 			jQuery('#graph').html("<canvas id=\"main\"></canvas>");
 
+			jQuery('#dateselector').show();
+
             this.endTime = new Date().valueOf();
             this.startTime = this.endTime - 604800000; // 1 week
 			
@@ -118,10 +120,8 @@
             }
 		},
 		createDays: function(){
-			this.windowWidth = getClientCords().width;
+			this.windowWidth = getClientCords().width - 50;
 			this.windowHeight = window.innerHeight - 250;
-
-
 
 			var HTML = "";			
 			HTML += "<div id=\"totalGraphKey\" style=\"width:" + this.windowWidth/2 + "px;margin-top:15px; margin-bottom:8px;text-align:center; display: inline-block;\">number of visits per day of week</div>";
@@ -130,6 +130,9 @@
 
 			jQuery('#graph').html("");
 			jQuery('#graph').html(HTML);
+
+			// no way to use this yet
+			jQuery('#dateselector').hide();
 
             this.endTime = new Date().valueOf();
             this.startTime = this.endTime - 604800000; // 1 week
@@ -193,7 +196,6 @@
 			HTML +=	"<div id=\"fooDate\" class=\"days\" style=\"float:left; display:inline-block: width:100px\"></div>";
 			HTML +=	"<div id=\"fooTotal\" class=\"days\" style=\"float:right; display:inline-block:width:100px\"></div>";
 			HTML +=	"<canvas id=\"main\"></canvas>";
-			HTML +=	"<div class=\"fooTxt\" id=\"fooTxt\"></div><br/>";
 			HTML +=	"<div class=\"centerLabel\"></div>";
 			HTML +=	"<div class=\"dateNav\">";
 			HTML +=	"<div id=\"minDateTwo\" style=\"width:100px; display:inline-block; margin-left:30px;\"></div>";
@@ -202,6 +204,8 @@
 
 			jQuery('#graph').html("");
 			jQuery('#graph').html(HTML);
+
+			jQuery('#dateselector').show();
 
             this.endTime = new Date().valueOf();
             this.startTime = this.endTime - 1728000000; // 20 days

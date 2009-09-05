@@ -435,7 +435,7 @@ jQuery(document).ready(function(){
             </li>
             {% endfor %}
         </ul>
-        {% ifequal user.username username %}<div class="footer"><a href="/friends/{{ username }}/">view all your followers</a></div>
+        {% ifequal user.username username %}<div class="footer"><a href="/friends/manage/{{ username }}/">view all of your followers</a></div>
         {% else %}
         {% endifequal %}
         {% else %}
@@ -469,7 +469,7 @@ jQuery(document).ready(function(){
         <h1><a href="/profile/{{ username }}/">{{ username }}</a></h1>
         <br/>
         <div class="underuser">
-          <a href="/graph/{{ username }}/">timeline</a>&nbsp; &#124; &nbsp;<a href="/days/{{ username }}/">20 days</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ username }}/">friends</a>
+          <a href="/profile/{{ username }}/">profile</a>&nbsp; &#124; &nbsp;<a href="/graph/{{ username }}/">graphs</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ username }}/">friends</a>
         </div>
       </div>
       <br/>

@@ -344,6 +344,7 @@ var lineGraphFactoryLite = ({
 									}
 									this.color = params.color;
 									this.data = params.data;
+									this.noKey = params.noKey;										
 									this.fillGraph = params.fillGraph;
 									this.setXY();
 								},
@@ -362,11 +363,11 @@ var lineGraphFactoryLite = ({
 											ctx.lineTo(this_.xPoints[y], this_.yPoints[y]);
 										}										
 									}
-									// the fill graph has no key 
+
+
 									if (this_.fillGraph){
 										ctx.fillStyle = this_.color;										
 										ctx.fill();
-										//ctx.stroke();
 										ctx.closePath();
 									}
 
@@ -374,67 +375,66 @@ var lineGraphFactoryLite = ({
 									ctx.closePath();
 									ctx.restore();
 
-									// draw the lines
-									// lines for each 12 hrs
-									ctx.beginPath();
-									ctx.fillStyle = "#666666";
-									var fooHour = 0;
-									var numHrs = 7;
-									var endDateVal = (Math.floor((this_.endTime / (this_.zoom / numHrs))) * (this_.zoom / numHrs)) + 1800000; 						  
-									// not sure why i have to subtract this but it ensures that the dates are on a 12 hr scale						  
-									for (var hrCount = 0; hrCount < numHrs; hrCount++) {
-										var dayText = new Date(endDateVal - fooHour);
-										var q = this_.windowWidth * ((endDateVal - fooHour - this_.startDate) / (this_.endDate - this_.startDate));
-										ctx.fillStyle = "#000000";
-										ctx.fillRect(q, this_.windowHeight - 50, 1, 6);							  
-										fooHour += (this_.zoom / numHrs);
+									if (!this_.noKey){
+										// draw the lines
+										// lines for each 12 hrs
+										ctx.beginPath();
+										ctx.fillStyle = "#666666";
+										var fooHour = 0;
+										var numHrs = 7;
+										var endDateVal = (Math.floor((this_.endTime / (this_.zoom / numHrs))) * (this_.zoom / numHrs)) + 1800000; 						  
+										// not sure why i have to subtract this but it ensures that the dates are on a 12 hr scale						  
+										for (var hrCount = 0; hrCount < numHrs; hrCount++) {
+											var dayText = new Date(endDateVal - fooHour);
+											var q = this_.windowWidth * ((endDateVal - fooHour - this_.startDate) / (this_.endDate - this_.startDate));
+											ctx.fillStyle = "#000000";
+											ctx.fillRect(q, this_.windowHeight - 50, 1, 6);							  
+											fooHour += (this_.zoom / numHrs);
+										}
+										ctx.closePath();
+
+										// lines for each hour
+										ctx.beginPath();
+										ctx.fillStyle = "#666666";
+										fooHour = 0;
+										numHrs = this_.zoom/3600000;
+										endDateVal = (Math.floor((this_.endTime / (this_.zoom / numHrs))) * (this_.zoom / numHrs)) + 1800000; 						  
+										// not sure why i have to add this but it ensures that the dates are on a 12 hr scale
+										for (hrCount = 0; hrCount < numHrs + 24; hrCount++) {
+											var dayText = new Date(endDateVal - fooHour);
+											var q = this_.windowWidth * ((endDateVal - fooHour - this_.startDate) / (this_.endDate - this_.startDate));
+											ctx.fillRect(q, this_.windowHeight - 50, 0.5, 3);
+											fooHour += (this_.zoom / numHrs);
+										}
+										ctx.closePath();
+										
+										// draw the key
+										ctx.beginPath();
+										ctx.fillStyle = "#333333";
+										ctx.fillRect(0, this_.padding, this_.windowWidth, 1);
+
+										ctx.strokeStyle = "#666666";
+										ctx.font = ".7pt helvetiker";
+										ctx.fillStyle = "#666666";
+										ctx.lineWidth = 0.5;
+										if (this_.endTime - this_.startTime > 43200000){								
+											ctx.fillText("" + this_.startDate.format('mmmm d'), 10, this_.padding + 20);
+											ctx.fillText("" + this_.endDate.format('mmmm d'), this_.windowWidth - Math.round(ctx.measureText("" + this_.endDate.format('mmmm d')).width) - 2, this_.padding + 20);
+										}
+										else {
+											ctx.fillText("" + this_.startDate.format('hh:mm TT'), 10, this_.padding + 18);
+											ctx.fillText("" + this_.endDate.format('hh:mm TT'), this_.windowWidth - 48, this_.padding + 20); // need to make this x value dyanmic base dod on size of text using measureText(0											
+										}
+										ctx.save();
+										ctx.translate(0,0-10);
+										ctx.fillText("" + timeCounterClock(this_.maxData/ 1000), 9, this_.topPadding + 10);
+										ctx.fillText("" + 0, 9, this_.padding + 3);
+										for (var i = 1; i < 3; i++) {
+											ctx.fillText("" + timeCounterClock(Math.floor(((this_.maxData - this_.minData) / 3) * i) / 1000), 9, (this_.padding + 3 + -(((this_.padding + 3) - (this_.topPadding + 5)) / 3) * i));
+										}
+										ctx.restore();
+										ctx.closePath();																	
 									}
-									ctx.closePath();
-
-
-									// lines for each hour
-									ctx.beginPath();
-									ctx.fillStyle = "#666666";
-									fooHour = 0;
-									numHrs = this_.zoom/3600000;
-									endDateVal = (Math.floor((this_.endTime / (this_.zoom / numHrs))) * (this_.zoom / numHrs)) + 1800000; 						  
-									// not sure why i have to add this but it ensures that the dates are on a 12 hr scale
-									for (hrCount = 0; hrCount < numHrs + 24; hrCount++) {
-										var dayText = new Date(endDateVal - fooHour);
-										var q = this_.windowWidth * ((endDateVal - fooHour - this_.startDate) / (this_.endDate - this_.startDate));
-										ctx.fillRect(q, this_.windowHeight - 50, 0.5, 3);
-										fooHour += (this_.zoom / numHrs);
-									}
-									ctx.closePath();
-
-
-
-									// draw the key
-									ctx.beginPath();
-									ctx.fillStyle = "#333333";
-									ctx.fillRect(0, this_.padding, this_.windowWidth, 1);
-
-									ctx.strokeStyle = "#666666";
-									ctx.font = ".7pt helvetiker";
-									ctx.fillStyle = "#666666";
-									ctx.lineWidth = 0.5;
-									if (this_.endTime - this_.startTime > 43200000){								
-										ctx.fillText("" + this_.startDate.format('mmmm d'), 10, this_.padding + 20);
-										ctx.fillText("" + this_.endDate.format('mmmm d'), this_.windowWidth - Math.round(ctx.measureText("" + this_.endDate.format('mmmm d')).width) - 2, this_.padding + 20);
-									}
-									else {
-										ctx.fillText("" + this_.startDate.format('hh:mm TT'), 10, this_.padding + 18);
-										ctx.fillText("" + this_.endDate.format('hh:mm TT'), this_.windowWidth - 48, this_.padding + 20); // need to make this x value dyanmic base dod on size of text using measureText(0											
-									}
-									ctx.save();
-									ctx.translate(0,0-10);
-									ctx.fillText("" + timeCounterClock(this_.maxData/ 1000), 9, this_.topPadding + 10);
-									ctx.fillText("" + 0, 9, this_.padding + 3);
-									for (var i = 1; i < 3; i++) {
-										ctx.fillText("" + timeCounterClock(Math.floor(((this_.maxData - this_.minData) / 3) * i) / 1000), 9, (this_.padding + 3 + -(((this_.padding + 3) - (this_.topPadding + 5)) / 3) * i));
-									}
-									ctx.restore();
-									ctx.closePath();																	
 								},
 								setXY: function(){
 									var this_ = this;
@@ -550,11 +550,11 @@ var lineGraphFactory = ({
 									ctx.lineWidth = 0.5;
 									ctx.fillText("" + this_.maxData, 9, this_.topPadding + 5);
 									ctx.fillText("" + this_.minData, 9, this_.padding + 3);
-									ctx.fillText("" + this_.maxData, this_.windowWidth - 19, this_.topPadding + 5);
+									ctx.fillText("" + this_.maxData, this_.windowWidth - 19 - ctx.measureText("" + this_.maxData).width, this_.topPadding + 5);
 									ctx.fillText("" + this_.minData, this_.windowWidth - 19, this_.padding + 3);
 									for (var i = 1; i < 7; i++) {
 										ctx.fillText("" + Math.floor(((this_.maxData - this_.minData) / 7) * i), 9, (this_.padding + 3 + -(((this_.padding + 3) - (this_.topPadding + 5)) / 7) * i));
-										ctx.fillText("" + Math.floor(((this_.maxData - this_.minData) / 7) * i), this_.windowWidth - 19, (this_.padding + 3 + -(((this_.padding + 3) - (this_.topPadding + 5)) / 7) * i));
+										ctx.fillText("" + Math.floor(((this_.maxData - this_.minData) / 7) * i), this_.windowWidth - 19 - ctx.measureText("" + Math.floor(((this_.maxData - this_.minData) / 7) * i)).width, (this_.padding + 3 + -(((this_.padding + 3) - (this_.topPadding + 5)) / 7) * i));
 									}
 									// draw the label
 									ctx.fillText(this_.label,33, this_.topPadding + 5);
@@ -963,6 +963,7 @@ var stackBarGraph = ({
 							 this.dataMax = 0;
 							 this.labelLeftXpos = [];
 							 this.labelRightXpos = [];
+							 this.midPad = 20;
 							 this.setPos(params.data);
 							 this.fooTxtY = params.fooTxtY;
 							 this.fooTxtX = params.fooTxtX;
@@ -989,7 +990,7 @@ var stackBarGraph = ({
 											this_.viz.highlight = this_.da[i][k][l].url;
 											this_.trigger = true;
 											jQuery("#fooTxt").html("<a href=\"" + this_.da[i][k][l].url + "\">" +  this_.da[i][k][l].title + "</a>");
-											jQuery("#fooTxt").css({"left" : this_.mouseVal.x + this_.fooTxtX + "px", "padding": "3px", "top" : this_.marginTop + 45 + this_.fooTxtY + "px" });							
+											jQuery("#fooTxt").css({"left" : this_.mouseVal.x + this_.fooTxtX + "px", "padding": "3px", "top" : this_.mouseVal.y + 160 + "px" });	
 										}																		
 										ctx.fillStyle = this_.da[i][k][l].fillStyle;
 										ctx.fillRect(this_.da[i][k][l].xPos, this_.da[i][k][l].yPos, this_.da[i].width, this_.da[i][k][l].height);
@@ -1008,14 +1009,13 @@ var stackBarGraph = ({
 							// draw the key
 							ctx.beginPath();
 							ctx.fillStyle = "#333333";
-							ctx.fillRect(0, this_.windowHeight - this_.bottomPadding - 4, this_.windowWidth, 1);
+							ctx.fillRect(0, this_.windowHeight - this_.bottomPadding - 4, this_.windowWidth/2 - this_.midPad, 1);
+							ctx.fillRect(this_.windowWidth/2 + this_.midPad, this_.windowHeight - this_.bottomPadding - 4, this_.windowWidth/2 - this_.midPad, 1);
 							
 							ctx.strokeStyle = "#666666";
 							ctx.font = ".7pt helvetiker";
 							ctx.fillStyle = "#666666";
 							ctx.lineWidth = 0.5;
-
-
 
 							// draw the labels
 							for (var i = 0; i < this_.labelLeft.length; i++){
@@ -1026,12 +1026,18 @@ var stackBarGraph = ({
 								ctx.fillText("" + this_.labelRight[i], this_.labelRightXpos[i] + this_.textPadding + (this_.labelRightWidth - ctx.measureText(this_.labelRight[i]).width)/2 - 3, this_.windowHeight - this_.bottomPadding + 12);
 
 							}
-
-							ctx.fillText("" + this_.dataMax + "  hits", 2, 10);
-
+							 
+							// left key numbers
+							ctx.fillText("" + this_.dataMaxLeft + "  visits", 2, 10);
 							 for (var i = 1; i < 3; i++) {								
-								ctx.fillText("" + Math.floor(((this_.dataMax) / 3) * (3 - i)), 2, ((this_.windowHeight - this_.bottomPadding) / 3) * i + 8);
+								ctx.fillText("" + Math.floor(((this_.dataMaxRight) / 3) * (3 - i)), 2, ((this_.windowHeight - this_.bottomPadding) / 3) * i + 8);
 							}
+							// right key numbers
+							ctx.fillText("" + this_.dataMaxRight + "  visits", (this_.windowWidth/2) - this_.padding + this_.midPad * 2, 10);
+							 for (var i = 1; i < 3; i++) {								
+								ctx.fillText("" + Math.floor(((this_.dataMaxRight) / 3) * (3 - i)), (this_.windowWidth/2) - this_.padding + this_.midPad * 2, ((this_.windowHeight - this_.bottomPadding) / 3) * i + 8);
+							}
+
 							 ctx.closePath();
 							 
 							 if (!(this_.pIH) && this_.trigger) {
@@ -1063,11 +1069,10 @@ var stackBarGraph = ({
 							 var lObj = [];
 							 var rObj = [];
 							 lObj.width = (this_.windowWidth/2)/(leftData.length)/(this_.padding/leftData.length/2);
-							 rObj.width = (this_.windowWidth/2)/(rightData.length)/(this_.padding/6);///rightData.length/4);
-							 ///rightData.length;
+							 rObj.width = (this_.windowWidth/2)/(rightData.length)/(this_.padding/6);
 
-							 this_.labelLeftWidth = (this_.windowWidth/2)/leftData.length - this_.padding; 
-							 this_.labelRightWidth = (this_.windowWidth/2)/rightData.length - this_.padding; 
+							 this_.labelLeftWidth = (this_.windowWidth/2)/leftData.length - this_.padding - this_.midPad; 
+							 this_.labelRightWidth = (this_.windowWidth/2)/rightData.length - this_.padding - this_.midPad; 
 
 							 // left graph
 							 this_.dataMax = function(){
@@ -1083,16 +1088,17 @@ var stackBarGraph = ({
 								 return maxArray.max();
 							 }();
 
+							 this_.dataMaxLeft = this_.dataMax;
 							 for (var i = 0; i < leftData.length; i++){
 								 lObj.push([]);
-								 this_.labelLeftXpos.push(((this_.windowWidth/2)/leftData.length)*i + this_.padding/2);
+								 this_.labelLeftXpos.push(((this_.windowWidth/2 - this_.midPad)/leftData.length)*i + this_.padding/2 + this_.midPad/2);
 								 for (var k = 0; k < leftData[i][1].length; k++){									 
 									 newBar = {};
 									 newBar.title = leftData[i][1][k][0];									 
 									 newBar.url = leftData[i][1][k][0];
 									 newBar.fillStyle = selectColorForDomain(leftData[i][1][k][0]);
 									 newBar.height = -(this_.windowHeight - this_.bottomPadding) * (leftData[i][1][k][1] / this_.dataMax);
-									 newBar.xPos = ((this_.windowWidth/2)/leftData.length)*i + this_.barPadding + (this_.padding + leftData.length)/leftData.length;
+									 newBar.xPos = ((this_.windowWidth/2 - this_.midPad)/leftData.length)*i + (this_.padding + leftData.length)/leftData.length + this_.midPad/2;
  									 newBar.yPos = function(){
 										 var yPos = this_.windowHeight - this_.bottomPadding;
 										 // -sum all heights in height array including this one
@@ -1124,17 +1130,17 @@ var stackBarGraph = ({
 								 }
 								 return maxArray.max();
 							 }();
-
+							 this_.dataMaxRight = this_.dataMax;
 							 for (var i = 0; i < rightData.length; i++){
 								 rObj.push([]);
-								 this_.labelRightXpos.push((this_.windowWidth/2) + (((this_.windowWidth/2)/rightData.length)*i) + this_.padding/2);
+								 this_.labelRightXpos.push((this_.windowWidth/2 - this_.midPad) + (((this_.windowWidth/2 - this_.midPad)/rightData.length)*i) + this_.midPad*3);
 								 for (var k = 0; k < rightData[i][1].length; k++){
 									 newBar = {};
 									 newBar.title = rightData[i][1][k][0];									 
 									 newBar.url = rightData[i][1][k][0];
 									 newBar.fillStyle = selectColorForDomain(rightData[i][1][k][0]);
 									 newBar.height = -(this_.windowHeight - this_.bottomPadding) * (rightData[i][1][k][1] / this_.dataMax);
-									 newBar.xPos = (this_.windowWidth/2) + (((this_.windowWidth/2)/rightData.length)*i) + this_.barPadding + (this_.padding + leftData.length)/leftData.length;//5;/ (this_.padding * rightData.length)/rightData.length;
+									 newBar.xPos = (this_.windowWidth/2 - this_.midPad) + (((this_.windowWidth/2 - this_.midPad)/rightData.length)*i) + this_.barPadding + (this_.padding + leftData.length)/leftData.length + this_.midPad*2;
  									 newBar.yPos = function(){
 										 var yPos = this_.windowHeight - this_.bottomPadding;
 										 // -sum all heights in height array including this one

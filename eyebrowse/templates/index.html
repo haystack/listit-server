@@ -40,7 +40,8 @@
 		},       
 		getRecentPages: function(num){
             var this_ = this;
-			this_.startTimeRecent = this_.endTimeRecent; // just for init to offset the time and make sure something comes in
+			this_.startTimeRecent = this_.endTimeRecent;
+			// just for init to offset the time and make sure something comes in
             this_.endTimeRecent = new Date().valueOf();
 			jQuery("#loadimg").show();
 			jQuery.get("/get_most_recent_urls/" + num + "/", {
@@ -69,7 +70,7 @@
 						   }
 						   else {
 							   return;
-							   //console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							   //console.log("yaaaa!!!h!h!h!" + data.code + " ");
 						   }
 					   }, "json");
         },
@@ -85,18 +86,18 @@
 						   if (data.code == 200) {
 							   var newData = data.results;
 
-							   // this will run get graph data for the top user
-							   // should be just the past 12 hrs as they will be the most active 43200000 is 12 hrs
 							   this_.getGraphData(this_.endTime - 43200000, this_.endTime, newData[0].user);	
 							   
 							   for (var i = 0; i < newData.length; i++) {
-								   var html = "";
-								   html += "<li>";
-								   html += "<h6><b><a href=\"/profile/" + newData[i].user +  "/\">" + newData[i].user + "</a></b></h6>";
-								   html += "<br /><h7>" + newData[i].number + " webpages today</h7>";
-								   html += "</li>";
-								   jQuery("#topusers").append(html);
-								   jQuery(".listItemSmall:first").slideDown("slow");
+								   if (newData[i].number > 0){
+									   var html = "";
+									   html += "<li>";
+									   html += "<h6><b><a href=\"/profile/" + newData[i].user +  "/\">" + newData[i].user + "</a></b></h6>";
+									   html += "<br /><h7>" + newData[i].number + " webpages today</h7>";
+									   html += "</li>";
+									   jQuery("#topusers").append(html);
+									   jQuery(".listItemSmall:first").slideDown("slow");									   
+								   }
 							   }
 						   }
 						   else {
@@ -123,12 +124,11 @@
 			
 			for (var i = 0; i < (zoom / hour); i++) {
                 var fooData = newData.filter(function(view){
-												// console.log(view.end + "    " + newEndTime + "    " + view.start);
+												 // console.log(view.end + "    " + newEndTime + "    " + view.start);
 												 if (view.end < (newEndTime - (hour * i)) && (view.start > (newEndTime - hour - (hour * i)))) {
 													 return view;
 												 }
 											 });
-				//console.log(fooData);
                 wwwBarsArray[i] = newify(statusFactory, viz, {
 											 canvas: bg.canvas,
 											 windowHeight: bg.windowHeight,
@@ -153,7 +153,7 @@
 			this_.drawArray = [];
 			this_.statusArray = [];
 			this_.graphArray = [];
-								
+			
             var wwwBars = newify(statusFactory, this_, {
 									 startTime: this_.startTime,
 									 endTime: this_.endTime,
@@ -183,7 +183,7 @@
                 var foo = [];
                 for (var i = 0; i < count; i++) {
                     foo[i] = this_.startTime + (interp * i);
-                    // set all arrays to 0 so i can increment them
+                    // set all arrays to 0 so to increment them
                     ttData[i] = 0;
                     avgDataNum[i] = 0;
                 }
@@ -225,7 +225,8 @@
 									  color: "#ff00ff",
 									  margintop: 30,
 									  topPadding: 0,
-									  fillGraph: true,
+									  noKey: true,
+									  fillGraph: false,
 									  data: avgData
 								  });
 			this_.graphArray.push(avgTimeG);
@@ -287,7 +288,7 @@ jQuery(document).ready(function(){
 		  {% if request_user %}
 		  <h1 style="font-size:28px; margin:0px;">welcome {{ request_user }}!</h1><br />		  
 		  <div style="padding:0px;margin-top:4px; margin-bottom:8px; font-size:13px;">
-			<a href="/profile/{{ request_user }}/">profile</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ request_user }}/">your friends</a>&nbsp; &#124; &nbsp;<a href="/settings/">settings</a>&nbsp; &#124; &nbsp;<a href="/logout/">logout</a>
+			<a href="/profile/{{ request_user }}/">profile</a>&nbsp; &#124; &nbsp;<a href="/graph/{{ request_user }}/">your graphs</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ request_user }}/">your friends</a>&nbsp; &#124; &nbsp;<a href="/settings/">settings</a>&nbsp; &#124; &nbsp;<a href="/logout/">logout</a>
 		  </div><br />
 		  {% else %}
           <div id="bodytext">
