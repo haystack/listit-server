@@ -282,8 +282,14 @@ def graph(request, username):
     enduser = get_enduser_for_user(user)
     request_user = request.user.username
 
+    if request_user:
+        is_friend = request.user.to_friend_set.all().filter(from_friend=user)
+    else: 
+        is_friend = False;
+        is_followed_by = False;
+
     t = loader.get_template("graph.html")
-    c = Context({ 'username': enduser.user.username, 'id': enduser.user.id, 'photo': enduser.photo, 'request_user': request_user })
+    c = Context({ 'username': enduser.user.username, 'id': enduser.user.id, 'photo': enduser.photo, 'request_user': request_user, 'is_friend': is_friend })
     return HttpResponse(t.render(c))
 
 def ticker(request):
@@ -333,7 +339,6 @@ def daybyday(request, username):
     return render_to_response('daybyday.html', variables)
 
 def users(request):    
-    #request_enduser = get_enduser_for_user(request.user)
     user = request.user
     friends_results = []
     friends = EndUser.objects.all()

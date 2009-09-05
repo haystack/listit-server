@@ -144,8 +144,10 @@ var dateSlider = ({
 						  this.endTime = viz.endTime;
 						  this.OGstartTime = viz.startTime;
 						  this.OGendTime = viz.endTime;
-						  this.windowHeight = viz.windowHeight;
-						  this.windowWidth = viz.windowWidth;
+						  if (params.windowWidth) { this.windowWidth = params.windowWidth; }
+						  else { this.windowWidth = viz.windowWidth;}						  
+						  if (params.windowHeight) { this.windowHeight = params.windowHeight; }
+						  else { this.windowHeight = viz.windowHeight;}						  
 						  this.xOffset = params.xOffset;
 						  this.yOffset = params.yOffset;
 						  this.padding = params.padding;
@@ -216,7 +218,7 @@ var dateSlider = ({
 
 						  // lines for each 12 hrs
 						  ctx.beginPath();
-						  ctx.fillStyle = "#666666";
+						  ctx.fillStyle = "#333333";
 						  fooHour = 0;
 						  numHrs = 14;
 						  endDateVal = (Math.floor((this_.endTime / (this_.viz.zoom / numHrs))) * (this_.viz.zoom / numHrs)) + 1800000; 						  
@@ -233,7 +235,7 @@ var dateSlider = ({
 
 						  // lines for each hour
 						  ctx.beginPath();
-						  ctx.fillStyle = "#666666";
+						  ctx.fillStyle = "#333333";
 						  fooHour = 0;
 						  numHrs = this_.viz.zoom/3600000;
 						  endDateVal = (Math.floor((this_.endTime / (this_.viz.zoom / numHrs))) * (this_.viz.zoom / numHrs)) + 1800000; 						  
@@ -252,7 +254,7 @@ var dateSlider = ({
 						  ctx.strokeStyle = "#000000";
 						  ctx.fillStyle = "#000000";
 						  ctx.fillText(this_.startDate.format('dddd, mmmm d h:MM TT'), 10, this_.windowHeight - this_.padding + 50);
-						  ctx.fillText(this_.endDate.format('dddd, mmmm d h:MM TT'), this_.windowWidth - 130, this_.windowHeight - this_.padding + 50);
+						  ctx.fillText(this_.endDate.format('dddd, mmmm d h:MM TT'), this_.windowWidth - ctx.measureText(this_.endDate.format('dddd, mmmm d h:MM TT')).width - 10, this_.windowHeight - this_.padding + 50);
 						  ctx.closePath();
 
 						  // line showing width
@@ -379,7 +381,7 @@ var lineGraphFactoryLite = ({
 										// draw the lines
 										// lines for each 12 hrs
 										ctx.beginPath();
-										ctx.fillStyle = "#666666";
+										ctx.fillStyle = "#333333";
 										var fooHour = 0;
 										var numHrs = 7;
 										var endDateVal = (Math.floor((this_.endTime / (this_.zoom / numHrs))) * (this_.zoom / numHrs)) + 1800000; 						  
@@ -551,7 +553,7 @@ var lineGraphFactory = ({
 									ctx.fillText("" + this_.maxData, 9, this_.topPadding + 5);
 									ctx.fillText("" + this_.minData, 9, this_.padding + 3);
 									ctx.fillText("" + this_.maxData, this_.windowWidth - 19 - ctx.measureText("" + this_.maxData).width, this_.topPadding + 5);
-									ctx.fillText("" + this_.minData, this_.windowWidth - 19, this_.padding + 3);
+									ctx.fillText("" + this_.minData, this_.windowWidth - 19 - ctx.measureText("" + this_.minData).width, this_.padding + 3);
 									for (var i = 1; i < 7; i++) {
 										ctx.fillText("" + Math.floor(((this_.maxData - this_.minData) / 7) * i), 9, (this_.padding + 3 + -(((this_.padding + 3) - (this_.topPadding + 5)) / 7) * i));
 										ctx.fillText("" + Math.floor(((this_.maxData - this_.minData) / 7) * i), this_.windowWidth - 19 - ctx.measureText("" + Math.floor(((this_.maxData - this_.minData) / 7) * i)).width, (this_.padding + 3 + -(((this_.padding + 3) - (this_.topPadding + 5)) / 7) * i));
@@ -963,7 +965,7 @@ var stackBarGraph = ({
 							 this.dataMax = 0;
 							 this.labelLeftXpos = [];
 							 this.labelRightXpos = [];
-							 this.midPad = 20;
+							 this.midPad = 15;
 							 this.setPos(params.data);
 							 this.fooTxtY = params.fooTxtY;
 							 this.fooTxtX = params.fooTxtX;
@@ -1019,13 +1021,15 @@ var stackBarGraph = ({
 
 							// draw the labels
 							for (var i = 0; i < this_.labelLeft.length; i++){
-								ctx.fillText("" + this_.labelLeft[i], this_.labelLeftXpos[i] + this_.textPadding + (this_.labelLeftWidth - ctx.measureText(this_.labelLeft[i]).width)/2, this_.windowHeight - this_.bottomPadding + 12);
+								ctx.fillText("" + this_.labelLeft[i], this_.labelLeftXpos[i] + this_.textPadding - 3 + (this_.labelLeftWidth - ctx.measureText(this_.labelLeft[i]).width)/2, this_.windowHeight - this_.bottomPadding + 12);
 							}
 
 							for (var i = 0; i < this_.labelRight.length; i++){
 								ctx.fillText("" + this_.labelRight[i], this_.labelRightXpos[i] + this_.textPadding + (this_.labelRightWidth - ctx.measureText(this_.labelRight[i]).width)/2 - 3, this_.windowHeight - this_.bottomPadding + 12);
 
 							}
+							
+							ctx.fillStyle = "#333333";
 							 
 							// left key numbers
 							ctx.fillText("" + this_.dataMaxLeft + "  visits", 2, 10);
@@ -1203,12 +1207,12 @@ var barGraphLite = ({
 							ctx.fillStyle = "#333333";
 							ctx.fillRect(0, this_.windowHeight - this_.bottomPadding-4, this_.windowWidth, 1);
 							
-							ctx.strokeStyle = "#666666";
+							ctx.strokeStyle = "#333333";
 							ctx.font = ".7pt helvetiker";
 							ctx.fillStyle = "#666666";
 							ctx.lineWidth = 0.5;
 
-							// draw the labels
+							// draw the labelss
 							for (var i = 0; i < this_.label.length; i++){
 								ctx.fillText("" + this_.label[i], this_.da[i].xPos + this_.textPadding, this_.windowHeight - this_.bottomPadding + 12);
 							}

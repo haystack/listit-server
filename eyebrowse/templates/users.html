@@ -107,13 +107,15 @@
 							   var newData = data.results;
 							   jQuery("#topusers").html("");
 							   for (var i = 0; i < newData.length; i++) {
-								   var html = "";
-								   html += "<li style=\"width:170px; padding:6px\">";
-								   html += "<h6><b><a href=\"/profile/" + newData[i].user +  "/\">" + newData[i].user + "</a></b></h6>";
-								   html += "<br /><h7>" + newData[i].number + " webpages viewed</h7>";
-								   html += "</li>";
-								   jQuery("#topusers").append(html);
-								   jQuery(".listItemSmall:first").slideDown("slow");
+								   if (newData[i].number > 0){
+									   var html = "";
+									   html += "<li style=\"width:170px; padding:6px\">";
+									   html += "<h6><b><a href=\"/profile/" + newData[i].user +  "/\">" + newData[i].user + "</a></b></h6>";
+									   html += "<br /><h7>" + newData[i].number + " webpages viewed</h7>";
+									   html += "</li>";
+									   jQuery("#topusers").append(html);
+									   jQuery(".listItemSmall:first").slideDown("slow");
+								   }
 							   }
 						   }
 						   else {
@@ -171,8 +173,10 @@
 				{% endif %}
 				{% if request_user %}
 				{% if not user.is_friend %}
+				{% ifnotequal request_user user.username %}
 				<br />
 				<a href="/friend/add?username={{ user.username }}" style="margin-left:9px;">follow <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a>
+				{% endifnotequal %}
 				{% endif %}
 				{% endif %}
 			  </div>

@@ -42,8 +42,15 @@
             this.endTime = new Date().valueOf();
             this.startTime = this.endTime - 604800000; // 1 week
 			
+			this.startDate = new Date(this.startTime);
+			this.endDate = new Date(this.endTime);
+
 			this.windowWidth = getClientCords().width;
 			this.windowHeight = window.innerHeight - 250;
+
+	        jQuery("#dayNav").css('border-bottom', "1px double lightgrey");
+	        jQuery("#20daysNav").css('border-bottom', "1px double lightgrey");
+	        jQuery("#timelineNav").css('border-bottom', "3px solid black");
 
 			document.getElementById("main").setAttribute("width", this.windowWidth);
 			document.getElementById("main").setAttribute("height", this.windowHeight);
@@ -81,6 +88,8 @@
 									   statusArray.push(wwwBars);
 									   
 									   var todayGraph = newify(lineGraphFactory, this_, {
+																   windowWidth: this_.windowWidth,
+																   windowHeight: this_.windowHeight,
 																   xOffset: 0,
 																   yOffset: 0,
 																   topPadding: 20,
@@ -95,6 +104,8 @@
 									   lineGraphArray.push(todayGraph);
 									   
 									   var mainDateSlider = newify(dateSlider, this_, {
+																	   windowWidth: this_.windowWidth,
+																	   windowHeight: this_.windowHeight,
 																	   xOffset: 0,
 																	   yOffset: 0,
 																	   padding: 55
@@ -124,13 +135,17 @@
 			this.windowHeight = window.innerHeight - 250;
 
 			var HTML = "";			
-			HTML += "<div id=\"totalGraphKey\" style=\"width:" + this.windowWidth/2 + "px;margin-top:15px; margin-bottom:8px;text-align:center; display: inline-block;\">number of visits per day of week</div>";
-			HTML += "<div id=\"avgGraphKey\" style=\"width:" + this.windowWidth/3 + "px; text-align:right; display: inline-block;\">number visits per hour of day</div>";
+			HTML += "<div id=\"totalGraphKey\" style=\"color:#333; width:" + this.windowWidth/2 + "px;margin-top:15px; margin-bottom:8px;text-align:center; display: inline-block;\">top 20 urls each day of week</div>";
+			HTML += "<div id=\"avgGraphKey\" style=\"color:#333; width:" + this.windowWidth/3 + "px; text-align:right; display: inline-block;\">top 20 urls per hour of day</div>";
 			HTML += "<canvas id=\"main\"></canvas>";
 
 			jQuery('#graph').html("");
 			jQuery('#graph').html(HTML);
-
+	
+	        jQuery("#dayNav").css('border-bottom', "3px solid black");
+	        jQuery("#20daysNav").css('border-bottom', "1px double lightgrey");
+	        jQuery("#timelineNav").css('border-bottom', "1px double lightgrey");
+			
 			// no way to use this yet
 			jQuery('#dateselector').hide();
 
@@ -194,7 +209,7 @@
 			HTML +=	"<div id=\"maxDate\" style=\"width:100px; display:inline-block; text-align:right; display:inline-block;\"></div></div>";
 			HTML +=	"<div class=\"centerLabel\" style=\"float:right;\"></div></div>";
 			HTML +=	"<div id=\"fooDate\" class=\"days\" style=\"float:left; display:inline-block: width:100px\"></div>";
-			HTML +=	"<div id=\"fooTotal\" class=\"days\" style=\"float:right; display:inline-block:width:100px\"></div>";
+			HTML +=	"<div id=\"fooTotal\" class=\"days\" style=\"float:right; display:inline-block: width:100px\"></div>";
 			HTML +=	"<canvas id=\"main\"></canvas>";
 			HTML +=	"<div class=\"centerLabel\"></div>";
 			HTML +=	"<div class=\"dateNav\">";
@@ -206,6 +221,10 @@
 			jQuery('#graph').html(HTML);
 
 			jQuery('#dateselector').show();
+
+	        jQuery("#dayNav").css('border-bottom', "1px double lightgrey");
+	        jQuery("#20daysNav").css('border-bottom', "3px solid black");
+	        jQuery("#timelineNav").css('border-bottom', "1px double lightgrey");
 
             this.endTime = new Date().valueOf();
             this.startTime = this.endTime - 1728000000; // 20 days
@@ -432,19 +451,15 @@ jQuery(document).ready(function(){
 {% endblock %}
 {% block content %}
 	<div class="loader" id="loadimg1"></div>
-	  <div id="graphNav">
-		<div class="graphNavBtn" onClick="viz.swopGraph('timeline')" >
-          Timeline
-		</div>
-		<div class="graphNavBtn" onClick="viz.swopGraph('20days')" >
-          20 Days 
-		</div>
-		<div class="graphNavBtn" onClick="viz.swopGraph('day')" >
-		  Day by Day
-		</div>
-      </div>
-
     <div id="profile_content" style="margin-top:10px; margin-left:20px;margin-bottom-0px;padding:0px;height:80px;">
+	  {% if request_user %}
+	  {% if not is_friend %}
+	  {% ifnotequal request_user username %}
+	  <br />
+	  <a href="/friend/add?username={{ user.username }}" style="margin-left:9px;">follow <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a>
+	  {% endifnotequal %}
+	  {% endif %}
+	  {% endif %}
 	  {% if photo %}
 	  <div class="imgborder" style="display:inline-block;">
 		<img src="/profiles/{{ id }}.jpg" class="profileimage" />
@@ -454,10 +469,17 @@ jQuery(document).ready(function(){
         <h1><a href="/profile/{{ username }}/">{{ username }}</a></h1>
         <br/>
         <div class="underuser">
-          <a href="/profile/{{ username }}/">profile</a>&nbsp; &#124; &nbsp;<a href="/graph/{{ username }}/">graphs</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ username }}/">friends</a>
+		  <div id="dayNav" class="graphNavBtn" onClick="viz.swopGraph('day')" >
+			Day by Day
+		  </div>
+		  <div id="timelineNav" class="graphNavBtn" onClick="viz.swopGraph('timeline')" >
+			Timeline
+		  </div>
+		  <div id="20daysNav" class="graphNavBtn" onClick="viz.swopGraph('20days')" >
+			20 Days 
+		  </div>
         </div>
-      </div>
-	  
+      </div>	  
 	</div>
 
 	</div>
@@ -467,7 +489,6 @@ jQuery(document).ready(function(){
 	</div>
 	<div id="fooDate">
 	</div>
-
 	<div id="dateselector">
 	  <a href="javascript:self.viz.arrowBack()"><img src="/lib/img/arrow_sans_left_16.png" style="vertical-align:middle"/></a>
       <input id="datepicker" class="datepicker" value="06/14/2008" type="text"/>
