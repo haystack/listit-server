@@ -455,5 +455,11 @@ def is_tutorial_note(n_contents):
         "See that orange 'x' in the corner? If you have no more need for me, click it and you'll never see me again." ]
 
 
-    
+def is_study1_note_contents(n_contents):
+    import re
+    p = re.compile("note[\s]+\d+:")
+    n_contents = n_contents.lower().strip()
+    if p.search(n_contents) and p.search(n_contents).span()[0] == 0:
+        return True
+
 
