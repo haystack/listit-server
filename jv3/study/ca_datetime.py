@@ -4,12 +4,12 @@ dows = ["mon", "monday", "lundi",
              "tues", "tue", "tuesday", "mardi",
              "wed", "wednesday", "weds", "mercredi",
              "thu", "thurs", "thur", "thursday", "jeudi",
-             "fr", "fri", "friday", "vendredi",
+             "fri", "friday", "vendredi",
              "sat", "saturday", "samedi",
-             "sun", "sunday", "dimanche"];
+             "sun", "sunday", "dimanche", "tomorrow", "tom", "yesterday", "nxt week", "next week"];
 
-month_exprs = ["jan","january","janvier"
-               "feb","february","fevrier"
+month_exprs = ["jan","january","janvier",
+               "feb","february","fevrier",
                "mar","march","mars",
                "apr","april","avril",
                "may","mai",
@@ -23,20 +23,31 @@ month_exprs = ["jan","january","janvier"
 
 # 1-9,10,11,12
 # in: jan 3rd, 2009  | aug 12, 2009 | sept 2 2009
-full_mdy = [ "%s( )+\d{1,2}(nd|th|rd)?,?(( )+\d{2,4})?" % m for m in month_exprs ]
+full_mdy = [ "%s(\W)+\d{1,2}((st)|(nd)|(th)|(rd))?,?(( )+\d{2,4})?" % m for m in month_exprs ]
 # lets in too many decimals 22.4 short_mdy = [ "\d{1,2}[/.-]\d{1,2}([/.-]\d{2,4})?" ]
 #|(\d|1[0-2])[\-](\d|[0-3]\d)([\-]\d{2,4})?)|((\d|1[0-2])[.](\d|[0-3]\d)[.]\d{2,4})|((\d|1[0-2])/(\d|[0-3]\d)(/\d{2,4})?)" ]
 ## 9/23; 9/23/09; 9/23/2009;  23/9/2009 (european); 23-9 9-23 9/23 9/23/2009, 9.23.2009 but NOT 8.23
-short_mdy = [ "((([0-3]\d)|\d)/(([0-3]\d)|\d)(/\d{2,4})?)|" + "((([0-3]\d)|\d)-(([0-3]\d)|\d)(-\d{2,4})?)|" +  "((\d|([0-3]\d))\.(\d|([0-3]\d))\.\d{2,4})"]
+#med_mdy = [ "|".join(["(?:(?:\d|(?:[0-3]\d))(?:(st|th|nd|rd))?[\s\-\.]+%s[\s\-\.]+(?:\d{2,4})?(?:$|\W))" % x for x in month_exprs]) ]
+
+#med_mdy = [ "|".join(["(?:(?:^|\s)(?:\d|(?:[0-3]\d))?(?:(?:st)|(?:th)|(?:nd)|(?:rd))?[\s\-\.]+%s[\s\-\.]+(?:\d{2,4})?(?:$|\W))" % x for x in month_exprs]) ]
+
+# 13-jan-2008, 13 jan 2008, 13.jan.2008
+med_mdy = [ "|".join(["(?:(?:^|\s)(?:\d|(?:[0-3]\d))?(?:(?:st)|(?:th)|(?:nd)|(?:rd))?[\s\-\.]+%s[\s\-\.]+(?:\d{2,4})?(?:$|\W))" % x for x in month_exprs]) ]
+# jan-2008
+med_mdy = [ "(?:^|\s)%s[\s\-\.]+(?:\d{2,4})?(?:$|\W)" %x for x in month_exprs ] + med_mdy
+
+short_mdy = [
+    "(^|[\W\D])(((([0-3]\d)|\d)/(([0-3]\d)|\d)(/\d{2,4})?)|" +
+    "(^|[\W\D])((([0-3]\d)|\d)-(([0-3]\d)|\d)(-\d{2,4})?)|" +
+    "(^|[\W\D])((\d|([0-3]\d))\.(\d|([0-3]\d))\.\d{2,4}))($|\D)"  ]
 
 ## 8:00pm or 8:00 or 8pm or 22:00 or 22:00h
 time = ["((0?[1-9])|(1[012]))(:[0-5]\d)(\ ?[ap]m)|((0?[1-9])|(1[012]))(:[0-5]\d)|((0?[1-9])|(1[012]))(\ ?[ap]m)|(([01]?\d)|(2[0-3]))(:[0-5]\d)(h)?"]
 
 ## mon @ 4pm 
 ## not exactly right, since tues@22:33pm is valid
-dow_exprs = [ ("(^|\s+)%s\s+(( )*(@|(at))( )*(((([012]?[1-9])|(1[012]))(:?[0-5]\d)?(\ ?[ap]m)?)))?" % d) for d in dows]  
-
-all_ = dow_exprs + full_mdy + short_mdy + time
+dow_exprs = ["(^|\W)%s($|\W)" %x for x in dows] + [("(^|\W)%s[\W\s]*(@|(at))( )*(((([012]?[1-9])|(1[012]))(:?[0-5]\d)?(\ ?[ap]m)?))" % d) for d in dows]  
+all_ = med_mdy + dow_exprs + full_mdy + short_mdy + time 
 
 _re_cache = {}
 intersects = lambda s1,s2: s1[0] < s2[1] and s1[1] > s2[0]
@@ -47,6 +58,10 @@ maxidx = lambda l:  l.index( max(l) )
 def date_matches(s,ress=all_):
     import re
     global _re_cache
+    
+    from jv3.study.content_analysis import eliminate_urls
+    s = eliminate_urls(s)
+    
     starts = set([])    
     find_isect_with_starts = lambda span: [ x for x in starts if intersects(span,x) ]    
     for res in ress:
@@ -55,6 +70,7 @@ def date_matches(s,ress=all_):
             exp = _re_cache[res]
         else:
             exp = re.compile(res)
+            _re_cache[res] = exp
         hit = exp.search(s)
         while hit:
             span = hit.span()

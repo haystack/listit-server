@@ -1,21 +1,21 @@
-
 import nltk
 from django.contrib.auth.models import User
 from jv3.models import Note,ActivityLog,Event
 from nltk.corpus import names,wordnet,stopwords
 from nltk.tokenize import WordTokenizer
-from jv3.study.study import non_stop_consenting_users,non_stop_users
-from jv3.study.exporter import str_n_urls
-from jv3.utils import current_time_decimal,is_tutorial_note
+from jv3.utils import current_time_decimal
 from django.utils.simplejson import JSONEncoder, JSONDecoder
+from jv3.study.study import mean
 from rpy2 import robjects as ro
+from ca_datetime import note_date_count
+from ca_util import *
+from ca_sigscroll import *
+from ca_load import *
 import nltk.cluster as cluster
 r = ro.r
 import jv3
 import random,sys,re
 import numpy
-from ca_datetime import note_date_count
-from ca_util import *
 
 # ternary
 q=lambda a,b,c: (b,c)[not a]
@@ -35,6 +35,8 @@ _actlogs_to_values = lambda actlog: actlog.values("id","action","owner","when","
 
 eliminate_regexp = lambda regexp,s: "".join(re.compile(regexp).split(s))
 eliminate_urls = lambda s: eliminate_regexp("https?://[^\s]*",s)
+str_n_urls = lambda s : count_regex_matches("(https?://[^\s]*)|((^|\W+)(\w[\d\w]+\.){2,5}\w{2,3})($|\W)",s)
+str_n_emails = lambda s: count_regex_matches("(^|\W)[\w\d]+\@(\w[\w\d]+\.)+\w{2,3}($|\W)",s)
 
 _re_cache = {}
 def count_regex_matches(res,s):
@@ -52,45 +54,6 @@ def count_regex_matches(res,s):
         hits = hits + 1
         hit = exp.search(s)
     return hits
-    
-def activity_logs_for_note(n,action="note-edit",days_ago=None):
-    import datetime
-    if days_ago is None:
-        alv = _actlogs_to_values(ActivityLog.objects.filter(action=action,noteid=n["jid"],owner=n["owner"]))
-        print ' returning %d ' % len(alv)
-        return alv
-    else:
-        today_msec = current_time_decimal()
-        n_days_ago = today_msec - days_ago*24*60*60*1000
-        print "actlogs starting with %d // %s" % (n_days_ago,repr(datetime.datetime.fromtimestamp(n_days_ago/1000.0)))
-        alv = _actlogs_to_values(ActivityLog.objects.filter(action=action,noteid=n["jid"],owner=n["owner"],when__gt=n_days_ago))
-        print ' returning %d ' % len(alv)
-        return alv
-
-def activity_logs_for_user(user,action="note-edit",days_ago=None):
-    import datetime
-    if days_ago is None:
-        return _actlogs_to_values(ActivityLog.objects.filter(action=action,owner=user))
-    else:
-        today_msec = current_time_decimal()
-        n_days_ago = today_msec - days_ago*24*60*60*1000
-        print "starting with %d // %s" % (n_days_ago,repr(datetime.datetime.fromtimestamp(n_days_ago/1000.0)))
-        return _actlogs_to_values(ActivityLog.objects.filter(action=action,owner=user,when__gt=n_days_ago))
-
-def random_notes(n=1000,consenting=True,english_only=True):
-    if consenting:
-        users = non_stop_consenting_users()
-    else:
-        users = non_stop_users()
-    good_ids = [x[0] for x in Note.objects.filter(owner__in=users).values_list("pk","jid","contents") if
-                len(x[2].strip()) > 0 and x[1] >= 0 and q(english_only, is_english(x[2]), True) and not is_tutorial_note(x[2])]
-    random.shuffle(good_ids)
-    notes = Note.objects.filter(pk__in=good_ids[:n])
-    print "returning %d notes " % len(notes)
-    values = [v for v in _notes_to_values(notes)]
-    random.shuffle(values)
-    return values
-
 
 def update_dictionary(words,dictionary):
     for w in words:
@@ -138,11 +101,11 @@ note_edits = lambda(note) : {'note_edits':len(activity_logs_for_note(note,"note-
 note_did_edit = lambda(note) : {'note_did_edit': note_edits(note) > 0}
 note_deleted = lambda(note) : {'note_deleted': q(note["deleted"],True,False)}
 note_urls = lambda note: {'note_urls': str_n_urls(note["contents"])}
-note_phone_numbers = lambda x: {'phone_nums':count_regex_matches("([0-9]( |-)?)?(\(?[0-9]{3}\)?|[0-9]{3})( |-)?([0-9]{3}( |-)?[0-9]{4}|[a-zA-Z0-9]{7})",x["contents"])}
+note_phone_numbers = lambda x: {'phone_nums':count_regex_matches("(^|\s+)([0-9]( |-)?)?(\(?[0-9]{3}\)?|[0-9]{3})( |-)?([0-9]{3}( |-)?[0-9]{4}|[a-zA-Z0-9]{7})($|\s+)",x["contents"])}
+note_emails = lambda note: {'email_addrs':str_n_emails(note["contents"])}
 
 ## addresses?
 ## dates/times
-
 
 def note_pos_features(note):
     POS = ["CC","CD","DT","EX","FW","IN","JJ","LS","MD","NN","NNS","NNP","NNPS","PDT","POS","PRP","PRP$","RB","RBR","RBS","RP","SYM","TO","UH","VB","VBD","VBG","VBN","VBP","VBZ","WDT","WP","WP$","WRB"]
@@ -153,49 +116,19 @@ def note_pos_features(note):
     return counts
 
 _names = None
+name_stop_list = ["web","page","les","tray"]
 def note_names(note):
     global _names
-    if _names is None:   _names = [x.lower() for x in names.read()]
-    return {'names': len([ x for x in nltk.word_tokenize(note["contents"]) if x in _names ])}
-    
-## signifiant scroll stuff ##
-sigscroll_cache_days_ago = None
-sigscroll_count_cache = {}
-sigscroll_dur_cache = {}
-sigscroll_count = lambda prev_count,ssevt: prev_count + 1
-
-def sigscroll_dur(prev_count,ssevt):
-    if ssevt.has_key("exitTime") and ssevt.has_key("entryTime"):
-        return prev_count + (ssevt["exitTime"] - ssevt["entryTime"])/60000.0
-    return prev_count
-
-def note_ss(note,days_ago=None):
-    global sigscroll_cache_days_ago
-    global sigscroll_count_cache
-    global sigscroll_dur_cache
-    
-    if sigscroll_count_cache.has_key(note["owner"]) and days_ago == sigscroll_cache_days_ago:
-        # cache hit, and we are reading the right data
-        return {'sigscroll_counts': sigscroll_count_cache[note["owner"]].get(note["jid"],0),  'sigscroll_duration': sigscroll_dur_cache[note["owner"]].get(note["jid"],0) }
-    # reset.
-    if not days_ago == sigscroll_cache_days_ago:
-        sigscroll_cache_days_ago = days_ago
-        sigscroll_count_cache = {}
-        sigscroll_dur_cache = {}        
-    ## recompute!
-    new_count = {}
-    new_dur = {}
-    for al in activity_logs_for_user(note["owner"],"significant-scroll",days_ago): 
-        if al["search"] is None:
-            continue
-        for nv in JSONDecoder().decode(al["search"])["note_visibilities"]:
-            nvid = int(nv["id"])
-            new_count[nvid] = sigscroll_count(new_count.get(nvid,0),nv)
-            new_dur[nvid] = sigscroll_dur(new_dur.get(nvid,0),nv)
-    sigscroll_count_cache[note["owner"]] = new_count
-    sigscroll_dur_cache[note["owner"]] = new_dur
-    return {'sigscroll_counts': sigscroll_count_cache[note["owner"]].get(note["jid"],0),
-            'sigscroll_duration': sigscroll_dur_cache[note["owner"]].get(note["jid"],0) }
+    global name_stop_list
+    if _names is None:
+        _names = list(set([x.lower() for x in names.read() if len(x) > 2 and (x.lower() not in name_stop_list)]))
+    rnames = [ "(^|\W+)%s($|\W+)" % nhit for nhit in [name for name in _names if name in note["contents"]]]
+    if len(rnames) > 0:
+        hits = [(n,count_regex_matches(n,note["contents"])) for n in rnames]
+        print hits
+        hits = {"names": reduce(lambda x,y: x + y, [count_regex_matches(n,note["contents"]) for n in rnames])}
+        return hits
+    return {"names": 0}    
 
 ## now feature compilation stuff
 default_note_feature_fns = [
@@ -206,7 +139,8 @@ default_note_feature_fns = [
     note_deleted,
     note_names,
     note_urls,
-    note_ss,
+    note_emails,
+#    note_ss,
     note_phone_numbers,
     note_date_count
 ]
@@ -219,6 +153,10 @@ def notes_to_features(notes,include_bow_features=True,bow_parameters={},note_fea
     # [ "notepkid": { "f1" : 12398 , "f2" : 102938, ... } ... ]
     lexicon = None
     lexicon_freq = None
+
+    # preprocess notes
+    for n in notes: n["contents"] = n["contents"].strip().lower()
+    
     if include_bow_features:
         note_fvs,lexicon,lexicon_freq = notes_to_bow_features(notes,**bow_parameters)
     else:
@@ -269,27 +207,13 @@ def print_random_events(n=25000):
         print e.entityid
     pass
 
-load_notes = lambda ids:_notes_to_values(Note.objects.filter(pk__in=ids))
 
-def import_notes_csv(filename):
-    import csv
-    f = open(filename,'o')
-    reader = csv.reader(f, dialect="excel", delimiter=',', quoting=csv.QUOTE_MINIMAL)
-    nids = [];
-    for row in reader:
-        nids.append(row[0])
-    return load_notes(nids)
+h = lambda counts: r.hist(apply(r.c, counts),breaks=r.c(r.seq(0,50,1),10000),plot=False )
 
-def export_notes_csv(notes,filename="/tmp/notes.csv"):
-    import csv
-    f = open(filename, 'wb')
-    writer = csv.writer(f, dialect="excel", delimiter=',', quoting=csv.QUOTE_MINIMAL)
-    for n in notes:
-        u = User.objects.filter(id=n["owner"])
-        writer.writerow([n["id"],n["jid"],u[0].email,n["contents"].encode('utf-8','ignore')[:32767]])
-    f.close()
+def hstats(counts):
+    print "min:%g avg:%g max:%g var:%g" % (min(counts),mean(counts),max(counts),var(counts))
+    return h(counts)
 
 def var(v):
-    from jv3.study.study import mean
     ev = mean(v)
     return sum([(x-ev)**2 for x in v ])/(1.0*len(v)-1)
