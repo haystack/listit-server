@@ -37,7 +37,7 @@ h3 {
 
 h4 {
     margin-top: 15px;
-    line-height: 1.45em;
+    line-height: 1.35em;
     letter-spacing: 0.5px;
     font-size: 1em;
 }
@@ -321,7 +321,7 @@ a.selected {
 	text-align:left;
 	float:none;
 } .viewboxhome li h6 {
-	line-height:11px;
+	line-height:14px;
 } .viewboxhome .imgBox {
     float: right;
     padding: 0pox;
@@ -611,9 +611,15 @@ a.selected {
 	display:inline-block; 
 	margin-bottom:20px; 
 	margin-left:10px; 
-	margin-top:18px;
+	margin-top:15px;
 	font-size:14px;
-}
+} #profile_content h5 {
+    width:auto; 
+    font-size:12px;
+	line-height:15px;
+	padding-left:10px;
+	padding-right:10px;	
+} 
 
 #profile_content #listNav {
     width: 700px;

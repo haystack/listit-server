@@ -359,9 +359,15 @@ var lineGraphFactoryLite = ({
 									ctx.beginPath();
 									ctx.lineWidth = 2;
 									ctx.strokeStyle = this_.color;
+
+									// need to get it to start at the 0x and baseline y
+									
 									if (this_.xPoints[0]){
 										ctx.moveTo(this_.xPoints[0], this_.yPoints[0]);
-										for (var y = 1; y < this_.yPoints.length; y++) {
+										if (this_.fillGraph){
+											ctx.moveTo(this_.xPoints[0], this_.padding);
+										}
+										for (var y = 0; y < this_.yPoints.length; y++) {
 											ctx.lineTo(this_.xPoints[y], this_.yPoints[y]);
 										}										
 									}

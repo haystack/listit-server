@@ -69,12 +69,14 @@
 							   var newData = data.results;
 							   jQuery("#topusers").html("");
 							   for (var i = 0; i < newData.length; i++) {
-								   var html = "";
-								   html += "<li style=\"width:170px; padding:6px\">";
-								   html += "<h6><b><a href=\"/profile/" + newData[i].user +  "/\">" + newData[i].user + "</a></b></h6>";
-								   html += "<br /><h7>" + newData[i].number + " webpages today</h7>";
-								   html += "</li>";
-								   jQuery("#topusers").append(html);
+								   if (newData[i].number > 0){
+									   var html = "";
+									   html += "<li style=\"width:170px; padding:6px\">";
+									   html += "<h6><b><a href=\"/profile/" + newData[i].user +  "/\">" + newData[i].user + "</a></b></h6>";
+									   html += "<br /><h7>" + newData[i].number + " webpages today</h7>";
+									   html += "</li>";
+									   jQuery("#topusers").append(html);									   
+								   }
 							   }
 						   }
 						   else {

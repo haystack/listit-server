@@ -281,9 +281,9 @@ jQuery(document).ready(function(){
     </div><h1 style="font-size:28px; margin-left:10px;">share and compare your web browsing activity</h1>
 
     <h4 style="vertical-align:top;text-align:justify;"><b>eyebrowse</b> is an add-on for <a href="http://mozilla.com/firefox">firefox</a> that lets you easily record, visualize, and share your web browsing with others in real-time. Tell eyebrowse what sites to track, browse away </h4>
-    <h4 style="vertical-align:top;margin-left:55px;text-align:justify;">and compare! Find out what's hot, who's reading what, and how you surfing changes over time. Plus, contribute your web trails to science! </h4>
-
-    <div id="signUpFormContainer">
+    <h4 style="vertical-align:top;margin-left:55px;text-align:justify;">and compare! Find out what's hot, who's reading what, and how you surfing changes over time. Plus, contribute your web trails to science! 
+	</h4>
+	<div id="signUpFormContainer">
         <div id="signUpForm">
 		  {% if request_user %}
 		  <h1 style="font-size:28px; margin:0px;">welcome {{ request_user }}!</h1><br />		  
@@ -315,6 +315,20 @@ jQuery(document).ready(function(){
     <div id="signUpLink">
         Get Started
     </div>
+	<h5><b>Will it violate my privacy?</b>
+	  <br />
+	  1. We give you control.  You have to tell eyebrowse explicitly what
+	  you want to share on a site-by-site (host) basis.  You can take things
+	  off the whitelist at any time.  You can also go back and delete things
+	  that it has logged in the past all through our web interface.   It
+	  also respects Private Browsing.
+	  	  <br />	  <br />
+	  2. It fosters contemplation/awareness: We are trying to raise
+	  awareness of what OTHERS (e.g. Google Analytics) are collecting about
+	  you as you surf the web, by showing you what you can learn from
+	  yourself by selectively publishing your own data feeds.
+	</h5>
+
     <canvas id="main" style="padding:0px;margin:0px;">
     </canvas>
     <div class="leftcolumn" style="width:340px;">
