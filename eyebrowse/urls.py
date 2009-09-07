@@ -35,7 +35,8 @@ urlpatterns = patterns('',
                        (r'^ticker/$', ticker),
                        
                        # user pages
-                       (r'^profile/(\w+)/$', user_page),
+                       (r'^profile/(\w+)/?$', user_page),
+                       (r'^user/(\w+)?$', user_page),
                        #(r'^(\w+)/$', user_page), # could be dangerous 
                        (r'^friends/manage/(\w+)/$', friends_page),
                        (r'^friend/add$', friend_add),
