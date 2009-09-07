@@ -526,7 +526,7 @@ a.selected {
     color: #ffffff;
 } #fooTxt A:hover {
     text-decoration: underline;
-    color: #999999;
+    color: #ffffff;
 } .centerlabel {
     display: inline-block;
     width: 120px;

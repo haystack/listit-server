@@ -304,8 +304,7 @@
 		}
     };
 jQuery(document).ready(function(){
-						   document.forms[0][0].focus(); 
-						   
+						   jQuery("#urladdtextinput").focus();
 						   var currentDate = new Date();																					   
 						   var myWidth = window.innerWidth - 16;
 						   var myHeight = window.innerHeight - 250;
@@ -331,9 +330,7 @@ jQuery(document).ready(function(){
 <div class="loader" id="loadimg"></div>
 <div id="profile_content" style="width:950px; margin-left:auto;margin-right:auto; ">
   <img src="/lib/img/statistics.png" onkeypress="{if (event.keyCode==13)viz.refresh()}" onClick="viz.refresh()" style="vertical-align:middle;float:left;margin-bottom:24px;" />
-<form>
   <input type="text" name="list" id="urladdtextinput" value="{{ url }}" onkeypress="{if (event.keyCode==13)viz.refresh()}"/>
-</form>
   <div id="urlstats">
     <div id="num" style="display:inline-block">
       <b>total visits:</b>
