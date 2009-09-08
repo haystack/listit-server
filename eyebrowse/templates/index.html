@@ -263,7 +263,7 @@ jQuery(document).ready(function(){
 						   document.getElementById("main").setAttribute("width", myWidth);
 						   document.getElementById("main").setAttribute("height", myHeight);
 						   self.viz = newify(WatchmeVisualisation, 86400000, document.getElementById("main"), myWidth, myHeight); //43200000 12 hrs  // possibly should be 86400000
-						   setInterval("self.viz.getRecentPages(10, 0)", 9000);
+						  // setInterval("self.viz.getRecentPages(10, 0)", 9000);
 					   });
 </script>
 {% endblock %}
@@ -285,39 +285,44 @@ jQuery(document).ready(function(){
   <h4 style="vertical-align:top;margin-left:43px;">Find out what's hot, who's reading what, and how you surfing changes over time. Plus, contribute your web trails to science! 
   </h4>
   <div id="indexwhyid" class="indexwhy">
+	<h4 style="margin-top:-4px;margin-left:10px;"><i>Why?</i></h4>
     <h4>
- 
-      <b>We give you control</b>  You tell eyebrowse explicitly what you want to share on a per-site basis. You can take things off your whitelist at any time, and delete things from your history.  Eyebrowse also respects porn, ahem Private Browsing mode.
-      
-      <div id="moreinfoLink">
-	&nbsp;<b>more <img src="/lib/img/accept_16.png" style="height:11px;width11px"/></b>
-      </div>
-      <br />
-
-      <div id="moreinfo">
-	<h5 style="margin-top:6px"><i>Why?</i>
 	  <ul>
-	    <li style="margin-top:6px;"><b>For your friends!</b> You look at lots of cool stuff on the web every day, but only share <i>some</i> of it.  Eyebrowse is lightweight and non-invasive; you tell it once-per-site and it does the rest.</li>
-	    
-	    <li><b>For you!</b> How much time do you spend reading the news every day? Now you can get quantitative statistics and visualise long-term revisitation patterns. Eyebrowse personalizes your access to the web and recommends new content to you. More features are on the way!</li>	  				
-	    <li><b>For science!</b> It's not fair that only the top search engine companies can do real web research these days.  There should be public, <B>OPEN</B> corpora for use by researchers around the world.</li>
-	    
-	    <li><b>It fosters awareness of what you do on the web</b>: We
-	      are trying to raise awareness of what <a href="http://google.com/analytics">analytics companies</a> are collecting about you as you surf the web, by showing you what you can learn from yourself.</li>
-	    
-	    <li><b>It opens doors safely</b>: By letting everyone selectively publish web trails in an open way we are hoping to foster a discussion of how we can use our web browsing behavior to build more adaptive and effective interfaces that <b>RESPECT PEOPLE'S PRIVACY</b>.</li>
+		<li>
+		  <b>For your friends!</b> You look at lots of cool stuff on the web every day, but only share <i>some</i> of it.  Eyebrowse is lightweight and non-invasive; you tell it once-per-site and it does the rest.
+		</li>		
+		<li>
+		  <b>For science!</b> It's not fair that only the top search engine companies can do real web research these days.  There should be public, <B>OPEN</B> corpora for use by researchers around the world.
+		</li>		
+		<li>
+		  <b>We give you control</b>  You tell eyebrowse explicitly what you want to share on a per-site basis. You can take things off your whitelist at any time, and delete things from your history.  Eyebrowse also respects porn, ahem Private Browsing mode.
+		</li>
+		<li>
+		  <div id="moreinfoLink">
+			<b>more&nbsp;<img src="/lib/img/accept_16.png" style="height:11px;width:11px;margin-top:4px;"/></b>
+		  </div>
+		  <br />
+		  <div id="moreinfo">
+			<ul>
+			  <li style="margin-top:6px;"><b>For you!</b> How much time do you spend reading the news every day? Now you can get quantitative statistics and visualise long-term revisitation patterns. Eyebrowse personalizes your access to the web and recommends new content to you. More features are on the way!</li>	  					    
+			  <li><b>It fosters awareness of what you do on the web</b>: We
+				are trying to raise awareness of what <a href="http://google.com/analytics">analytics companies</a> are collecting about you as you surf the web, by showing you what you can learn from yourself.</li>
+			  
+			  <li><b>It opens doors safely</b>: By letting everyone selectively publish web trails in an open way we are hoping to foster a discussion of how we can use our web browsing behavior to build more adaptive and effective interfaces that <b>RESPECT PEOPLE'S PRIVACY</b>.</li>
+			</ul>
+			<p>
+			  Questions? Write us at <a href="mailto:eyebrowse@csail.mit.edu">eyebrowse at csail dot mit dot edu</a>.
+			</p>
+		  </div>
+		  <br />
+		  <h4 style="margin-left:97px;">
+			Check out some <a href="http://eyebrowse.csail.mit.edu/profile/emax/">real</a>		
+			<a href="http://eyebrowse.csail.mit.edu/profile/zamiang/">live</a>
+			<a href="http://eyebrowse.csail.mit.edu/users/">profiles</a> or click below to get started.		
+		  </h4>
+		</li>
 	  </ul>
-	  <p>
-	    Questions? Write us at <a href="mailto:eyebrowse@csail.mit.edu">eyebrowse at csail dot mit dot edu</a>.
-	  </p>
-	</h5>
-      </div>
-      <br />
-      Check out some <a href="http://eyebrowse.csail.mit.edu/profile/emax/">real</a>		
-      <a href="http://eyebrowse.csail.mit.edu/profile/zamiang/">live</a>
-      <a href="http://eyebrowse.csail.mit.edu/users/">profiles</a> or click below to get started.		
-    </h4>
-  </div>
+</div>
 
   <div id="signUpFormContainer">
     <div id="signUpForm">
