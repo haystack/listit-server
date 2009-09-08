@@ -263,7 +263,7 @@ jQuery(document).ready(function(){
 						   document.getElementById("main").setAttribute("width", myWidth);
 						   document.getElementById("main").setAttribute("height", myHeight);
 						   self.viz = newify(WatchmeVisualisation, 86400000, document.getElementById("main"), myWidth, myHeight); //43200000 12 hrs  // possibly should be 86400000
-						  // setInterval("self.viz.getRecentPages(10, 0)", 9000);
+					           setInterval("self.viz.getRecentPages(10, 0)", 9000);
 					   });
 </script>
 {% endblock %}
