@@ -1541,7 +1541,7 @@ def get_top_users(request, n):
     # this is to give the cache a unique reference
     bozon = "bozon"
 
-    ## @cache.region('top_users_long_term')
+    @cache.region('top_users_long_term')
     def fetch_data(from_msec, to_msec, bozon):
         results = []
         for user in users:
@@ -1587,7 +1587,7 @@ def get_top_friend_for_url(request, username):
     get_url = request.GET['url'].strip()
 
     barbar = "top friend for url" # to keep cache unique
-    #@cache.region('top_users_long_term')
+    @cache.region('top_users_long_term')
     def fetch_data( url, username):
         results = []
         for user in users:
@@ -1627,7 +1627,7 @@ def get_number_friends_logged_url(request, username):
 
     get_url = request.GET['url'].strip()    
 
-    #@cache.region('top_users_long_term')
+    @cache.region('top_users_long_term')
     def fetch_data(url, username):
         results = []
         number = 0
@@ -1693,7 +1693,6 @@ def get_users_most_recent_urls(request, username, n):
 
     return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits[0:n] ] });    
 
-# complex to cache as will run if they start following more users        
 def get_following_views(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
@@ -1704,7 +1703,7 @@ def get_following_views(request, username):
     to_msec_rounded = round_time_to_day(to_msec)
 
     # potentially i can just not pass it the 'following' param hrmz
-    #@cache.region('long_term')
+    @cache.region('long_term')
     def fetch_data(from_msec, to_msec, user, following):
         friends_results = []
 
