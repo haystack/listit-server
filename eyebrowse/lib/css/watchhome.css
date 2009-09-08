@@ -37,9 +37,9 @@ h3 {
 
 h4 {
     margin-top: 15px;
-    line-height: 1.35em;
+    line-height: 1.4em;
     letter-spacing: 0.5px;
-    font-size: 1em;
+	font-size:1em
 }
 
 h5 {
@@ -459,7 +459,7 @@ a.selected {
     width: 90px;
     margin-left: auto;
     margin-right: auto;
-	margin-bottom:20px;
+	margin-bottom:12px;
 	margin-top:28px;
 	display: block;
     font-size: 1.47em;
@@ -607,12 +607,12 @@ a.selected {
 	margin-left:20px; 
 	font-size:18px;
 } #profile_content h4 {
-	width:310px;
+	width:321px;
 	display:inline-block; 
 	margin-bottom:20px; 
 	margin-left:10px; 
 	margin-top:15px;
-	font-size:14px;
+	font-size:13.8px;
 } #profile_content h5 {
     width:auto; 
     font-size:12px;
@@ -826,3 +826,38 @@ a.selected {
 	background:#ffffff;	
 }
 
+#indexwhyid h4 {
+	display:block; 
+	margin:0px; 
+	margin-left:46px;
+	width:610px;
+}
+
+#moreinfo li  {
+    text-align:left;
+	margin:0px;
+    margin-top:14px;
+    margin-left:10px;
+}
+
+#moreinfo p  {
+    text-align:left;
+    margin-top:14px;
+    margin-left:14px;
+}
+
+.indexwhy a {
+    text-decoration:underline;
+}
+
+#moreinfo{
+	display:none;
+	width:446px;
+	margin-left:auto;
+	margin-right:auto;
+	margin-top:10px;
+}
+#moreinfoLink{
+	display:inline-block;
+	cursor:pointer;
+}
