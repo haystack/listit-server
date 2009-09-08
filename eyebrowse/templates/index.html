@@ -43,6 +43,7 @@
 			this_.startTimeRecent = this_.endTimeRecent;
 			// just for init to offset the time and make sure something comes in
             this_.endTimeRecent = new Date().valueOf();
+                         this_.now = new Date().valueOf();
 			jQuery("#loadimg").show();
 			jQuery.get("/get_most_recent_urls/" + num + "/", {
                            id: this_.recentID
@@ -272,98 +273,98 @@ jQuery(document).ready(function(){
 <div class="fooTxt" id="fooTxt" >
 </div>	
 <div id="background">
-    <canvas id="bgcanvas">
-    </canvas>
+  <canvas id="bgcanvas">
+  </canvas>
 </div>
 <div id="profile_content" style="margin-top:0px; margin-left:auto;margin-right:auto;">
-    <div class="logo">
-        <img src="lib/img/eyebrowse.png" />
-    </div><h1 style="font-size:35px; margin-left:10px;">share and compare your web trails</h1>
+  <div class="logo">
+    <img src="lib/img/eyebrowse.png" />
+  </div><h1 style="font-size:35px; margin-left:10px;">share and compare your web trails</h1>
 
-    <h4 style="vertical-align:top;"><b>eyebrowse</b> is an add-on for <a href="http://mozilla.com/firefox">firefox</a> that lets you easily record, visualize, and share your trails through the web in real-time. Tell eyebrowse what sites to track, browse away and compare!</h4>
-    <h4 style="vertical-align:top;margin-left:43px;">Find out what's hot, who's reading what, and how you surfing changes over time. Plus, contribute your web trails to science! 
-	</h4>
+  <h4 style="vertical-align:top;"><b>eyebrowse</b> is an add-on for <a href="http://mozilla.com/firefox">firefox</a> that lets you easily record, visualize, and share your trails through the web in real-time. Tell eyebrowse what sites to track, browse away and compare!</h4>
+  <h4 style="vertical-align:top;margin-left:43px;">Find out what's hot, who's reading what, and how you surfing changes over time. Plus, contribute your web trails to science! 
+  </h4>
+  <div id="indexwhyid" class="indexwhy">
+    <h4>
+ 
+      <b>We give you control</b>  You tell eyebrowse explicitly what you want to share on a per-site basis. You can take things off your whitelist at any time, and delete things from your history.  Eyebrowse also respects porn, ahem Private Browsing mode.
+      
+      <div id="moreinfoLink">
+	&nbsp;<b>more <img src="/lib/img/accept_16.png" style="height:11px;width11px"/></b>
+      </div>
+      <br />
 
-	<div id="indexwhyid" class="indexwhy">
-      <h4>
-		<b>We give you control</b>  You tell eyebrowse explicitly what you want to share on a per-site basis. You can take things off your whitelist at any time, and delete things from your history.  Eyebrowse also respects porn, ahem Private Browsing mode.
-		
-		<div id="moreinfoLink">
-		  &nbsp;<b>more <img src="/lib/img/accept_16.png" style="height:11px;width11px"/></b>
-		</div>
-		<br />
-		<div id="moreinfo">
-		  <h5 style="margin-top:6px"><i>Why?</i>
-			<ul>
-			  <li style="margin-top:6px;"><b>For your friends!</b> You look at lots of cool stuff on the web every day, but only share <i>some</i> of it.  Eyebrowse is lightweight and non-invasive; you tell it once-per-site and it does the rest.</li>
-				
-			  <li><b>For you!</b> How much time do you spend reading the news every day? Now you can get quantitative statistics and visualise long-term revisitation patterns. Eyebrowse personalizes your access to the web and recommends new content to you. More features are on the way!</li>	  				
-			  <li><b>For science!</b> It's not fair that only the top search engine companies can do real web research these days.  There should be public, <B>OPEN</B> corpora for use by researchers around the world.</li>
-			  
-			  <li><b>It fosters awareness of what you do on the web</b>: We
-				are trying to raise awareness of what <a href="http://google.com/analytics">analytics companies</a> are collecting about you as you surf the web, by showing you what you can learn from yourself.</li>
-			  
-			  <li><b>It opens doors safely</b>: By letting everyone selectively publish web trails in an open way we are hoping to foster a discussion of how we can use our web browsing behavior to build more adaptive and effective interfaces that <b>RESPECT PEOPLE'S PRIVACY</b>.</li>
-			</ul>
-			<p>
-			  Questions? Write us at <a href="mailto:eyebrowse@csail.mit.edu">eyebrowse at csail dot mit dot edu</a>.
-			</p>
-		  </h5>
-		</div>
-		<br />
-		Check out some <a href="http://eyebrowse.csail.mit.edu/profile/emax/">real</a>		
-		  <a href="http://eyebrowse.csail.mit.edu/profile/zamiang/">live</a>
-		  <a href="http://eyebrowse.csail.mit.edu/users/">profiles</a> or click below to get started.		
-	  </h4>
-	</div>
+      <div id="moreinfo">
+	<h5 style="margin-top:6px"><i>Why?</i>
+	  <ul>
+	    <li style="margin-top:6px;"><b>For your friends!</b> You look at lots of cool stuff on the web every day, but only share <i>some</i> of it.  Eyebrowse is lightweight and non-invasive; you tell it once-per-site and it does the rest.</li>
+	    
+	    <li><b>For you!</b> How much time do you spend reading the news every day? Now you can get quantitative statistics and visualise long-term revisitation patterns. Eyebrowse personalizes your access to the web and recommends new content to you. More features are on the way!</li>	  				
+	    <li><b>For science!</b> It's not fair that only the top search engine companies can do real web research these days.  There should be public, <B>OPEN</B> corpora for use by researchers around the world.</li>
+	    
+	    <li><b>It fosters awareness of what you do on the web</b>: We
+	      are trying to raise awareness of what <a href="http://google.com/analytics">analytics companies</a> are collecting about you as you surf the web, by showing you what you can learn from yourself.</li>
+	    
+	    <li><b>It opens doors safely</b>: By letting everyone selectively publish web trails in an open way we are hoping to foster a discussion of how we can use our web browsing behavior to build more adaptive and effective interfaces that <b>RESPECT PEOPLE'S PRIVACY</b>.</li>
+	  </ul>
+	  <p>
+	    Questions? Write us at <a href="mailto:eyebrowse@csail.mit.edu">eyebrowse at csail dot mit dot edu</a>.
+	  </p>
+	</h5>
+      </div>
+      <br />
+      Check out some <a href="http://eyebrowse.csail.mit.edu/profile/emax/">real</a>		
+      <a href="http://eyebrowse.csail.mit.edu/profile/zamiang/">live</a>
+      <a href="http://eyebrowse.csail.mit.edu/users/">profiles</a> or click below to get started.		
+    </h4>
+  </div>
 
-
-	<div id="signUpFormContainer">
-        <div id="signUpForm">
-		  {% if request_user %}
-		  <br /><br />
-		  <h1 style="font-size:28px; margin:0px;">welcome <a href="/profile/{{ request_user }}/">{{ request_user }}</a>!</h1><br />		  
-		  <div style="padding:0px;margin-top:4px; margin-bottom:8px; font-size:13px;">
-			<a href="/graph/{{ request_user }}/">your graphs</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ request_user }}/">your friends</a>&nbsp; &#124; &nbsp;<a href="/settings/">settings</a>&nbsp; &#124; &nbsp;<a href="/logout/">logout</a>
-		  </div>
-		  {% else %}
-          <div id="bodytext">
-            We will not disclose your e-mail address to others.
-          </div>
-          <p id="validateTips" style="margin-top:8px; margin-bottom:-10px;">
-            All form fields are required.
-          </p>
-          <fieldset>
-            <form method="post" action=".">
-              {{ form.as_p }}
-			  <input type="submit" value="register" id="registerSubmit" style="margin-top:60px;"/>
-            </form>
-          </fieldset>
-		  <div class="subhead" style="position:relative; top:-115px; font-size:11pt;">
-			by registering you agree to the <a href="/terms/" style="font-size:1em">terms and conditions and data use policies</a>
-		  </div>				  
-		  {% endif %}
-        </div>
+  <div id="signUpFormContainer">
+    <div id="signUpForm">
+      {% if request_user %}
+      <br /><br />
+      <h1 style="font-size:28px; margin:0px;">welcome <a href="/profile/{{ request_user }}/">{{ request_user }}</a>!</h1><br />		  
+      <div style="padding:0px;margin-top:4px; margin-bottom:8px; font-size:13px;">
+	<a href="/graph/{{ request_user }}/">your graphs</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ request_user }}/">your friends</a>&nbsp; &#124; &nbsp;<a href="/settings/">settings</a>&nbsp; &#124; &nbsp;<a href="/logout/">logout</a>
+      </div>
+      {% else %}
+      <div id="bodytext">
+        We will not disclose your e-mail address to others.
+      </div>
+      <p id="validateTips" style="margin-top:8px; margin-bottom:-10px;">
+        All form fields are required.
+      </p>
+      <fieldset>
+        <form method="post" action=".">
+          {{ form.as_p }}
+	  <input type="submit" value="register" id="registerSubmit" style="margin-top:60px;"/>
+        </form>
+      </fieldset>
+      <div class="subhead" style="position:relative; top:-115px; font-size:11pt;">
+	by registering you agree to the <a href="/terms/" style="font-size:1em">terms and conditions and data use policies</a>
+      </div>				  
+      {% endif %}
     </div>
-    <div id="messageSent">
-        thanks for registering!
+  </div>
+  <div id="messageSent">
+    thanks for registering!
+  </div>
+  <div id="signUpLink">
+    Get Started
+  </div>
+  <canvas id="main" style="padding:0px;margin:0px;">
+  </canvas>
+  <div class="leftcolumn" style="width:340px;">
+    <h2>now</h2>
+    <div class="viewboxhome" id="latestviews">
+      <ul>
+      </ul>
     </div>
-    <div id="signUpLink">
-        Get Started
+  </div>
+  <div class="rightcolumn" style="width:340px; vertical-align:top">
+    <h2>top users</h2>
+    <div class="viewboxhome" id="topusers">
     </div>
-    <canvas id="main" style="padding:0px;margin:0px;">
-    </canvas>
-    <div class="leftcolumn" style="width:340px;">
-        <h2>now</h2>
-        <div class="viewboxhome" id="latestviews">
-		  <ul>
-		  </ul>
-        </div>
-    </div>
-    <div class="rightcolumn" style="width:340px; vertical-align:top">
-        <h2>top users</h2>
-        <div class="viewboxhome" id="topusers">
-        </div>
-    </div>
+  </div>
 </div>
 {% endblock %}
