@@ -170,7 +170,11 @@ def notes_post_multi(request):
     
     responses = []
     ## print "raw post data: %s " % repr(request.raw_post_data)
-    
+    if not request.raw_post_data:
+        response = HttpResponse(JSONEncoder().encode({'committed':[]}), "text/json")
+        response.status_code = 200;
+        return response
+        
     for datum in JSONDecoder().decode(request.raw_post_data):
         ## print "datum : %s "% repr(datum)
         ## print datum
