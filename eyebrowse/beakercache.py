@@ -1,7 +1,7 @@
 from beaker.cache import CacheManager
 from beaker.util import parse_cache_config_options
 
-CACHE_EXPIRY = 60 ## for debug 
+CACHE_EXPIRY = 43200 ## for debug 
 
 cache_opts = {
     'cache.type': 'file',
