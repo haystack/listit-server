@@ -108,12 +108,7 @@ def get_privacy_urls(request):
     import eyebrowse.plugin_views
     user = eyebrowse.plugin_views.authenticate_user(request)
     if user is None:
-        json_response({ "code":404, "error": "Username or password incorrect" }) 
-        
-    # WTF hopefully this will fix strange error with NoneType
-    # apparently NoneType is not None
-    if user is NoneType:
-        json_response({ "code":404, "error": "Lulz you are NoneType, SBT" }) 
+        return json_response({ "code":404, "error": "Username or password incorrect" }) 
         
     privacysettings = user.privacysettings_set.all()[0]
     
@@ -135,7 +130,7 @@ def delete_privacy_url(request):
     import eyebrowse.plugin_views
     user = eyebrowse.plugin_views.authenticate_user(request)
     if user is None:
-        json_response({ "code":404, "error": "Username or password incorrect" }) 
+        return json_response({ "code":404, "error": "Username or password incorrect" }) 
     
     privacysettings = user.privacysettings_set.all()[0] 
 
@@ -155,7 +150,7 @@ def add_privacy_url(request):
     import eyebrowse.plugin_views
     user = eyebrowse.plugin_views.authenticate_user(request)
     if user is None:
-        json_response({ "code":404, "error": "Username or password incorrect" }) 
+        return json_response({ "code":404, "error": "Username or password incorrect" }) 
     
     import urlparse    
     privacysettings = user.privacysettings_set.all()[0]
