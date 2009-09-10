@@ -578,15 +578,20 @@ def _profile_save(request, form):
     enduser.user.email = form.cleaned_data['email']
     enduser.user.save()
 
-    enduser.location = form.cleaned_data['location']
+    enduser.location = ""
+    if re.search(r'^(/w|/W|[^<>+?$%{}&])+$', enduser.location):        
+        enduser.location = form.cleaned_data['location']
+
     enduser.birthdate = form.cleaned_data['birthdate']
     enduser.homepage = form.cleaned_data['homepage']
     enduser.gender = form.cleaned_data['gender']
+    enduser.tags = ""
 
     tag_names = form.cleaned_data['tags'].split()
     for tag_name in tag_names:
-        tag, dummy = UserTag.objects.get_or_create(name=tag_name)
-        enduser.tags.add(tag) 
+        if re.search(r'^(/w|/W|[^<>+?$%{}&])+$', tag_name):
+            tag, dummy = UserTag.objects.get_or_create(name=tag_name)
+            enduser.tags.add(tag) 
 
     # save the image    
     if request.FILES:
@@ -892,15 +897,11 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
             pass
     return times_per_url
 
-def defang_pageview(pview):
-    return {"start" : long(pview.startTime), "end" : long(pview.endTime), "url" : pview.url, "host": pview.host, "title": pview.title, "id":pview.id}
+def defang_pageview(pview):    
+    return {"start" : long(pview.startTime), "end" : long(pview.endTime), "url" : pview.url, "host": pview.host, "title": pview.title, "id":pview.id, "user": pview.user.username, "location":get_enduser_for_user(pview.user).location }
 
 def get_web_page_views(request):
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
-
-    # no need to round if it isnt cached
-    #from_msec_rounded = round_time_to_day(from_msec_raw)
-    #to_msec_rounded = round_time_to_day(to_msec_raw)
 
     #@cache.region('short_term')
     def fetch_data(from_msec, to_msec, user):
@@ -916,9 +917,6 @@ def get_views_user(request, username):
     enduser = get_enduser_for_user(user)
 
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
-    # no need to round if it isnt cached
-    #  from_msec_rounded = round_time_to_day(from_msec_raw)
-    #  to_msec_rounded = round_time_to_day(to_msec_raw)
     
     #@cache.region('short_term')
     def fetch_data(from_msec, to_msec, user):
@@ -1013,21 +1011,18 @@ def get_top_hosts(request, n):
     users = User.objects.all()
     n = int(n)
 
-    #from_msec_rounded = round_time_to_day(from_msec_raw)
-    #to_msec_rounded = round_time_to_day(to_msec_raw)
-
-    from_msec = (time.time()*1000) - (2629743*1000) # 1 month
-    to_msec = time.time()*1000
+    from_msec_rounded = round_time_to_day((time.time()*1000) - (2629743*1000)) # 1 month)
+    to_msec_rounded = round_time_to_day(time.time()*1000)
 
     @cache.region('long_term')
-    def fetch_data(n):
+    def fetch_data(n, from_msec, to_msec):
         from_msec,to_msec = _unpack_from_to_msec(request)
         times_per_url = _get_time_per_page(users, from_msec, to_msec, grouped_by=EVENT_SELECTORS.Host)
         urls_ordered = times_per_url.keys()
         urls_ordered.sort(lambda u1,u2: int(times_per_url[u2] - times_per_url[u1]))
         return [(u, long(times_per_url[u])) for u in urls_ordered[0:n]]
 
-    results = fetch_data(n)
+    results = fetch_data(n, from_msec_rounded, to_msec_rounded)
 
     return json_response({ "code":200, "results": results }) 
 
@@ -1439,6 +1434,11 @@ def get_to_from_url(request, n):
     #from_msec_rounded = round_time_to_day(from_msec_raw)
     to_msec_rounded = round_time_to_day(to_msec_raw)
     url = request.GET['url'].strip()
+
+    # added this to check if url exists in the logs
+    if  len(PageView.objects.filter(url=url)) < 1:
+        # fail silently 
+        return {'pre':"", 'next':"", 'pre_titles': "" , 'next_titles' : "" }
     n = int(n)
 
     @cache.region('to_from_url')

@@ -27,13 +27,11 @@ function largest(array){
 }
 
 function trim (str, i) {
-	var	str = str.replace(/^\s\s*/, ''),
-		ws = /\s/,
-		i = i;
+	var	str = str.replace(/^\s\s*/, '');
+	var ws = /\s/;
 	while (ws.test(str.charAt(--i)));
 	return str.slice(0, i + 1);
 }
-
 
 // merge objects
 function merge(root){

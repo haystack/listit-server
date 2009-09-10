@@ -95,14 +95,14 @@
                 if (newData[i][2] < 0) {
                     trigger = false;
                     html += "<div class=\"imgbox\">";
-                    html += "<img src=\"/lib/img/arrow_full_down_16.png\" />";
+                    html += "<img src=\"/lib/img/arrow_full_down_16.png\" style=\"float:none\"/>";
                     html += "<b>" + newData[i][2] + "</b>";
                     html += "</div>";
                 }
                 if (newData[i][2] > 0) {
                     trigger = false;
                     html += "<div class=\"imgbox\">";		   
-					html += "<img src=\"/lib/img/arrow_full_up_16.png\" />";                         
+					html += "<img src=\"/lib/img/arrow_full_up_16.png\" style=\"float:none\"/>";                         
 					html += "<b>" + newData[i][2] + "</b>";
 					html += "</div>";
                 }
@@ -155,13 +155,19 @@
 							   for (var i = newData.length -1; i >= 0; i--) {
 								   html = "<li id=\"" + this_.endTimeRecent + i +  "\">";
 								   if (newData[i].title){
-									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
+									   html += "<h6 style=\"margin-left:8px;\"><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
 								   }
 								   else{
-									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url + "</a></b></h6>";
+									   html += "<h6 style=\"margin-left:8px;\"><b><a href=\"" + newData[i].url + "\">" + newData[i].url + "</a></b></h6>";
 								   }
-								   html += "<a href=\"/search/?url=" + newData[i].url + "\"><img src=\"/lib/img/smallbird.jpg\" style=\"margin-left:6px;display:inline-block;margin-bottom:4px;\"/></a>";
+								   html += "<a href=\"/search/?url=" + newData[i].url + "\"><img src=\"/lib/img/smallbird.jpg\" style=\"margin-left:6px;display:inline-block;margin-top:-3px;\"/></a>";
 								   html += "<h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
+								   if (newData[i].user.length > 0) {
+									   html += "<br />&nbsp; &nbsp; by <a href=\"/profile/" + newData[i].user + "\" style=\"font-weight:normal\">" + newData[i].user + "</a>";
+								   }
+								   if (newData[i].location.length > 0) {
+									   html += " in " + newData[i].location;
+								   }
 								   html += "</li>";
 								   jQuery("#latestviews ul").prepend(html);
 								   jQuery("#" + this_.endTimeRecent + i).slideDown("slow");

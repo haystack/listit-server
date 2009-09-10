@@ -322,6 +322,7 @@ a.selected {
 	float:none;
 } .viewboxhome li h6 {
 	line-height:14px;
+	margin-left:8px;
 } .viewboxhome .imgBox {
     float: right;
     padding: 0pox;
@@ -332,8 +333,6 @@ a.selected {
     vertical-align: top;
 } .viewboxhome li b {
     vertical-align: top;
-    margin-left: 8px;
-    float: right;
 } .viewboxhome img {
 	padding:0px;
 	vertical-align:top;
@@ -367,8 +366,9 @@ a.selected {
 } .imgBox li {
     float: right;
     width: 60px;
-    text-align: left;
+    text-align: right;
 } imgBox img {
+	 margin-left:6px;
 	width:14px;
 	height:14px;
 }.friendStatus {

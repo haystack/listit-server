@@ -451,12 +451,12 @@ jQuery(document).ready(function(){
 {% endblock %}
 {% block content %}
 	<div class="loader" id="loadimg1"></div>
+
     <div id="profile_content" style="margin-top:10px; margin-left:20px;margin-bottom-0px;padding:0px;height:80px;">
 	  {% if request_user %}
 	  {% if not is_friend %}
 	  {% ifnotequal request_user username %}
-	  <br />
-	  <a href="/friend/add?username={{ user.username }}" style="margin-left:9px;">follow <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a>
+	  <a href="/friend/add?username={{ user.username }}" style="margin-left:11px; display:block;margin-bottom:-8px">follow <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a>
 	  {% endifnotequal %}
 	  {% endif %}
 	  {% endif %}

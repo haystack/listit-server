@@ -55,16 +55,6 @@ class LoginForm(forms.Form):
 
 
 class ProfileSaveForm(forms.Form):
-#     first_name = forms.CharField(
-#         label='First Name',
-#         widget=forms.TextInput(attrs={'size': 250}), 
-#         required=False
-#         )
-#     last_name = forms.CharField(
-#         label='Last Name',
-#         widget=forms.TextInput(attrs={'size': 250}), 
-#         required=False
-#         )
     email = forms.EmailField(
         label='Email',
         widget=forms.TextInput(attrs={'size': 250}), 
@@ -102,6 +92,26 @@ class ProfileSaveForm(forms.Form):
         choices=eyebrowse.models.GENDER_CHOICES, 
         required=False
         )
+
+    def clean_location(self):
+        location = self.cleaned_data['location']
+        if not re.search(r'^(/w|/W|[^<>+?$%{}&])+$', location):
+            location = ""
+            raise forms.ValidationError('Location can only contain alphanumeric characters and commas.')
+        return location
+
+    def clean_tags(self):
+        tags = self.cleaned_data['tags'].split()        
+        for tag in tags:
+            if not re.search(r'^(/w|/W|[^<>+?$%{}&])+$', tag):
+                raise forms.ValidationError('Tags can only contain alphanumeric characters and commas.')        
+        return self.cleaned_data['tags']
+
+    #def clean_homepage(self):
+    #    homepage = self.cleaned_data['homepage']
+    #    if not re.search(r'^(((ht|f){1}(tp:[/][/]){1})|((www.){1}))[-a-zA-Z0-9@:%_\+.~#?&//=]+$', homepage):
+    #        raise forms.ValidationError('Tags can only contain alphanumeric characters and commas.')
+
 
 class PrivacySaveForm(forms.Form):
     exposure = forms.TypedChoiceField(

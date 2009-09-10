@@ -55,14 +55,20 @@
 								   if (newData[i].end > this_.newDataEnd){
 									   html = "<li id=\"" + this_.endTimeRecent + i +  "\">";
 									   if (newData[i].title){
-										   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
+										   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6";
 									   }
 									   else{
 										   html += "<h6><b><a href=\"" + newData[i].url + "\">" + trim(newData[i].url, 43) + "</a></b></h6>";
 									   }
-									   html += "<a href=\"/search/?url=" + newData[i].url + "\"><img src=\"/lib/img/smallbird.jpg\" style=\"margin-left:6px;display:inline-block;margin-bottom:4px;\"/></a>";
-									   html += "<br /><h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " ago</h7>";
-									   html += "</li>";
+									   html += "<a href=\"/search/?url=" + newData[i].url + "\"><img src=\"/lib/img/smallbird.jpg\" style=\"margin-left:6px;display:inline-block;margin-top:-5px;\"/></a>";
+									   html += "<br /><h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " ago";
+									   if (newData[i].user.length > 0) {
+										   html += " by <a href=\"/profile/" + newData[i].user + "\" style=\"font-weight:bold\">" + newData[i].user + "</a>";
+									   }
+									   if (newData[i].location.length > 0) {
+										   html += " in " + newData[i].location;
+									   }
+									   html += "</h7></li>";
 									   jQuery("#latestviews ul").prepend(html);
 									   jQuery("#" + this_.endTimeRecent + i).slideDown("slow");
 								   }
@@ -115,7 +121,7 @@
 			var dateArray = [];
 			var zoom = this_.zoom;
 			var wwwBarsArray = [];
-			var hour = 2300000; // fudged a litte 1 hour = 3600000
+			var hour = 1600000; // fudged a litte 1 hour = 3600000
 			var bg = {};
 			bg.canvas = document.getElementById("bgcanvas");
 			bg.windowHeight = window.innerHeight - 50;
@@ -262,8 +268,8 @@ jQuery(document).ready(function(){
 						   var myHeight = 80;
 						   document.getElementById("main").setAttribute("width", myWidth);
 						   document.getElementById("main").setAttribute("height", myHeight);
-						   self.viz = newify(WatchmeVisualisation, 86400000, document.getElementById("main"), myWidth, myHeight); //43200000 12 hrs  // possibly should be 86400000
-					       //setInterval("self.viz.getRecentPages(10, 0)", 9000);
+						   self.viz = newify(WatchmeVisualisation, 43200000, document.getElementById("main"), myWidth, myHeight); //43200000 12 hrs  // possibly should be 86400000
+					       setInterval("self.viz.getRecentPages(10, 0)", 9000);
 					   });
 </script>
 {% endblock %}
@@ -285,7 +291,7 @@ jQuery(document).ready(function(){
   <h4 style="vertical-align:top;margin-left:43px;">Find out what's hot, who's reading what, and how you surfing changes over time. Plus, contribute your web trails to science! 
   </h4>
   <div id="indexwhyid" class="indexwhy">
-	<h4 style="margin-top:-8px;margin-left:10px;"><i>Why?</i></h4>
+	<h4 style="margin-top:-5px;margin-left:10px;"><i>Why?</i></h4>
     <h4>
 	  <ul>
 		<li>
