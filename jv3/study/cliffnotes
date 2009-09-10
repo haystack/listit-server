@@ -1,5 +1,4 @@
 
-cd /var/listit/workspace/trunk/server/
 python manage.py shell
 
 ## startup
@@ -17,6 +16,7 @@ from jv3.study.study import *
 from numpy import array
 r = ro.r
 em = User.objects.filter(email="emax@csail.mit.edu")[0]
+gv = User.objects.filter(email="gvargas@mit.edu")[0]
 c = lambda vv : apply(r.c,vv)
 
 
