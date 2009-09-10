@@ -96,7 +96,6 @@ class ProfileSaveForm(forms.Form):
     def clean_location(self):
         location = self.cleaned_data['location']
         if not re.search(r'^(/w|/W|[^<>+?$%{}&])+$', location):
-            location = ""
             raise forms.ValidationError('Location can only contain alphanumeric characters and commas.')
         return location
 

@@ -165,9 +165,9 @@
 								   if (newData[i].user.length > 0) {
 									   html += "<br />&nbsp; &nbsp; by <a href=\"/profile/" + newData[i].user + "\" style=\"font-weight:normal\">" + newData[i].user + "</a>";
 								   }
-								   if (newData[i].location.length > 0) {
-									   html += " in " + newData[i].location;
-								   }
+								   //if (newData[i].location.length > 0) {
+									//   html += " in " + newData[i].location;
+								   //}
 								   html += "</li>";
 								   jQuery("#latestviews ul").prepend(html);
 								   jQuery("#" + this_.endTimeRecent + i).slideDown("slow");

@@ -579,7 +579,7 @@ def _profile_save(request, form):
     enduser.user.save()
 
     enduser.location = ""
-    if re.search(r'^(/w|/W|[^<>+?$%{}&])+$', enduser.location):        
+    if re.search(r'^(/w|/W|[^<>+?$%{}&])+$', form.cleaned_data['location']):        
         enduser.location = form.cleaned_data['location']
 
     enduser.birthdate = form.cleaned_data['birthdate']

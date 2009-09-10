@@ -65,9 +65,9 @@
 									   if (newData[i].user.length > 0) {
 										   html += " by <a href=\"/profile/" + newData[i].user + "\" style=\"font-weight:bold\">" + newData[i].user + "</a>";
 									   }
-									   if (newData[i].location.length > 0) {
-										   html += " in " + newData[i].location;
-									   }
+									   //if (newData[i].location.length > 0) {
+									//	   html += " in " + newData[i].location;
+									 //  }
 									   html += "</h7></li>";
 									   jQuery("#latestviews ul").prepend(html);
 									   jQuery("#" + this_.endTimeRecent + i).slideDown("slow");
@@ -269,7 +269,7 @@ jQuery(document).ready(function(){
 						   document.getElementById("main").setAttribute("width", myWidth);
 						   document.getElementById("main").setAttribute("height", myHeight);
 						   self.viz = newify(WatchmeVisualisation, 43200000, document.getElementById("main"), myWidth, myHeight); //43200000 12 hrs  // possibly should be 86400000
-					       setInterval("self.viz.getRecentPages(10, 0)", 9000);
+					           //setInterval("self.viz.getRecentPages(10, 0)", 9000);
 					   });
 </script>
 {% endblock %}
@@ -315,7 +315,7 @@ jQuery(document).ready(function(){
 	  <br />
 	  <h4 style="margin-left:127px;">
 		Check out some <a href="http://eyebrowse.csail.mit.edu/profile/emax/">real</a>		
-		<a href="http://eyebrowse.csail.mit.edu/profile/zamiang/">live</a>
+		<a href="http://eyebrowse.csail.mit.edu/graphs/zamiang/">live</a>
 		<a href="http://eyebrowse.csail.mit.edu/users/">profiles</a> or click below to get started.		
 	  </h4>
   </div>
