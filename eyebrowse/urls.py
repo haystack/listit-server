@@ -1,4 +1,3 @@
-
 import re
 import os,sys
 import views
@@ -104,10 +103,6 @@ urlpatterns = patterns('',
                        (r'^profile_old/$', profile_save_page),
                        (r'^settings/$',  privacy_settings_page),
                        (r'^userprivacy/$', userprivacy),
-
-                       # admin SHOULD DIE PERMANENTLY
-                       #  (r'^admin/doc/', include('django.contrib.admindocs.urls')),
-                       #  (r'^admin/', include(admin.site.urls)),
 
                        ## plugin_views
                        (r'^plugin_login$', eyebrowse.plugin_views.login),  

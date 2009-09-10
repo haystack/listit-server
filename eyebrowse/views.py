@@ -104,17 +104,18 @@ def _privacy_save(request, form):
 ## emax changed this because plugin needs to grab these
 ## @login_required
 def get_privacy_urls(request):
-
     ## added by emax:
     import eyebrowse.plugin_views
     user = eyebrowse.plugin_views.authenticate_user(request)
     if user is None:
         json_response({ "code":404, "error": "Username or password incorrect" }) 
-    
-    #username = request.user.username
-    #user = get_object_or_404(User, username=username)
-    
-    privacysettings = user.privacysettings_set.all()[0] #  
+        
+    # WTF hopefully this will fix strange error with NoneType
+    # apparently NoneType is not None
+    if user is NoneType:
+        json_response({ "code":404, "error": "Lulz you are NoneType, SBT" }) 
+        
+    privacysettings = user.privacysettings_set.all()[0]
     
     lst = ""
     if privacysettings.listmode == "W":

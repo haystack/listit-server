@@ -18,10 +18,31 @@ Array.prototype.min = function(){
     return min;
 };
 
+// possibly faster
+function smallest(array){
+	return Math.min.apply( Math, array );
+}
+function largest(array){
+	return Math.max.apply( Math, array );
+}
+
 String.prototype.trim = function () {
     return this.replace( /^\\s*(\\S*(\\s+\\S+)*)\\s*$/, "$1");
 }
 
+// merge objects
+function merge(root){
+	for ( var i = 1; i < arguments.length; i++ )
+		for ( var key in arguments[i] )
+			root[key] = arguments[i][key];
+	return root;
+}
+
+// ask if something is a function or not
+function isFunction( fn ) {
+	return Object.prototype.toString.call(fn) ===
+		"[object Function]";
+}
 
 //This prototype is provided by the Mozilla foundation and
 //is distributed under the MIT license.
@@ -477,3 +498,17 @@ dateFormat.i18n = {
 Date.prototype.format = function(mask, utc){
     return dateFormat(this, mask, utc);
 };
+
+// console.log that works in all browsers via resig
+
+function log() {
+	try {
+		console.log.apply( console, arguments );
+	} catch(e) {
+		try {
+			opera.postError.apply( opera, arguments );
+		} catch(e){
+			alert( Array.prototype.join.call( arguments, " " ) );
+		}
+	}
+}

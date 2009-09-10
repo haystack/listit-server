@@ -149,21 +149,21 @@
 			
 			for (var i = 0; i < data.pre.length; i++){
 				if (data.pre_titles[i]){
-					leftHTML += "<h6 class=\"leftside\"><a href=\"javascript: viz.swopURL('" + data.pre[i][0] + "')\">" + data.pre_titles[i] + "</a></h6>";
+					leftHTML += "<h6 class=\"leftside\"><a href=\"" + data.pre[i][0] + "\" target=\"_blank\">" + data.pre_titles[i] + "</a></h6>";
 				}
 				else{
-					leftHTML += "<h6 class=\"leftside\"><a href=\"javascript: viz.swopURL('" + data.pre[i][0] + "')\">" + data.pre[i][0] + "</a></h6>";
-				}
-				leftHTML += "&nbsp;<a href=\"" + data.pre[i][0] + "\" target=”_blank”><img src=\"/lib/img/arrow_full_upperright_16.png\"/></a>";
+					leftHTML += "<h6 class=\"leftside\"><a href=\"" + data.pre[i][0] + "\" target=\"_blank\">" + data.pre[i][0] + "</a></h6>";
+				}									  
+				leftHTML += "<a href=\"javascript: viz.swopURL('" + data.pre[i][0] + "')\"><img src=\"/lib/img/smallbird_b.jpg\" style=\"margin-left:3px;display:inline-block;margin-bottom:4px;\"/></a>";
 				leftHTML += "<br />";
 			}
 			for (var i = 0; i < data.next.length; i++){
-				rightHTML += "<a href=\"" + data.next[i][0] + "\" target=”_blank”><img src=\"/lib/img/arrow_full_upperright_16.png\"/></a>&nbsp;";
+				rightHTML += "<a href=\"javascript: viz.swopURL('" + data.next[i][0] + "')\"><img src=\"/lib/img/smallbird_b.jpg\" style=\"margin-right:3px;display:inline-block;margin-bottom:4px;\"/></a>";
 				if (data.next_titles[i]){
-					rightHTML += "<h6><a href=\"javascript: viz.swopURL('" + data.next[i][0] + "')\">" + data.next_titles[i] + "</a></h6>";
+					rightHTML += "<h6><a href=\"" +  data.next[i][0] + "\" target=\"_blank\">" + data.next_titles[i] + "</a></h6>";
 				}
 				else{
-					rightHTML += "<h6><a href=\"javascript: viz.swopURL('" + data.next[i][0] + "')\">" + data.next[i][0] + "</a></h6>";					
+					rightHTML += "<h6><a href=\"" + data.next[i][0] + "\" target=\"_blank\">" + data.next[i][0] + "</a></h6>";					
 				}
 				rightHTML += "<br />";
 			}			

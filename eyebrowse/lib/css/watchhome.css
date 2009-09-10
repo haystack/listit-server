@@ -862,5 +862,6 @@ a.selected {
 #moreinfoLink{
     display:inline-block;
     cursor:pointer;
+	margin-top:-10px;
 }
 
