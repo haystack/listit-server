@@ -65,6 +65,7 @@ def date_matches(s,ress=all_):
     starts = set([])    
     find_isect_with_starts = lambda span: [ x for x in starts if intersects(span,x) ]    
     for res in ress:
+        #print "res : %s " % res
         exp = None
         if _re_cache.get(res,None):
             exp = _re_cache[res]
@@ -72,13 +73,15 @@ def date_matches(s,ress=all_):
             exp = re.compile(res)
             _re_cache[res] = exp
         hit = exp.search(s)
+        #print "done search : %s " % res
         while hit:
+            #print "foo"
             span = hit.span()
             intersecting_spans = find_isect_with_starts(span)            
             spen = list(set([span] + intersecting_spans ))
             widest_span = spen[maxidx( [width(x) for x in spen ])]
             [starts.remove(i) for i in intersecting_spans if i in starts]
-            starts.add(widest_span)            
+            starts.add(widest_span)
             hit = exp.search(s,hit.end())
         pass
     print starts

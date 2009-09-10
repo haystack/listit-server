@@ -18,6 +18,7 @@ import random,sys,re
 import numpy
 
 # ternary
+c = lambda vv : apply(r.c,vv)
 q=lambda a,b,c: (b,c)[not a]
 
 # lm 
@@ -140,13 +141,20 @@ default_note_feature_fns = [
     note_names,
     note_urls,
     note_emails,
-#    note_ss,
+    note_ss,
     note_phone_numbers,
-    note_date_count
+    note_date_count,
+    note_edits,
 ]
 
-#    note_edits,
-
+content_features = [
+    note_names,
+    note_phone_numbers,
+    note_urls,
+    note_date_count,
+    note_emails,
+    note_pos_features
+]
 
 def notes_to_features(notes,include_bow_features=True,bow_parameters={},note_feature_fns=default_note_feature_fns):
     # generates feature vectors like this:
@@ -165,6 +173,10 @@ def notes_to_features(notes,include_bow_features=True,bow_parameters={},note_fea
     for n in notes:
         print "generating %s:%s " % (n["id"],n["contents"])
         [ note_fvs[n["id"]].update( ff(n) ) for ff in note_feature_fns ]
+        #for ff in note_feature_fns:
+        #    print ff
+        #    note_fvs[n["id"]].update( ff(n) )
+
 
     # get all keys
     keys = {}
@@ -217,3 +229,43 @@ def hstats(counts):
 def var(v):
     ev = mean(v)
     return sum([(x-ev)**2 for x in v ])/(1.0*len(v)-1)
+
+def f2dt_factors(features,keys=None):
+    # compute keys (if we don't have them already)
+    ktype = {}
+    for row in features:
+        keys = reduce( lambda x,y: x.union(y), [ set([k]) for k in row.keys() ])
+        [ ktype.update( { k : type(v) } ) for k,v in row.items() ]
+        
+    dtdict = {} # to become the datatable
+    for k in keys:
+        dtdict[k] = []
+        blank_item = q(ktype[k] == str, '<blank>', 0)
+        for row in features:
+            dtdict[k].append( row.get(k, blank_item ) )
+        dtdict[k] = q(ktype[k] in [int,float], c(dtdict[k]), r.factor(c(dtdict[k])))
+        print (k,q(ktype[k] in [int,float], 'regular','factor'))
+
+    return r["data.frame"](r.list(**dtdict))
+
+def _convert_to_float(t):
+    try:
+        return float(t)
+    except:
+        #print sys.exc_info()
+        pass
+    return 0.0
+
+def f2dt_float(features,keys=None,missing_fillin=0):
+    # turns a feature vector into an r list, 
+    for row in features:
+        keys = reduce( lambda x,y: x.union(y), [ set([k]) for k in row.keys() ])
+    dtdict = {} # to become the datatable
+    for k in keys:
+        dtdict[k] = []
+        for row in features:
+            dtdict[k].append( _convert_to_float(row.get(k, missing_fillin)) )
+        dtdict[k] = c(dtdict[k])
+    return r["data.frame"](r.list(**dtdict))
+
+
