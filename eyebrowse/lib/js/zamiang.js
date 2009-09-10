@@ -26,9 +26,14 @@ function largest(array){
 	return Math.max.apply( Math, array );
 }
 
-String.prototype.trim = function () {
-    return this.replace( /^\\s*(\\S*(\\s+\\S+)*)\\s*$/, "$1");
+function trim (str, i) {
+	var	str = str.replace(/^\s\s*/, ''),
+		ws = /\s/,
+		i = i;
+	while (ws.test(str.charAt(--i)));
+	return str.slice(0, i + 1);
 }
+
 
 // merge objects
 function merge(root){

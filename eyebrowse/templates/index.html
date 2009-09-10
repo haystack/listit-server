@@ -58,7 +58,7 @@
 										   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
 									   }
 									   else{
-										   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url + "</a></b></h6>";
+										   html += "<h6><b><a href=\"" + newData[i].url + "\">" + trim(newData[i].url, 43) + "</a></b></h6>";
 									   }
 									   html += "<a href=\"/search/?url=" + newData[i].url + "\"><img src=\"/lib/img/smallbird.jpg\" style=\"margin-left:6px;display:inline-block;margin-bottom:4px;\"/></a>";
 									   html += "<br /><h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " ago</h7>";
