@@ -898,7 +898,7 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
     return times_per_url
 
 def defang_pageview(pview):    
-    return {"start" : long(pview.startTime), "end" : long(pview.endTime), "url" : pview.url, "host": pview.host, "title": pview.title, "id":pview.id, "user": pview.user.username, "location":get_enduser_for_user(pview.user).location }
+    return {"start" : long(pview.startTime), "end" : long(pview.endTime), "url" : pview.url, "host": pview.host, "title": pview.title, "id":pview.id, "user": pview.user.username } ## to slow "location":get_enduser_for_user(pview.user).location }
 
 def get_web_page_views(request):
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
