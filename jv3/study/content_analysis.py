@@ -5,7 +5,7 @@ from nltk.corpus import names,wordnet,stopwords
 from nltk.tokenize import WordTokenizer
 from jv3.utils import current_time_decimal
 from django.utils.simplejson import JSONEncoder, JSONDecoder
-from jv3.study.study import mean
+from jv3.study.study import mean,median
 from rpy2 import robjects as ro
 from ca_datetime import note_date_count
 from ca_util import *
@@ -32,6 +32,9 @@ stopword_low = [striplow(x) for x in stopwords.words()]
 stopword = lambda x: x not in stopword_low
 
 _notes_to_values = lambda note: note.values('id','owner','contents',"jid","created","deleted","edited")
+_note_instance_to_value = lambda note: {'id':note.id, 'owner':note.owner, 'contents': note.contents,
+                                          'jid':note.jid, 'created':long(note.created), 'deleted':note.deleted,
+                                          'edited':long(note.edited)}
 _actlogs_to_values = lambda actlog: actlog.values("id","action","owner","when","client","noteid","search","noteText")
 
 eliminate_regexp = lambda regexp,s: "".join(re.compile(regexp).split(s))
@@ -94,6 +97,7 @@ recon = lambda n,d : [d[x] for x in n.keys()]
 ## FEATURE COMPUTERS ##################################################################################
 ## given a note, returns features of that note
 
+note_days_till_deletion = lambda x: {"days_till_deletion": q(x["deleted"],int(float(x["edited"] - x["created"])/(3600*1000.0*24)),-1)}
 note_lifetime = lambda note : {'note_lifetime_s': float((q(note["deleted"],long(note["edited"]),current_time_decimal()) - long(note["created"]))/1000.0)}
 note_owner = lambda note: {'note_owner': repr(note["owner"])}
 note_length = lambda x : {'note_length':len(x["contents"])}
@@ -145,6 +149,7 @@ default_note_feature_fns = [
     note_phone_numbers,
     note_date_count,
     note_edits,
+    note_days_till_deletion
 ]
 
 content_features = [
@@ -154,7 +159,7 @@ content_features = [
     note_date_count,
     note_emails,
     note_pos_features
-]
+]                                                          
 
 def notes_to_features(notes,include_bow_features=True,bow_parameters={},note_feature_fns=default_note_feature_fns):
     # generates feature vectors like this:
@@ -222,9 +227,30 @@ def print_random_events(n=25000):
 
 h = lambda counts: r.hist(apply(r.c, counts),breaks=r.c(r.seq(0,50,1),10000),plot=False )
 
-def hstats(counts):
-    print "min:%g avg:%g max:%g var:%g" % (min(counts),mean(counts),max(counts),var(counts))
-    return h(counts)
+def mode(counts):
+    cts = {}
+    [cts.update({k:cts.get(k,0)+1}) for k in counts]
+    v = cts.items()
+    v.sort(key=lambda x:x[1],reverse=True)
+    return v[0][0]
+
+def s(counts):
+    print "min:%g max:%g mode:%g mean:%g median:%g var:%g" % (min(counts),max(counts),mode(counts),mean(counts),median(counts),var(counts))
+    return (min(counts),max(counts),mode(counts),mean(counts),median(counts),var(counts))
+
+def feature_hist(keys,fvs):
+    ## takes fvs and performs a stats on each of them
+    import jv3.study.ca_plot as cap
+    for k in keys:
+        try:
+            print k
+            counts = [float(features[k]) for nid,features in fvs.iteritems()]
+            s(counts)
+            print cap.hist(counts,breaks=r.c(r.seq(min(counts)-1,50,(50-min(counts)-1)/50.0),100,250,max(500,max(counts))+1),filename='%s.png' % k,title=k)
+        except ValueError,ve:
+            print sys.exc_info()        
+
+
 
 def var(v):
     ev = mean(v)
@@ -233,9 +259,11 @@ def var(v):
 def f2dt_factors(features,keys=None):
     # compute keys (if we don't have them already)
     ktype = {}
+    import sys
     for row in features:
         keys = reduce( lambda x,y: x.union(y), [ set([k]) for k in row.keys() ])
         [ ktype.update( { k : type(v) } ) for k,v in row.items() ]
+
         
     dtdict = {} # to become the datatable
     for k in keys:

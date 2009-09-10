@@ -14,6 +14,7 @@ def ca_caches():
             "sigscroll_startend_cache":sigscroll_startend_cache }            
 
 sigscroll_count = lambda prev_count,ssevt: prev_count + 1
+
 def sigscroll_dur(prev_count,ssevt):
     if ssevt.has_key("exitTime") and ssevt.has_key("entryTime"):
         return prev_count + (ssevt["exitTime"] - ssevt["entryTime"])/60000.0
@@ -24,8 +25,24 @@ send_visitation_durations = lambda note_visitations: [ end-start for start,end i
 def inter_visitation_duration(x):
     return lambda x: reduce(lambda x,y: x+y, send_visitation_durations(x))
 
+def adjacent_filtered(views):
+    ## takes [(t1,t2),(....).....]
+    ## filters adjacent dudes [(1,2),(2,3)] -> [(1,3)]
+    ## totally uncool.
+    result = []
+    if len(views) < 2:
+        return views
+    cur = views[0]
+    for v in views[1:]:
+        if v[0] == cur[1]:
+            cur = (cur[0],v[1])
+        else:
+            result.append(cur)
+            cur = v
+    result.append(cur)
+    return result
+
 def note_ss(note,days_ago=None):
-    print "notess"
     from jv3.study.content_analysis import activity_logs_for_user
     global sigscroll_cache_days_ago
     global sigscroll_startend_cache
@@ -59,15 +76,20 @@ def note_ss(note,days_ago=None):
             nvid = int(nv["id"])
             owner_ss_count[nvid] = sigscroll_count(owner_ss_count.get(nvid,0),nv)
             owner_ss_dur[nvid] = sigscroll_dur(owner_ss_dur.get(nvid,0),nv)
-
+            ## update the startend
             if nv.has_key("exitTime") and nv.has_key("entryTime"):
                 ap = owner_startends.get(nvid,[])
-                ap.append( (nv["entryTime"],nv["exitTime"]) )
+                if nv["entryTime"] == nv["exitTime"]:
+                    ## this is to get around the bug in 0.4.5-7 which results in (start,start) for
+                    ## no-scroll open-close, and search/idle 
+                    ap.append( (nv["entryTime"],long(al["when"])) )
+                else:
+                    ap.append( (nv["entryTime"],nv["exitTime"]) )
                 owner_startends[nvid] = ap                       
                 
     sigscroll_count_cache[note["owner"]] = owner_ss_count
     sigscroll_dur_totals_cache[note["owner"]] = owner_ss_dur
-    sigscroll_startend_cache[note["owner"]] = owner_startends
+    sigscroll_startend_cache[note["owner"]] = dict( [ (nid,adjacent_filtered(views)) for nid,views in owner_startends.iteritems() ] )
 
     ## now compute the desired things    
     return {'sigscroll_counts': sigscroll_count_cache[note["owner"]].get(note["jid"],0),

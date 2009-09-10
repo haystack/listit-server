@@ -36,7 +36,7 @@ def activity_logs_for_note(n,action=None,days_ago=None):
 def activity_logs_for_user(user,action=None,days_ago=None):
     from jv3.study.content_analysis import _actlogs_to_values,_notes_to_values
     if days_ago is None:
-        print "days ago is none"
+        #print "days ago is none"
         if action:
             return _actlogs_to_values(ActivityLog.objects.filter(action=action,owner=user))
         return _actlogs_to_values(ActivityLog.objects.filter(owner=user))
@@ -52,6 +52,20 @@ all_pass = lambda x: True
 
 def is_sigscroll_user(u):
     return ActivityLog.objects.filter(owner=u,action="significant-scroll").count() > 0
+
+def filter_notes(ns,english_only=True,min_length=3):
+    from content_analysis import q
+    from jv3.study.study import GLOBAL_STOP
+    stop_owner = [x for x in User.objects.filter(email__in=GLOBAL_STOP)]
+    return [x for x in ns if
+            x.owner not in stop_owner and
+            x.contents and len(x.contents.strip()) >= min_length and # note is non blank
+            int(x.jid) >= 0 and # jid is not magic note
+            q(english_only, is_english(x.contents), True) and # english if english only
+            not is_tutorial_note(x.contents) and # not a tutorial
+            not is_study1_note_contents(x.contents) # not a study1 note
+            ]
+
 
 def random_notes(n=1000,consenting=True,english_only=True,user_filter=is_sigscroll_user):
     from jv3.study.content_analysis import _actlogs_to_values,_notes_to_values,q
@@ -132,7 +146,7 @@ def spreadsheet_fill_in_blanks(sheet,with_what=0):
     return [sheet[0]] + new_sheet         
 
 
-def export_features(fkeys,features,filename='/tmp/features.csv'):
+def export_features(fkeys,features,notes=None,filename='/tmp/features.csv'):
     from jv3.study.content_analysis import _notes_to_values
     F = open(filename, 'wb')
     writer = csv.writer(F, dialect="excel", delimiter=',', quoting=csv.QUOTE_MINIMAL)
@@ -153,5 +167,6 @@ def export_features(fkeys,features,filename='/tmp/features.csv'):
     import pickle
     from jv3.study.ca_sigscroll import ca_caches
     FP = open("%s.pickle"%filename,"w")
-    FP.write(pickle.dumps({"features":features,"fkeys":fkeys,"sigscroll_caches":ca_caches()}))
+    FP.write(pickle.dumps({"features":features,"fkeys":fkeys,"sigscroll_caches":ca_caches(),"notes":notes}))
     FP.close()
+

@@ -37,3 +37,31 @@ rn = cal.random_notes(25000)
 
 ## content features
 x,y = ca.notes_to_features(rn,False,ca.content_features)
+
+## import a spreadsheet that has already been coded
+renotes,cols = cal.import_notes_csv('/biggie/listit/study2010/wolfe-kp-2.5k.csv')
+x,y = ca.notes_to_features(renotes,False)
+
+## loading marked up spreadsheet
+
+>>> notes,cols = cal.import_notes_csv('/biggie/listit/study2010/exported-2500-subset-CODED-kp-w-b.csv')
+# then "notes" will have all the notes you loaded from the database as NOTES VALUES
+
+
+# then "cols" will contain the actual spreadsheet; if you want only the kp TODO NOTE VALUES:
+[ [n for n in renotes if n["id"] == int(row[0])][0] for row in cols if row[3] == '1' ]
+
+# then "cols" will contain the actual spreadsheet; if you want only the wolfe TODO NOTE VALUES:
+[ [n for n in renotes if n["id"] == int(row[0])][0] for row in cols if row[4] == '1' ]
+
+# then "cols" will contain the actual spreadsheet; if you want only the BRENN TODO NOTE VALUES:
+[ [n for n in renotes if n["id"] == int(row[0])][0] for row in cols if row[5] == '1' ]
+
+# then "cols" will contain the actual spreadsheet; if you want only the BRENN REF VALUES:
+[ [n for n in renotes if n["id"] == int(row[0])][0] for row in cols if row[6] == '1' ]
+
+
+
+
+
+
