@@ -14,31 +14,39 @@ def is_english(s):
         pass
     return False
 
-def activity_logs_for_note(n,action="note-edit",days_ago=None):
+def activity_logs_for_note(n,action=None,days_ago=None):
     from jv3.study.content_analysis import _actlogs_to_values,_notes_to_values
     if days_ago is None:
-        alv = _actlogs_to_values(ActivityLog.objects.filter(action=action,noteid=n["jid"],owner=n["owner"]))
-        print ' returning %d ' % len(alv)
-        return alv
+        if action:
+            alv = _actlogs_to_values(ActivityLog.objects.filter(action=action,noteid=n["jid"],owner=n["owner"]))
+            print ' returning %d ' % len(alv)
+            return alv
+        return _actlogs_to_values(ActivityLog.objects.filter(noteid=n["jid"],owner=n["owner"]))
     else:
-        today_msec = current_time_decimal()
+        today_m
+        sec = current_time_decimal()
         n_days_ago = today_msec - days_ago*24*60*60*1000
-        print "actlogs starting with %d // %s" % (n_days_ago,repr(datetime.datetime.fromtimestamp(n_days_ago/1000.0)))
-        alv = _actlogs_to_values(ActivityLog.objects.filter(action=action,noteid=n["jid"],owner=n["owner"],when__gt=n_days_ago))
-        print ' returning %d ' % len(alv)
-        return alv
+        if action:
+            print "actlogs starting with %d // %s" % (n_days_ago,repr(datetime.datetime.fromtimestamp(n_days_ago/1000.0)))
+            alv = _actlogs_to_values(ActivityLog.objects.filter(action=action,noteid=n["jid"],owner=n["owner"],when__gt=n_days_ago))
+            print ' returning %d ' % len(alv)
+            return alv
+        return _actlogs_to_values(ActivityLog.objects.filter(noteid=n["jid"],owner=n["owner"],when__gt=n_days_ago))
 
-def activity_logs_for_user(user,action="note-edit",days_ago=None):
+def activity_logs_for_user(user,action=None,days_ago=None):
     from jv3.study.content_analysis import _actlogs_to_values,_notes_to_values
     if days_ago is None:
         print "days ago is none"
-        ba = _actlogs_to_values(ActivityLog.objects.filter(action=action,owner=user))
-        return ba
+        if action:
+            return _actlogs_to_values(ActivityLog.objects.filter(action=action,owner=user))
+        return _actlogs_to_values(ActivityLog.objects.filter(owner=user))
     else:
         today_msec = current_time_decimal()
         n_days_ago = today_msec - days_ago*24*60*60*1000
         print "starting with %d // %s" % (n_days_ago,repr(datetime.datetime.fromtimestamp(n_days_ago/1000.0)))
-        return _actlogs_to_values(ActivityLog.objects.filter(action=action,owner=user,when__gt=n_days_ago))
+        if action:
+            return _actlogs_to_values(ActivityLog.objects.filter(action=action,owner=user,when__gt=n_days_ago))
+        return _actlogs_to_values(ActivityLog.objects.filter(owner=user,when__gt=n_days_ago))        
 
 all_pass = lambda x: True
 
