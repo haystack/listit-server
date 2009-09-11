@@ -296,4 +296,38 @@ def f2dt_float(features,keys=None,missing_fillin=0):
         dtdict[k] = c(dtdict[k])
     return r["data.frame"](r.list(**dtdict))
 
+def get_extreme_notes(name, key_fn, nfvs, top_N=100, bot_N=100, randomized=True):
+    ## takes the top and bottom N
+    ## nfvs is dict {notei:{fv_i:val}, notej:{fv_i:val}}
+    scores = [(nf,key_fn(nf)) for nf in nfvs]
+    scores_top = [] + scores
+    scores_bottom = [] + scores
+    scores_top.sort(key=lambda x: x[1],reverse=True)
+    scores_bottom.sort(key=lambda x: x[1],reverse=False)
+    
+    if not randomized:
+        return { "%s_top" % name: [t[0] for t in scores_top[0:top_N]],
+                 "%s_bottom" % name : [b[0] for b in scores_bottom[0:bottom_N]] }
+    
+    import random
+    chosen_top = []
+    chosen_bottom = []
+    
+    while len(chosen_top) < top_N:
+        try :
+            chosen_top.append( scores_top[random.randint(0,3*top_N)] )
+        except:
+            print sys.exc_info()
+        pass
+    while len(chosen_bottom) < bot_N:
+        try :
+            chosen_bottom.append( scores_bottom[random.randint(0,3*bot_N)] )
+        except:
+            print sys.exc_info()
+        pass
+    
+    return { "%s_top" % name: [t[0] for t in chosen_top],
+             "%s_bottom" % name: [ b[0] for b in chosen_bottom] }
 
+def export_extreme_notes(extreme_dict):
+    
