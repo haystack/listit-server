@@ -65,3 +65,19 @@ x,y = ca.notes_to_features(renotes,False)
 
 
 
+
+
+## NOTEWISE revisitation curves
+## consenting users 
+u2 = [ u for u in User.objects.all() if is_consenting_study2(u)]
+u1 = [ u for u in User.objects.all() if is_consenting_study1(u)]
+
+## consenting notes
+n1 = Note.objects.filter( owner__in=[ u for u in User.objects.all() if is_consenting_study1(u)] )
+n2 = Note.objects.filter( owner__in=[ u for u in User.objects.all() if is_consenting_study2(u)] )
+ns = [ca._note_instance_to_value(n) for n in cal.filter_notes( list(set(n1).union(n2)) ) ]
+nfk,nf = ca.notes_to_features(ns,False)
+## perform histogram/stats on ALL features
+ca.feature_hists(nfk,nf)
+
+cass.select_dudes_to_revisit(ns)

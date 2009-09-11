@@ -31,7 +31,9 @@ striplow = lambda x: x.strip().lower()
 stopword_low = [striplow(x) for x in stopwords.words()]
 stopword = lambda x: x not in stopword_low
 
+## takes a _single_note_ or a queryset
 _notes_to_values = lambda note: note.values('id','owner','contents',"jid","created","deleted","edited")
+
 _note_instance_to_value = lambda note: {'id':note.id, 'owner':note.owner, 'contents': note.contents,
                                           'jid':note.jid, 'created':long(note.created), 'deleted':note.deleted,
                                           'edited':long(note.edited)}
@@ -238,7 +240,7 @@ def s(counts):
     print "min:%g max:%g mode:%g mean:%g median:%g var:%g" % (min(counts),max(counts),mode(counts),mean(counts),median(counts),var(counts))
     return (min(counts),max(counts),mode(counts),mean(counts),median(counts),var(counts))
 
-def feature_hist(keys,fvs):
+def feature_hists(keys,fvs):
     ## takes fvs and performs a stats on each of them
     import jv3.study.ca_plot as cap
     for k in keys:
@@ -296,70 +298,3 @@ def f2dt_float(features,keys=None,missing_fillin=0):
         dtdict[k] = c(dtdict[k])
     return r["data.frame"](r.list(**dtdict))
 
-def get_extreme_notes(name, key_fn, nfvs, top_N=100, bot_N=100, randomized=True):
-    ## takes the top and bottom N
-    ## nfvs is dict {notei:{fv_i:val}, notej:{fv_i:val}}
-    scores = [(nf,key_fn(nf)) for nf in nfvs]
-    scores_top = [] + scores
-    scores_bottom = [] + scores
-    scores_top.sort(key=lambda x: x[1],reverse=True)
-    scores_bottom.sort(key=lambda x: x[1],reverse=False)
-    
-    if not randomized:
-        return { "%s_top" % name: [t[0] for t in scores_top[0:top_N]],
-                 "%s_bottom" % name : [b[0] for b in scores_bottom[0:bottom_N]] }
-    
-    import random
-    chosen_top = []
-    chosen_bottom = []
-    
-    while len(chosen_top) < top_N:
-        try :
-            chosen_top.append( scores_top[random.randint(0,3*top_N)] )
-        except:
-            print sys.exc_info()
-        pass
-    while len(chosen_bottom) < bot_N:
-        try :
-            chosen_bottom.append( scores_bottom[random.randint(0,3*bot_N)] )
-        except:
-            print sys.exc_info()
-        pass
-    
-    return { "%s_top" % name: [t[0] for t in chosen_top],
-             "%s_bottom" % name: [ b[0] for b in chosen_bottom] }
-
-
-
-
-
-def export_extreme_notes(extreme_dict, note_keys, note_features, filename="/tmp/extreme.csv"):
-
-    ## extreme dict
-    ## { "length_top" : [note,note,note ], "note_length_bottom": [note,note,note] }
-    ## note_keys = nae of other features you want to include in each note being reported
-    ## note_features = feateres you want to include
-
-    import csv
-    from jv3.study.content_analysis import _notes_to_values
-    F = open(filename, 'wb')
-    writer = csv.writer(F, dialect="excel", delimiter=',', quoting=csv.QUOTE_MINIMAL)
-    keys = extreme_dict.keys()
-    keys.sort()    
-    # write headers
-    writer.writerow( ["nid","jid","email","contents"] + note_keys ) ## adds features to 
-    for k in keys:
-        print "writing %s[%d]" % (k,len(extreme_dict[k]))
-        writer.writerow([k])
-        for n in extreme_dict[k]:
-            u = User.objects.filter(id=n["owner"])            
-            row = [n["id"],n["jid"],u[0].email,n["contents"].encode('utf-8','ignore')[:32767]]
-            nf = note_features[n["id"]]
-            for f in fkeys:
-                row.append( nf.get(f) )
-            writer.writerow(row)
-        pass
-    F.close()
-    
-        
-    

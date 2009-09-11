@@ -53,7 +53,9 @@ all_pass = lambda x: True
 def is_sigscroll_user(u):
     return ActivityLog.objects.filter(owner=u,action="significant-scroll").count() > 0
 
+## takes a QUERYSET or a LIST OF NOTES, not NOT NOTE VALUES
 def filter_notes(ns,english_only=True,min_length=3):
+    assert type(ns[0]) == Note, "requires Notes not Note Values"
     from content_analysis import q
     from jv3.study.study import GLOBAL_STOP
     stop_owner = [x for x in User.objects.filter(email__in=GLOBAL_STOP)]
@@ -65,7 +67,6 @@ def filter_notes(ns,english_only=True,min_length=3):
             not is_tutorial_note(x.contents) and # not a tutorial
             not is_study1_note_contents(x.contents) # not a study1 note
             ]
-
 
 def random_notes(n=1000,consenting=True,english_only=True,user_filter=is_sigscroll_user):
     from jv3.study.content_analysis import _actlogs_to_values,_notes_to_values,q
@@ -169,7 +170,10 @@ def export_features(fkeys,features,notes=None,filename='/tmp/features.csv'):
     FP = open("%s.pickle"%filename,"w")
     FP.write(pickle.dumps({"features":features,"fkeys":fkeys,"sigscroll_caches":ca_caches(),"notes":notes}))
     FP.close()
+    pass
 
+## this chooses the min and max notes for each FEATURE
+## based on computed features
 def get_extreme_notes(name, key_fn, nfvs, top_N=100, bot_N=100, randomized=True):
     ## takes the top and bottom N
     ## nfvs is dict {notei:{fv_i:val}, notej:{fv_i:val}}
@@ -192,12 +196,14 @@ def get_extreme_notes(name, key_fn, nfvs, top_N=100, bot_N=100, randomized=True)
             chosen_top.append( scores_top[random.randint(0,3*top_N)] )
         except:
             print sys.exc_info()
-        pass
+        chosen_top = list(set(chosen_top)) # get rida dupes
+    
     while len(chosen_bottom) < bot_N:
         try :
             chosen_bottom.append( scores_bottom[random.randint(0,3*bot_N)] )
         except:
             print sys.exc_info()
+        chosen_bottom = list(set(chosen_bottom))             # get rida dupes
         pass
     
     return { "%s_top" % name: [t[0] for t in chosen_top],
