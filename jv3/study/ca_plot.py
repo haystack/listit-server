@@ -44,7 +44,7 @@ def loghist(data,breaks="Scott",auto_nbins_top=50,auto_nbins_skip=1,filename="/v
     kwargs = {"names.arg":[x for x in histout[0]][1:]}
     print kwargs
     print histout[1]
-    r.barplot( c([log(x+1) for x in histout[1]] ),plot=True,main=title,**kwargs) 
+    r.barplot( c([log(x+1)/log(10) for x in histout[1]] ),plot=True,main=title,**kwargs) 
     r('dev.off()')
     return histout
 
