@@ -329,5 +329,37 @@ def get_extreme_notes(name, key_fn, nfvs, top_N=100, bot_N=100, randomized=True)
     return { "%s_top" % name: [t[0] for t in chosen_top],
              "%s_bottom" % name: [ b[0] for b in chosen_bottom] }
 
-# def export_extreme_notes(extreme_dict):
+
+
+
+
+def export_extreme_notes(extreme_dict, note_keys, note_features, filename="/tmp/extreme.csv"):
+
+    ## extreme dict
+    ## { "length_top" : [note,note,note ], "note_length_bottom": [note,note,note] }
+    ## note_keys = nae of other features you want to include in each note being reported
+    ## note_features = feateres you want to include
+
+    import csv
+    from jv3.study.content_analysis import _notes_to_values
+    F = open(filename, 'wb')
+    writer = csv.writer(F, dialect="excel", delimiter=',', quoting=csv.QUOTE_MINIMAL)
+    keys = extreme_dict.keys()
+    keys.sort()    
+    # write headers
+    writer.writerow( ["nid","jid","email","contents"] + note_keys ) ## adds features to 
+    for k in keys:
+        print "writing %s[%d]" % (k,len(extreme_dict[k]))
+        writer.writerow([k])
+        for n in extreme_dict[k]:
+            u = User.objects.filter(id=n["owner"])            
+            row = [n["id"],n["jid"],u[0].email,n["contents"].encode('utf-8','ignore')[:32767]]
+            nf = note_features[n["id"]]
+            for f in fkeys:
+                row.append( nf.get(f) )
+            writer.writerow(row)
+        pass
+    F.close()
+    
+        
     
