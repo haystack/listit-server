@@ -329,5 +329,5 @@ def get_extreme_notes(name, key_fn, nfvs, top_N=100, bot_N=100, randomized=True)
     return { "%s_top" % name: [t[0] for t in chosen_top],
              "%s_bottom" % name: [ b[0] for b in chosen_bottom] }
 
-def export_extreme_notes(extreme_dict):
+# def export_extreme_notes(extreme_dict):
     
