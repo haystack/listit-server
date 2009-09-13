@@ -72,19 +72,22 @@ def note_ss(note,days_ago=None):
         if al["search"] is None:
             continue
         for nv in JSONDecoder().decode(al["search"])["note_visibilities"]:
-            jid = int(nv["id"]) ## this returns the _jid_ not id!
-            nvid = Note.objects.filter(owner=note["owner"],jid=jid)[0].id
-            owner_ss_dur[nvid] = sigscroll_dur(owner_ss_dur.get(nvid,0),nv)
+            try :
+                jid = int(nv["id"]) ## this returns the _jid_ not id!
+                nvid = Note.objects.filter(owner=note["owner"],jid=jid)[0].id
+                owner_ss_dur[nvid] = sigscroll_dur(owner_ss_dur.get(nvid,0),nv)
             ## update the startend
-            if nv.has_key("exitTime") and nv.has_key("entryTime"):
-                ap = owner_startends.get(nvid,[])
-                if nv["entryTime"] == nv["exitTime"]:
-                    ## this is to get around the bug in 0.4.5-7 which results in (start,start) for
-                    ## no-scroll open-close, and search/idle 
-                    ap.append( (nv["entryTime"],long(al["when"])) )
-                else:
-                    ap.append( (nv["entryTime"],nv["exitTime"]) )
-                owner_startends[nvid] = ap                       
+                if nv.has_key("exitTime") and nv.has_key("entryTime"):
+                    ap = owner_startends.get(nvid,[])
+                    if nv["entryTime"] == nv["exitTime"]:
+                        ## this is to get around the bug in 0.4.5-7 which
+                        ## results in (start,start) for no-scroll open-close, and search/idle
+                        ap.append( (nv["entryTime"],long(al["when"])) )
+                    else:
+                        ap.append( (nv["entryTime"],nv["exitTime"]) )
+                    owner_startends[nvid] = ap
+            except:
+                pass
                 
     sigscroll_dur_totals_cache[note["owner"]] = owner_ss_dur
     sigscroll_startend_cache[note["owner"]] = dict( [ (nid,adjacent_filtered(views)) for nid,views in owner_startends.iteritems() ] )

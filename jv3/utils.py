@@ -25,6 +25,7 @@ from os import listdir
 from decimal import Decimal        
 
 current_time_decimal = lambda : int(time.time()*1000);
+days_in_msecs = lambda d :d*24*3600*1000
 
 def logevent(request,action,result=None,info=None,changepasswordrequest=None,registration=None):
     event = ServerLog()

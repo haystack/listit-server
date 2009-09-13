@@ -14,24 +14,33 @@ def is_english(s):
         pass
     return False
 
-def activity_logs_for_note(n,action=None,days_ago=None):
+_activity_log_cache_by_note = {}
+
+def _prime_actlog_cache(notevals):
+    #print [ "_priming : %s -> %s____" % (noteval["id"],noteval["jid"]) for noteval in notevals ]
+    global _activity_log_cache_by_note
     from jv3.study.content_analysis import _actlogs_to_values,_notes_to_values
-    if days_ago is None:
-        if action:
-            alv = _actlogs_to_values(ActivityLog.objects.filter(action=action,noteid=n["jid"],owner=n["owner"]))
-            print ' returning %d ' % len(alv)
-            return alv
-        return _actlogs_to_values(ActivityLog.objects.filter(noteid=n["jid"],owner=n["owner"]))
-    else:
-        today_m
-        sec = current_time_decimal()
-        n_days_ago = today_msec - days_ago*24*60*60*1000
-        if action:
-            print "actlogs starting with %d // %s" % (n_days_ago,repr(datetime.datetime.fromtimestamp(n_days_ago/1000.0)))
-            alv = _actlogs_to_values(ActivityLog.objects.filter(action=action,noteid=n["jid"],owner=n["owner"],when__gt=n_days_ago))
-            print ' returning %d ' % len(alv)
-            return alv
-        return _actlogs_to_values(ActivityLog.objects.filter(noteid=n["jid"],owner=n["owner"],when__gt=n_days_ago))
+    ## convert jid -> id
+    _activity_log_cache_by_note.update( dict([ (n["id"],[]) for n in notevals ]))
+    for av in  _actlogs_to_values(ActivityLog.objects.filter(noteid__in=[n["jid"] for n in notevals])):
+        nid = [n for n in notevals if n["jid"] == av["noteid"]][0]["id"]
+        _activity_log_cache_by_note[nid] = _activity_log_cache_by_note.get( nid , [] ) + [ av ]
+
+
+def activity_logs_for_note(n,action=None,days_ago=None):
+    global _activity_log_cache_by_note
+    if n["id"] not in _activity_log_cache_by_note:
+        _prime_actlog_cache([n])
+    #print _activity_log_cache_by_note
+    return _activity_log_cache_by_note[n["id"]]
+
+# takes a noteval
+def get_note_deletion_time(noteval):
+    logs = [l for l in activity_logs_for_note(noteval) if l["action"] == "note-delete"]
+    ##da = ActivityLog.objects.filter(noteid=noteval["jid"],owner=noteval["owner"],action="note-delete")
+    if len(logs) > 0:
+        return float(logs[0]["when"])
+    return None
 
 def activity_logs_for_user(user,action=None,days_ago=None):
     from jv3.study.content_analysis import _actlogs_to_values,_notes_to_values
@@ -69,27 +78,30 @@ def filter_notes(ns,english_only=True,min_length=3):
             ]
 
 def random_notes(n=1000,consenting=True,english_only=True,user_filter=is_sigscroll_user):
-    from jv3.study.content_analysis import _actlogs_to_values,_notes_to_values,q
+    from jv3.study.content_analysis import _actlogs_to_values,_notes_to_values,_note_instance_to_value
     
     if consenting:
         users = [ u for u in non_stop_consenting_users() if user_filter(u) ]
     else:
         users = [ u for u in non_stop_users() if user_filter(u) ]
         
-    good_ids = [x[0] for x in Note.objects.filter(owner__in=users).values_list("pk","jid","contents") if
-                len(x[2].strip()) > 0 and # note is non blank
-                x[1] >= 0 and # jid is not magic note
-                q(english_only, is_english(x[2]), True) and # english if english only
-                not is_tutorial_note(x[2]) and # not a tutorial                
-                not is_study1_note_contents(x[2]) # not a study1 note
-               ]
-    random.shuffle(good_ids)
-    notes = Note.objects.filter(pk__in=good_ids[:n])
+    notes = filter_notes(Note.objects.filter(owner__in=users))
+    random.shuffle(notes)
+    notes = notes[:n]
     print "returning %d notes " % len(notes)
-    values = [v for v in _notes_to_values(notes)]
+    values = [_note_instance_to_value(v) for v in notes]
     random.shuffle(values)
     return values
 
+def random_fast(n=1000,consenting=True,english_only=True,user_filter=is_sigscroll_user):
+    from jv3.study.content_analysis import _actlogs_to_values,_notes_to_values,_note_instance_to_value
+    notes = [ x for x in Note.objects.all() ]
+    random.shuffle(notes)
+    notes = notes[:n]
+    print "returning %d notes " % len(notes)
+    values = [_note_instance_to_value(v) for v in notes]
+    random.shuffle(values)
+    return values
 
 def load_notes(ids):
     from jv3.study.content_analysis import _notes_to_values    
@@ -172,6 +184,11 @@ def export_features(fkeys,features,notes=None,filename='/tmp/features.csv'):
     FP.close()
     pass
 
+
+#def all_extremes(nk,nfs):
+#    for key in nk:
+#        get_extreme_notes(nk, lambda x :
+    
 ## this chooses the min and max notes for each FEATURE
 ## based on computed features
 def get_extreme_notes(name, key_fn, nfvs, top_N=100, bot_N=100, randomized=True):
@@ -210,7 +227,6 @@ def get_extreme_notes(name, key_fn, nfvs, top_N=100, bot_N=100, randomized=True)
              "%s_bottom" % name: [ b[0] for b in chosen_bottom] }
 
 
-
 def export_extreme_notes(extreme_dict, note_keys, note_features, filename="/tmp/extreme.csv"):
 
     ## extreme dict
@@ -239,5 +255,16 @@ def export_extreme_notes(extreme_dict, note_keys, note_features, filename="/tmp/
         pass
     F.close()
     
-        
+def show_extreme_notes(extreme_dict,note_keys,note_features):
+    for k in extreme_dict.keys():
+        i = 0 ## ith
+        for n in extreme_dict[k]:
+            print "::::::::::::::::::::::::::::::: %s [#%d] %s :::::::::::::::::::::::::::" % (k,i,repr(n["id"]))
+            print n["contents"][:3000]
+            i = i + 1
+
+
+    
+
+                    
     

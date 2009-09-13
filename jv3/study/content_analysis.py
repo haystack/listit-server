@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from jv3.models import Note,ActivityLog,Event
 from nltk.corpus import names,wordnet,stopwords
 from nltk.tokenize import WordTokenizer
-from jv3.utils import current_time_decimal
+from jv3.utils import current_time_decimal,days_in_msecs
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 from jv3.study.study import mean,median
 from rpy2 import robjects as ro
@@ -11,11 +11,16 @@ from ca_datetime import note_date_count
 from ca_util import *
 from ca_sigscroll import *
 from ca_load import *
+from ca_names import *
 import nltk.cluster as cluster
 r = ro.r
 import jv3
 import random,sys,re
 import numpy
+import jv3.study.ca_plot as cap
+
+
+DATABASE_SNAPSHOT_TIME = 1252468800000 # september 9, 2009
 
 # ternary
 c = lambda vv : apply(r.c,vv)
@@ -91,20 +96,32 @@ def notes_to_bow_features(notes, text=lambda x: eliminate_urls(x["contents"]), w
     return (dict( [(nid, to_feature_vec(notewords,lexicon)) for nid,notewords in tokenized_notes.iteritems()] ),lexicon,dictionary)
 
 
-    
-# reconstitute
-recon = lambda n,d : [d[x] for x in n.keys()]
-
-
 ## FEATURE COMPUTERS ##################################################################################
 ## given a note, returns features of that note
 
-note_days_till_deletion = lambda x: {"days_till_deletion": q(x["deleted"],int(float(x["edited"] - x["created"])/(3600*1000.0*24)),-1)}
-note_lifetime = lambda note : {'note_lifetime_s': float((q(note["deleted"],long(note["edited"]),current_time_decimal()) - long(note["created"]))/1000.0)}
+def note_lifetime(note):
+    ndt = get_note_deletion_time(note)
+    if ndt is not None:
+        return {'note_lifetime': ndt - note["created"] }
+    return {'note_lifetime':-1}
+
+def time_since_join(u):
+    return (DATABASE_SNAPSHOT_TIME - apply(min, [x[0] for x in Note.objects.filter(owner=u).values_list("created")] ))/(24*3600*1000)
+
+def time_of_activity(u):
+    createds = [x[0] for x in Note.objects.filter(owner=u).values_list("created")]
+    return (float(apply(max, createds) - apply(min, createds))) /(24.0*3600*1000)
+        
+#note_lifetime = lambda note : {'note_lifetime_s': float((q(note["deleted"],  long(note["edited"] - DATABASE_SNAPSHOT_TIME, -1))/1000.0)}
+#nte_days_till_deletion = lambda x: {"days_till_deletion":  q(x["deleted"],int( (get_note_deletion_time(x) - x["created"])/(3600*1000.0*24) ),-1)}
+
+#note_lifetime = lambda note : {'note_lifetime_s': float((q(note["deleted"],  long(note["edited"] - DATABASE_SNAPSHOT_TIME, -1))/1000.0)}
 note_owner = lambda note: {'note_owner': repr(note["owner"])}
 note_length = lambda x : {'note_length':len(x["contents"])}
-note_words = lambda x : {'note_words':len(nltk.word_tokenize(eliminate_urls(x["contents"])))}
-note_edits = lambda(note) : {'note_edits':len(activity_logs_for_note(note,"note-edit"))}
+#note_words = lambda x : {'note_words':len(nltk.word_tokenize(eliminate_urls(x["contents"])))}
+
+note_words = lambda x : {'note_words':len([ w for w in re.compile('\s').split(x["contents"]) if len(w.strip())>0])} 
+note_edits = lambda(note) : {'note_edits':len(activity_logs_for_note(note,"note-save"))}
 note_did_edit = lambda(note) : {'note_did_edit': note_edits(note) > 0}
 note_deleted = lambda(note) : {'note_deleted': q(note["deleted"],True,False)}
 note_urls = lambda note: {'note_urls': str_n_urls(note["contents"])}
@@ -122,25 +139,25 @@ def note_pos_features(note):
             counts[pos] = counts[pos]+ 1
     return counts
 
-_names = None
-name_stop_list = ["web","page","les","tray"]
-def note_names(note):
-    global _names
-    global name_stop_list
-    if _names is None:
-        _names = list(set([x.lower() for x in names.read() if len(x) > 2 and (x.lower() not in name_stop_list)]))
-    rnames = [ "(^|\W+)%s($|\W+)" % nhit for nhit in [name for name in _names if name in note["contents"]]]
-    if len(rnames) > 0:
-        hits = [(n,count_regex_matches(n,note["contents"])) for n in rnames]
-        print hits
-        hits = {"names": reduce(lambda x,y: x + y, [count_regex_matches(n,note["contents"]) for n in rnames])}
-        return hits
-    return {"names": 0}    
+def average_edit_distance(n):
+    import nltk.metrics.distance as d
+    edits = [ e["noteText"] for e in activity_logs_for_note(n) if e["action"] == "note-save"]  ##//ActivityLog.objects.filter(noteid=n["id"],action="note-edit").order_by("when").values_list("noteText")
+    distances = []
+    if len(edits) > 1:
+        #print "edits: %s " % repr(edits)
+        for i in range(0,len(edits)-1):
+            if edits[i] is None or edits[i+1] is None:
+                continue
+            distances.append( d.edit_distance( edits[i], edits[i+1] ) )
+        if len(distances) > 0:
+            return {"edit_distance":median(distances)}
+    return {'edit_distance':MISSING}
 
 ## now feature compilation stuff
-default_note_feature_fns = [
+
+all_fns = [
     note_lifetime,
-    note_owner,
+    average_edit_distance,
     note_length,
     note_words,
     note_deleted,
@@ -151,7 +168,18 @@ default_note_feature_fns = [
     note_phone_numbers,
     note_date_count,
     note_edits,
-    note_days_till_deletion
+    note_pos_features
+]
+
+default_note_feature_fns = [
+    note_lifetime,
+    note_words,
+    note_urls,
+    note_names,
+    note_emails,
+    note_date_count,
+    note_deleted,
+    note_pos_features
 ]
 
 content_features = [
@@ -178,7 +206,7 @@ def notes_to_features(notes,include_bow_features=True,bow_parameters={},note_fea
         note_fvs = dict( [ (tn["id"],{}) for tn in notes ] )
 
     for n in notes:
-        print "generating %s:%s " % (n["id"],n["contents"])
+        #print "generating %s:%s " % (n["id"],n["contents"])
         [ note_fvs[n["id"]].update( ff(n) ) for ff in note_feature_fns ]
         #for ff in note_feature_fns:
         #    print ff
@@ -199,7 +227,6 @@ def kmeans_note_fvs(keys,nfvs,n=10,metric=cluster.euclidean_distance):
     clusterer = cluster.KMeansClusterer(n, metric)
     clusterer.cluster(vectors, True)
     return clusterer
-
 
 # def context_frame(notes):
 #     features = {
@@ -252,8 +279,6 @@ def feature_hists(keys,fvs):
         except ValueError,ve:
             print sys.exc_info()        
 
-
-
 def var(v):
     ev = mean(v)
     return sum([(x-ev)**2 for x in v ])/(1.0*len(v)-1)
@@ -262,7 +287,7 @@ def f2dt_factors(features,keys=None):
     # compute keys (if we don't have them already)
     ktype = {}
     import sys
-    for row in features:
+    for row in features.values():
         keys = reduce( lambda x,y: x.union(y), [ set([k]) for k in row.keys() ])
         [ ktype.update( { k : type(v) } ) for k,v in row.items() ]
 
@@ -278,6 +303,53 @@ def f2dt_factors(features,keys=None):
 
     return r["data.frame"](r.list(**dtdict))
 
+def f2dt_float(features,keys=None,missing_fillin=0):
+    # one user or a bunch? 
+    # turns a feature vector into an r list,
+    if keys is None:
+        keys = set([])
+        for row in features.values():
+            keys = keys.union(reduce( lambda x,y: x.union(y), [ set([k]) for k in row.keys() ]))
+        
+    dtdict = {} # to become the datatable
+    for k in keys:
+        dtdict[k] = []
+        for row in features:
+            dtdict[k].append( _convert_to_float(row.get(k, missing_fillin)) )
+        dtdict[k] = c(dtdict[k])
+    return (dtdict,r["data.frame"](r.list(**dtdict)))
+
+
+def f2dt_factors_notes(keys, features):
+    # compute keys (if we don't have them already)
+    ktype = {}
+    import sys
+    
+    for row in features.values():
+        [ ktype.update( { k : type(v) } ) for k,v in row.items() ]
+    dtdict = {} # to become the datatable
+    
+    for k in keys:
+        dtdict[k] = []
+        blank_item = q(ktype[k] == str, '<blank>', 0)
+        for row in features.values():
+            dtdict[k].append( row.get(k, blank_item ) )
+        dtdict[k] = q(ktype[k] in [int,float], c(dtdict[k]), r.factor(c(dtdict[k])))
+        print (k,q(ktype[k] in [int,float], 'regular','factor'))
+
+    return (dtdict,r["data.frame"](r.list(**dtdict)))
+
+def f2dt_float_notes(notesfeatures,keys,missing_fillin=0):
+    # one user or a bunch? 
+    # turns a feature vector into an r list,
+    dtdict = {} # to become the datatable
+    for k in keys:
+        dtdict[k] = []
+        for noteid,notefeatures in notesfeatures.iteritems():
+            dtdict[k].append( _convert_to_float(notefeatures.get(k, missing_fillin)) )
+        dtdict[k] = c(dtdict[k])
+    return (dtdict,r["data.frame"](r.list(**dtdict)))
+
 def _convert_to_float(t):
     try:
         return float(t)
@@ -286,15 +358,219 @@ def _convert_to_float(t):
         pass
     return 0.0
 
-def f2dt_float(features,keys=None,missing_fillin=0):
-    # turns a feature vector into an r list, 
-    for row in features:
-        keys = reduce( lambda x,y: x.union(y), [ set([k]) for k in row.keys() ])
-    dtdict = {} # to become the datatable
-    for k in keys:
-        dtdict[k] = []
-        for row in features:
-            dtdict[k].append( _convert_to_float(row.get(k, missing_fillin)) )
-        dtdict[k] = c(dtdict[k])
-    return r["data.frame"](r.list(**dtdict))
+def pairwise_feature_correlation(nk,nfv):
+    ff,ffr = f2dt_float_notes(nfv,nk) ## float features
+    cors = []
+    for k1 in ff.keys():
+        for k2 in ff.keys():
+            eco = r('cor.test')(ff[k1],ff[k2])
+            print "comparing %s to %s : " % (k1,k2)
+            cors.append( (k1,k2,eco[3][0],eco[2][0],eco[1][0],eco[0][0]) )
 
+    return cors
+
+def pairwise_lm(nk,nfv):
+    ## debug!!
+    ff,ffr = f2dt_float_notes(nfv,nk) ## float features
+    cors = []
+    for k1 in ff.keys():
+        for k2 in ff.keys():
+            eco = r('cor.test')(ff[k1],ff[k2])
+            print "comparing %s to %s : " % (k1,k2)
+            ro.globalEnv['x'] = 123
+            ro.globalEnv['y'] = 123
+            lmresult = r('lm(y~x)')
+            lmsummary = r('summary(lm(y~x))')
+            cors.append( (k1,k2,eco[3][0],eco[2][0],eco[1][0],eco[0][0]) )
+
+    return cors
+
+# reconstitute
+recon = lambda n,d : [d[x] for x in n.keys()]
+
+notes_owned = lambda oemail,notevals : [ x for x in notevals if x["owner"].email == oemail ]
+notes_owned_deleted = lambda oemail,notevals : [ x for x in notevals if x["owner"].email == oemail and not x["deleted"] ]
+notes_owned_not_deleted = lambda oemail,notevals : [ x for x in notevals if x["owner"].email == oemail and x["deleted"] ]
+
+## by owner
+
+# "active" users : who have a minimum of 15 non-stop notes (tutorial + 5)
+
+
+def filter_users_for_active(users=None,users_emails=None,threshold=DATABASE_SNAPSHOT_TIME - days_in_msecs(7) ):
+    if users_emails:
+        users = User.objects.filter(email__in=users_emails)
+    actions = ['significant-scroll','notecapture-focus','note-edit','note-save','note-add']
+    active_owners = set( [ x["owner"] for x in ActivityLog.objects.filter( owner__in=users,
+                                                                           action__in=actions, when__gt=threshold).values("owner") ])
+    return list(User.objects.filter(id__in=active_owners))
+    
+
+def get_users_who_kept_more_than_X_percent(notevals,fraction=0.8,min_notes=30):
+    owners_emails = set(list([ n["owner"].email for n in notevals ]))
+    owners_emails = [n.email for n in filter_users_for_active(users_emails=owners_emails)]
+    o2n = [(oe,len(notes_owned(oe,notevals))) for oe in owners_emails]
+    o2n = dict(filter( lambda x: x[1] >= min_notes, o2n ))
+    print "len(owners_emails): %d -> %d " % (len(owners_emails),len(o2n))
+    owners_emails = o2n.keys()
+    return [(o,len(notes_owned(o,notevals)),(1.0*len(notes_owned_deleted(o,notevals))/len(notes_owned(o,notevals))))
+            for o in owners_emails if (1.0*len(notes_owned_not_deleted(o,notevals))/len(notes_owned(o,notevals))) >= fraction]    
+
+def get_users_who_deleted_more_than_X_percent(notevals,fraction=0.8,min_notes=30):
+    owners_emails = set(list([ n["owner"].email for n in notevals ]))
+    owners_emails = [n.email for n in filter_users_for_active(users_emails=owners_emails)]
+    o2n = [(oe,len(notes_owned(oe,notevals))) for oe in owners_emails]
+    o2n = dict(filter( lambda x: x[1] >= min_notes, o2n ))
+    print "len(owners_emails): %d -> %d " % (len(owners_emails),len(o2n))
+    owners_emails = o2n.keys()
+    return [(o,len(notes_owned(o,notevals)),(1.0*len(notes_owned_deleted(o,notevals))/len(notes_owned(o,notevals))))
+            for o in owners_emails if (1.0*len(notes_owned_deleted(o,notevals))/len(notes_owned(o,notevals))) >= fraction]    
+    
+def notes_per_user(notevals,filter_people_less_than_N=16):
+    ## filter_notevals
+    ## measures deleted and non deleted
+    owners_emails = set(list([ n["owner"].email for n in notevals ]))
+    owners_emails = [n.email for n in filter_users_for_active(users_emails=owners_emails)]
+    o2n = [(oe,len(notes_owned(oe,notevals))) for oe in owners_emails]
+    o2n = dict(filter( lambda x: x[1] > filter_people_less_than_N, o2n ))
+    print "len(owners_emails): %d -> %d " % (len(owners_emails),len(o2n))
+    owners_emails = o2n.keys()
+
+    #print [(o,len(notes_owned(o,notevals)),(1.0*len(notes_owned_deleted(o,notevals))/len(notes_owned(o,notevals)))) for o in owners_emails if (1.0*len(notes_owned_deleted(o,notevals))/len(notes_owned(o,notevals))) > 0.8]
+        
+    return {
+        "notes": [len(notes_owned(o,notevals)) for o in owners_emails],
+        "deleted": [len(notes_owned_deleted(o,notevals)) for o in owners_emails],
+        "notdeleted": [len(notes_owned_not_deleted(o,notevals)) for o in owners_emails],
+        "percent_kept": [(1.0*len(notes_owned_not_deleted(o,notevals))/len(notes_owned(o,notevals))) for o in owners_emails],
+        "percent_deleted": [(1.0*len(notes_owned_deleted(o,notevals))/len(notes_owned(o,notevals))) for o in owners_emails]
+     }
+
+def notes_per_user_normalized(notevals,filter_people_less_than_N=16):
+    ## filter_notevals
+    ## measures deleted and non deleted
+    owners_emails = set(list([ n["owner"].email for n in notevals ]))
+    owners = filter_users_for_active(users_emails=owners_emails)
+    owners_emails = [n.email for n in owners]
+    o2n = [(oe,len(notes_owned(oe,notevals))) for oe in owners_emails]
+    o2n = dict(filter( lambda x: x[1] > filter_people_less_than_N, o2n ))
+    owners_emails = o2n.keys()
+
+    #print [(o,len(notes_owned(o,notevals)),(1.0*len(notes_owned_deleted(o,notevals))/len(notes_owned(o,notevals)))) for o in owners_emails if (1.0*len(notes_owned_deleted(o,notevals))/len(notes_owned(o,notevals))) > 0.8]
+    timeactives = dict( [ (oe, time_of_activity(User.objects.filter(email=oe)[0])) for oe in owners_emails ] )
+    return {
+        "notes_normalized": [len(notes_owned(o,notevals))/timeactives[o] for o in owners_emails],
+        "notes": [len(notes_owned(o,notevals)) for o in owners_emails],
+        "deleted": [len(notes_owned_deleted(o,notevals)) for o in owners_emails],
+        "notdeleted": [len(notes_owned_not_deleted(o,notevals)) for o in owners_emails],
+        "percent_kept": [(1.0*len(notes_owned_not_deleted(o,notevals))/len(notes_owned(o,notevals))) for o in owners_emails],
+        "percent_deleted": [(1.0*len(notes_owned_deleted(o,notevals))/len(notes_owned(o,notevals))) for o in owners_emails]
+     }
+
+
+
+# 
+def hist_notes_per_user(npu=None,breaks=[0,20,30,40,50,60,70,80,90,100,150,200,500],notevals=None):
+    print "NUMBER OF OWNERS: %d " % len(npu["notes"])
+
+    total = len(npu["notes"])
+    print total
+    if not npu:
+        npu = notes_per_user(notevals)
+
+    print "%%%%%%%%%%%%%%"
+    print npu["percent_kept"]
+    print "%%%%%%%%%%%%%%"
+
+    cap.hist2(npu["notes"],breaks=breaks,filename="/var/www/listit-study/n.png",
+              xlab="# notes",
+              title="Number of notes created by users",
+              ylab="Users (out of %d)" % total,              
+              ylim=r.c(0,total))
+    
+    cap.hist2(npu["deleted"],breaks=breaks,filename="/var/www/listit-study/n-deleted.png",
+              xlab="# deleted",
+              title="Number of notes deleted",
+              ylab="Users (out of %d)" % total,              
+              ylim=r.c(0,total))
+    
+    cap.hist2(npu["notdeleted"],breaks=breaks,filename="/var/www/listit-study/n-not-deleted.png",
+              xlab="Number of notes kept",
+              title="Number of notes kept",
+              ylab="Users (out of %d)" % total,              
+              ylim=r.c(0,total))
+    
+    cap.hist2(npu["percent_kept"],
+              breaks=[0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],filename="/var/www/listit-study/n-percentage-kept.png",
+              xlab="% kept",
+              title="Percentage of notes kept",
+              ylab="Users (out of %d)" % total,              
+              ylim=r.c(0,total))
+    
+    cap.hist2(npu["percent_deleted"],
+              breaks=[0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],filename="/var/www/listit-study/n-percentage-deleted.png",
+              xlab="% deleted",
+              title="Percentage of notes deleted",
+              ylab="Users (out of %d)" % total,              
+              ylim=r.c(0,total))
+    
+def hist_number_of_words(nfvs):
+    total = len(nfvs)
+    nwords = [x['note_words'] for x in nfvs.values() ]
+    stats = s(nwords)
+    cap.hist2( nwords,
+              breaks=[0,1,5,10,20,30,40,50,100,200,500,1000,2000,5000,10000],
+              filename="/var/www/listit-study/n-words.png",
+              xlab="number of words",
+              title="words per note [df:%d] (min:0, max:%g, mean:%g, median:%g, var:%g)" % (total-1,stats[1],stats[2],stats[3],stats[4]),
+              ylab="Notes (out of %d)" % total  )
+    cap.loghist( nwords,
+              breaks=[0,1,5,10,20,30,40,50,100,200,500,1000,2000,5000,10000],
+              filename="/var/www/listit-study/n-logwords.png",
+              xlab="number of words",
+              title="words per note [df:%d] (min:0, max:%g, mean:%g, median:%g, var:%g)" % (total-1,stats[1],stats[2],stats[3],stats[4]),
+              ylab="Notes (out of %d)" % total  )
+
+    
+#def feature_by_owner(notevals,feature_name):
+#    owners = list(set([n["owner"] for n in notevals]))
+#    for o in owners:
+
+
+def hist_edit_distance(nfs):
+    total = len(nfs)
+    ndist = [n["edit_distance"] for n in nfs.values()]
+    stats = s(ndist)
+    cap.loghist( ndist,
+              breaks=[0,1,5,10,20,30,40,50,100,200,500,1000,10000],
+              filename="/var/www/listit-study/edit-distances.png",
+              xlab="edit distance (chars)",
+              title="edit distance[%d] (min:0, max:%g, mean:%g, median:%g, var:%g)" % (total-1,stats[1],stats[2],stats[3],stats[4]),
+              ylab="edits (out of %d)" % total  )
+    
+    
+def hist_edits(nfs):
+    total = len(nfs)
+    ndist = [n["note_edits"] for n in nfs.values()]
+    stats = s(ndist)
+    cap.hist2( ndist,
+              breaks=[0,1,5,10,20,30,40,50,100,200,500,1000,10000],
+              filename="/var/www/listit-study/n-edits.png",
+              xlab="# of edits per note",
+              title="note edits[%d] (min:0, max:%g, mean:%g, median:%g, var:%g)" % (total-1,stats[1],stats[2],stats[3],stats[4]),
+              ylab="notes (out of %d)" % total  )    
+    
+def show_notes(ns,nfs,ncfilter=all_pass,nffilter=all_pass):
+    wins = []
+    for n in ns:
+        nf = nfs[n["id"]]
+        if ncfilter(n) and nffilter(nf):
+            wins.append(n)
+               
+    for n in wins:
+        print """============================================================"""
+        print n["contents"]
+
+            
+        
+    
