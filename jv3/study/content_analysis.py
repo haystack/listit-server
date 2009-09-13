@@ -172,6 +172,7 @@ all_fns = [
 ]
 
 default_note_feature_fns = [
+    note_phone_numbers,    
     note_lifetime,
     note_words,
     note_urls,
@@ -560,16 +561,26 @@ def hist_edits(nfs):
               title="note edits[%d] (min:0, max:%g, mean:%g, median:%g, var:%g)" % (total-1,stats[1],stats[2],stats[3],stats[4]),
               ylab="notes (out of %d)" % total  )    
     
-def show_notes(ns,nfs,ncfilter=all_pass,nffilter=all_pass):
+def show_notes(ns,nfs,ncfilter=all_pass,nffilter=all_pass,filename=None):
     wins = []
     for n in ns:
         nf = nfs[n["id"]]
         if ncfilter(n) and nffilter(nf):
             wins.append(n)
-               
+
+    f = None
+    if filename:  f=open(filename,'a')
+            
     for n in wins:
         print """============================================================"""
         print n["contents"]
+        if f: f.writelines(["""\n============================================================\n""" , n["contents"]])
+        
+    if f:f.close()
+        
+
+
+        
 
             
         
