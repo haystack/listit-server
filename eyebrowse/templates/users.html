@@ -163,7 +163,6 @@
         <div class="viewboxlarge" id="list">
 		  <ul>
 			{% for user in users %}
-			{% if user.latest_view %}
 			<li>
 			  <div style="display:inline-block;width:87px;">
 				{% if user.photo %}
@@ -214,7 +213,6 @@
 				</div>
 			  </div>
 			</li>
-			{% endif %}
 			{% endfor %}
 		  </ul>
         </div>
