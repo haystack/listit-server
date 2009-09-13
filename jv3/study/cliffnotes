@@ -60,13 +60,6 @@ x,y = ca.notes_to_features(renotes,False)
 # then "cols" will contain the actual spreadsheet; if you want only the BRENN REF VALUES:
 [ [n for n in renotes if n["id"] == int(row[0])][0] for row in cols if row[6] == '1' ]
 
-
-
-
-
-
-
-
 ## NOTEWISE revisitation curves
 ## consenting users 
 u2 = [ u for u in User.objects.all() if is_consenting_study2(u)]
@@ -81,3 +74,12 @@ nfk,nf = ca.notes_to_features(ns,False)
 ca.feature_hists(nfk,nf)
 
 cass.select_dudes_to_revisit(ns)
+
+
+## show notes:
+
+## eyeballing individual features
+ns = cal.random_notes(10000)
+cal._prime_actlog_cache(ns)
+nfk,nf = ca.notes_to_features(ns,False)
+ca.show_notes(ns,nf,nffilter=lambda nf: nf["note_words"] == 1) ## ncfilter= some fn of note properties
