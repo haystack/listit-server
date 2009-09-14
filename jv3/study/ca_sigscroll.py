@@ -74,7 +74,7 @@ def note_ss(note,days_ago=None):
         for nv in JSONDecoder().decode(al["search"])["note_visibilities"]:
             try :
                 jid = int(nv["id"]) ## this returns the _jid_ not id!
-                nvid = Note.objects.filter(owner=note["owner"],jid=jid)[0].id
+                nvid = jid2nidforuser(al["owner"],jid)        # nvid = Note.objects.filter(owner=note["owner"],jid=jid)[0].id
                 owner_ss_dur[nvid] = sigscroll_dur(owner_ss_dur.get(nvid,0),nv)
             ## update the startend
                 if nv.has_key("exitTime") and nv.has_key("entryTime"):
@@ -95,6 +95,64 @@ def note_ss(note,days_ago=None):
     ## now compute the desired things    
     return {'sigscroll_counts': len(sigscroll_startend_cache[note["owner"]].get(note["id"],[])),
             'sigscroll_duration': sigscroll_dur_totals_cache[note["owner"]].get(note["id"],0) }
+
+__flat_sigscroll_startend_cache = {}
+def flat_note_ss_filter(note, filter_for_top=True):
+    from jv3.study.content_analysis import activity_logs_for_user
+    global __sigscroll_startend_cache_flat
+    SSCF = __sigscroll_startend_cache_flat
+
+    viewdur = lambda send : send[1]-send[0]
+    
+    if note["id"] in SSCF :
+        return {'sigscroll_counts': len(SSCF.get(note["id"],[])),
+                'sigscroll_duration': reduce(lambda x,y: dur(x)+dur(y),SSCF.get(note["id"],[]))}
+
+    alogs = activity_logs_for_user(note["owner"],None,days_ago)
+
+    next_is_top = True
+    toplist_jids = [] # things to block
+    
+    for al_i in range(alogs.count()):
+        al = alogs[al_i]
+        if al["action"] == 'sidebar-open':
+            next_is_top = True
+            continue
+        if not al["action"] == "significant-scroll":
+            continue
+        
+        if next_is_top:
+            toplist_jids = [nv["id"] for in JSONDecoder().decode(al["search"])["note_visibilities"]]
+            
+        next_is_top = False        
+        
+        if al["search"] is None:
+            continue
+        for nv in JSONDecoder().decode(al["search"])["note_visibilities"]:
+            try :
+                jid = int(nv["id"]) ## this returns the _jid_ not id!
+                nid = jid2nidforuser(al["owner"],jid)  ## convert to NID (guaranteed unique)
+                owner_ss_dur[nid] = sigscroll_dur(owner_ss_dur.get(nid,0),nv)
+            ## update the startend
+                if nv.has_key("exitTime") and nv.has_key("entryTime"):
+                    ap = owner_startends.get(nid,[])
+                    if nv["entryTime"] == nv["exitTime"]:
+                        ## this is to get around the bug in 0.4.5-7 which
+                        ## results in (start,start) for no-scroll open-close, and search/idle
+                        ap.append( (nv["entryTime"],long(al["when"])) )
+                    else:
+                        ap.append( (nv["entryTime"],nv["exitTime"]) )
+                    owner_startends[nid] = ap
+            except:
+                pass
+                
+    sigscroll_dur_totals_cache[note["owner"]] = owner_ss_dur
+    sigscroll_startend_cache[note["owner"]] = dict( [ (nid,adjacent_filtered(views)) for nid,views in owner_startends.iteritems() ] )
+
+    ## now compute the desired things    
+    return {'sigscroll_counts': len(sigscroll_startend_cache[note["owner"]].get(note["id"],[])),
+            'sigscroll_duration': sigscroll_dur_totals_cache[note["owner"]].get(note["id"],0) }
+
 
 def count_dur_per_note_per_user(durs=sigscroll_dur_totals_cache):
     return [ (owner,[ dur for note,dur in durs[owner].iteritems()]) for owner in durs.keys() ]

@@ -35,13 +35,26 @@ def activity_logs_for_note(n,action=None,days_ago=None):
     return _activity_log_cache_by_note[n["id"]]
 
 # takes a noteval
-def get_note_deletion_time(noteval):
-    logs = [l for l in activity_logs_for_note(noteval) if l["action"] == "note-delete"]
-    ##da = ActivityLog.objects.filter(noteid=noteval["jid"],owner=noteval["owner"],action="note-delete")
-    if len(logs) > 0:
-        return float(logs[0]["when"])
-    return None
+# def get_note_deletion_time(noteval):
+#     logs = [l for l in activity_logs_for_note(noteval) if l["action"] == "note-delete"]
+#     ##da = ActivityLog.objects.filter(noteid=noteval["jid"],owner=noteval["owner"],action="note-delete")
+#     if len(logs) > 0:
+#         return float(logs[0]["when"])
+#     return None
 
+__ndtime = None
+def get_note_deletion_time(n):
+    global __ndtime
+    if __ndtime is None or __nnidjid is None:
+        print "update"
+        __ndtime = {}
+        for al in ActivityLog.objects.filter(action="note-delete").values("when","noteid","owner"):
+            hh = __ndtime.get(al["owner"],{})
+            hh.update( { al["noteid"]: long(al["when"]) } )
+            __ndtime[al["owner"]] = hh
+
+    return __ndtime.get( n["owner"], {}).get( n["jid"] , -1 )
+        
 def activity_logs_for_user(user,action=None,days_ago=None):
     from jv3.study.content_analysis import _actlogs_to_values,_notes_to_values
     if days_ago is None:
@@ -55,7 +68,15 @@ def activity_logs_for_user(user,action=None,days_ago=None):
         print "starting with %d // %s" % (n_days_ago,repr(datetime.datetime.fromtimestamp(n_days_ago/1000.0)))
         if action:
             return _actlogs_to_values(ActivityLog.objects.filter(action=action,owner=user,when__gt=n_days_ago))
-        return _actlogs_to_values(ActivityLog.objects.filter(owner=user,when__gt=n_days_ago))        
+        return _actlogs_to_values(ActivityLog.objects.filter(owner=user,when__gt=n_days_ago))
+
+__jidnidmap = None
+def jid2nidforuser(usr,jid):
+    if usr not in _jidnidmap:
+        map = {}
+        map.update( dict( [(n["id"],n["jid"]) for n in Note.objects.filter(owner=usr).values("id"."jid") ] ) )
+        __jidnidmap[usr] = map
+    return __jidnidmap[usr].get(jid,None)
 
 all_pass = lambda x: True
 

@@ -101,8 +101,8 @@ def notes_to_bow_features(notes, text=lambda x: eliminate_urls(x["contents"]), w
 
 def note_lifetime(note):
     ndt = get_note_deletion_time(note)
-    if ndt is not None:
-        return {'note_lifetime': ndt - note["created"] }
+    if ndt is not None and ndt > 0:
+        return {'note_lifetime': ( (1.0*ndt - note["created"])/(3600*1000) ) }
     return {'note_lifetime':-1}
 
 def time_since_join(u):
@@ -120,13 +120,16 @@ note_owner = lambda note: {'note_owner': repr(note["owner"])}
 note_length = lambda x : {'note_length':len(x["contents"])}
 #note_words = lambda x : {'note_words':len(nltk.word_tokenize(eliminate_urls(x["contents"])))}
 
-note_words = lambda x : {'note_words':len([ w for w in re.compile('\s').split(x["contents"]) if len(w.strip())>0])} 
+note_words = lambda x : {'note_words':len([ w for w in re.compile('\s').split(x["contents"]) if len(w.strip())>0])}
+note_words_sans_urls = lambda x : {'note_words_sans_urls':note_words(x)['note_words']-note_urls(x)['note_urls']}
 note_edits = lambda(note) : {'note_edits':len(activity_logs_for_note(note,"note-save"))}
 note_did_edit = lambda(note) : {'note_did_edit': note_edits(note) > 0}
 note_deleted = lambda(note) : {'note_deleted': q(note["deleted"],True,False)}
 note_urls = lambda note: {'note_urls': str_n_urls(note["contents"])}
 note_phone_numbers = lambda x: {'phone_nums':count_regex_matches("(^|\s+)([0-9]( |-)?)?(\(?[0-9]{3}\)?|[0-9]{3})( |-)?([0-9]{3}( |-)?[0-9]{4}|[a-zA-Z0-9]{7})($|\s+)",x["contents"])}
 note_emails = lambda note: {'email_addrs':str_n_emails(note["contents"])}
+numbers = lambda note: {'numbers':count_regex_matches("(^|\s+)(\d+)($|s)",note["contents"])}
+nonword_mix = lambda note: {'numword_mix':count_regex_matches("(^|\s+)(.*\d.*)($|s)",note["contents"])}
 
 ## addresses?
 ## dates/times
@@ -155,6 +158,9 @@ def average_edit_distance(n):
 
 ## now feature compilation stuff
 
+punkt =  nltk.tokenize.PunktSentenceTokenizer()
+note_sentences = lambda n : { "note_sentences" : len(punkt.tokenize(n["contents"])) }
+
 all_fns = [
     note_lifetime,
     average_edit_distance,
@@ -168,19 +174,22 @@ all_fns = [
     note_phone_numbers,
     note_date_count,
     note_edits,
-    note_pos_features
+    note_pos_features,
+    note_sentences
 ]
 
 default_note_feature_fns = [
     note_phone_numbers,    
     note_lifetime,
+    note_edits,    
     note_words,
     note_urls,
     note_names,
     note_emails,
     note_date_count,
     note_deleted,
-    note_pos_features
+    note_pos_features,
+    note_sentences
 ]
 
 content_features = [
@@ -192,7 +201,7 @@ content_features = [
     note_pos_features
 ]                                                          
 
-def notes_to_features(notes,include_bow_features=True,bow_parameters={},note_feature_fns=default_note_feature_fns):
+def notes_to_features(notes,include_bow_features=False,bow_parameters={},note_feature_fns=default_note_feature_fns):
     # generates feature vectors like this:
     # [ "notepkid": { "f1" : 12398 , "f2" : 102938, ... } ... ]
     lexicon = None
@@ -486,34 +495,35 @@ def hist_notes_per_user(npu=None,breaks=[0,20,30,40,50,60,70,80,90,100,150,200,5
     cap.hist2(npu["notes"],breaks=breaks,filename="/var/www/listit-study/n.png",
               xlab="# notes",
               title="Number of notes created by users",
-              ylab="Users (out of %d)" % total,              
-              ylim=r.c(0,total))
+              ylab="Users (out of %d)" % total)              
+#              ylim=r.c(0,total))
     
     cap.hist2(npu["deleted"],breaks=breaks,filename="/var/www/listit-study/n-deleted.png",
               xlab="# deleted",
               title="Number of notes deleted",
-              ylab="Users (out of %d)" % total,              
-              ylim=r.c(0,total))
+              ylab="Users (out of %d)" % total)
+#              ylim=r.c(0,total))
     
     cap.hist2(npu["notdeleted"],breaks=breaks,filename="/var/www/listit-study/n-not-deleted.png",
               xlab="Number of notes kept",
               title="Number of notes kept",
-              ylab="Users (out of %d)" % total,              
-              ylim=r.c(0,total))
+              ylab="Users (out of %d)" % total)
+#              ylim=r.c(0,total))
     
     cap.hist2(npu["percent_kept"],
               breaks=[0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],filename="/var/www/listit-study/n-percentage-kept.png",
               xlab="% kept",
               title="Percentage of notes kept",
-              ylab="Users (out of %d)" % total,              
-              ylim=r.c(0,total))
+              ylab="Users (out of %d)" % total)              
+#              ylim=r.c(0,total))
     
     cap.hist2(npu["percent_deleted"],
               breaks=[0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],filename="/var/www/listit-study/n-percentage-deleted.png",
+              breaklabels=["0-10%","10-20%","20-30%","30-40%","40-50%","50-60%","60-70%","70-80%","80-90%","90-100%"],
               xlab="% deleted",
               title="Percentage of notes deleted",
-              ylab="Users (out of %d)" % total,              
-              ylim=r.c(0,total))
+              ylab="Users (out of %d)" % total)              
+#              ylim=r.c(0,total))
     
 def hist_number_of_words(nfvs):
     total = len(nfvs)
@@ -579,6 +589,16 @@ def show_notes(ns,nfs,ncfilter=all_pass,nffilter=all_pass,filename=None):
     if f:f.close()
         
 
+## NOTE FEATURE UTILITIES
+   
+def subset_test(notevals,nf,nctest=all_pass,nftest=all_pass):
+    test_pass = [ n for n in notevals if nctest(n) and nftest(nf[n["id"]]) ]
+    pass_ids = [ n["id"] for n in test_pass ]
+    return (test_pass,
+            dict([ (nid,nf) for (nid,nf) in nf.items() if nid in pass_ids ]))
+
+def subset_values(notevals,nf,key,nctest=all_pass,nftest=all_pass):
+    return [nf[key] for nid,nf in subset_test(notevals,nf,nctest,nftest)[1].iteritems()]
 
         
 

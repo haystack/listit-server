@@ -70,11 +70,11 @@ def loghist(data,breaks="Scott",auto_nbins_top=50,auto_nbins_skip=1,
     return histout
 
 
-def scatter(data,filename="/var/www/scatter.out.png",title="histogram of something",xlabel="x",ylabel="y",width=1280,height=1024):
+def scatter(data,filename="/var/www/scatter.out.png",title="histogram of something",xlabel="x",ylabel="y",width=1280,height=1024,**kwargs):
     ## data should be [ (x,y) .. ]
     # example: cap.scatter( [(n['jid'],n['deleted']) for n in renotes[0]],title="deleted versus not deleted", xlabel="not deleted/deleted", ylabel="# of notes (out of 2500)")
     r.png(file=filename,width=width,height=height)
-    out = r.plot(c([float(d[0]) for d in data]),c([float(d[1]) for d in data]),main=title,xlab=xlabel,ylab=ylabel)
+    out = r.plot(c([float(d[0]) for d in data]),c([float(d[1]) for d in data]),main=title,xlab=xlabel,ylab=ylabel,**kwargs)
     r('dev.off()')
     return out
 
