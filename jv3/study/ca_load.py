@@ -70,11 +70,14 @@ def activity_logs_for_user(user,action=None,days_ago=None):
             return _actlogs_to_values(ActivityLog.objects.filter(action=action,owner=user,when__gt=n_days_ago))
         return _actlogs_to_values(ActivityLog.objects.filter(owner=user,when__gt=n_days_ago))
 
-__jidnidmap = None
+__jidnidmap = {}
 def jid2nidforuser(usr,jid):
-    if usr not in _jidnidmap:
+    global __jidnidmap
+    if type(usr) == User:
+        usr = usr.id
+    if usr not in __jidnidmap:
         map = {}
-        map.update( dict( [(n["id"],n["jid"]) for n in Note.objects.filter(owner=usr).values("id"."jid") ] ) )
+        map.update(dict( [(n["jid"],n["id"]) for n in Note.objects.filter(owner=usr).values("jid","id")]))
         __jidnidmap[usr] = map
     return __jidnidmap[usr].get(jid,None)
 

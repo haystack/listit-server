@@ -42,7 +42,7 @@ _notes_to_values = lambda note: note.values('id','owner','contents',"jid","creat
 _note_instance_to_value = lambda note: {'id':note.id, 'owner':note.owner, 'contents': note.contents,
                                           'jid':note.jid, 'created':long(note.created), 'deleted':note.deleted,
                                           'edited':long(note.edited)}
-_actlogs_to_values = lambda actlog: actlog.values("id","action","owner","when","client","noteid","search","noteText")
+_actlogs_to_values = lambda actlog: [x for x in actlog.values("id","action","owner","when","client","noteid","search","noteText")]
 
 eliminate_regexp = lambda regexp,s: "".join(re.compile(regexp).split(s))
 eliminate_urls = lambda s: eliminate_regexp("https?://[^\s]*",s)
