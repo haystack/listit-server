@@ -34,6 +34,13 @@ def activity_logs_for_note(n,action=None,days_ago=None):
     #print _activity_log_cache_by_note
     return _activity_log_cache_by_note[n["id"]]
 
+def activity_logs_for_notes(ns,action=None):
+    global _activity_log_cache_by_note
+    toprime = []
+    [ toprime.append( n ) for n in ns if n["id"] not in _activity_log_cache_by_note ]    
+    _prime_actlog_cache(toprime)
+    return dict([(n["id"],_activity_log_cache_by_note[n["id"]]) for n in ns])
+
 # takes a noteval
 # def get_note_deletion_time(noteval):
 #     logs = [l for l in activity_logs_for_note(noteval) if l["action"] == "note-delete"]
@@ -60,8 +67,8 @@ def activity_logs_for_user(user,action=None,days_ago=None):
     if days_ago is None:
         #print "days ago is none"
         if action:
-            return _actlogs_to_values(ActivityLog.objects.filter(action=action,owner=user))
-        return _actlogs_to_values(ActivityLog.objects.filter(owner=user))
+            return _actlogs_to_values(ActivityLog.objects.filter(action=action,owner=user).order_by("when"))
+        return _actlogs_to_values(ActivityLog.objects.filter(owner=user).order_by("when"))
     else:
         today_msec = current_time_decimal()
         n_days_ago = today_msec - days_ago*24*60*60*1000
@@ -149,23 +156,31 @@ def _coerce_to_ints(ns):
         
 def import_notes_csv(filename="/tmp/notes.csv", load_text_col=True):
     from jv3.study.content_analysis import _notes_to_values
+    import sys
     f = open(filename,'r')
     reader = csv.reader(f, dialect="excel", delimiter=',', quoting=csv.QUOTE_MINIMAL)
+    fails = 0
     nids = [];
     rows = []
     ntext = {}
     for row in reader:
         rows.append(row)
         if row[0] == 'nid' or len(row[0]) == 0:  continue
-        nids.append(int(row[0])) ## load notes and text
-        ntext[int(row[0])]=row[3] ## store text
+        try:
+            nid = int(row[0])
+            nids.append(nid) ## load notes and text
+            ntext[nid]=row[3] ## store text
+        except:
+            print sys.exc_info();
+            fails = fails+1        
     #nids = _coerce_to_ints(nids)
     ns = load_notes(nids)
     ## replace txt with contents
     if load_text_col:
         # replaces currnet note image from the db with what was in the spreadsheet
         # so if the note changed post export, then we'll be ok
-        [ n.update({"contents":ntext[n["id"]]}) for n in ns ] 
+        [ n.update({"contents":ntext[n["id"]]}) for n in ns ]
+    print "FAILS: %d " % fails
     return (ns,rows)
 
 def export_notes_csv(notes,filename="/tmp/notes.csv"):

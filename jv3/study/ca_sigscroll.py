@@ -75,12 +75,14 @@ def note_ss(note,filter_top=True):
     alogs = activity_logs_for_user(note["owner"],None)
     
     if len(alogs) == 0:
+        ## means we have no activitylogs for that user
         from jv3.study.content_analysis import _notes_to_features
         SSCF.update( [ (n["id"],[]) for n in [_notes_to_values(x) for x in Note.objects.filter(owner=n["owner"])] ] )
         return
     
     next_is_top = True    
-    toplist_jids = [] # things to block    
+    toplist_jids = [] # things to block
+    alogs.sort(key=lambda x: x["when"])
     for al_i in range(len(alogs)):
         al = alogs[al_i]        
         if al["action"] == 'sidebar-open':
@@ -92,7 +94,8 @@ def note_ss(note,filter_top=True):
             print "skipping"
             continue        
         if next_is_top:
-            toplist_jids = [nv["id"] for nv in JSONDecoder().decode(al["search"])["note_visibilities"]]
+            toplist_jids = [long(nv["id"]) for nv in JSONDecoder().decode(al["search"])["note_visibilities"]]
+            ##print "TOPLIST :: %s " % repr(toplist_jids)
             next_is_top = False            
         new_dudes = []        
 
@@ -100,7 +103,9 @@ def note_ss(note,filter_top=True):
             try :
                 jid = int(nv["id"]) ## this returns the _jid_ not id!
                 ## omit nots that are at the top of the list
-                if filter_top and jid in toplist_jids: continue                
+                if filter_top and jid in toplist_jids:
+                    #print "!!!!!!!! SKIPPING top %s " % repr(jid)
+                    continue                
                 nid = jid2nidforuser(al["owner"],jid)  ## convert to NID (guaranteed unique)
                 new_dudes.append( nid )
                 if nv.has_key("exitTime") and nv.has_key("entryTime"):

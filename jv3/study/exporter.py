@@ -82,6 +82,7 @@ def str_average_word_length(s):
         return reduce(lambda x,y: x+y, [len(l) for l in words])/(1.0*len(words))
     return 0
 
+user_joindate = lambda user: long(jv3.utils.get_newest_registration_for_user_by_email(user.email).when)
 ## note statistics (that use string stats above)
 note_guid = lambda note: note.id
 note_jid = lambda note: note.jid

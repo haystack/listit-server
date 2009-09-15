@@ -413,8 +413,7 @@ def filter_users_for_active(users=None,users_emails=None,threshold=DATABASE_SNAP
     actions = ['significant-scroll','notecapture-focus','note-edit','note-save','note-add']
     active_owners = set( [ x["owner"] for x in ActivityLog.objects.filter( owner__in=users,
                                                                            action__in=actions, when__gt=threshold).values("owner") ])
-    return list(User.objects.filter(id__in=active_owners))
-    
+    return list(User.objects.filter(id__in=active_owners))    
 
 def get_users_who_kept_more_than_X_percent(notevals,fraction=0.8,min_notes=30):
     owners_emails = set(list([ n["owner"].email for n in notevals ]))
