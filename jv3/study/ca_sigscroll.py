@@ -43,7 +43,11 @@ def adjacent_filtered(views):
     result.append(cur)
     return result
 
-
+def get_ss_revisitations_for(n):
+    if n["id"] not in __sigscroll_startend_cache_flat:
+        note_ss(n)
+    return __sigscroll_startend_cache_flat[n["id"]]
+    
 __sigscroll_startend_cache_flat = {}
 def note_ss(note,filter_top=True):
     from jv3.study.content_analysis import activity_logs_for_user
@@ -66,12 +70,19 @@ def note_ss(note,filter_top=True):
         return -1
     
     if note["id"] in SSCF :  return {'sigscroll_counts': len(SSCF.get(note["id"],[])),           'sigscroll_duration': compute_duration(note) }
+
+    ## populate for this uer
     alogs = activity_logs_for_user(note["owner"],None)
+    
+    if len(alogs) == 0:
+        from jv3.study.content_analysis import _notes_to_features
+        SSCF.update( [ (n["id"],[]) for n in [_notes_to_values(x) for x in Note.objects.filter(owner=n["owner"])] ] )
+        return
+    
     next_is_top = True    
     toplist_jids = [] # things to block    
     for al_i in range(len(alogs)):
-        al = alogs[al_i]
-        
+        al = alogs[al_i]        
         if al["action"] == 'sidebar-open':
             next_is_top = True
             continue
@@ -79,12 +90,10 @@ def note_ss(note,filter_top=True):
             continue
         if al["search"] is None: 
             print "skipping"
-            continue
-        
+            continue        
         if next_is_top:
             toplist_jids = [nv["id"] for nv in JSONDecoder().decode(al["search"])["note_visibilities"]]
-            next_is_top = False
-            
+            next_is_top = False            
         new_dudes = []        
 
         for nv in JSONDecoder().decode(al["search"])["note_visibilities"]:
