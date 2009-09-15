@@ -10,6 +10,7 @@ import jv3.study.ca_datetime as cadt
 import jv3.study.ca_sigscroll as cass
 import jv3.study.ca_load as cal
 import jv3.study.ca_plot as cap
+import jv3.study.ca_search as cas
 import rpy2
 import rpy2.robjects as ro
 from jv3.study.study import *
@@ -86,3 +87,14 @@ ca.show_notes(ns,nf,nffilter=lambda nf: nf["note_words"] == 1) ## ncfilter= some
 
 # verbs only
 ca.show_notes(ns,nf,nffilter=lambda nf: nf["VBN"] == 0 and nf["VBN"] == 0 and nf["VBZ"] == 0 and nf["VBG"] == 0 and nf["VBD"] == 0 and nf["VBN"] == 0 and nf["VBP"] == 0 and nf["VB"] == 0)
+
+
+ns = cal.random_notes(10)
+for n in ns:
+   cas.user_search(n["owner"])
+
+sc = cas.search_cache
+qc = cas.search_query_cache
+
+aq = cas.get_searches(notes)
+1.0 * len([q for q in aq if len(q.split())>1]) / ( len(aq) - len([q for q in aq if len(q.split())<1]) )
