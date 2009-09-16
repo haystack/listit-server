@@ -371,7 +371,7 @@ def users(request):
                 "followed_by": is_followed_by
                 })
 
-    friends_results.sort(key=lambda x: x["username"])
+    friends_results.sort(key=lambda x: x["username"].lower())
 
     variables = RequestContext(request, {
         'users': friends_results,
@@ -1438,7 +1438,7 @@ def get_to_from_url(request, n):
     # added this to check if url exists in the logs
     if  len(PageView.objects.filter(url=url)) < 1:
         # fail silently 
-        return {'pre':"", 'next':"", 'pre_titles': "" , 'next_titles' : "" }
+        return json_response({ "code":200, "results": {'pre':"", 'next':"", 'pre_titles': "" , 'next_titles' : "" } })
     n = int(n)
 
     @cache.region('to_from_url')
