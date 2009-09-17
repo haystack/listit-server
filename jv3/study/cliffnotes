@@ -89,12 +89,87 @@ ca.show_notes(ns,nf,nffilter=lambda nf: nf["note_words"] == 1) ## ncfilter= some
 ca.show_notes(ns,nf,nffilter=lambda nf: nf["VBN"] == 0 and nf["VBN"] == 0 and nf["VBZ"] == 0 and nf["VBG"] == 0 and nf["VBD"] == 0 and nf["VBN"] == 0 and nf["VBP"] == 0 and nf["VB"] == 0)
 
 
-ns = cal.random_notes(10)
-for n in ns:
+notes = cal.random_notes(2500)
+
+for n in notes:
    cas.user_search(n["owner"])
 
 sc = cas.search_cache
 qc = cas.search_query_cache
 
-aq = cas.get_searches(notes)
+# old code to get % >1 word
 1.0 * len([q for q in aq if len(q.split())>1]) / ( len(aq) - len([q for q in aq if len(q.split())<1]) )
+
+
+uc = [ u for u in User.objects.all() if is_consenting_study2(u)]
+
+cas.get_searches(uc)
+
+wps = cas.words_per_search()
+
+percent_searches_1_word = 1.0 * len([x for x in wps if x == 1]) / len(wps)
+
+# filter eliminates that one outlier that messes up the whole graph
+cap.hist([n for n in wps if n < 20],breaks=range(1,20),filename="/var/www/listit-study/words_per_search.png",title="words per search")
+
+tr = cas.times_repeated()
+
+trc = []
+for user in tr:
+  for q in tr[user]:
+    trc.append(tr[user][q])
+
+same_area = []
+for num in trc:
+  same_area.extend([num]*num)
+
+1.0 * [x for x in same_area if x == 1] / len(same_area)
+
+cap.hist(trc,breaks=range(0,33),filename="/var/www/listit-study/times_query_repeated.png",title="times query repeated")
+cap.loghist(trc,breaks=range(0,33),filename="/var/www/listit-study/times_query_repeated_l.png",title="times query repeated log")
+cap.hist(same_area,breaks=range(0,33),filename="/var/www/listit-study/times_query_repeated_sa.png",title="times query repeated sa")
+cap.loghist(same_area,breaks=range(0,33),filename="/var/www/listit-study/times_query_repeated_sa_l.png",title="times query repeated sa log")
+
+avg_num_queries_per_user = [len(tr[u]) for u in tr]
+ca.s(avg_num_queries_per_user)
+min:0 max:122 mode:0 mean:2.39804 median:0 var:75.4197
+
+avg_num_queries_per_user_greater_than_0 = [len(tr[u]) for u in tr if len(tr[u]) > 0]
+ca.s(avg_num_queries_per_user_greater_than_0)
+min:1 max:122 mode:1 mean:10.8088 median:5 var:250.319
+
+qc = cas.search_query_cache
+
+qvc = [] # number of searches / unique queries for users that search
+for user in qc:
+  if (len(qc[user]) > 0):
+    qvc.append(1.0* len(qc[user]) / len(tr[user].keys()))
+
+min:1 max:6 mode:1 mean:1.75747 median:1.45455 var:0.781853
+
+aq = cas.all_queries
+
+# data about repeated queries globally
+tq = {}
+for q in aq:
+  if q.lower() not in tq:
+    tq[q.lower()] = 1
+  else:
+    tq[q.lower()] += 1
+
+tqc = [tq[q] for q in tq]
+
+ca.s(tqc)
+min:1 max:549 mode:1 mean:2.48317 median:1 var:242.346
+
+cap.loghist(tqc,breaks=range(0,550,5),filename="/var/www/listit-study/total_queries.png",title="total queries")
+
+[x for x in tq if tq[x] >= 20]
+
+todo = [x for x in tq if 'todo' in x or 'to do' in x]
+n = 0
+for x in todo:
+  n += tq[x]
+
+n == 215
+1.0 * n / len(aq)
