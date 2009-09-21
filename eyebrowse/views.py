@@ -335,15 +335,18 @@ def daybyday(request, username):
     return render_to_response('daybyday.html', variables)
 
 def users(request):    
-    user = request.user
-    friends_results = []
-    friends = EndUser.objects.all()
+    user = ""
+    username = ""
 
     if request.user.username:
         user = get_object_or_404(User, username=request.user.username)
+        username = request.user.username
 
+    friends_results = []
+    friends = EndUser.objects.all()
+  
     for friend in friends:
-        if user.username:
+        if request.user.username:
             is_friend = user.to_friend_set.all().filter(from_friend=friend)
             is_followed_by = user.friend_set.all().filter(to_friend=friend)
         else: 
@@ -375,7 +378,7 @@ def users(request):
 
     variables = RequestContext(request, {
         'users': friends_results,
-        'request_user': request.user.username
+        'request_user': username
         })
     return render_to_response('users.html', variables)
 
@@ -822,6 +825,21 @@ def create_www_pageviews_for_each_event(sender, created=None, instance=None, **k
 post_save.connect(create_www_pageviews_for_each_event, sender=Event)
                         
 ## ajax views for graphs, etc.
+class EVENT_SELECTORS:
+    class Page:
+        @staticmethod
+        def access(queryset):
+            return [s[0] for s in queryset.values_list('url')]
+        @staticmethod
+        def filter_queryset(queryset,url):
+            return queryset.filter(url=url)
+    class Host:
+        @staticmethod
+        def access(queryset):
+            return [s[0] for s in queryset.values_list('host')] # <- comparatively lame. # pretty badass too: [urlparse.urlparse(url[0])[1] for url in queryset.values_list('host')]
+        @staticmethod
+        def filter_queryset(queryset,host):
+            return queryset.filter(host=host) #queryset.filter(entityid__contains="://%s/"%url)         ## tres. badass!!!
 
 def _mimic_entity_schema_from_url(url):
     import urlparse
@@ -838,7 +856,6 @@ def _unpack_times(request):
     return (long(request.GET['first_start']), long(request.GET['first_end']), long(request.GET['second_start']), long(request.GET['second_end']))
 
 def _get_top_hosts_n(users,start,end):
-    # print users
     time_per_host = _get_time_per_page(users,start,end,grouped_by=EVENT_SELECTORS.Host) 
 
     ordered_visits = [h for h in time_per_host.iteritems()]
@@ -858,23 +875,6 @@ def round_time_to_day(time):
 def round_time_to_half_day(time):
     new_time = int(math.floor(int(time) / 43200000) * 43200000)
     return new_time        
-
-
-class EVENT_SELECTORS:
-    class Page:
-        @staticmethod
-        def access(queryset):
-            return [s[0] for s in queryset.values_list('url')]
-        @staticmethod
-        def filter_queryset(queryset,url):
-            return queryset.filter(url=url)
-    class Host:
-        @staticmethod
-        def access(queryset):
-            return [s[0] for s in queryset.values_list('host')] # <- comparatively lame. # pretty badass too: [urlparse.urlparse(url[0])[1] for url in queryset.values_list('host')]
-        @staticmethod
-        def filter_queryset(queryset,host):
-            return queryset.filter(host=host) #queryset.filter(entityid__contains="://%s/"%url)         ## tres. badass!!!
 
 def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
     import django.db.models.query
@@ -898,12 +898,15 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
     return times_per_url
 
 def defang_pageview(pview):    
-    return {"start" : long(pview.startTime), "end" : long(pview.endTime), "url" : pview.url, "host": pview.host, "title": pview.title, "id":pview.id, "user": pview.user.username } ## to slow "location":get_enduser_for_user(pview.user).location }
+    return {"start" : long(pview.startTime), "end" : long(pview.endTime), "url" : pview.url, "host": pview.host, "title": pview.title, "id":pview.id, "user": pview.user.username } 
+    ## to slow "location":get_enduser_for_user(pview.user).location }
 
 def get_web_page_views(request):
+    if not 'from' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
 
-    #@cache.region('short_term')
     def fetch_data(from_msec, to_msec, user):
         hits =  _get_pages_for_user(user,from_msec,to_msec)
         return [ defang_pageview(evt) for evt in hits ]
@@ -913,20 +916,21 @@ def get_web_page_views(request):
     return json_response({ "code":200, "results": results });
 
 def get_views_user(request, username):
+    if not 'from' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
 
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
     
-    #@cache.region('short_term')
     def fetch_data(from_msec, to_msec, user):
         hits = _get_pages_for_user(user ,from_msec,to_msec)
         return [ defang_pageview(evt) for evt in hits ]
-
+    
     results = fetch_data(from_msec_raw, to_msec_raw, user)
 
     return json_response({ "code":200, "results": results });
-
 
 def get_recent_web_page_view_user(request, username, n):
     user = get_object_or_404(User, username=username)
@@ -972,6 +976,9 @@ def get_user_profile_queries(request, username):
     return json_response({ "code":200, "results": results });
 
 def get_global_profile_queries(request):
+    if not 'from' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
     from_msec_rounded = round_time_to_day(from_msec_raw)
     to_msec_rounded = round_time_to_day(to_msec_raw)
@@ -989,7 +996,11 @@ def get_global_profile_queries(request):
     return json_response({ "code":200, "results": results });
 
 def get_page_profile_queries(request):
+    if not 'url' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'url' key" }) 
+
     inputURL = request.GET['url'].strip()
+
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
     from_msec_rounded = round_time_to_day(from_msec_raw)
     to_msec_rounded = round_time_to_day(to_msec_raw)
@@ -1008,6 +1019,9 @@ def get_page_profile_queries(request):
 
 
 def get_top_hosts(request, n):
+    if not 'from' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+
     users = User.objects.all()
     n = int(n)
 
@@ -1028,6 +1042,9 @@ def get_top_hosts(request, n):
 
     
 def get_top_hosts_comparison(request, username, n):
+    if not 'first_start' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'first_start' key" }) 
+
     user_user = get_object_or_404(User, username=username)
     n = int(n)
 
@@ -1071,6 +1088,9 @@ def get_top_hosts_comparison(request, username, n):
 
 
 def get_top_hosts_comparison_friends(request, username, n):    
+    if not 'first_start' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'first_start' key" }) 
+
     user = get_object_or_404(User, username=username)
 
     following = [friendship.to_friend for friendship in user.friend_set.all()]
@@ -1115,8 +1135,10 @@ def get_top_hosts_comparison_friends(request, username, n):
 
 
 def get_urls_for_day_of_week(request, username):    
+    if not 'first_start' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'first_start' key" }) 
+
     user = get_object_or_404(User, username=username)
-    
     first_start = round_time_to_day(_unpack_times(request))
 
     @cache.region('long_term')
@@ -1136,6 +1158,9 @@ def get_urls_for_day_of_week(request, username):
 
 
 def get_day_of_week_graph_for_url(request):    
+    if not 'url' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'url' key" }) 
+
     inputURL = request.GET['url'].strip()
 
     @cache.region('long_term')
@@ -1156,6 +1181,9 @@ def get_day_of_week_graph_for_url(request):
     return json_response({ "code":200, "results": return_results }) 
 
 def get_time_of_day_graph_for_url(request):    
+    if not 'url' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'url' key" }) 
+
     inputURL = request.GET['url'].strip()
 
     @cache.region('long_term')
@@ -1176,6 +1204,9 @@ def get_time_of_day_graph_for_url(request):
 
 
 def get_day_of_week_graph_for_user(request):    
+    if not 'user' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'user' key" }) 
+
     username = request.GET['user'].strip()
     inputUser = get_object_or_404(User, username=username)
 
@@ -1197,6 +1228,9 @@ def get_day_of_week_graph_for_user(request):
     return json_response({ "code":200, "results": return_results }) 
 
 def get_time_of_day_graph_for_user(request):    
+    if not 'user' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'user' key" }) 
+
     username = request.GET['user'].strip()
     inputUser = get_object_or_404(User, username=username)
 
@@ -1260,6 +1294,9 @@ def get_hourly_daily_top_urls_user(request, username, n):
 
 
 def get_top_hosts_comparison_global(request, n):    
+    if not 'first_start' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'first_start' key" }) 
+
     n = int(n)
 
     first_start,first_end,second_start,second_end = _unpack_times(request)
@@ -1300,6 +1337,9 @@ def get_top_hosts_comparison_global(request, n):
     return json_response({ "code":200, "results": return_results }) 
 
 def get_top_urls_following(request, username, n):
+    if not 'first_start' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'first_start' key" }) 
+
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
     following = [friendship.to_friend for friendship in user.friend_set.all()]
@@ -1335,6 +1375,9 @@ def get_top_urls_following(request, username, n):
 
 
 def get_views_url(request):
+    if not 'from' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+
     from_msec,to_msec = _unpack_from_to_msec(request)
     url = request.GET['url'].strip()
 
@@ -1382,6 +1425,9 @@ def _get_graph_points_for_results(results, to_msec, from_msec, n):
 
 
 def get_graph_points_url(request, n):
+    if not 'from' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
     from_msec_rounded = round_time_to_day(from_msec_raw)
     to_msec_rounded = round_time_to_day(to_msec_raw)
@@ -1398,6 +1444,9 @@ def get_graph_points_url(request, n):
 
 
 def get_graph_points_user(request, username, n):
+    if not 'from' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+
     user = User.objects.filter(username=username)
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
     from_msec_rounded = round_time_to_day(from_msec_raw)
@@ -1414,6 +1463,9 @@ def get_graph_points_user(request, username, n):
 
 
 def get_graph_points_global(request, n):
+    if request.GET.has_key('from') is None:
+        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
     from_msec_rounded = round_time_to_day(from_msec_raw)
     to_msec_rounded = round_time_to_day(to_msec_raw)
@@ -1430,8 +1482,10 @@ def get_graph_points_global(request, n):
 
 # gets ranked list of the urls gone to before and after the url passed in the request
 def get_to_from_url(request, n):
+    if not 'url' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'url' key" }) 
+
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
-    #from_msec_rounded = round_time_to_day(from_msec_raw)
     to_msec_rounded = round_time_to_day(to_msec_raw)
     url = request.GET['url'].strip()
 
@@ -1498,6 +1552,9 @@ def get_to_from_url(request, n):
 
 
 def get_trending_urls(request, n):
+    if not 'first_start' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'first_start' key" }) 
+
     user = User.objects.all();
     user = user[0] ## again this is fail not sure how to iterate through the users esp if they have not logged anything
     n = int(n)
@@ -1527,6 +1584,9 @@ def get_trending_urls(request, n):
     
 
 def get_top_users(request, n):
+    if not 'from' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+
     users = User.objects.all();
     n = int(n)
     from_msec,to_msec = _unpack_from_to_msec(request)
@@ -1552,6 +1612,9 @@ def get_top_users(request, n):
 
 
 def get_top_users_for_url(request, n):
+    if not 'from' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+
     users = User.objects.all();
     n = int(n)
     from_msec,to_msec = _unpack_from_to_msec(request)
@@ -1577,6 +1640,9 @@ def get_top_users_for_url(request, n):
     return json_response({ "code":200, "results": return_results })
 
 def get_top_friend_for_url(request, username):
+    if not 'url' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'url' key" }) 
+
     user = get_object_or_404(User, username=username)
     users = [friendship.to_friend for friendship in user.friend_set.all()]
     
@@ -1598,6 +1664,9 @@ def get_top_friend_for_url(request, username):
     #return json_response({ "code":200, "results": return_results })
 
 def get_top_friend_for_url_json(request, username):
+    if not 'url' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'url' key" }) 
+
     user = get_object_or_404(User, username=username)
     users = [friendship.to_friend for friendship in user.friend_set.all()]
     
@@ -1618,6 +1687,9 @@ def get_top_friend_for_url_json(request, username):
     return json_response({ "code":200, "results": return_results })
 
 def get_number_friends_logged_url(request, username):
+    if not 'url' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'url' key" }) 
+
     user = get_object_or_404(User, username=username)
     users = [friendship.to_friend for friendship in user.friend_set.all()]
 
@@ -1634,7 +1706,6 @@ def get_number_friends_logged_url(request, username):
         return number
     return_results = fetch_data(get_url, username)
     return return_results
-    #return json_response({ "code":200, "results": return_results })
 
 ## emax added this to be fancy
 def uniq(lst,key=lambda x: x,n=None):
@@ -1680,6 +1751,9 @@ def get_most_recent_urls(request, n):
 
 
 def get_users_most_recent_urls(request, username, n):
+    if not 'from' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+
     user = get_object_or_404(User, username=username)
     n = int(n)
 
@@ -1690,6 +1764,9 @@ def get_users_most_recent_urls(request, username, n):
     return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits[0:n] ] });    
 
 def get_following_views(request, username):
+    if not 'from' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
     following = [friendship.to_friend for friendship in user.friend_set.all()]
@@ -1747,6 +1824,10 @@ def user_search_page(request):
         return render_to_response('search.html', variables)
 
 def get_closest_url(request):
+    if not 'url' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'url' key" }) 
+
+
     url = request.GET['url']
     ## finds the urls that best match the given url. if there
     ## is an exact match, only returns that.
