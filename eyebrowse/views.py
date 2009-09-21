@@ -1612,8 +1612,8 @@ def get_top_users(request, n):
 
 
 def get_top_users_for_url(request, n):
-    if not 'from' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+    if not 'url' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'url' key" }) 
 
     users = User.objects.all();
     n = int(n)
