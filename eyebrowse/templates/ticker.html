@@ -142,6 +142,7 @@
         getRecentPages: function(num){
             var this_ = this;
 			this_.getProfile(this_.startTime, this.endTimeRecent);
+			this_.now = new Date().valueOf();
 			jQuery("#loadimg").show();
 			jQuery.get("/get_most_recent_urls/" + num + "/", {
 						   id: this_.recentID
@@ -190,7 +191,7 @@ jQuery(document).ready(function(){
 						   myHeight = window.innerHeight - 250;
 
 						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 86400000);// 12 hrs
-						   setInterval("self.viz.getRecentPages(30)", 9000);
+						   setInterval("self.viz.getRecentPages(30)", 15000);
 					   });
 </script>
 {% endblock %}
