@@ -25,6 +25,7 @@
             this.startTime = this.startDate.valueOf();
             this.OGendTime = this.endDate.valueOf();
             this.OGstartTime = this.startDate.valueOf();
+			this.recentTimesArray = [];
 			this.newDataEnd = 0;
 			this.recentID = 0;
 			this.endTimeRecent = this.endTime;
@@ -80,7 +81,7 @@
 							   }
 						   }
 						   else {
-							   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+							//   console.log("yaaaa!!!H!H!H!" + data.code + " ");
 						   }
 					   }, "json");	
 		},
@@ -107,11 +108,8 @@
 					html += "</div>";
                 }
                 if (trigger) {
-                    //html += "<div class=\"imgbox\">&nbsp;";
-                    // html += "<img src=\"/lib/img/star_16.png\" />";
-                    //html += "</div>";
+					// foo
                 }
-                //html += "<h7>" + timeCounterLong((newData[i][1]) / 1000) + "</h7>";
                 html += "</li>";
             }
 			html += "</ul>";
@@ -133,7 +131,7 @@
 								   this_.drawTopPagesList(data.results);
 							   }
 							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+								 //  console.log("yaaaa!!!H!H!H!" + data.code + " ");
 							   }
 						   }, "json");
             } 
@@ -153,7 +151,7 @@
 							   var newData = data.results;
 							   var html = "";
 							   for (var i = newData.length -1; i >= 0; i--) {
-								   html = "<li id=\"" + this_.endTimeRecent + i +  "\">";
+								   html = "<li id=\"" + newData[i].end + "\">";
 								   if (newData[i].title){
 									   html += "<h6 style=\"margin-left:8px;\"><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
 								   }
@@ -165,12 +163,16 @@
 								   if (newData[i].user.length > 0) {
 									   html += "<br />&nbsp; &nbsp; by <a href=\"/profile/" + newData[i].user + "\" style=\"font-weight:normal\">" + newData[i].user + "</a>";
 								   }
-								   //if (newData[i].location.length > 0) {
-									//   html += " in " + newData[i].location;
-								   //}
 								   html += "</li>";
 								   jQuery("#latestviews ul").prepend(html);
-								   jQuery("#" + this_.endTimeRecent + i).slideDown("slow");
+								   jQuery("#" + newData[i].end).slideDown("slow");
+
+								   // keep track of times displayed and hide old ones
+								   this_.recentTimesArray.unshift(newData[i].end);
+								   if (this_.recentTimesArray.length > num){
+									   jQuery("#" + this_.recentTimesArray[num + 1]).hide();
+									   this_.recentTimesArray.pop();   
+								   }
 							   }
 							   this_.recentID = newData[0].id;
 						   }

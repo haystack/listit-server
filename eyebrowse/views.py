@@ -289,7 +289,7 @@ def graph(request, username):
     return HttpResponse(t.render(c))
 
 def ticker(request):
-    t = loader.get_template("global.html")
+    t = loader.get_template("ticker.html")
     c = Context({ 'username': request.user.username, 'id': request.user.id, 'request_user': request.user.username })
     return HttpResponse(t.render(c))
 
