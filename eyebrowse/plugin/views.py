@@ -7,6 +7,7 @@ from django.utils.translation.trans_null import _
 from django.core import serializers
 from django.core.mail import send_mail
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from jv3.models import Event
 from jv3.utils import json_response
 import jv3.utils
@@ -16,7 +17,7 @@ from django_restapi.model_resource import InvalidModelData
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 import time
 import sys
-
+import urlparse    
 ##
 ## this set of views are used by the plugin to post new events
 ##
@@ -94,3 +95,115 @@ def post_events(request):
             print "Error with entry %s item %s " % (repr(error),repr(item))
             pass
     return json_response({"committed":committed}, 200)
+
+## USER PRIVACY 
+
+## @login_required
+def get_privacy_urls(request):
+    user = authenticate_user(request)
+    if user is None:
+        return json_response({ "code":404, "error": "Username or password incorrect" }) 
+        
+    privacysettings = user.privacysettings_set.all()[0]
+    
+    lst = []
+    if privacysettings.whitelist is not None:
+        lst = privacysettings.whitelist.split() 
+
+    return json_response({ "code":200, "results": lst }) 
+
+# depricated
+## @login_required
+def delete_privacy_url(request):
+    ## added by emax:
+    user = authenticate_user(request)
+    if user is None:
+        return json_response({ "code":404, "error": "Username or password incorrect" }) 
+    
+    privacysettings = user.privacysettings_set.all()[0] 
+
+    inpt = request.GET['input'].strip()
+
+    privacysettings.whitelist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == inpt])
+
+    privacysettings.save()
+    return HttpResponseRedirect('/settings/')
+
+# depricated
+## @login_required
+def add_privacy_url(request):
+    ## added by emax:
+    user = authenticate_user(request)
+    if user is None:
+        return json_response({ "code":404, "error": "Username or password incorrect" }) 
+
+    privacysettings = user.privacysettings_set.all()[0]
+
+    request_inpt = request.GET['input'].strip()
+    if request_inpt.split(','):
+        request_inpt = request_inpt.split(',')        
+
+    for inpt in request_inpt:
+        if inpt.startswith('http'):
+            host = urlparse.urlparse(inpt)[1].strip()
+        else:
+            host = inpt
+            if "/" in host:
+                host = host[0:host.find("/")]
+
+        val = {}
+
+        if len(host) > 0:
+            if privacysettings.whitelist is not None:
+                wlist = privacysettings.whitelist.split(' ')
+                if not host in wlist:
+                    privacysettings.whitelist = ' '.join(wlist + [host])
+                    val["host"] = host
+            else:
+                privacysettings.whitelist = host
+                val["host"] = host
+            
+    # Save 
+    privacysettings.save()
+    ## val will be non-null iff it's new
+    return json_response(val,200)
+
+@login_required
+def delete_url_entry(request):
+    urlID = request.POST['ID'].strip()
+
+    url_entry = PageView.objects.filter(id=urlID)
+    url_entry.delete()
+
+    return json_response({ "code":200 });
+
+#@login_required
+## CALLED ONLY FROM THE PLUGIN, YOS.
+def add_delete_from_whitelist(request):
+    user = authenticate_user(request)
+    if user is None:
+        return json_response({ "code":404, "error": "Username or password incorrect" }) 
+
+    privacysettings = user.privacysettings_set.all()[0]
+    json = request.raw_post_data
+    errz = None
+    try:
+        add_dels = JSONDecoder().decode(json)
+        assert type(json) == 'dict', "Received thing not a dict, erroring"
+        adds = add_dels['add']
+        dels = add_dels['delete']
+        # delete urls
+        whitelist_split = privacysettings.whitelist.split(' ')
+        privacysettings.whitelist = ' '.join([ x for x in privacysettings.whitelist.split() if not x in dels])
+        privacysettings.whitelist = privacysettings.whitelist + ' '.join([ x for x in adds if not x in whitelist_split ])
+        
+        # Save 
+        privacysettings.save()
+        return json_response({ "code":200 });
+    except:
+        errz = sys.exc_info()
+        print errz        
+
+    return json_response({"code":500, "message":errz})
+
+

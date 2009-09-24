@@ -39,12 +39,6 @@ urlpatterns = patterns('',
                        # homepage
                        (r'^get_most_recent_urls/(\d+)/$', get_most_recent_urls),
                        (r'^get_top_users/(\d+)/$', get_top_users),
-
-                       # user privacy
-                       (r'^add_privacy_url/$', add_privacy_url),
-                       (r'^get_privacy_urls/$', get_privacy_urls),
-                       (r'^delete_privacy_url/$', delete_privacy_url),
-                       (r'^delete_url_entry/$', delete_url_entry),
 )
 
     
