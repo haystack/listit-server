@@ -5,7 +5,7 @@ from django_restapi.responder import *
 
 admin.autodiscover()
 
-urlpatterns = None
+urlpatterns = patterns('')
 
 if settings.LISTIT_SERVER:
     print "adding listit server"
