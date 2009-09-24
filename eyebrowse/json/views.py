@@ -244,6 +244,28 @@ def get_top_hosts(request, n):
 
     return json_response({ "code":200, "results": results }) 
 
+def get_most_shared_hosts(request, n):
+    n = int(n)
+
+    @cache.region('long_term')
+    def fetch_data(n, fetch_type):
+        results = {}
+        for user in User.objects.all():
+            try:
+                for url in PrivacySettings.objects.filter(user=user)[0].whitelist.split():
+                    if url in results:
+                        results[url] += 1
+                    else:
+                        results[url] = 1
+            except:
+                # fail silently
+                bar = 0
+
+        return sorted(results.items(), key=lambda (k,v): (-v,k))[0:n]
+
+    results = fetch_data(n, "shared_urls")
+    return json_response({ "code":200, "results": results }) 
+
     
 def get_top_hosts_comparison(request, username, n):
     if not 'first_start' in request.GET:
@@ -960,7 +982,6 @@ def get_users_most_recent_urls(request, username, n):
     n = int(n)
 
     from_msec,to_msec = _unpack_from_to_msec(request)
-
     hits = _get_pages_for_user(user,from_msec,to_msec)
 
     return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits[0:n] ] });    
@@ -1002,7 +1023,6 @@ def get_following_views(request, username):
 def get_closest_url(request):
     if not 'url' in request.GET:
         return json_response({ "code":404, "error": "get has no 'url' key" }) 
-
 
     url = request.GET['url']
     ## finds the urls that best match the given url. if there

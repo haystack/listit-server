@@ -48,7 +48,6 @@ def login(request):
     return json_response({},200)
 
 def get_most_recent_event_time(request):
-    print request
     user = authenticate_user(request);    
     if not user:
         return json_response({"error":"Incorrect user/password combination"},401);
