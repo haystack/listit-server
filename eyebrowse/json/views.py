@@ -870,17 +870,17 @@ def get_top_friend_for_url_json(request, username):
         return json_response({ "code":404, "error": "get has no 'url' key" }) 
 
     user = get_object_or_404(User, username=username)
-    users = [friendship.to_friend for friendship in user.friend_set.all()]
+    friends = [friendship.to_friend for friendship in user.friend_set.all()]
     
     get_url = request.GET['url'].strip()
 
     barbar = "top friend for url" # to keep cache unique
     @cache.region('top_users_long_term')
-    def fetch_data( url, username):
+    def fetch_data(url, username):
         results = []
-        for user in users:
-            number = PageView.objects.filter(user=user,url=url).count()
-            results.append( {"user": user.username, "number": number } )
+        for friend in friends:
+            number = PageView.objects.filter(user=friend,url=url).count()
+            results.append( {"user": friend.username, "number": number } )
 
         results.sort(key=lambda x: -x["number"])
         return results[0:1]
@@ -893,7 +893,7 @@ def get_number_friends_logged_url(request, username):
         return json_response({ "code":404, "error": "get has no 'url' key" }) 
 
     user = get_object_or_404(User, username=username)
-    users = [friendship.to_friend for friendship in user.friend_set.all()]
+    friends = [friendship.to_friend for friendship in user.friend_set.all()]
 
     get_url = request.GET['url'].strip()    
 
@@ -901,8 +901,8 @@ def get_number_friends_logged_url(request, username):
     def fetch_data(url, username):
         results = []
         number = 0
-        for user in users:
-            if PageView.objects.filter(user=user,url=url).count() > 0:
+        for friend in friends:
+            if PageView.objects.filter(user=friend,url=url).count() > 0:
                 number += 1
 
         return number
@@ -1043,8 +1043,8 @@ def get_privacy_urls(request):
 ## @login_required
 def delete_privacy_url(request):
     ## added by emax:
-    import eyebrowse.plugin_views
-    user = eyebrowse.plugin_views.authenticate_user(request)
+    import eyebrowse.plugin.views
+    user = eyebrowse.plugin.views.authenticate_user(request)
     if user is None:
         return json_response({ "code":404, "error": "Username or password incorrect" }) 
     
@@ -1060,13 +1060,14 @@ def delete_privacy_url(request):
     privacysettings.save()
     return HttpResponseRedirect('/settings/')
 
+# depricated
 ## @login_required
 def add_privacy_url(request):
     ## added by emax:
-    import eyebrowse.plugin_views
+    import eyebrowse.plugin.views
     import urlparse    
 
-    user = eyebrowse.plugin_views.authenticate_user(request)
+    user = eyebrowse.plugin.views.authenticate_user(request)
     if user is None:
         return json_response({ "code":404, "error": "Username or password incorrect" }) 
 
@@ -1113,6 +1114,7 @@ def add_privacy_url(request):
     ## val will be non-null iff it's new
     return json_response(val,200)
 
+# depricated
 @login_required
 def delete_url_entry(request):
     urlID = request.POST['ID'].strip()
@@ -1122,3 +1124,30 @@ def delete_url_entry(request):
 
     return json_response({ "code":200 });
 
+# server 2 arguements - urls to add to whitelist & urls to delete from whitelist
+@login_required
+def add_delete_from_whitelist(request):
+    user = eyebrowse.plugin.views.authenticate_user(request)
+    if user is None:
+        return json_response({ "code":404, "error": "Username or password incorrect" }) 
+
+    import eyebrowse.plugin_views
+    import urlparse    
+
+    urlIDAdd = request.POST['Add']
+    if urlIDAdd.split(','):
+        urlIDAdd = urlIDAdd.split(',')        
+
+    urlIDDelete = request.POST['Delete']
+    if urlIDDelete.split(','):
+        urlIDDelete = urlIDDelete.split(',')        
+
+    for url in urlIDDelete:        
+        url_entry = PageView.objects.filter(id=url)
+        url_entry.delete()
+
+    for url in urlIDAdd:        
+        url_entry = PageView.objects.filter(id=url)
+        url_entry.delete()
+
+    return json_response({ "code":200 });
