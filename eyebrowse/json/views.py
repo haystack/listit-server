@@ -1017,10 +1017,8 @@ def get_closest_url(request):
     
 ## USER PRIVACY 
 
-## emax changed this because plugin needs to grab these
 ## @login_required
 def get_privacy_urls(request):
-    ## added by emax:
     import eyebrowse.plugin.views
     user = eyebrowse.plugin.views.authenticate_user(request)
     if user is None:
@@ -1028,18 +1026,13 @@ def get_privacy_urls(request):
         
     privacysettings = user.privacysettings_set.all()[0]
     
-    lst = ""
-    if privacysettings.listmode == "W":
-        lst = []
-        if privacysettings.whitelist is not None:
-            lst = privacysettings.whitelist.split() 
-    if privacysettings.listmode == "B":
-        lst = []
-        if privacysettings.blacklist is not None:            
-            lst = privacysettings.blacklist.split()
+    lst = []
+    if privacysettings.whitelist is not None:
+        lst = privacysettings.whitelist.split() 
 
     return json_response({ "code":200, "results": lst }) 
 
+# depricated
 ## @login_required
 def delete_privacy_url(request):
     ## added by emax:
@@ -1052,10 +1045,7 @@ def delete_privacy_url(request):
 
     inpt = request.GET['input'].strip()
 
-    if privacysettings.listmode == "W":
-        privacysettings.whitelist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == inpt])
-    if privacysettings.listmode == "B":
-        privacysettings.blacklist = ' '.join([ x for x in privacysettings.blacklist.split() if not x == inpt])
+    privacysettings.whitelist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == inpt])
 
     privacysettings.save()
     return HttpResponseRedirect('/settings/')
@@ -1073,9 +1063,7 @@ def add_privacy_url(request):
 
     privacysettings = user.privacysettings_set.all()[0]
 
-    listmode = privacysettings.listmode
     request_inpt = request.GET['input'].strip()
-    
     if request_inpt.split(','):
         request_inpt = request_inpt.split(',')        
 
@@ -1090,31 +1078,20 @@ def add_privacy_url(request):
         val = {}
 
         if len(host) > 0:
-            if privacysettings.listmode == "W":
-                if privacysettings.whitelist is not None:
-                    wlist = privacysettings.whitelist.split(' ')
-                    if not host in wlist:
-                        privacysettings.whitelist = ' '.join(wlist + [host])
-                        val["host"] = host
-                else:
-                    privacysettings.whitelist = host
+            if privacysettings.whitelist is not None:
+                wlist = privacysettings.whitelist.split(' ')
+                if not host in wlist:
+                    privacysettings.whitelist = ' '.join(wlist + [host])
                     val["host"] = host
+            else:
+                privacysettings.whitelist = host
+                val["host"] = host
             
-            if privacysettings.listmode == "B":
-                if privacysettings.blacklist is not None:
-                    if not host in privacysettings.blacklist.split():
-                        privacysettings.blacklist = ' '.join(privacysettings.blacklist.split() + [host])
-                        val["host"] = host
-                else:
-                    privacysettings.blacklist = host
-                    val["host"] = host
-            # Save 
-            privacysettings.save()
-
+    # Save 
+    privacysettings.save()
     ## val will be non-null iff it's new
     return json_response(val,200)
 
-# depricated
 @login_required
 def delete_url_entry(request):
     urlID = request.POST['ID'].strip()
@@ -1124,30 +1101,51 @@ def delete_url_entry(request):
 
     return json_response({ "code":200 });
 
-# server 2 arguements - urls to add to whitelist & urls to delete from whitelist
-@login_required
+#@login_required
 def add_delete_from_whitelist(request):
     user = eyebrowse.plugin.views.authenticate_user(request)
     if user is None:
         return json_response({ "code":404, "error": "Username or password incorrect" }) 
 
+    privacysettings = user.privacysettings_set.all()[0]
+
     import eyebrowse.plugin_views
     import urlparse    
 
-    urlIDAdd = request.POST['Add']
-    if urlIDAdd.split(','):
-        urlIDAdd = urlIDAdd.split(',')        
+    urlAdd = request.POST['add']
+    if urlAdd.split(','):
+        urlAdd = urlIDAdd.split(',')        
 
-    urlIDDelete = request.POST['Delete']
-    if urlIDDelete.split(','):
-        urlIDDelete = urlIDDelete.split(',')        
+    urlDelete = request.POST['delete']
+    if urlDelete.split(','):
+        urlDelete = urlIDDelete.split(',')        
 
-    for url in urlIDDelete:        
-        url_entry = PageView.objects.filter(id=url)
-        url_entry.delete()
+    # delete urls
+    for inpt in urlDelete:      
+        # seems like a slow way of doing this
+        privacysettings.whitelist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == inpt])
 
-    for url in urlIDAdd:        
-        url_entry = PageView.objects.filter(id=url)
-        url_entry.delete()
+    # add urls
+    for inpt in urlAdd:      
+        if inpt.startswith('http'):
+            host = urlparse.urlparse(inpt)[1].strip()
+        else:
+            host = inpt
+            if "/" in host:
+                host = host[0:host.find("/")]
 
+        val = {}
+
+        if len(host) > 0:
+            if privacysettings.whitelist is not None:
+                wlist = privacysettings.whitelist.split(' ')
+                if not host in wlist:
+                    privacysettings.whitelist = ' '.join(wlist + [host])
+                    val["host"] = host
+            else:
+                privacysettings.whitelist = host
+                val["host"] = host
+
+    # Save 
+    privacysettings.save()
     return json_response({ "code":200 });
