@@ -60,9 +60,8 @@ def get_most_recent_event_time(request):
     return json_response({'value':0},200)
 
 def post_events(request):
-    """
-    lets the user post new activity in a giant single array of activity log elements
-    """
+    ## lets the user post new activity in a giant single array of activity log elements
+
     request_user = authenticate_user(request);
     if not request_user:
         return json_response({"error":"Incorrect user/password combination"}, 401)
