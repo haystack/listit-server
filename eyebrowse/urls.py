@@ -7,7 +7,7 @@ from django.conf.urls.defaults import *
 from django.views.generic.simple import direct_to_template
 from eyebrowse.views import *
 import eyebrowse.json.urls
-import eyebrowse.www.urls
+import eyebrowse.pages.urls
 import eyebrowse.plugin.urls
 
 lib = os.path.join(
@@ -19,7 +19,7 @@ profile_uploads = os.path.join(
 )
 
 urlpatterns = eyebrowse.json.urls.urlpatterns
-urlpatterns += eyebrowse.www.urls.urlpatterns
+urlpatterns += eyebrowse.pages.urls.urlpatterns
 urlpatterns += eyebrowse.plugin.urls.urlpatterns
 
 ## enable static serving for standalone server

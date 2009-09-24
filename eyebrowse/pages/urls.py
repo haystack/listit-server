@@ -6,7 +6,7 @@ from django.conf import settings
 from django.conf.urls.defaults import *
 from django.views.generic.simple import direct_to_template
 from django.conf.urls.defaults import *
-from eyebrowse.www.views import *
+from eyebrowse.pages.views import *
 
 urlpatterns = patterns('',
                        (r'^$', index),
