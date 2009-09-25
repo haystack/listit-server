@@ -142,7 +142,6 @@ def get_recent_web_page_view_user(request, username, n):
 def get_profile_queries(req_type):
     if 'user' in req_type:
         users = get_object_or_404(User, username=req_type['user'])
-        print 'gaa' 
     if 'friends' in req_type:
         usr = get_object_or_404(User, username=req_type['friends'])
         users = [friendship.to_friend for friendship in usr.friend_set.all()]
@@ -612,7 +611,6 @@ def get_homepage(request):
     request_type = {'global':'all'}
 
     top_users = get_top_users(from_msec, to_msec, 10, request_type)    
-    print top_users
     views_user = get_views_user(from_msec, to_msec, top_users[0]['user'])
     # eventually should probably cache get_most_recent_urls here or fix it to not sort the entire db every call
 
@@ -801,9 +799,7 @@ def get_top_hosts_comparison_friends(request, username, n):
 
     @cache.region('long_term')
     def fetch_data(following, first_star, first_end, second_start, second_end):
-        #print following                                                                                                                                                                                                                                                                                                   
         times_per_url_first = _get_top_hosts_n(following,first_start,first_end)
-        #print times_per_url_first                                                                                                                                                                                                                                                                                         
         times_per_url_second = _get_top_hosts_n(following,second_start,second_end)
 
         def index_of(what, where):
