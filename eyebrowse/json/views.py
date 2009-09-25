@@ -103,38 +103,13 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
 
 def defang_pageview(pview):    
     return {"start" : long(pview.startTime), "end" : long(pview.endTime), "url" : pview.url, "host": pview.host, "title": pview.title, "id":pview.id, "user": pview.user.username } 
-    ## to slow "location":get_enduser_for_user(pview.user).location }
+    ## too slow "location":get_enduser_for_user(pview.user).location }
 
-def get_web_page_views(request):
-    if not 'from' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'from' key" }) 
-
-    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
-
-    def fetch_data(from_msec, to_msec, user):
-        hits =  _get_pages_for_user(user,from_msec,to_msec)
-        return [ defang_pageview(evt) for evt in hits ]
-
-    results = fetch_data(from_msec_raw, to_msec_raw, request.user)
-
-    return json_response({ "code":200, "results": results });
-
-def get_views_user(request, username):
-    if not 'from' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'from' key" }) 
-
+def get_views_user(from_msec, to_msec, username):
     user = get_object_or_404(User, username=username)
-    enduser = get_enduser_for_user(user)
 
-    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
-    
-    def fetch_data(from_msec, to_msec, user):
-        hits = _get_pages_for_user(user ,from_msec,to_msec)
-        return [ defang_pageview(evt) for evt in hits ]
-    
-    results = fetch_data(from_msec_raw, to_msec_raw, user)
-
-    return json_response({ "code":200, "results": results });
+    hits = _get_pages_for_user(user ,from_msec,to_msec)
+    return [ defang_pageview(evt) for evt in hits ]    
 
 def get_recent_web_page_view_user(request, username, n):
     user = get_object_or_404(User, username=username)
@@ -164,48 +139,40 @@ def get_recent_web_page_view_user(request, username, n):
     return json_response({ "code":200, "results": results });
 
 
-def get_user_profile_queries(request, username):
-    user = get_object_or_404(User, username=username)
+def get_profile_queries(req_type):
+    if 'user' in req_type:
+        users = get_object_or_404(User, username=req_type['user'])
+        print 'gaa' 
+    if 'friends' in req_type:
+        usr = get_object_or_404(User, username=req_type['friends'])
+        users = [friendship.to_friend for friendship in usr.friend_set.all()]
+    else:
+        users = User.objects.all()
 
     @cache.region('long_term')
-    def fetch_data(user):
-        number = PageView.objects.filter(user=user).count()
-        totalTime = PageView.objects.filter(user=user).aggregate(Sum('duration'))
+    def fetch_data(users):
+        if 'global' in req_type:
+            number = PageView.objects.filter().count()
+            totalTime = int(PageView.objects.filter().aggregate(Sum('duration'))['duration__sum'])
+        else:
+            number = 0
+            totalTime = 0
+            for user in users:
+                try:
+                    number += PageView.objects.filter(user=user).count()
+                    totalTime += int(PageView.objects.filter(user=user).aggregate(Sum('duration'))['duration__sum'])
+                except:
+                    boo = 0
+
         if number > 0:
-            average = int((totalTime['duration__sum'])/1000)/int(number)
-            return { 'number': number, 'totalTime': int(totalTime['duration__sum']/1000), 'average': average }
+            average = int(totalTime/1000)/int(number)
+            return { 'number': number, 'totalTime': totalTime/1000, 'average': average }
         return { 'number': 0, 'totalTime': 0, 'average': 0 }
 
-    results = fetch_data(user)
-    return json_response({ "code":200, "results": results });
+    return fetch_data(users)
 
-def get_global_profile_queries(request):
-    if not 'from' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'from' key" }) 
 
-    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
-    from_msec_rounded = round_time_to_day(from_msec_raw)
-    to_msec_rounded = round_time_to_day(to_msec_raw)
-
-    @cache.region('long_term')
-    def fetch_data(from_msec, to_msec):
-        totalTime  = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec).aggregate(Sum('duration'))
-        number =  PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec).count()
-        if number > 0:
-            average = int((totalTime['duration__sum'])/1000)/int(number)
-            return { 'number': number, 'totalTime': int(totalTime['duration__sum']/1000), 'average': average }
-        return { 'number': 0, 'totalTime': 0, 'average': 0 }
-
-    results = fetch_data(from_msec_rounded, to_msec_rounded)
-    return json_response({ "code":200, "results": results });
-
-def get_page_profile_queries(request):
-    if not 'url' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'url' key" }) 
-
-    inputURL = request.GET['url'].strip()
-
-    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
+def get_page_profile_queries(from_msec_raw, to_msec_raw, url):
     from_msec_rounded = round_time_to_day(from_msec_raw)
     to_msec_rounded = round_time_to_day(to_msec_raw)
 
@@ -218,31 +185,9 @@ def get_page_profile_queries(request):
             return { 'number': number, 'totalTime': int(totalTime['duration__sum']/1000), 'average': average }
         return { 'number': 0, 'totalTime': 0, 'average': 0 }
 
-    results = fetch_data(from_msec_rounded, to_msec_rounded, inputURL)
-    return json_response({ "code":200, "results": results });
+    results = fetch_data(from_msec_rounded, to_msec_rounded, url)
+    return results
 
-
-def get_top_hosts(request, n):
-    if not 'from' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'from' key" }) 
-
-    users = User.objects.all()
-    n = int(n)
-
-    from_msec_rounded = round_time_to_day((time.time()*1000) - (2629743*1000)) # 1 month)
-    to_msec_rounded = round_time_to_day(time.time()*1000)
-
-    @cache.region('long_term')
-    def fetch_data(n, from_msec, to_msec):
-        from_msec,to_msec = _unpack_from_to_msec(request)
-        times_per_url = _get_time_per_page(users, from_msec, to_msec, grouped_by=EVENT_SELECTORS.Host)
-        urls_ordered = times_per_url.keys()
-        urls_ordered.sort(lambda u1,u2: int(times_per_url[u2] - times_per_url[u1]))
-        return [(u, long(times_per_url[u])) for u in urls_ordered[0:n]]
-
-    results = fetch_data(n, from_msec_rounded, to_msec_rounded)
-
-    return json_response({ "code":200, "results": results }) 
 
 def get_most_shared_hosts(request, n):
     n = int(n)
@@ -250,7 +195,8 @@ def get_most_shared_hosts(request, n):
     @cache.region('long_term')
     def fetch_data(n, fetch_type):
         results = {}
-        for user in User.objects.all():
+        users = User.objects.all()
+        for user in users:
             try:
                 for url in PrivacySettings.objects.filter(user=user)[0].whitelist.split():
                     if url in results:
@@ -258,32 +204,28 @@ def get_most_shared_hosts(request, n):
                     else:
                         results[url] = 1
             except:
-                # fail silently
-                bar = 0
-
+                pass
         return sorted(results.items(), key=lambda (k,v): (-v,k))[0:n]
 
     results = fetch_data(n, "shared_urls")
     return json_response({ "code":200, "results": results }) 
 
     
-def get_top_hosts_comparison(request, username, n):
-    if not 'first_start' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'first_start' key" }) 
+def get_top_hosts_compare(first_start, first_end, second_start, second_end, n, req_type):
+    if 'user' in req_type:
+        users = get_object_or_404(User, username=req_type['user'])
+    if 'friends' in req_type:
+        usr = get_object_or_404(User, username=req_type['friends'])
+        users = [friendship.to_friend for friendship in usr.friend_set.all()]
+    else:
+        users = User.objects.all()
 
-    user_user = get_object_or_404(User, username=username)
     n = int(n)
 
-    first_start,first_end,second_start,second_end = _unpack_times(request)
-    first_start = round_time_to_day(first_start)
-    first_end = round_time_to_day(first_end)
-    second_start = round_time_to_day(second_start)
-    second_end = round_time_to_day(second_end)
-
     @cache.region('long_term')
-    def fetch_data(user, first_start, first_end, second_start, second_end):
-        times_per_url_first = _get_top_hosts_n(user,first_start,first_end)
-        times_per_url_second = _get_top_hosts_n(user,second_start,second_end)
+    def fetch_data(users, first_start, first_end, second_start, second_end):
+        times_per_url_first = _get_top_hosts_n(users,first_start,first_end) # can pass multiple or single users
+        times_per_url_second = _get_top_hosts_n(users,second_start,second_end)
         
         def index_of(what, where):
             try:
@@ -307,172 +249,462 @@ def get_top_hosts_comparison(request, username, n):
 
         return results[0:n]
 
-    return_results = fetch_data(user_user, first_start,first_end,second_start,second_end)
-        
-    return json_response({ "code":200, "results": return_results }) 
+    return fetch_data(users, first_start, first_end, second_start, second_end)
 
 
-
-def get_top_hosts_comparison_friends(request, username, n):    
+def get_top_urls_following(request, username, n):
     if not 'first_start' in request.GET:
         return json_response({ "code":404, "error": "get has no 'first_start' key" }) 
 
     user = get_object_or_404(User, username=username)
-
+    enduser = get_enduser_for_user(user)
     following = [friendship.to_friend for friendship in user.friend_set.all()]
+
     n = int(n)
-
     first_start,first_end,second_start,second_end = _unpack_times(request)
-    first_start = round_time_to_day(first_start)
-    first_end = round_time_to_day(first_end)
-    second_start = round_time_to_day(second_start)
-    second_end = round_time_to_day(second_end)
+    times_per_url_first = _get_top_n(user,first_start,first_end)
+    times_per_url_second = _get_top_n(user,second_start,second_end)
 
-    @cache.region('long_term')
-    def fetch_data(following, first_star, first_end, second_start, second_end):
-        #print following
-        times_per_url_first = _get_top_hosts_n(following,first_start,first_end)
-        #print times_per_url_first
-        times_per_url_second = _get_top_hosts_n(following,second_start,second_end)
+    for friend in following:
+        friend_user = get_object_or_404(User, username=friend.username)
+        times_per_url_first.append(_get_top_n(friend_user,first_start,first_end))
+        times_per_url_second.append(_get_top_n(friend_user,first_start,first_end))
 
-        def index_of(what, where):
-            try:
-                return [ h[0] for h in where ].index(what)
-            except:
-                print sys.exc_info()
-                pass
-            return None
+    def index_of(what, where):
+        try:
+            return [ h[0] for h in where ].index(what)
+        except:
+            print sys.exc_info()
+            pass
+        return None
 
-        results = []
+    results = []
+    for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
+        old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
+        if old_rank is not None:
+            diff = - (i - old_rank)  # we want the gain not the difference
+            results.append(times_per_url_second[i] + (diff,) )
+        else:
+            results.append( times_per_url_second[i] )
 
-        for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
-            old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
-            if old_rank is not None:
-                diff = - (i - old_rank)  # we want the gain not the difference
-                results.append(times_per_url_second[i] + (diff,) )
+    return json_response({ "code":200, "results": results[0:n] })
+
+
+def _get_graph_points_for_results(results, to_msec, from_msec, n):
+    interp = (to_msec - from_msec) / n
+    counts = int(math.floor((to_msec - from_msec) / interp))
+    ttData = [0]*(counts + 1) # total time spent per time block
+    avgDataNum = [0]*(counts + 1) # number of websites per time block
+    def get_date_array():
+        foo = [0]*(counts + 1)
+        for count in range(0, counts):
+            foo[count] = from_msec + (interp * count)
+        return foo
+    dateArray = get_date_array()
+
+    # gets total time on websites per time block(count)
+    for result in results:
+        for count in range(0, counts):
+            if count >= counts:
+                if result.startTime > dateArray[count]:
+                    ttData[count] += int(result.endTime - result.startTime)
+                    avgDataNum[count] += 1
+                else:
+                    pass
             else:
-                results.append( times_per_url_second[i] )
+                if result.startTime > dateArray[count] and result.startTime < dateArray[count + 1]:
+                    ttData[count] += int(result.endTime - result.startTime)
+                    avgDataNum[count] += 1
+                else:
+                    pass
+                    
+    def get_avg_data():
+        foo = [0]*counts
+        for count in range(0, counts): 
+            foo[count] = ttData[count] / (avgDataNum[count] + 1)
+        return foo
+    avgData = get_avg_data()
 
-        return results[0:n]
-
-    return_results = fetch_data(following,first_start,first_end,second_start,second_end)
-        
-    return json_response({ "code":200, "results": return_results }) 
+    return { "avgTime": avgData, "totalTime": ttData }
 
 
-def get_urls_for_day_of_week(request, username):    
-    if not 'first_start' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'first_start' key" }) 
-
+def get_profile_graphs(from_msec_raw, to_msec_raw, username):    
     user = get_object_or_404(User, username=username)
-    first_start = round_time_to_day(_unpack_times(request))
+    from_msec_rounded = round_time_to_half_day(from_msec_raw)
+    to_msec_rounded = round_time_to_half_day(to_msec_raw)
 
     @cache.region('long_term')
-    def fetch_data(user, first_start):
-        users = User.objects.all()
+    def fetch_data(user, from_msec, to_msec):
+        views = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
+        data = {}
 
-        numDays = 49
-
-        #create the list of urls for each of the 
-        return results
-
-    return_results = fetch_data(user, first_start)
-        
-    return json_response({ "code":200, "results": return_results }) 
-
-
-def get_day_of_week_graph_for_url(request):    
-    if not 'url' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'url' key" }) 
-
-    inputURL = request.GET['url'].strip()
-
-    @cache.region('long_term')
-    def fetch_data(url, week):
-        views = PageView.objects.filter(url=url)
-
-        weekPts = [0,0,0,0,0,0,0]
-        for view in views:
-            weekday = datetime.datetime.fromtimestamp(view.startTime/1000).weekday()
-            # returns the day of the week as an integer, where Monday is 0 and Sunday is 6. 
-            weekPts[weekday] += 1
-
-        return weekPts
-
-    # to make caching have a unique id
-    return_results = fetch_data(inputURL, "week")
-        
-    return json_response({ "code":200, "results": return_results }) 
-
-def get_time_of_day_graph_for_url(request):    
-    if not 'url' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'url' key" }) 
-
-    inputURL = request.GET['url'].strip()
-
-    @cache.region('long_term')
-    def fetch_data(url, day):
-        views = PageView.objects.filter(url=url)
-        hrPts = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-
-        for view in views:
-            hour = datetime.datetime.fromtimestamp(view.startTime/1000).hour
-            hrPts[hour] += 1
-            
-        return hrPts
-
-    # to make caching have a unique id
-    return_results = fetch_data(inputURL, "day")
-        
-    return json_response({ "code":200, "results": return_results }) 
-
-
-def get_day_of_week_graph_for_user(request):    
-    if not 'user' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'user' key" }) 
-
-    username = request.GET['user'].strip()
-    inputUser = get_object_or_404(User, username=username)
-
-    @cache.region('long_term')
-    def fetch_data(user, week):
-        views = PageView.objects.filter(user=user)
-
-        weekPts = [0,0,0,0,0,0,0]
-        for view in views:
-            weekday = datetime.datetime.fromtimestamp(view.startTime/1000).weekday()
-            # returns the day of the week as an integer, where Monday is 0 and Sunday is 6. 
-            weekPts[weekday] += 1
-
-        return weekPts
-
-    # to make caching have a unique id
-    return_results = fetch_data(inputUser, "week")
-        
-    return json_response({ "code":200, "results": return_results }) 
-
-def get_time_of_day_graph_for_user(request):    
-    if not 'user' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'user' key" }) 
-
-    username = request.GET['user'].strip()
-    inputUser = get_object_or_404(User, username=username)
-
-    @cache.region('long_term')
-    def fetch_data(user, day):
-        views = PageView.objects.filter(user=user)
+        weekPts = [0]*7
         hrPts = [0]*24
 
         for view in views:
+            weekday = datetime.datetime.fromtimestamp(view.startTime/1000).weekday()
+            # returns the day of the week as an integer, where Monday is 0 and Sunday is 6. 
+            weekPts[weekday] += 1
+
             hour = datetime.datetime.fromtimestamp(view.startTime/1000).hour
             hrPts[hour] += 1
-            
-        return hrPts
 
-    # to make caching have a unique id
-    return_results = fetch_data(inputUser, "day")
+        data.update(_get_graph_points_for_results(views, to_msec, from_msec, 28))
+
+        data['dayWeek'] = weekPts
+        data['timeDay'] = hrPts
+        return data
+
+    results = fetch_data(user, from_msec_rounded, to_msec_rounded) 
+    return results
+
+
+def get_pagestats_graphs(from_msec_raw, to_msec_raw, url):    
+    from_msec_rounded = round_time_to_half_day(from_msec_raw)
+    to_msec_rounded = round_time_to_half_day(to_msec_raw)
+
+    @cache.region('long_term')
+    def fetch_data(user, from_msec, to_msec):
+        views = PageView.objects.filter(url=url,startTime__gte=from_msec,endTime__lte=to_msec)
+        data = {}
+
+        weekPts = [0]*7
+        hrPts = [0]*24
+
+        for view in views:
+            weekday = datetime.datetime.fromtimestamp(view.startTime/1000).weekday()
+            # returns the day of the week as an integer, where Monday is 0 and Sunday is 6. 
+            weekPts[weekday] += 1
+
+            hour = datetime.datetime.fromtimestamp(view.startTime/1000).hour
+            hrPts[hour] += 1
+
+        data.update(_get_graph_points_for_results(views, to_msec, from_msec, 28))
+
+        data['dayWeek'] = weekPts
+        data['timeDay'] = hrPts
+        return data
+
+    results = fetch_data(url, from_msec_rounded, to_msec_rounded) 
+    return results
+
+
+def get_trending_urls(request, n):
+    if not 'first_start' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'first_start' key" }) 
+
+    user = User.objects.all();
+    user = user[0] ## again this is fail not sure how to iterate through the users esp if they have not logged anything
+    n = int(n)
+    first_start,first_end,second_start,second_end = _unpack_times(request)
+    times_per_url_first = _get_top_n(user,first_start,first_end)
+    times_per_url_second = _get_top_n(user,second_start,second_end)
+    
+    def index_of(what, where):
+        try:
+            return [ h[0] for h in where ].index(what)
+        except:
+            print sys.exc_info()
+            pass
+        return None
+
+    results = []
+    for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
+        old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
+        if old_rank is not None:
+            diff = - (i - old_rank)  # we want the gain not the difference
+            results.append(times_per_url_second[i] + (diff,) )
+        else:
+            results.append( times_per_url_second[i] )
+                
+    return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] })
+
+    
+
+def get_top_users(from_msec, to_msec, n, req_type):
+    if 'user' in req_type:
+        users = get_object_or_404(User, username=req_type['user'])
+    if 'friends' in req_type:
+        usr = get_object_or_404(User, username=req_type['friends'])
+        users = [friendship.to_friend for friendship in usr.friend_set.all()]
+    else:
+        users = User.objects.all()
+
+    n = int(n)
+
+    from_msec_rounded = round_time_to_half_day(from_msec)
+    to_msec_rounded = round_time_to_half_day(to_msec)
+
+    @cache.region('top_users_long_term')
+    def fetch_data(from_msec, to_msec, req_type):
+        results = []
+        for user in users:
+            try:
+                results.append( {"user": user.username, "number": PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec).count() } )
+            except:
+                pass
+        results.sort(key=lambda x:-x["number"])
+        return results[0:n]
         
-    return json_response({ "code":200, "results": return_results }) 
+    return fetch_data(from_msec_rounded, to_msec_rounded, req_type)
+
+
+def get_top_users_for_url(from_msec, to_msec, n, url):
+    users = User.objects.all();
+    n = int(n)
+
+    from_msec_rounded = round_time_to_half_day(from_msec)
+    to_msec_rounded = round_time_to_half_day(to_msec)
+
+    barbar = "foo" # to keep cache unique
+    @cache.region('top_users_long_term')
+    def fetch_data(from_msec, to_msec, url, barbar):
+        results = []
+        for user in users:
+            try:
+                number = PageView.objects.filter(user=user,url=url,startTime__gte=from_msec,endTime__lte=to_msec).count()
+                results.append( {"user": user.username, "number": number } )
+            except:
+                pass
+
+        results.sort(key=lambda x: -x["number"])
+
+        return results[0:n]
+    
+    return fetch_data(from_msec_rounded, to_msec_rounded, url, barbar)
+
+
+## emax added this to be fancy
+def uniq(lst,key=lambda x: x,n=None):
+    result = []
+    keys = []
+    for ii in range(len(lst)):
+        xi = lst[ii]
+        ki = key(xi)
+        if ki not in keys:
+            keys.append(ki)
+            result.append(xi)
+        if n is not None and len(result) >= n:
+            return result
+    
+    return result        
+
+## get most recent urls now returns elements with distinct titles. no repeats!
+def get_most_recent_urls(request, n):
+    n = int(n)
+
+    # gets unique pages
+    phits = PageView.objects.filter().order_by("-startTime")
+
+    if n < 0 or n is None:
+        n = len(phits)
+
+    uphit = uniq(phits,lambda x:x.title,n)
+    
+    results = [ defang_pageview(evt) for evt in uphit ]
+
+    if request.GET.has_key('id'):
+        urlID = int(request.GET['id'])
+        filter_results = []
+        for result in results:
+            if int(result['id']) > urlID:
+                filter_results.append(result)
+        if len(filter_results) > 0:
+            return json_response({ "code":200, "results": filter_results })
+        else:
+            return json_response({ "code":204 })
+
+    return json_response({ "code":200, "results": results })
+
+
+def get_users_most_recent_urls(request, username, n):
+    if not 'from' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+
+    user = get_object_or_404(User, username=username)
+    n = int(n)
+
+    from_msec,to_msec = _unpack_from_to_msec(request)
+    hits = _get_pages_for_user(user,from_msec,to_msec)
+
+    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits[0:n] ] });    
+        
+def get_closest_url(request):
+    if not 'url' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'url' key" }) 
+
+    url = request.GET['url']
+    ## finds the urls that best match the given url. if there
+    ## is an exact match, only returns that.
+    if PageView.objects.filter(url=url).count() > 0:
+        return json_response({ "code":200, "results": [url] });
+    
+    hits = list(set([ url['url'] for url in PageView.objects.filter(url__contains=url).values('url') ]))
+    hits.sort( lambda x,y: len(x)-len(y) )
+    return json_response({ "code":200, "results": hits });
+
+def get_to_from_url(from_msec_raw, to_msec_raw, n, url):
+    to_msec_rounded = round_time_to_day(to_msec_raw)
+    from_msec_rounded = round_time_to_day(from_msec_raw)
+    # currently not filtering by time as there is rarely enough data
+    
+    # added this to check if url exists in the logs
+    if  len(PageView.objects.filter(url=url)) < 1:
+        # fail silently 
+        return {'pre':"", 'next':"", 'pre_titles': "" , 'next_titles' : "" }
+    n = int(n)
+
+    @cache.region('to_from_url')
+    def fetch_data(to_msec, url):
+        accesses = PageView.objects.filter(url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
+        pre = {}
+        next = {}
+        titles = {}
+        for access in accesses:
+            try:
+                # get the page we logged IMMEDIATELY before access for the particular access's user in question
+                prev_access = PageView.objects.filter(startTime__lt=access.startTime,user=access.user).order_by("-startTime")[0]
+                if prev_access.url != url:
+                    pre[prev_access.url] = pre.get(prev_access.url,0) + 1
+                    if prev_access.title is not None:
+                        titles[prev_access.url] = prev_access.title
+                    else:
+                        titles[prev_access.url] = prev_access.url
+                else:
+                    pass
+            except:
+                pass
+            try:
+                # get the page we logged IMMEDIATELY before access for the particular access's user in question
+                next_access = PageView.objects.filter(startTime__gt=access.startTime,user=access.user).order_by("startTime")[0]
+                if next_access.url != url:
+                    next[next_access.url] = next.get(next_access.url,0) + 1
+                    if next_access.title is not None:
+                        titles[next_access.url] = next_access.title
+                    else:
+                        titles[next_access.url] = next_access.url
+                else:
+                    pass
+            except:
+                pass
+            
+        def sort_by_counts(count_dict):
+            l = count_dict.items()
+            l.sort(key=lambda x: -x[1])
+            return l
+        
+        pre_sorted = sort_by_counts(pre)
+        next_sorted = sort_by_counts(next)
+
+        return { 'pre':pre_sorted[:7], 'next':next_sorted[:7], 'pre_titles': [ titles[x[0]] for x in pre_sorted[:7] ] , 'next_titles' : [ titles[x[0]] for x in next_sorted[:7] ] }
+
+    return_results = fetch_data(to_msec_rounded, url)
+    return return_results
+
+
+## INDEX PAGE
+def get_homepage(request):
+    if not 'from' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+
+    from_msec,to_msec = _unpack_from_to_msec(request)
+
+    request_type = {'global':'all'}
+
+    top_users = get_top_users(from_msec, to_msec, 10, request_type)    
+    print top_users
+    views_user = get_views_user(from_msec, to_msec, top_users[0]['user'])
+    # eventually should probably cache get_most_recent_urls here or fix it to not sort the entire db every call
+
+    return json_response({ "code":200, "results": [top_users, views_user] });
+
+
+## TICKER PAGE
+def get_ticker(request):
+    if not 'type' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'type' key" }) 
+
+    request_type = request.GET['type'].strip()
+    from_msec,to_msec = _unpack_from_to_msec(request)
+
+    top_users = get_top_users(from_msec, to_msec, 10, request_type)
+
+    first_start,first_end,second_start,second_end = _unpack_times(request)
+    top_hosts = get_top_hosts_compare(first_start,first_end,second_start,second_end, 10, request_type)
+    profile_queries = get_profile_queries(request_type)
+    #trending_urls = get_trending_urls(from_msec, to_msec, 10)
+
+    return json_response({ "code":200, "results": [top_users, top_hosts, profile_queries] });
+
+
+## USERS PAGE
+def get_users_page(request):
+    if not 'from' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+
+    request_type = {'global':'all'}
+
+    from_msec,to_msec = _unpack_from_to_msec(request)
+
+    top_users = get_top_users(from_msec, to_msec, 10, request_type)
+    profile_queries = get_profile_queries(request_type)
+
+    return json_response({ "code":200, "results": [top_users, profile_queries] });
+
+
+## PROFILE PAGE
+def get_profile(request):
+    if not 'type' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'type' key" }) 
+
+    request_type = {}
+    request_type['user'] = request.GET['type'].strip()
+
+    from_msec,to_msec = _unpack_from_to_msec(request)
+
+    first_start,first_end,second_start,second_end = _unpack_times(request)
+    top_hosts = get_top_hosts_compare(first_start,first_end,second_start,second_end, 10, request_type)
+    profile_queries = get_profile_queries(request_type)
+    graphs = get_profile_graphs(from_msec, to_msec, request_type['user'])
+
+    return json_response({ "code":200, "results": [graphs, top_hosts, profile_queries] });
+
+
+## PAGE STATS PAGE
+def get_pagestats(request):
+    if not 'url' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'url' key" }) 
+
+    request_type = {}
+    request_type['url'] = request.GET['url'].strip()
+
+    from_msec,to_msec = _unpack_from_to_msec(request)
+
+    profile_queries = get_page_profile_queries(from_msec, to_msec, request_type['url'])
+    top_users = get_top_users_for_url(from_msec, to_msec, 10, request_type['url'])
+    graphs = get_pagestats_graphs(from_msec, to_msec, request_type['url'])
+    to_from_url = get_to_from_url(from_msec, to_msec, 7, request_type['url'])
+
+    return json_response({ "code":200, "results": [graphs, top_users, profile_queries, to_from_url] });
+
+## GRAPHS PAGE
+def get_views_user_json(request, username):
+    if not 'from' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'from' key" })
+
+    user = get_object_or_404(User, username=username)
+    enduser = get_enduser_for_user(user)
+
+    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
+
+    def fetch_data(from_msec, to_msec, user):
+	hits = _get_pages_for_user(user ,from_msec,to_msec)
+	return [ defang_pageview(evt) for evt in hits ]
+
+    results = fetch_data(from_msec_raw, to_msec_raw, user)
+
+    return json_response({ "code":200, "results": results });
+
 
 def get_hourly_daily_top_urls_user(request, username, n):
     n = int(n)
@@ -517,10 +749,48 @@ def get_hourly_daily_top_urls_user(request, username, n):
     return json_response({ "code":200, "results": return_results }) 
 
 
-def get_top_hosts_comparison_global(request, n):    
-    if not 'first_start' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'first_start' key" }) 
+## FRIENDS PAGE
+def get_following_views(request, username):
+    if not 'from' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'from' key" }) 
 
+    user = get_object_or_404(User, username=username)
+    enduser = get_enduser_for_user(user)
+    following = [friendship.to_friend for friendship in user.friend_set.all()]
+
+    from_msec,to_msec = _unpack_from_to_msec(request)
+    from_msec_rounded = round_time_to_day(from_msec)
+    to_msec_rounded = round_time_to_day(to_msec)
+
+    # potentially i can just not pass it the 'following' param hrmz
+    @cache.region('long_term')
+    def fetch_data(from_msec, to_msec, user, following):
+        friends_results = []
+
+        # add the request.user
+        user_events = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
+        friends_results.append( {"username": enduser.user.username, "events": [ defang_pageview(evt) for evt in user_events ] } )
+        
+        # add friends
+        for friend in following:
+            #friend_user = get_object_or_404(User, username=friend.username)
+            events = PageView.objects.filter(user=friend,startTime__gte=from_msec,endTime__lte=to_msec)
+            friends_results.append( {"username": friend.username, "events": [ defang_pageview(evt) for evt in events ] } )
+            
+        #friends_results.sort(key=lambda x:(x["username"], x["username"]))
+        return friends_results
+
+    results = fetch_data(from_msec_rounded, to_msec_rounded, user, following)
+
+    return json_response({ "code":200, "results": results });    
+
+def get_top_hosts_comparison_friends(request, username, n):
+    if not 'first_start' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'first_start' key" })
+
+    user = get_object_or_404(User, username=username)
+
+    following = [friendship.to_friend for friendship in user.friend_set.all()]
     n = int(n)
 
     first_start,first_end,second_start,second_end = _unpack_times(request)
@@ -530,11 +800,11 @@ def get_top_hosts_comparison_global(request, n):
     second_end = round_time_to_day(second_end)
 
     @cache.region('long_term')
-    def fetch_data(first_start, first_end, second_start, second_end):
-        users = User.objects.all()
-
-        times_per_url_first = _get_top_hosts_n(users,first_start,first_end)
-        times_per_url_second = _get_top_hosts_n(users,second_start,second_end)
+    def fetch_data(following, first_star, first_end, second_start, second_end):
+        #print following                                                                                                                                                                                                                                                                                                   
+        times_per_url_first = _get_top_hosts_n(following,first_start,first_end)
+        #print times_per_url_first                                                                                                                                                                                                                                                                                         
+        times_per_url_second = _get_top_hosts_n(following,second_start,second_end)
 
         def index_of(what, where):
             try:
@@ -546,166 +816,68 @@ def get_top_hosts_comparison_global(request, n):
 
         results = []
 
-        for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
+        for i in range(len(times_per_url_second)): ## iterate over the more recent dudes                                                                                                                                                                                                                                   
             old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
             if old_rank is not None:
-                diff = - (i - old_rank)  # we want the gain not the difference
+                diff = - (i - old_rank)  # we want the gain not the difference                                                                                                                                                                                                                                             
                 results.append(times_per_url_second[i] + (diff,) )
             else:
                 results.append( times_per_url_second[i] )
 
         return results[0:n]
 
-    return_results = fetch_data(first_start,first_end,second_start,second_end)
-        
-    return json_response({ "code":200, "results": return_results }) 
+    return_results = fetch_data(following,first_start,first_end,second_start,second_end)
 
-def get_top_urls_following(request, username, n):
-    if not 'first_start' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'first_start' key" }) 
+    return json_response({ "code":200, "results": return_results })
+
+
+
+## DO NOT DELETE USED BY OLD PLUGIN
+def get_top_friend_for_url(request, username):
+    if not 'url' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'url' key" }) 
 
     user = get_object_or_404(User, username=username)
-    enduser = get_enduser_for_user(user)
-    following = [friendship.to_friend for friendship in user.friend_set.all()]
+    users = [friendship.to_friend for friendship in user.friend_set.all()]
+    
+    get_url = request.GET['url'].strip()
 
-    n = int(n)
-    first_start,first_end,second_start,second_end = _unpack_times(request)
-    times_per_url_first = _get_top_n(user,first_start,first_end)
-    times_per_url_second = _get_top_n(user,second_start,second_end)
+    barbar = "top friend for url" # to keep cache unique
+    @cache.region('top_users_long_term')
+    def fetch_data( url, username):
+        results = []
+        for user in users:
+            number = PageView.objects.filter(user=user,url=url).count()
+            results.append( {"user": user.username, "number": number } )
 
-    for friend in following:
-        friend_user = get_object_or_404(User, username=friend.username)
-        times_per_url_first.append(_get_top_n(friend_user,first_start,first_end))
-        times_per_url_second.append(_get_top_n(friend_user,first_start,first_end))
+        results.sort(key=lambda x: -x["number"])
+        return results[0:1]
 
-    def index_of(what, where):
-        try:
-            return [ h[0] for h in where ].index(what)
-        except:
-            print sys.exc_info()
-            pass
-        return None
+    return_results = fetch_data(get_url, username)
+    return return_results
 
-    results = []
-    for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
-        old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
-        if old_rank is not None:
-            diff = - (i - old_rank)  # we want the gain not the difference
-            results.append(times_per_url_second[i] + (diff,) )
-        else:
-            results.append( times_per_url_second[i] )
+def get_number_friends_logged_url(request, username):
+    if not 'url' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'url' key" }) 
 
-    return json_response({ "code":200, "results": results[0:n] })
+    user = get_object_or_404(User, username=username)
+    friends = [friendship.to_friend for friendship in user.friend_set.all()]
 
+    get_url = request.GET['url'].strip()    
 
-def get_views_url(request):
-    if not 'from' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+    @cache.region('top_users_long_term')
+    def fetch_data(url, username):
+        results = []
+        number = 0
+        for friend in friends:
+            if PageView.objects.filter(user=friend,url=url).count() > 0:
+                number += 1
 
-    from_msec,to_msec = _unpack_from_to_msec(request)
-    url = request.GET['url'].strip()
+        return number
+    return_results = fetch_data(get_url, username)
+    return return_results
 
-    results = PageView.objects.filter(url=url,startTime__gte=from_msec,endTime__lte=to_msec)
-
-    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in results ] } )
-
-
-def _get_graph_points_for_results(results, to_msec, from_msec, n):
-    interp = (to_msec - from_msec) / n
-    counts = int(math.floor((to_msec - from_msec) / interp))
-    ttData = [0]*(counts + 1) # total time spent per time block
-    avgDataNum = [0]*(counts + 1) # number of websites per time block
-    def get_date_array():
-        foo = [0]*(counts + 1)
-        for count in range(0, counts):
-            foo[count] = from_msec + (interp * count)
-        return foo
-    dateArray = get_date_array()
-
-    # gets total time on websites per time block(count)
-    for result in results:
-        for count in range(0, counts):
-            if count >= counts:
-                if result.startTime > dateArray[count]:
-                    ttData[count] += int(result.endTime - result.startTime)
-                    avgDataNum[count] += 1
-                else:
-                    pass
-            else:
-                if result.startTime > dateArray[count] and result.startTime < dateArray[count + 1]:
-                    ttData[count] += int(result.endTime - result.startTime)
-                    avgDataNum[count] += 1
-                else:
-                    pass
-                    
-    def get_avg_data():
-        foo = [0]*counts
-        for count in range(0, counts): 
-            foo[count] = ttData[count] / (avgDataNum[count] + 1)
-        return foo
-    avgData = get_avg_data()
-
-    return { "avgData": avgData, "ttData": ttData }
-
-
-def get_graph_points_url(request, n):
-    if not 'from' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'from' key" }) 
-
-    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
-    from_msec_rounded = round_time_to_day(from_msec_raw)
-    to_msec_rounded = round_time_to_day(to_msec_raw)
-    url = request.GET['url'].strip()
-    n = int(n) # number of points on the graph
-
-    @cache.region('to_from_url')
-    def fetch_data(to_msec, from_msec, url):
-        results = PageView.objects.filter(url=url,startTime__gte=from_msec,endTime__lte=to_msec)
-        return _get_graph_points_for_results(results, to_msec, from_msec, n)
-
-    results = fetch_data(to_msec_rounded, from_msec_rounded, url)
-    return json_response({ "code":200, "results": results } )
-
-
-def get_graph_points_user(request, username, n):
-    if not 'from' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'from' key" }) 
-
-    user = User.objects.filter(username=username)
-    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
-    from_msec_rounded = round_time_to_day(from_msec_raw)
-    to_msec_rounded = round_time_to_day(to_msec_raw)
-    n = int(n) # number of points on the graph
-
-    @cache.region('to_from_url')
-    def fetch_data(to_msec, from_msec, user):
-        results = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
-        return _get_graph_points_for_results(results, to_msec, from_msec, n)
-
-    results = fetch_data(to_msec_rounded, from_msec_rounded, user)
-    return json_response({ "code":200, "results": results } )
-
-
-def get_graph_points_global(request, n):
-    if request.GET.has_key('from') is None:
-        return json_response({ "code":404, "error": "get has no 'from' key" }) 
-
-    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
-    from_msec_rounded = round_time_to_day(from_msec_raw)
-    to_msec_rounded = round_time_to_day(to_msec_raw)
-    n = int(n) # number of points on the graph
-
-    @cache.region('to_from_url')
-    def fetch_data(to_msec, from_msec):
-        results = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec)
-        return _get_graph_points_for_results(results, to_msec, from_msec, n)
-
-    results = fetch_data(to_msec_rounded, from_msec_rounded)
-    return json_response({ "code":200, "results": results } )
-
-
-# gets ranked list of the urls gone to before and after the url passed in the request
-def get_to_from_url(request, n):
+def get_to_from_url_plugin(request, n):
     if not 'url' in request.GET:
         return json_response({ "code":404, "error": "get has no 'url' key" }) 
 
@@ -773,263 +945,3 @@ def get_to_from_url(request, n):
         return json_response({ "code":200, "results": return_results, "friend_stats": friend_stats })
         
     return json_response({ "code":200, "results": return_results })
-
-
-def get_trending_urls(request, n):
-    if not 'first_start' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'first_start' key" }) 
-
-    user = User.objects.all();
-    user = user[0] ## again this is fail not sure how to iterate through the users esp if they have not logged anything
-    n = int(n)
-    first_start,first_end,second_start,second_end = _unpack_times(request)
-    times_per_url_first = _get_top_n(user,first_start,first_end)
-    times_per_url_second = _get_top_n(user,second_start,second_end)
-    
-    def index_of(what, where):
-        try:
-            return [ h[0] for h in where ].index(what)
-        except:
-            print sys.exc_info()
-            pass
-        return None
-
-    results = []
-    for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
-        old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
-        if old_rank is not None:
-            diff = - (i - old_rank)  # we want the gain not the difference
-            results.append(times_per_url_second[i] + (diff,) )
-        else:
-            results.append( times_per_url_second[i] )
-                
-    return json_response({ "code":200, "results": results[0:n] }) ## [(u, long(times_per_url[u])) for u in urls_ordered[0:n]] })
-
-    
-
-def get_top_users(request, n):
-    if not 'from' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'from' key" }) 
-
-    users = User.objects.all();
-    n = int(n)
-    from_msec,to_msec = _unpack_from_to_msec(request)
-
-    from_msec_rounded = round_time_to_half_day(from_msec)
-    to_msec_rounded = round_time_to_half_day(to_msec)
-    
-    # this is to give the cache a unique reference
-    bozon = "bozon"
-
-    @cache.region('top_users_long_term')
-    def fetch_data(from_msec, to_msec, bozon):
-        results = []
-        for user in users:
-            results.append( {"user": user.username, "number": PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec).count() } )
-
-        results.sort(key=lambda x:-x["number"])
-        return results[0:n]
-        
-    return_results = fetch_data(from_msec_rounded, to_msec_rounded, bozon)
-
-    return json_response({ "code":200, "results": return_results })
-
-
-def get_top_users_for_url(request, n):
-    if not 'url' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'url' key" }) 
-
-    users = User.objects.all();
-    n = int(n)
-    from_msec,to_msec = _unpack_from_to_msec(request)
-    get_url = request.GET['url'].strip()
-
-    from_msec_rounded = round_time_to_half_day(from_msec)
-    to_msec_rounded = round_time_to_half_day(to_msec)
-
-    barbar = "foo" # to keep cache unique
-    @cache.region('top_users_long_term')
-    def fetch_data(from_msec, to_msec, url, barbar):
-        results = []
-        for user in users:
-            number = PageView.objects.filter(user=user,url=url,startTime__gte=from_msec,endTime__lte=to_msec).count()
-            results.append( {"user": user.username, "number": number } )
-
-        results.sort(key=lambda x: -x["number"])
-
-        return results[0:n]
-
-    return_results = fetch_data(from_msec_rounded, to_msec_rounded, get_url, barbar)
-
-    return json_response({ "code":200, "results": return_results })
-
-def get_top_friend_for_url(request, username):
-    if not 'url' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'url' key" }) 
-
-    user = get_object_or_404(User, username=username)
-    users = [friendship.to_friend for friendship in user.friend_set.all()]
-    
-    get_url = request.GET['url'].strip()
-
-    barbar = "top friend for url" # to keep cache unique
-    @cache.region('top_users_long_term')
-    def fetch_data( url, username):
-        results = []
-        for user in users:
-            number = PageView.objects.filter(user=user,url=url).count()
-            results.append( {"user": user.username, "number": number } )
-
-        results.sort(key=lambda x: -x["number"])
-        return results[0:1]
-
-    return_results = fetch_data(get_url, username)
-    return return_results
-    #return json_response({ "code":200, "results": return_results })
-
-def get_top_friend_for_url_json(request, username):
-    if not 'url' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'url' key" }) 
-
-    user = get_object_or_404(User, username=username)
-    friends = [friendship.to_friend for friendship in user.friend_set.all()]
-    
-    get_url = request.GET['url'].strip()
-
-    barbar = "top friend for url" # to keep cache unique
-    @cache.region('top_users_long_term')
-    def fetch_data(url, username):
-        results = []
-        for friend in friends:
-            number = PageView.objects.filter(user=friend,url=url).count()
-            results.append( {"user": friend.username, "number": number } )
-
-        results.sort(key=lambda x: -x["number"])
-        return results[0:1]
-
-    return_results = fetch_data(get_url, username)
-    return json_response({ "code":200, "results": return_results })
-
-def get_number_friends_logged_url(request, username):
-    if not 'url' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'url' key" }) 
-
-    user = get_object_or_404(User, username=username)
-    friends = [friendship.to_friend for friendship in user.friend_set.all()]
-
-    get_url = request.GET['url'].strip()    
-
-    @cache.region('top_users_long_term')
-    def fetch_data(url, username):
-        results = []
-        number = 0
-        for friend in friends:
-            if PageView.objects.filter(user=friend,url=url).count() > 0:
-                number += 1
-
-        return number
-    return_results = fetch_data(get_url, username)
-    return return_results
-
-## emax added this to be fancy
-def uniq(lst,key=lambda x: x,n=None):
-    result = []
-    keys = []
-    for ii in range(len(lst)):
-        xi = lst[ii]
-        ki = key(xi)
-        if ki not in keys:
-            keys.append(ki)
-            result.append(xi)
-        if n is not None and len(result) >= n:
-            return result
-    
-    return result        
-
-## get most recent urls now returns elements with distinct titles. no repeats!
-def get_most_recent_urls(request, n):
-    n = int(n)
-
-    # gets unique pages
-    phits = PageView.objects.filter().order_by("-startTime")
-
-    if n < 0 or n is None:
-        n = len(phits)
-
-    uphit = uniq(phits,lambda x:x.title,n)
-    
-    results = [ defang_pageview(evt) for evt in uphit ]
-
-    if request.GET.has_key('id'):
-        urlID = int(request.GET['id'])
-        filter_results = []
-        for result in results:
-            if int(result['id']) > urlID:
-                filter_results.append(result)
-        if len(filter_results) > 0:
-            return json_response({ "code":200, "results": filter_results })
-        else:
-            return json_response({ "code":204 })
-
-    return json_response({ "code":200, "results": results })
-
-
-def get_users_most_recent_urls(request, username, n):
-    if not 'from' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'from' key" }) 
-
-    user = get_object_or_404(User, username=username)
-    n = int(n)
-
-    from_msec,to_msec = _unpack_from_to_msec(request)
-    hits = _get_pages_for_user(user,from_msec,to_msec)
-
-    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits[0:n] ] });    
-
-def get_following_views(request, username):
-    if not 'from' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'from' key" }) 
-
-    user = get_object_or_404(User, username=username)
-    enduser = get_enduser_for_user(user)
-    following = [friendship.to_friend for friendship in user.friend_set.all()]
-
-    from_msec,to_msec = _unpack_from_to_msec(request)
-    from_msec_rounded = round_time_to_day(from_msec)
-    to_msec_rounded = round_time_to_day(to_msec)
-
-    # potentially i can just not pass it the 'following' param hrmz
-    @cache.region('long_term')
-    def fetch_data(from_msec, to_msec, user, following):
-        friends_results = []
-
-        # add the request.user
-        user_events = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
-        friends_results.append( {"username": enduser.user.username, "events": [ defang_pageview(evt) for evt in user_events ] } )
-        
-        # add friends
-        for friend in following:
-            #friend_user = get_object_or_404(User, username=friend.username)
-            events = PageView.objects.filter(user=friend,startTime__gte=from_msec,endTime__lte=to_msec)
-            friends_results.append( {"username": friend.username, "events": [ defang_pageview(evt) for evt in events ] } )
-            
-        #friends_results.sort(key=lambda x:(x["username"], x["username"]))
-        return friends_results
-
-    results = fetch_data(from_msec_rounded, to_msec_rounded, user, following)
-
-    return json_response({ "code":200, "results": results });    
-        
-def get_closest_url(request):
-    if not 'url' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'url' key" }) 
-
-    url = request.GET['url']
-    ## finds the urls that best match the given url. if there
-    ## is an exact match, only returns that.
-    if PageView.objects.filter(url=url).count() > 0:
-        return json_response({ "code":200, "results": [url] });
-    
-    hits = list(set([ url['url'] for url in PageView.objects.filter(url__contains=url).values('url') ]))
-    hits.sort( lambda x,y: len(x)-len(y) )
-    return json_response({ "code":200, "results": hits });

@@ -75,14 +75,14 @@ def privacy_settings_page(request):
             return HttpResponseRedirect('/settings/') 
 
         variables = RequestContext(request, {'form': form, 'error': True, 'request_user': request.user})
-        return render_to_response('whitelist.html', variables)
+        return render_to_response('settings.html', variables)
                
     variables = RequestContext(request, {
         'form': form,
         'request_user': request.user
         })
 
-    return render_to_response('whitelist.html', variables )
+    return render_to_response('settings.html', variables )
 
 
 def _privacy_save(request, form):
@@ -202,7 +202,7 @@ def page_profile(request):
         'request_user': request.user.username,
         'url': url
         })
-    return render_to_response('webpage.html', variables)
+    return render_to_response('page_stats.html', variables)
 
 def friends(request, username):
     user = get_object_or_404(User, username=username)

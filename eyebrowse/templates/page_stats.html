@@ -40,45 +40,42 @@
             this.windowWidth = windowWidth;
             this.windowHeight = windowHeight;
             this.timeZoneCorrect = timeZoneCorrect;
-            this.endDate = new Date();
 			this.now = new Date().valueOf();
-            this.startDate = new Date(this.endDate.valueOf() - zoom);
-            this.endTime = this.endDate.valueOf();
-            this.startTime = this.startDate.valueOf();
-            this.OGendTime = this.endDate.valueOf();
-            this.OGstartTime = this.startDate.valueOf();
+            this.endTime = this.now;
+            this.startTime = new Date(this.endTime - zoom).valueOf();
             this.interp = zoom / 192;
             this.drag = undefined;
             this.zoom = zoom;
 			this.url = url;
-			var this_ = this;
-			jQuery.get("/get_closest_url/", { url:this.url },
-					   function(data) {
+			this.getClosestUrl(this.url);
+		 },
+		getClosestUrl: function(url){
+			var this_ = this;	
+			jQuery.get("/get_closest_url/", { url:url },
+					   function(data) {						   
 						   if (data.code == 200) {
 							   this_.url = data.results.length > 0 ? data.results[0] : "";
-							   jQuery("#urladdtextinput").val(this_.url);
-
+							   jQuery("#urladdtextinput").val(this_.url);							   
 							   this_.getProfile(this_.startTime, this_.endTime, this_.url); 
-							   this_.initUrlGraph(this_.url);
-							   this_.initLineGraphs(this_.startTime, this_.endTime, this_.url); 
-							   this_.initBarGraphs(this_.url); 
-							   this_.initTopUsers(this_.startTime, this_.endTime, this_.url);			       
 						   } else {
-							   // TODO: replace plz with an error div
 							   //console.log("error calling get_closest_url: " + data.code + " " + data);
 						   }
-					   }, "json");	    	    
-        },
+					   }, "json");	    	           	
+		},
 		getProfile: function(startTime, endTime, url){
+			var this_ = this;
             try {
-                jQuery.get("/get_page_profile_queries/", {
+                jQuery.get("/get_pagestats", {
+							   from: this_.startTime,
+							   to: this_.endTime,
 							   url:url
 						   }, function(data){
 							   if (data.code == 200) {		
 								   var newData = data.results;
-								   jQuery("#totalTime").html("&nbsp; &#124; &nbsp;<b>total time spent: </b> " + timeCounterLongAbv(newData.totalTime));
-								   jQuery("#num").html("<b>total visits: </b>" + newData.number);
-								   jQuery("#avgTime").html("&nbsp; &#124; &nbsp;<b>average time spent: </b>" + timeCounterLongAbv(newData.average));			
+								   this_.drawToFromGraph(data.results[3]);
+								   this_.drawProfile(data.results[2]);
+								   this_.drawTopUsers(data.results[1]);
+								   this_.drawGraphs(data.results[0]);
 							   }
 							   else {
 								   //console.log("yaaaa!!!H!H!H!" + data.code + " ");
@@ -89,23 +86,11 @@
 				// console.log(e);
             }
 		},
-		initTopUsers: function(startTime, endTime, url){
-			var this_ = this;	
-			try {
-                jQuery.get("/get_top_users_for_url/10/", {
-							   url: url
-						   }, function(data){
-							   if (data.code == 200) {	
-								   this_.drawTopUsers(data.results);							   			            
-							   }
-							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-                console.log(e);
-            }
+		drawProfile: function(data){
+			var newData = data;
+			jQuery("#totalTime").html("&nbsp; &#124; &nbsp;<b>total time spent: </b> " + timeCounterLongAbv(newData.totalTime));
+			jQuery("#num").html("<b>total visits: </b>" + newData.number);
+			jQuery("#avgTime").html("&nbsp; &#124; &nbsp;<b>average time spent: </b>" + timeCounterLongAbv(newData.average));
 		},
 		drawTopUsers: function(data){
 			var this_ = this;
@@ -119,28 +104,7 @@
  			}
 			jQuery("#topvisitors").html(html);					   			
 		},
-		initUrlGraph: function(url){
-			var this_ = this;	
-			var urlGraph = undefined;			
-            try {
-				jQuery("#loadimg").show();
-                jQuery.get("/get_to_from_url/10/", {
-							   url: url
-						   }, function(data){
-							   if (data.code == 200) {	
-								   jQuery("#loadimg").hide();
-								   this_.drawUrlGraph(data.results);							   			            
-							   }
-							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-                console.log(e);
-            }
-		},
-		drawUrlGraph: function(data){
+		drawToFromGraph: function(data){
 			var this_ = this;
 			// 3 columns of divs
 			var leftHTML = "";
@@ -184,100 +148,57 @@
 										data: data
 									});			
 		},
-		initLineGraphs: function(startTime, endTime, url){
+		drawGraphs: function(data){
 			var this_ = this;
-            try {
-                jQuery.get("/get_graph_points_url/28/", {
-							   from: startTime,
-							   to: endTime,
-							   url: url
-						   }, function(data){
-							   if (data.code == 200) {						
-								   var totalTimeG = newify(lineGraphFactoryLite, {
-															   canvas: document.getElementById("totalTimeGraph"),
-															   startTime: startTime,
-															   endTime: endTime,
-															   windowHeight: this_.windowHeight,
-															   windowWidth: this_.windowWidth,
-															   interp: (endTime - startTime) / 28,
-															   color: "#ff00ff",
-															   fillGraph: true,
-															   data: data.results.ttData
-														   });
-								   var avgTimeG = newify(lineGraphFactoryLite, {
-															 canvas: document.getElementById("avgTimeGraph"),
-															 startTime: startTime,
-															 endTime: endTime,
-															 windowHeight: this_.windowHeight,
-															 windowWidth: this_.windowWidth,
-															 interp: (endTime - startTime) / 28,
-															 color: "#ff00ff",
-															 fillGraph: true,
-															 data: data.results.avgData
-														 });
-							   }
-							   else {
-								   //console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-                console.log(e);
-            }
-        },
-		initBarGraphs: function(url){
-			var this_ = this;
-            try {
-                jQuery.get("/get_day_of_week_graph_for_url/", {
-							   url: url
-						   }, function(data){
-							   if (data.code == 200) {				
-								   var dayWeekGraph = newify(barGraphLite, {
-																 canvas: document.getElementById("dayWeekGraph"),
-																 windowHeight: this_.windowHeight,
-																 windowWidth: this_.windowWidth,
-																 bottomPadding:30,
-																 barPadding:10,
-																 textPadding:4,
-																 columnWidth:20,																 
-																 label: ['Monday', 'Tuesday', 'Wednes', 'Thursday', '  Friday', 'Saturday', 'Sunday'],
-																 data: data.results
-														 });
-							   }
-							   else {
-								   //console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-                console.log(e);
-            }
-            try {
-                jQuery.get("/get_time_of_day_graph_for_url/", {
-							   url: url
-						   }, function(data){
-							   if (data.code == 200) {						
-								   var timeDayGraph = newify(barGraphLite, {
-																 canvas: document.getElementById("dayTimeGraph"),
-																 windowHeight: this_.windowHeight,
-																 windowWidth: this_.windowWidth,
-																 color: "#ff00ff",
-																 bottomPadding:30,
-																 columnWidth:8,
-																 barPadding:0,
-																 textPadding:0,
-																 label: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
-																 data: data.results
-														 });
-							   }
-							   else {
-								   //console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-                console.log(e);
-            }
+			
+			var totalTimeG = newify(lineGraphFactoryLite, {
+										canvas: document.getElementById("totalTimeGraph"),
+										startTime: this_.startTime,
+										endTime: this_.endTime,
+										windowHeight: this_.windowHeight,
+										windowWidth: this_.windowWidth,
+										interp: (this_.endTime - this_.startTime) / 28,
+										color: "#ff00ff",
+										fillGraph: true,
+										data: data['totalTime']
+									});
+
+			var avgTimeG = newify(lineGraphFactoryLite, {
+									  canvas: document.getElementById("avgTimeGraph"),
+									  startTime: this_.startTime,
+									  endTime: this_.endTime,
+									  windowHeight: this_.windowHeight,
+									  windowWidth: this_.windowWidth,
+									  interp: (this_.endTime - this_.startTime) / 28,
+									  color: "#ff00ff",
+									  fillGraph: true,
+									  data: data['avgTime']
+								  });
+			
+			var dayWeekGraph = newify(barGraphLite, {
+										  canvas: document.getElementById("dayWeekGraph"),
+										  windowHeight: this_.windowHeight,
+										  windowWidth: this_.windowWidth,
+										  bottomPadding:30,
+										  barPadding:10,
+										  textPadding:4,
+										  columnWidth:20,																 
+										  label: ['Monday', 'Tuesday', 'Wednes', 'Thursday', '  Friday', 'Saturday', 'Sunday'],
+										  data: data['dayWeek']
+									  });
+			
+			var timeDayGraph = newify(barGraphLite, {
+										  canvas: document.getElementById("dayTimeGraph"),
+										  windowHeight: this_.windowHeight,
+										  windowWidth: this_.windowWidth,
+										  color: "#ff00ff",
+										  bottomPadding:30,
+										  columnWidth:8,
+										  barPadding:0,
+										  textPadding:0,
+										  label: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
+										  data: data['timeDay']
+									  });
         },
 		refresh: function(){
 			var this_ = this;	    

@@ -22,22 +22,9 @@
 			this.recentID = 0;
 			this.windowHeight = height;
 			this.windowWidth = width;
-            this.getTopUsers(this.startTime, this.endTime, 10);
+            this.getTopUsers(this.startTime, this.endTime);
             this.getRecentPages(10, 3600000);
         },
-		getGraphData: function(startTime, endTime, user){
-			var this_ = this;
-            jQuery.get("/get_views_user/" + user + "/", {
-                           from: startTime,
-                           to: endTime
-                       }, function(data){
-                           if (data.code == 200) {
-							   if (data.results.length > 0){
-								   this_.drawMiniGraph(data.results);								   
-							   }
-                           }						   
-                       }, "json");
-		},       
 		getRecentPages: function(num){
             var this_ = this;
 			this_.startTimeRecent = this_.endTimeRecent;
@@ -81,20 +68,17 @@
 						   }
 					   }, "json");
         },
-		getTopUsers: function(startTime, endTime, num){
+		getTopUsers: function(startTime, endTime){
             var this_ = this;
 			jQuery("#loadimg").show();
-			jQuery.get("/get_top_users/10/", {
+			jQuery.get("/get_homepage", {
 						   from: this_.startTime,
 						   to: this_.endTime,
-						   num: num
 					   }, function(data){
 						   jQuery("#loadimg").hide();
 						   if (data.code == 200) {
-							   var newData = data.results;
-
-							   this_.getGraphData(this_.endTime - 43200000, this_.endTime, newData[0].user);	
-							   
+							   var newData = data.results[0];
+							   this_.drawMiniGraph(data.results[1]);								   
 							   for (var i = 0; i < newData.length; i++) {
 								   if (newData[i].number > 0){
 									   var html = "";

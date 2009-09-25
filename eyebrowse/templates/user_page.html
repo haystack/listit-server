@@ -35,24 +35,28 @@
             this.interp = zoom / 192;
             this.drag = undefined;
             this.zoom = zoom;
-            this.getLatestPages(this.endTime - 86400000, this.endTime); // 1 day
-			this.getProfile();
-			this.initBarGraphs('{{ username }}'); 
-            this.initLiteGraph(this.endTime - 604800000, this.endTime); // 604800000 is 1 week
-            this.getTopPages(this.endTime - zoom, this.endTime);
+			this.getProfile({"user":"{{ username }}"},this.endTime - zoom, this.endTime); 
+            this.getLatestPages(this.endTime - 86400000, this.endTime);
         },
-		getProfile: function(){
+		getProfile: function(req_type, startTime, endTime){
+			var this_ = this;
             try {
-                jQuery.get("/get_user_profile_queries/{{ username }}/", {
+                jQuery.get("/get_profile", {
+							   type: '{{ username }}',
+							   from: startTime,
+							   to: endTime,
+							   first_start: startTime - 86400000,
+							   first_end: startTime,
+							   second_start: startTime,
+							   second_end: endTime
 						   }, function(data){
 							   if (data.code == 200) {								   
-								   var newData = data.results;	
-								   jQuery("#totalTime").html("<b>total time spent: </b> " + timeCounterLongAbv(newData.totalTime));
-								   jQuery("#num").html("<b>total visits: </b>" + newData.number);
-								   jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv(newData.average));			
+								   this_.drawProfile(data.results[2]);
+								   this_.drawTopPages(data.results[1]);
+								   this_.drawGraphs(data.results[0]);
 							   }
 							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+								   //log("yaaaa!!!H!H!H!" + data.code + " ");
 							   }
 						   }, "json");
             } 
@@ -60,7 +64,13 @@
                 console.log(e);
             }
 		},
-        drawTopPagesList: function(data){
+		drawProfile: function(data){
+			var newData = data;	
+			jQuery("#totalTime").html("<b>total time spent: </b> " + timeCounterLongAbv(newData.totalTime));
+			jQuery("#num").html("<b>total visits: </b>" + newData.number);
+			jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv(newData.average));					
+		},
+        drawTopPages: function(data){
             var this_ = this;
             var newData = data;
             var html = "<ul>";
@@ -84,7 +94,6 @@
                 }
                 if (trigger) {
                     html += "<div class=\"imgbox\">&nbsp;";
-                    // html += "<img src=\"/lib/img/star_16.png\" />";
                     html += "</div>";
                 }
                 html += "<h7>" + timeCounterLong((newData[i][1]) / 1000) + "</h7>";
@@ -93,129 +102,57 @@
 			html += "</ul>";
             jQuery("#list").html(html);
         },
-        getTopPages: function(startTime, endTime, data){
-            // uses the django model get_top_pages to return top pages between start and endtime
-            var this_ = this;
-            try {
-				jQuery("#loadimg").show();
-                jQuery.get("/get_top_hosts_comparison/{{ username }}/25/", {
-							   first_start: startTime - 86400000,
-							   first_end: endTime - 86400000,
-							   second_start: startTime,
-							   second_end: endTime
-						   },
-						   function(data){
-							   jQuery("#loadimg").hide();
-							   if (data.code == 200) {
-								   this_.drawTopPagesList(data.results);
-							   }
-							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-                console.log(e);
-            }
-        },
-		initBarGraphs: function(user){
+		drawGraphs: function(data){
 			var this_ = this;
 
-            try {
-                jQuery.get("/get_day_of_week_graph_for_user/", {
-							   user: user
-						   }, function(data){
-							   if (data.code == 200) {				
-								   var dayWeekGraph = newify(barGraphLite, {
-																 canvas: document.getElementById("dayWeekGraph"),
-																 windowHeight: this_.windowHeight,
-																 windowWidth: this_.windowWidth,
-																 bottomPadding:30,
-																 barPadding:10,
-																 textPadding:4,
-																 columnWidth:20,																 
-																 label: ['Monday', 'Tuesday', 'Wednes', 'Thursday', '  Friday', 'Saturday', 'Sunday'],
-																 data: data.results
-														 });
-							   }
-							   else {
-								   //console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-                console.log(e);
-            }
-            try {
-                jQuery.get("/get_time_of_day_graph_for_user/", {
-							   user: user
-						   }, function(data){
-							   if (data.code == 200) {						
-								   var timeDayGraph = newify(barGraphLite, {
-																 canvas: document.getElementById("dayTimeGraph"),
-																 windowHeight: this_.windowHeight,
-																 windowWidth: this_.windowWidth,
-																 color: "#ff00ff",
-																 bottomPadding:30,
-																 columnWidth:8,
-																 barPadding:0,
-																 textPadding:0,
-																 label: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
-																 data: data.results
-														 });
-							   }
-							   else {
-								   //console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-                console.log(e);
-            }
-        },
-        initLiteGraph: function(startTime, endTime){
-            var this_ = this;
-			jQuery("#loadimg").show();
-            try {
-                jQuery.get("/get_graph_points_user/{{ username }}/28/", {
-							   from: startTime,
-							   to: endTime
-						   }, function(data){
-							   if (data.code == 200) {	
-								   if (data.results.ttData.length > 0){
-									   jQuery("#loadimg").hide();
-									   var totalTimeG = newify(lineGraphFactoryLite, {
-																   canvas: document.getElementById("totalTimeGraph"),
-																   startTime: startTime,
-																   endTime: endTime,
-																   windowHeight: this_.windowHeight,
-																   windowWidth: this_.windowWidth,
-																   interp: (endTime - startTime) / 28,
-																   color: "#ff00ff",
-																   fillGraph: true,
-																   data: data.results.ttData
-															   });
-									   var avgTimeG = newify(lineGraphFactoryLite, {
-																 canvas: document.getElementById("avgTimeGraph"),
-																 startTime: startTime,
-																 endTime: endTime,
-																 windowHeight: this_.windowHeight,
-																 windowWidth: this_.windowWidth,
-																 interp: (endTime - startTime) / 28,
-																 color: "#ff00ff",
-																 fillGraph: true,
-																 data: data.results.avgData
-															 });
-								   }
-							   }
-							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-                console.log(e);
-            }
+			var dayWeekGraph = newify(barGraphLite, {
+										  canvas: document.getElementById("dayWeekGraph"),
+										  windowHeight: this_.windowHeight,
+										  windowWidth: this_.windowWidth,
+										  bottomPadding:30,
+										  barPadding:10,
+										  textPadding:4,
+										  columnWidth:20,																 
+										  label: ['Monday', 'Tuesday', 'Wednes', 'Thursday', '  Friday', 'Saturday', 'Sunday'],
+										  data: data['dayWeek']
+									  });
+			
+			var timeDayGraph = newify(barGraphLite, {
+										  canvas: document.getElementById("dayTimeGraph"),
+										  windowHeight: this_.windowHeight,
+										  windowWidth: this_.windowWidth,
+										  color: "#ff00ff",
+										  bottomPadding:30,
+										  columnWidth:8,
+										  barPadding:0,
+										  textPadding:0,
+										  label: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23],
+										  data: data['timeDay']
+									  });
+
+			var totalTimeG = newify(lineGraphFactoryLite, {
+										canvas: document.getElementById("totalTimeGraph"),
+										startTime: this_.startTime,
+										endTime: this_.endTime,
+										windowHeight: this_.windowHeight,
+										windowWidth: this_.windowWidth,
+										interp: (this_.endTime - this_.startTime) / 28,
+										color: "#ff00ff",
+										fillGraph: true,
+										data: data['totalTime']
+									});
+
+			var avgTimeG = newify(lineGraphFactoryLite, {
+									  canvas: document.getElementById("avgTimeGraph"),
+									  startTime: this_.startTime,
+									  endTime: this_.endTime,
+									  windowHeight: this_.windowHeight,
+									  windowWidth: this_.windowWidth,
+									  interp: (this_.endTime - this_.startTime) / 28,
+									  color: "#ff00ff",
+									  fillGraph: true,
+									  data: data['avgTime']
+								  });
         },
         drawLatestPagesList: function(data){
 			var this_ = this;
@@ -281,27 +218,7 @@
             this_.endTime = endTime;
             this_.startTime = startTime;
             
-            try {
-				jQuery("#loadimg").show();
-				jQuery.get("/get_top_hosts_comparison/{{ username }}/25/", {
-							   first_start: startTime - 86400000,
-							   first_end: endTime - 86400000,
-							   second_start: startTime,
-							   second_end: endTime
-						   }, 
-						   function(data){
-							   jQuery("#loadimg").hide();
-							   if (data.code == 200) {
-								   this_.drawTopPagesList(data.results);
-							   }
-							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-				console.log(e);
-            }
+			this.getProfile('{{ username }}',this_.startTime, this_endTime); 
 		}
     };
 
@@ -333,34 +250,6 @@ jQuery(document).ready(function(){
 																		self.viz.refresh(parseInt(fooDate) - self.viz.zoom, parseInt(fooDate)), jQuery("#messageSent").hide("slow");
 																	}
 																	jQuery('#datepicker').DatePickerHide();
-																}
-															});						  						 						   
-
-						   jQuery("#datepickergraph").val(currentDate.format('mm/dd/yyyy'));						   
-						   jQuery("#datepickergraph").DatePicker({
-																format: 'm/d/Y',
-																date: jQuery('#datepickergraph').val(),
-																current: jQuery('#datepickergraph').val(),
-																starts: 1,
-																position: 'top',
-																current: '2009-07-29',
-																
-																onBeforeShow: function(){
-																	jQuery('#datepickergraph').DatePickerSetDate(jQuery('#datepickergraph').val(), true);
-																},
-																onChange: function(formated, dates){
-																	var fooDate = jQuery.datepicker.formatDate("@", new Date(jQuery('#datepickergraph').DatePickerGetDate(true)));
-																	if (fooDate > new Date().valueOf()) {
-																		fooDate = new Date().valueOf();
-																		jQuery('#datepickergraph').val(currentDate.format('mm/dd/yyyy'));
-																		jQuery("#messageSent").show("slow");
-																	}
-																	else {
-																		jQuery('#datepickergraph').val(formated);
-																		self.viz.initLiteGraph(parseInt(fooDate) - self.viz.zoom, parseInt(fooDate)), jQuery("#messageSent").hide("slow");
-																		//self.viz.initBarGraphs('{{ username }}'); 
-																	}
-																	jQuery('#datepickergraph').DatePickerHide();
 																}
 															});						  						 						   
 						   var myWidth = undefined;
