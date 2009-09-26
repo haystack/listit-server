@@ -20,6 +20,8 @@ from django.utils.simplejson import JSONEncoder, JSONDecoder
 # beaker
 from eyebrowse.beakercache import cache
 from django.db.models import Sum
+from django.db.models import query
+from django.db.models.query import QuerySet
 from jv3.utils import json_response
 
 class EVENT_SELECTORS:
@@ -81,14 +83,13 @@ def round_time_to_half_day(time):
     return new_time        
 
 def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
-    import django.db.models.query
-    if type(user) == django.db.models.query.QuerySet:
+    if type(user) == QuerySet:
         mine_events = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec)
     elif type(user) == list:
         mine_events = PageView.objects.filter(user__in=user,startTime__gte=from_msec,endTime__lte=to_msec)
     else:
         mine_events = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
-    
+        
     uniq_urls  = set( grouped_by.access(mine_events) )
     times_per_url = {}
     for url in uniq_urls:
@@ -142,7 +143,7 @@ def get_recent_web_page_view_user(request, username, n):
 def get_profile_queries(req_type):
     if 'user' in req_type:
         users = get_object_or_404(User, username=req_type['user'])
-    if 'friends' in req_type:
+    elif 'friends' in req_type:
         usr = get_object_or_404(User, username=req_type['friends'])
         users = [friendship.to_friend for friendship in usr.friend_set.all()]
     else:
@@ -168,7 +169,8 @@ def get_profile_queries(req_type):
             return { 'number': number, 'totalTime': totalTime/1000, 'average': average }
         return { 'number': 0, 'totalTime': 0, 'average': 0 }
 
-    return fetch_data(users)
+    results = fetch_data(users)
+    return results
 
 
 def get_page_profile_queries(from_msec_raw, to_msec_raw, url):
@@ -213,12 +215,13 @@ def get_most_shared_hosts(request, n):
 def get_top_hosts_compare(first_start, first_end, second_start, second_end, n, req_type):
     if 'user' in req_type:
         users = get_object_or_404(User, username=req_type['user'])
-    if 'friends' in req_type:
+    elif 'friends' in req_type:
         usr = get_object_or_404(User, username=req_type['friends'])
         users = [friendship.to_friend for friendship in usr.friend_set.all()]
     else:
         users = User.objects.all()
 
+    print users
     n = int(n)
 
     @cache.region('long_term')
@@ -423,7 +426,7 @@ def get_trending_urls(request, n):
 def get_top_users(from_msec, to_msec, n, req_type):
     if 'user' in req_type:
         users = get_object_or_404(User, username=req_type['user'])
-    if 'friends' in req_type:
+    elif 'friends' in req_type:
         usr = get_object_or_404(User, username=req_type['friends'])
         users = [friendship.to_friend for friendship in usr.friend_set.all()]
     else:
