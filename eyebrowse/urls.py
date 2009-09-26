@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.defaults import *
 from django.views.generic.simple import direct_to_template
-from eyebrowse.views import *
+import eyebrowse.views
 import eyebrowse.json.urls
 import eyebrowse.pages.urls
 import eyebrowse.plugin.urls

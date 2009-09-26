@@ -8,21 +8,26 @@ from django.conf.urls.defaults import *
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
-from django.db.models import Q
-from eyebrowse.forms import *
 from eyebrowse.models import *
 from django.db.models.signals import post_save
 from jv3.models import Event ## from listit, ya.
+from django.utils.simplejson import JSONEncoder, JSONDecoder
 
-## hook for creating relevant Page objects when new jv3.Event objects get created                                     
-## by the listit server (which answers calls from listit)                                                             
+def get_title_from_evt(evt):
+    foo =  JSONDecoder().decode(JSONDecoder().decode(evt.entitydata)[0]['data'])
+    if foo.has_key('title'):
+        return foo['title']
+    return   
+
+## hook for creating relevant Page objects when new jv3.Event objects get created 
+## by the listit server (which answers calls from listit)                    
 def create_www_pageviews_for_each_event(sender, created=None, instance=None, **kwargs):
-    # print "post-save event for sender %s : %s " % (repr(sender),repr(instance.entityid)) ## debug!!                 
+    #print "post-save event for sender %s : %s " % (repr(sender),repr(instance.entityid)) 
     if (created and instance is not None):
         if instance.entitytype == "schemas.Webpage" and instance.entityid is not None:
-            ## print "post-save url: %s " % instance.entityid ## debug!!                                              
+            ## print "post-save url: %s " % instance.entityid ## debug!!    
             pageview = PageView.from_Event(instance)
-            # print "Saving %s " % repr(pageview)                                                                     
+            # print "Saving %s " % repr(pageview)                                     
             pageview.save()
 
 post_save.connect(create_www_pageviews_for_each_event, sender=Event)
