@@ -64,6 +64,7 @@
 		},
 		getProfile: function(startTime, endTime, url){
 			var this_ = this;
+			jQuery("#loadimg").show();
             try {
                 jQuery.get("/get_pagestats", {
 							   from: this_.startTime,
@@ -76,6 +77,7 @@
 								   this_.drawProfile(data.results[2]);
 								   this_.drawTopUsers(data.results[1]);
 								   this_.drawGraphs(data.results[0]);
+								   jQuery("#loadimg").hide();
 							   }
 							   else {
 								   //console.log("yaaaa!!!H!H!H!" + data.code + " ");

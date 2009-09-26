@@ -40,6 +40,7 @@
         },
 		getProfile: function(req_type, startTime, endTime){
 			var this_ = this;
+			jQuery("#loadimg").show();
             try {
                 jQuery.get("/get_profile", {
 							   type: '{{ username }}',
@@ -54,6 +55,7 @@
 								   this_.drawProfile(data.results[2]);
 								   this_.drawTopPages(data.results[1]);
 								   this_.drawGraphs(data.results[0]);
+								   jQuery("#loadimg").hide();				
 							   }
 							   else {
 								   //log("yaaaa!!!H!H!H!" + data.code + " ");

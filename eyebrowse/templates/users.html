@@ -74,6 +74,7 @@
         },
 		getProfile: function(startTime, endTime){
 			var this_ = this;
+			jQuery("#loadimg").show();
             try {
                 jQuery.get("/get_users_page", {
 							   from: startTime,
@@ -82,6 +83,7 @@
 							   if (data.code == 200) {								   
 								   this_.drawTopUsers(data.results[0]);
 								   this_.drawProfile(data.results[1]);
+                                   jQuery("#loadimg").hide();
 							   }
 							   else {
 								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
