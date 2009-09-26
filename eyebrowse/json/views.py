@@ -157,13 +157,18 @@ def get_profile_queries(req_type):
         else:
             number = 0
             totalTime = 0
-            for user in users:
-                try:
-                    number += PageView.objects.filter(user=user).count()
-                    totalTime += int(PageView.objects.filter(user=user).aggregate(Sum('duration'))['duration__sum'])
-                except:
-                    boo = 0
-
+            try: 
+                if type(users) == QuerySet:
+                    number += PageView.objects.filter().count()
+                    totalTime += int(PageView.objects.filter().aggregate(Sum('duration'))['duration__sum'])
+                elif type(users) == list:
+                    number += PageView.objects.filter(user__in=users).count()
+                    totalTime += int(PageView.objects.filter(user__in=users).aggregate(Sum('duration'))['duration__sum'])
+                else:
+                    number += PageView.objects.filter(user=users).count()
+                    totalTime += int(PageView.objects.filter(user=users).aggregate(Sum('duration'))['duration__sum'])
+            except:
+                pass
         if number > 0:
             average = int(totalTime/1000)/int(number)
             return { 'number': number, 'totalTime': totalTime/1000, 'average': average }
