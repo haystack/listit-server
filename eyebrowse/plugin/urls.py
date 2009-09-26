@@ -10,7 +10,7 @@ from eyebrowse.plugin.views import *
 urlpatterns = patterns('',
                        (r'^plugin_login$', login),  
                        (r'^plugin_get_max_event$', get_most_recent_event_time),
-                       (r'^plugin_post_events/$', views.post_events),
+                       (r'^plugin_post_events/$', post_events),
 
                        # user privacy
                        (r'^add_privacy_url/$', add_privacy_url),
