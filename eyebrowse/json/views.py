@@ -226,7 +226,6 @@ def get_top_hosts_compare(first_start, first_end, second_start, second_end, n, r
     else:
         users = User.objects.all()
 
-    print users
     n = int(n)
 
     @cache.region('long_term')
@@ -256,7 +255,8 @@ def get_top_hosts_compare(first_start, first_end, second_start, second_end, n, r
 
         return results[0:n]
 
-    return fetch_data(users, first_start, first_end, second_start, second_end)
+    results = fetch_data(users, first_start, first_end, second_start, second_end)
+    return results
 
 
 def get_top_urls_following(request, username, n):
@@ -820,10 +820,10 @@ def get_top_hosts_comparison_friends(request, username, n):
 
         results = []
 
-        for i in range(len(times_per_url_second)): ## iterate over the more recent dudes                                                                                                                                                                                                                                   
+        for i in range(len(times_per_url_second)): ## iterate over the more recent dudes                  
             old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
             if old_rank is not None:
-                diff = - (i - old_rank)  # we want the gain not the difference                                                                                                                                                                                                                                             
+                diff = - (i - old_rank)  # we want the gain not the difference     
                 results.append(times_per_url_second[i] + (diff,) )
             else:
                 results.append( times_per_url_second[i] )

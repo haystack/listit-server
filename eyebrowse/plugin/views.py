@@ -60,7 +60,6 @@ def get_most_recent_event_time(request):
             return json_response({'value':int(most_recent_activity[0].start)},200)
         return json_response({'value':0},200)
     except:
-        import sys
         err = sys.exc_info()        
     return json_response({'message':err},500)
 

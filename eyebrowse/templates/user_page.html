@@ -35,10 +35,10 @@
             this.interp = zoom / 192;
             this.drag = undefined;
             this.zoom = zoom;
-			this.getProfile({"user":"{{ username }}"},this.endTime - zoom, this.endTime); 
+			this.getProfile(this.endTime - zoom, this.endTime); 
             this.getLatestPages(this.endTime - 86400000, this.endTime);
         },
-		getProfile: function(req_type, startTime, endTime){
+		getProfile: function(startTime, endTime){
 			var this_ = this;
 			jQuery("#loadimg").show();
             try {
@@ -377,7 +377,7 @@ jQuery(document).ready(function(){
       <div id="listNav">
         <div class="user_page_top">
           <div id="dateselector" style="float:right; margin-top:15px; width:193px;">week ending:
-            <input id="datepickergraph" class="datepicker" value="06/14/2008" type="text" style="font-size:12px;padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
+              <input id="datepicker" class="datepicker" value="06/14/2008" type="text" style="font-size:12px;padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
             <div id="messageSentGraph"  style="font-size:12px; display:none";>
               robots do not know the future :( 
               <br/>
@@ -415,15 +415,12 @@ jQuery(document).ready(function(){
     </div>   
         <div id="listNav">
           <div class="user_page_top">
-            <div id="dateselector" style="float:right; margin-top:15px; width:193px;">week ending:
-              <input id="datepicker" class="datepicker" value="06/14/2008" type="text" style="font-size:12px;padding-top:4px; padding-left:6px; width:70px; height:18px; display:inline-block;"/><img src="/lib/img/calendar_16.png" style="vertical-align:middle; margin-left:4px;"/>
-              <div id="messageSent"  style="font-size:12px";>
-                robots do not know the future :( 
-                <br/>
-                &#8230;yet
-              </div>
+            <div id="messageSent"  style="font-size:12px";>
+              robots do not know the future :( 
+              <br/>
+              &#8230;yet
             </div>
-            {% ifequal user.username username %}<h2>Your Top 25</h2>
+			{% ifequal user.username username %}<h2>Your Top 25</h2>
             {% else %}{% if user.username %}
 			<h2 style="font-size:14px;padding-top:12px;padding-bottom:12px">
               <a href="#top10" onclick="window.viz.top()">top 25</a>&nbsp; &#124; &nbsp;<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp; &#124; &nbsp;<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a>
