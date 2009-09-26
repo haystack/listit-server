@@ -1,0 +1,430 @@
+body {
+    font-family:Helvetica, sans-serif;
+    background-color:#dedede;
+    font-weight:200;
+    margin:0;
+    padding:0;
+    height:100%;
+}
+
+.listittitle { font-size:150%; font-weight:300; }
+.listitsub {  font-size:120%;  font-weight:300;}
+/*.note textarea {*/
+
+textarea {
+	/* width:100%; */ 
+	border:solid white 1px; /* awesome ie hack win */
+	padding:0px;
+	margin:0px;
+	resize:none;
+	outline: none;
+	
+	line-height:1em;
+	min-height:1em;
+	
+	display:block;
+	
+}
+
+
+
+h4 {
+    font-family:Helvetica, sans-serif;
+    font-weight:100;
+    font-size:80%;
+}
+h5 {
+    font-family:Helvetica, sans-serif;
+    font-weight:100;
+    font-size:70%;
+}
+.center { text-align:center; }
+p {  font-size:80%;   font-weight: 100; }
+a {  color:#d36c00;}
+a:visited {color: #d36c00; }
+a:hover   {color: #9fb4cc; }
+
+/* --- login --- */
+#loginDiv {
+    border: 1px solid #33332D;
+    margin-left:auto; margin-right:auto;
+    margin-top:20px;
+    max-width:320px;
+    padding:20px;
+	
+	background-color:#FFF;
+	
+    z-index:2;
+	-moz-border-radius: 16px;
+    -webkit-border-radius: 16px;
+}
+
+#loginDescription {
+  min-width:200px;
+  width:55%;
+}
+
+#loginFormID {
+  min-width:120px;
+  width:35%;
+}
+
+#loginDiv input {  display:inline-block;  margin-bottom:5px; width:150px; font-size:80%; }
+#loginDiv label {  display:inline-block;  font-size:70%;   min-width:110px;  text-align:right; }
+
+.input {  display:inline-block;  }
+.label {  display:inline-block;  }
+
+button{
+  /*padding:1px 2px 0 2px;*/
+/*  padding:3px 5px 2px 5px; */
+  border:2px solid #33332D;
+  background-color: #ffffff;
+}
+
+#loginDiv button:hover {
+  color: #d36c00;
+  border:2px solid #d36c00;
+}
+#loginDiv button:active {
+  background-color:#33332D;
+}
+#loginDiv button:disabled {
+  /*color:rgba(100,100,100,0.5);*/
+  color:#FFF;
+  border:rgb(100,100,100);
+  background-color:rgb(150,150,150);
+}
+
+#loginButton {  
+	margin-right:20px; 
+	-moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+}
+#signupButton{
+	-moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+}
+
+#loginMessage {
+  clear:right;
+  color:rgb(250,150,150);
+  margin-top:1em;
+  text-align:center;
+}
+.study_details {
+    font-size:70%;
+}
+.bigger, .big {
+  color:#000000;
+}
+.bigger {
+  font-size:500%;
+}
+.big {
+  font-size:200%;
+}
+
+.output {
+    font-size:60%;
+    font-weight:bold;
+    color: rgb(200,0,0);
+    text-align:center;
+}
+
+
+#title {
+  min-width:30em;
+}
+
+/* --- notes --- */
+pre { /* From http://bavotasan.com/tutorials/how-to-wrap-text-within-the-pre-tag-using-css */
+	white-space:normal;  
+	/*
+  white-space: pre-wrap; -- css-3 
+  white-space: -moz-pre-wrap; /*Mozilla, since 1999 
+  white-space: -pre-wrap; /*Opera 4-6 
+  white-space: -o-pre-wrap; /* Opera 7 
+  word-wrap: break-word; /* IE 5.5+ 
+  
+  */
+}
+
+.noteContainer {
+    width:100%;
+    display: block;  
+    background-color:#ffffff; 
+   	padding:0px;
+
+}
+
+.deleteX {
+	float:right; /* Move far right */
+	position:relative; /* Then make relative */
+	/* Place 4 pixels inside border */
+	right:4px;
+	top:3px; /* was 3px */
+	/* Ensure no margin/padding*/
+	margin:0px;
+	padding:0px;
+}
+
+.note {
+    width:100%;
+    display:block;  
+    background-color:#ffffff; 
+    padding: 0px 5px 0px 5px; 
+    margin:0px;
+    margin-top: .6em;
+    border:1.0px solid #d36c00;
+    -moz-border-radius: 5px;
+/*slow    -moz-box-shadow: 2px 2px 4px #aaaaaa; */
+    -webkit-border-radius: 5px;
+/*slow     -webkit-box-shadow: 2px 2px 4px #aaaaaa; */
+    box-shadow: 2px 2px 4px #aaaaaa;
+}
+
+
+.note > pre { /* Do this to pre tags in noteDiv's */
+  color: #000000;
+  padding:0;
+  margin:0;
+}
+
+#login_spinner {
+    /*background:rgba(255,255,255,0.8);*/
+    background-color:rgb(255,255,255);
+    vertical-align:middle;
+    display:none;
+    padding:100px;
+    text-align:center;
+    /*text-size:90%;  DOESNT EXIST*/
+	
+    margin:20px;
+    margin-left:auto;
+    margin-right:auto;
+    position:absolute;    
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    height:100%;
+    /*z-index:1;*/
+}
+
+#login_spinner span {
+}
+
+#login_spinner img {
+}
+
+.signup_welcome {
+    display:none;
+}
+
+.submit {
+	margin-top:1em;
+	margin-left:auto;
+	margin-right:auto;
+	width:200px;
+	text-align:center;
+}
+
+#controlsContainer {
+    position:fixed;
+    top:0px;
+    left:0px;
+    right:0px;
+    width: 100%;
+    margin-left:auto;
+    margin-right:auto;
+    margin:0px;
+    padding:0px;
+}
+
+#controls {
+    top:0px;
+    margin:0;
+    padding-top:1em;
+    margin-left:auto;
+    margin-right:auto;	
+}
+/* todo: merge these two: */
+#noteTab {
+    vertical-align:top;
+    padding-top:3px;
+    padding-bottom:3px;
+    padding-left:0px;
+    padding-right:0px;
+    width:90%;
+    margin-left:auto;
+    margin-right:auto;
+    /**
+	border: 1px solid; 
+    border-color:#999;
+	**/
+    background:white;
+	-moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+}
+
+#searchTab {
+    vertical-align:middle;
+    padding:0px;
+    width:90%;
+    margin-left:auto;
+    margin-right:auto;
+    margin-top:0.5em;
+    /*
+    border: 1px solid; 
+    border-color:#999;
+    */
+    border:none;
+    background:aaaaaa;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+}
+#searchTabTA {
+    vertical-align:top;
+    border:solid white 1px;  /* mwa ha! to fool IE7 */
+    outline:none;
+    font-family:monospace;
+    font-size:100%;
+    border:solid 1px #bbbbbb;
+    padding-left:10px;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+	
+	
+   /* display:block; BAAAD for FF*/
+}
+
+/*#searchTab img {
+    padding:0px;
+    margin:0 5px 0 0;
+    height:0.95em;
+    vertical-align:middle;
+}
+*/
+#clearSearchIcon { /* the (X) */
+    
+    position:relative;
+    left:-28px;
+    top:2px;
+}
+
+#search_icon {
+    padding:0px;
+    width:16px;
+    margin-left:5px;
+    margin-right:5px;
+    margin-top:2px;
+    margin-bottom:0px;
+    vertical-align:top;
+}
+
+.middleRight {
+	
+    float:right;
+    position:relative;
+	right:10px; /*was 10px, 4px matches up with vertical line of x's */
+	left:auto;
+	
+	
+    
+}
+.middleRightFFOld { /*only for firefox 3.0.13*/
+	display:inline;
+    float:right;
+    position:relative;
+
+	right:10px;
+	left:auto;
+	top:-19px;
+	bottom:auto;
+}
+#noteTab button { 
+	width: 50px; 
+	margin-left:auto; 
+	margin-right:0px;
+	border:none;
+	-moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+	background-color:#dedede;
+}
+#searchTab button { width: 50px; margin-left:auto; margin-right:0px;}
+/* todo: merge these two */
+#noteTabTA {
+    vertical-align:top;    
+    border-style:none;
+    font-family:monospace;
+    font-size:100%;
+    overflow:hidden;
+	display:block;
+}
+
+#controlTabs {
+	float:right;
+	position:relative;
+	bottom:10px;
+	top:auto;
+	right:100px;
+	left:auto;
+}
+#logoutButton{
+	width: 50px; 
+	margin-left:auto; 
+	margin-right:0px;
+	border:none;
+	-moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+	background-color:#fff;/*#dedede;*/
+	
+}
+#logoutIcon {
+	z-index:2;
+	position:fixed;
+	margin:0;
+	padding:0;
+	bottom:20px;
+	right:20px;
+	left:auto;
+	top:auto;
+	-moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+}
+
+#entries {
+    padding:0px;
+	margin:0px;
+	width:90%;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+#mainFrame {
+    overflow:auto;
+    position:fixed;
+    z-index:1; /* ?? */
+    left:0px;
+    top:2000px;
+    right:0px;
+    bottom:0px;
+    padding:0px;
+    margin:0px;
+	
+	/* Experimental Scrollbar Tweaks 
+	
+	scrollbar-face-color:#bebede;    FOR IE  slightly purplish grey
+	
+	*/
+}
+
+/* control click. */
+.selectedNote {
+    background-color:	#FF9;
+}
+
+textarea {
+	overflow:hidden;
+	/*display:inline-block !important;*/
+}

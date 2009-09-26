@@ -1,0 +1,146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>list.it :: a note taking tool for your information scraps</title>
+
+<meta name="apple-mobile-web-app-capable" content="yes" />
+
+<meta name = "viewport" content = "width = device-width">   <!--device-width -->
+<meta name = "viewport" content = "height = device-height"> <!--device-height -->
+
+<meta name = "viewport" content = "initial-scale = 1.0">
+<meta name = "viewport" content = "maximum-scale = 1.0; minimum-scale = 1.0">
+
+<link rel="stylesheet" href="zen.css" type="text/css" title="skin_light" />
+<link rel="stylesheet" href="print.css" type="text/css" media="print" />
+
+<script type="text/javascript" src="jquery-1.3.2.min.js"></script>
+<script type="text/javascript" src="encodeDecode.js"></script>
+<script type="text/javascript" src="jsonHandler.js"></script>
+<script type="text/javascript" src="signup.js"></script>
+<script type="text/javascript" src="loginAuthenticate.js"></script>
+<script type="text/javascript" src="newNoteHandler.js"></script>
+<script type="text/javascript" src="editNoteHandler.js"></script>
+<script type="text/javascript" src="viewControl.js"></script>
+<script type="text/javascript" src="keyDetect.js"></script>
+<script type="text/javascript" src="noteSearch.js"></script>
+<script type="text/javascript" src="command.js"></script>
+<script type="text/javascript">
+
+function alertUpdate() {
+	if (/MSIE (\d+\.\d+);/.test(navigator.userAgent)){ //test for MSIE x.x;
+		var ieversion=new Number(RegExp.$1) // capture x.x portion and store as a number
+		if (ieversion<=6) {
+			zenUtil.showDiv('updateAlert');
+		}
+	}
+}
+jQuery(document).ready(function() {
+    jQuery('#participate')[0].checked = false;
+    jQuery("#submit").attr("disabled",true);
+	
+	zeniPhone.detectiPhone(); // bad name, it sets browser information
+	zenCore.setupPage();
+	//alertUpdate();	
+	zenCore.updateOrientation();
+});
+</script>
+
+</head>
+<body onorientationchange="zenCore.updateOrientation();" onresize="zenCore.resizePage()">
+<div id="main">
+  
+  <!-- all login stuff --> 
+  <div id="loginDiv" style="display:none">
+      <span class="listittitle">list.it</span>
+      <span class="listitsub">...before you forget it!</span>
+
+      <h4>web edition</h4>
+      <p class="signup_welcome">
+      <a href="http://listit.csail.mit.edu">list.it</a> is <a href="http://code.google.com/p/list-it">free and open-source</a> note-taking tool from <a href="http://www.csail.mit.edu"> MIT CSAIL</a> that lets you safely, quickly and easily write stuff down.
+      </p>
+      <p class="signup_welcome">
+      Try it out, <a href="http://listit.csail.mit.edu">find out more about the project</a>, or grab the <a href="https://addons.mozilla.org/en-US/firefox/addon/12737">deluxe firefox edition</a>.
+      </p>
+    
+   <h5 class="signup_welcome" style="display:none">Welcome to list-it! Please provide the following info:</h5>
+      <div class="label"><label>your email:</label></div>
+      <div class="input"><input id="email" type="text" name="username" value="" onkeyup='validate_email_address(jQuery("#email").val(), jQuery("#loginMessage"));'/></div><br>
+      <div id="regular_login">
+        <div class="label"><label>password:</label></div>
+        <div class="input"><input id="passwd" type="password" name="password" value=""/></div>
+        <div class="label"><label>&nbsp;</label></div>
+        <div id="buttons" class="input">
+          <button id="loginButton" type="button" value="Log In" onClick="zenCore.login()">Log In</button>      
+          <button id="signupButton" type="button" value="New user" onClick='signUpMode()'>New user</button>
+        </div>
+	<div id="loginMessage" class="output"></div> 
+     </div>
+     <div id="signup" style="display:none">
+             <div class="label"><label>choose password:</label></div>
+    <div class="input"><input id="pass1" class="force140" type="password" onkeyup='signup_validate_passwords(jQuery("#password_validate_result")); signup_validate_enable_submit();'/></div>
+              <div class="label"><label>re-type password:</label></div>
+    <div class="input"><input id="pass2" class="force140" type="password" onkeyup='signup_validate_passwords(jQuery("#password_validate_result")); signup_validate_enable_submit();'/></div>
+	      <div id="password_validate_result" class="output"></div>
+	      		
+	      <p class="study_details">Contribute to science!<br>
+	      We are conducting research on note taking. If you give us permission to let us (researchers at MIT) study your notes, you will be helping us
+	      better understand how people write information and build better tools.
+	      
+	      <p class="study_details">If you participate, your notes will be kept confidential to <i>the list.it group</i> and will not be divulged to anyone outside without your explicit
+	      (further) permission. See <a target="_new" href="http://listit.csail.mit.edu/couhes.html">experiment terms</a> for more info.
+	      </p>
+  	      <div class="label"><label>Participate in research study?</label></div>
+	      <div class="input"><input type="checkbox" id='participate' default="false" checked="false" value="false"
+		onClick='jQuery("#consent_details").toggle(); signup_validate_enable_submit();'/></div><br>
+
+    <div id="consent_details" class="study_details" style="display:none">
+	      <div class="label"><label>first name:</label></div>
+  	      <div class="input"><input type="text" class="force140" id="firstname" onKeyUp="signup_validate_enable_submit()"/></div><br>
+	      <div class="label"><label>family (last) name:</label></div>
+	      <div class="input"><input type="text" class="force140" id="lastname" onKeyUp="signup_validate_enable_submit()"/></div><br>
+	      <div class="label"><label>Do you understand and agree to the terms of the study?</label></div>
+              <div class="input"><input type="checkbox" id="consent" name="consent" onClick="signup_validate_enable_submit()"/></div><br>
+
+     </div>
+              <div class="submit">
+		<center>
+		  <button id="submit" name="submit" type="button" disabled="true" value="Sign up" onClick="signup_submit()">Sign up</button>
+		</center>
+              </div>
+    	      <div class="output" id="signupMessage"></div>
+    </div>
+
+  </div> <!-- End of loginDiv -->
+    <div id="login_spinner">
+       <span class="text"></span><br><img src="spinner.gif"/>
+     </div>    
+  <!-- main display -->
+
+	<div id="controlsContainer" style="display:none">
+		<div id="controls" style="display:none"> <!-- style:display:none goes here-->
+			<!--<div id="controlTabs"><button type="button" id="logoutIcon" onClick="zenCore.logout()">Logout</button></div>-->
+			<div id="controlTabs"><!--<button type="button" id="logoutIcon" onClick="zenCore.logout()">Logout</button>--></div>
+			<div id="noteTab" style="display:block" onclick="zenTabs.noteClicked('container')">
+				<!--<img src="search-22.png" alt="Create Note:" style="visibility:hidden">--><textarea id="noteTabTA" onclick="zenTabs.noteClicked('self')" rows="1" cols="60"></textarea>&nbsp;<button type="button" id='saveButton' class="middleRight" onClick="zenTabs.saveTabNote('noteTabTA')">Save</button>
+				<!--<img src="accept_16.ico" width="16" height="16" class="middleRight" onClick="zenTabs.saveTabNote('noteTabTA')"/>-->
+			</div>
+		
+			<div id="searchTab">
+				<img src="search-22.png" id="search_icon" alt="Search for:" style="display:inline"><input type="text" id="searchTabTA"/>&nbsp;<img src="closetab.png" id="clearSearchIcon" style="display:none" onClick="zenTabs.clearSearch('searchTabTA')"/>&nbsp;<button type="button" class="middleRight" id='logoutButton' width='50px' onClick="zenCore.logout()">Logout </button>
+				
+				<!--<button type="button" class="middleRight" onClick="zenTabs.clearSearch('searchTabTA')">Clear</button><br/> -->
+			</div>
+	   </div> <!--END:controls-->
+   </div>  <!--END:controlsContainer-->	
+	
+		<!--  == MAINFRAME == -->
+   <div id="mainFrame">
+     <!--<div id="controlsBlank"></div>  Matches top control bar size -->
+     <div id="entries">  <!-- End: entries -->  </div>
+      
+     <div id="preferences" style="display:none"></div>
+   </div><!-- End of main -->
+</div>
+</body>
+</html>
