@@ -11,6 +11,8 @@ from django.template import RequestContext
 from django.db.models import Q
 from eyebrowse.forms import *
 from eyebrowse.models import *
+from django.db.models.signals import post_save
+from jv3.models import Event ## from listit, ya.
 
 ## hook for creating relevant Page objects when new jv3.Event objects get created                                     
 ## by the listit server (which answers calls from listit)                                                             
