@@ -151,24 +151,20 @@ def get_profile_queries(req_type):
 
     @cache.region('long_term')
     def fetch_data(users):
-        if 'global' in req_type:
-            number = PageView.objects.filter().count()
-            totalTime = int(PageView.objects.filter().aggregate(Sum('duration'))['duration__sum'])
-        else:
-            number = 0
-            totalTime = 0
-            try: 
-                if type(users) == QuerySet:
-                    number += PageView.objects.filter().count()
-                    totalTime += int(PageView.objects.filter().aggregate(Sum('duration'))['duration__sum'])
-                elif type(users) == list:
-                    number += PageView.objects.filter(user__in=users).count()
-                    totalTime += int(PageView.objects.filter(user__in=users).aggregate(Sum('duration'))['duration__sum'])
-                else:
-                    number += PageView.objects.filter(user=users).count()
-                    totalTime += int(PageView.objects.filter(user=users).aggregate(Sum('duration'))['duration__sum'])
-            except:
-                pass
+        number = 0
+        totalTime = 0
+        try: 
+            if type(users) == QuerySet:
+                number += PageView.objects.filter().count()
+                totalTime += int(PageView.objects.filter().aggregate(Sum('duration'))['duration__sum'])
+            elif type(users) == list:
+                number += PageView.objects.filter(user__in=users).count()
+                totalTime += int(PageView.objects.filter(user__in=users).aggregate(Sum('duration'))['duration__sum'])
+            else:
+                number += PageView.objects.filter(user=users).count()
+                totalTime += int(PageView.objects.filter(user=users).aggregate(Sum('duration'))['duration__sum'])
+        except:
+            pass
         if number > 0:
             average = int(totalTime/1000)/int(number)
             return { 'number': number, 'totalTime': totalTime/1000, 'average': average }
@@ -178,20 +174,40 @@ def get_profile_queries(req_type):
     return results
 
 
-def get_page_profile_queries(from_msec_raw, to_msec_raw, url):
-    from_msec_rounded = round_time_to_day(from_msec_raw)
-    to_msec_rounded = round_time_to_day(to_msec_raw)
+def get_page_profile_queries(url, req_type):
+    if 'user' in req_type:
+        users = get_object_or_404(User, username=req_type['user'])
+    elif 'friends' in req_type:
+        usr = get_object_or_404(User, username=req_type['friends'])
+        users = [friendship.to_friend for friendship in usr.friend_set.all()] # list
+    else:
+        users = User.objects.all() # queryset
 
+    print users
     @cache.region('long_term')
-    def fetch_data(from_msec, to_msec, inputURL):
-        totalTime  = PageView.objects.filter(url=inputURL,startTime__gte=from_msec,endTime__lte=to_msec).aggregate(Sum('duration'))
-        number =  PageView.objects.filter(url=inputURL,startTime__gte=from_msec,endTime__lte=to_msec).count()
+    def fetch_data(inputURL, users):
+        number = 0
+        totalTime = 0
+        try: 
+            if type(users) == QuerySet:
+                number += PageView.objects.filter(url=inputURL).count()
+                totalTime += int(PageView.objects.filter(url=inputURL).aggregate(Sum('duration'))['duration__sum'])
+            elif type(users) == list:
+                number += PageView.objects.filter(user__in=users, url=inputURL).count()
+                totalTime += int(PageView.objects.filter(user__in=users, url=inputURL).aggregate(Sum('duration'))['duration__sum'])
+            else:
+                number += PageView.objects.filter(user=users, url=inputURL).count()
+                totalTime += int(PageView.objects.filter(user=users, url=inputURL).aggregate(Sum('duration'))['duration__sum'])
+                print "yay"
+        except:
+            pass
+
         if number > 0:
-            average = int((totalTime['duration__sum'])/1000)/int(number)
-            return { 'number': number, 'totalTime': int(totalTime['duration__sum']/1000), 'average': average }
+            average = int((totalTime/1000)/number)
+            return { 'number': number, 'totalTime': totalTime/1000, 'average': average }
         return { 'number': 0, 'totalTime': 0, 'average': 0 }
 
-    results = fetch_data(from_msec_rounded, to_msec_rounded, url)
+    results = fetch_data(url, users)
     return results
 
 
@@ -366,13 +382,27 @@ def get_profile_graphs(from_msec_raw, to_msec_raw, username):
     return results
 
 
-def get_pagestats_graphs(from_msec_raw, to_msec_raw, url):    
+def get_pagestats_graphs(from_msec_raw, to_msec_raw, url, req_type):    
+    if 'user' in req_type:
+        users = get_object_or_404(User, username=req_type['user'])
+    elif 'friends' in req_type:
+        usr = get_object_or_404(User, username=req_type['friends'])
+        users = [friendship.to_friend for friendship in usr.friend_set.all()]
+    else:
+        users = User.objects.all()
+
     from_msec_rounded = round_time_to_half_day(from_msec_raw)
     to_msec_rounded = round_time_to_half_day(to_msec_raw)
 
     @cache.region('long_term')
-    def fetch_data(user, from_msec, to_msec):
-        views = PageView.objects.filter(url=url,startTime__gte=from_msec,endTime__lte=to_msec)
+    def fetch_data(url, users, from_msec, to_msec):
+        if type(users) == QuerySet:
+            views = PageView.objects.filter(url=url,startTime__gte=from_msec,endTime__lte=to_msec)
+        elif type(users) == list:
+            views = PageView.objects.filter(user__in=users, url=url,startTime__gte=from_msec,endTime__lte=to_msec)
+        else:
+            views = PageView.objects.filter(user=users,url=url,startTime__gte=from_msec,endTime__lte=to_msec)
+
         data = {}
 
         weekPts = [0]*7
@@ -392,7 +422,7 @@ def get_pagestats_graphs(from_msec_raw, to_msec_raw, url):
         data['timeDay'] = hrPts
         return data
 
-    results = fetch_data(url, from_msec_rounded, to_msec_rounded) 
+    results = fetch_data(url, users, from_msec_rounded, to_msec_rounded) 
     return results
 
 
@@ -456,8 +486,15 @@ def get_top_users(from_msec, to_msec, n, req_type):
     return fetch_data(from_msec_rounded, to_msec_rounded, req_type)
 
 
-def get_top_users_for_url(from_msec, to_msec, n, url):
-    users = User.objects.all();
+def get_top_users_for_url(from_msec, to_msec, n, url, req_type):
+    if 'user' in req_type:
+        users = get_object_or_404(User, username=req_type['user'])
+    elif 'friends' in req_type:
+        usr = get_object_or_404(User, username=req_type['friends'])
+        users = [friendship.to_friend for friendship in usr.friend_set.all()] # list
+    else:
+        users = User.objects.all() # queryset
+
     n = int(n)
 
     from_msec_rounded = round_time_to_half_day(from_msec)
@@ -467,17 +504,21 @@ def get_top_users_for_url(from_msec, to_msec, n, url):
     @cache.region('top_users_long_term')
     def fetch_data(from_msec, to_msec, url, barbar):
         results = []
-        for user in users:
-            try:
-                number = PageView.objects.filter(user=user,url=url,startTime__gte=from_msec,endTime__lte=to_msec).count()
-                results.append( {"user": user.username, "number": number } )
-            except:
-                pass
 
-        results.sort(key=lambda x: -x["number"])
+        try:
+            for user in users:
+                try:
+                    number = PageView.objects.filter(user=user,url=url,startTime__gte=from_msec,endTime__lte=to_msec).count()
+                    results.append( {"user": user.username, "number": number } )
+                except:
+                    pass
 
-        return results[0:n]
-    
+            results.sort(key=lambda x: -x["number"])
+            
+            return results[0:n]
+        except:
+            return results
+
     return fetch_data(from_msec_rounded, to_msec_rounded, url, barbar)
 
 
@@ -550,10 +591,14 @@ def get_closest_url(request):
     hits.sort( lambda x,y: len(x)-len(y) )
     return json_response({ "code":200, "results": hits });
 
-def get_to_from_url(from_msec_raw, to_msec_raw, n, url):
-    to_msec_rounded = round_time_to_day(to_msec_raw)
-    from_msec_rounded = round_time_to_day(from_msec_raw)
-    # currently not filtering by time as there is rarely enough data
+def get_to_from_url(n, url, req_type):
+    if 'user' in req_type:
+        users = get_object_or_404(User, username=req_type['user'])
+    elif 'friends' in req_type:
+        usr = get_object_or_404(User, username=req_type['friends'])
+        users = [friendship.to_friend for friendship in usr.friend_set.all()]
+    else:
+        users = User.objects.all()
     
     # added this to check if url exists in the logs
     if  len(PageView.objects.filter(url=url)) < 1:
@@ -562,8 +607,14 @@ def get_to_from_url(from_msec_raw, to_msec_raw, n, url):
     n = int(n)
 
     @cache.region('to_from_url')
-    def fetch_data(to_msec, url):
-        accesses = PageView.objects.filter(url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
+    def fetch_data(url, users, req_type):
+        if type(users) == QuerySet:
+            accesses = PageView.objects.filter(url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
+        elif type(users) == list:
+            accesses = PageView.objects.filter(user__in=users, url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
+        else:
+            accesses = PageView.objects.filter(user=users, url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
+
         pre = {}
         next = {}
         titles = {}
@@ -605,7 +656,7 @@ def get_to_from_url(from_msec_raw, to_msec_raw, n, url):
 
         return { 'pre':pre_sorted[:7], 'next':next_sorted[:7], 'pre_titles': [ titles[x[0]] for x in pre_sorted[:7] ] , 'next_titles' : [ titles[x[0]] for x in next_sorted[:7] ] }
 
-    return_results = fetch_data(to_msec_rounded, url)
+    return_results = fetch_data(url, users, req_type)
     return return_results
 
 
@@ -682,14 +733,21 @@ def get_pagestats(request):
         return json_response({ "code":404, "error": "get has no 'url' key" }) 
 
     request_type = {}
-    request_type['url'] = request.GET['url'].strip()
+    if request.GET['type'].strip() == 'user':
+        request_type['user'] = request.user.username
+    elif request.GET['type'].strip() == 'friends':
+        request_type['friends'] = request.user.username
+    else:
+        request_type['global'] = 'global'
+
+    url = request.GET['url'].strip()
 
     from_msec,to_msec = _unpack_from_to_msec(request)
 
-    profile_queries = get_page_profile_queries(from_msec, to_msec, request_type['url'])
-    top_users = get_top_users_for_url(from_msec, to_msec, 10, request_type['url'])
-    graphs = get_pagestats_graphs(from_msec, to_msec, request_type['url'])
-    to_from_url = get_to_from_url(from_msec, to_msec, 7, request_type['url'])
+    profile_queries = get_page_profile_queries(url, request_type)
+    top_users = get_top_users_for_url(from_msec, to_msec, 10, url, request_type)
+    graphs = get_pagestats_graphs(from_msec, to_msec, url, request_type)
+    to_from_url = get_to_from_url(7, url, request_type)
 
     return json_response({ "code":200, "results": [graphs, top_users, profile_queries, to_from_url] });
 

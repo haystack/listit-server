@@ -341,6 +341,15 @@ def logout_page(request):
     logout(request)
     return HttpResponseRedirect('/')
 
+def plugin_iframe(request):
+    request_user = request.user.username
+
+    t = loader.get_template("iframe.html")
+    c = Context({ 'request_user': request_user })
+
+    return HttpResponse(t.render(c))
+
+
 def _create_enduser_for_user(user):
     enduser = EndUser()
     enduser.user = user

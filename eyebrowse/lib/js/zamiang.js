@@ -33,6 +33,14 @@ function trim (str, i) {
 	return str.slice(0, i + 1);
 }
 
+String.prototype.trim = function(i) {
+	var	str = this.replace(/^\s\s*/, '');
+	var ws = /\s/;
+	while (ws.test(str.charAt(--i)));
+	return str.slice(0, i + 1);
+}
+
+
 // merge objects
 function merge(root){
 	for ( var i = 1; i < arguments.length; i++ )

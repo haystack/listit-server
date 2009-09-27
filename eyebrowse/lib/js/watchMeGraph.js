@@ -895,7 +895,11 @@ var compareFactory  = ({
 							   } else {
 								   this.windowWidth = viz.windowWidth;
 							   }
-							   this.xOffset = params.xOffset;
+							   if (params.xOffset) {
+								   this.xOffset = params.xOffset;							  
+							   } else {
+								   this.xOffset = 250;
+							   }
 							   this.yOffset = params.yOffset;
 							   this.lineWidth = params.lineWidth;
 							   this.data = params.data;
@@ -910,6 +914,7 @@ var compareFactory  = ({
 							   }
 							   this.dataMin = dataArray.min();// + 1;
 							   this.dataMax = dataArray.max() + 0.1;// -1;
+							   
 							   this.draw();
 						   },
 						   draw: function(){
@@ -926,7 +931,7 @@ var compareFactory  = ({
 								   ctx.lineWidth = (this_.lineWidth - 0.4) * ((this_.data.pre[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin)) + 0.4;
 								   ctx.strokeStyle = "hsl("+ Math.round((this_.maxH - this_.minH) *((this_.data.pre[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin)) + this_.minH) + ",100%,50%)";
 								   ctx.beginPath();
-								   ctx.moveTo(250, startY);
+								   ctx.moveTo(this_.xOffset, startY);
 								   ctx.lineTo(this_.windowWidth/2, this_.windowHeight/2);
 								   ctx.stroke();
 								   ctx.closePath();								   
@@ -941,7 +946,7 @@ var compareFactory  = ({
 								   ctx.lineWidth = (this_.lineWidth - 0.4) * ((this_.data.next[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin)) + 0.4;
 								   ctx.strokeStyle = "hsl("+ Math.round((this_.maxH - this_.minH) *((this_.data.next[i][1] - this_.dataMin)/(this_.dataMax - this_.dataMin)) + this_.minH) + ",100%,50%)";
 								   ctx.beginPath();
-								   ctx.moveTo(this_.windowWidth - 250, startY );
+								   ctx.moveTo(this_.windowWidth - this_.xOffset, startY );
 								   ctx.lineTo(this_.windowWidth/2, this_.windowHeight/2);
 								   ctx.stroke();
 								   ctx.closePath();								   

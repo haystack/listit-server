@@ -52,4 +52,7 @@ urlpatterns = patterns('',
                        (r'^profile_old/$', profile_save_page),
                        (r'^settings/$',  privacy_settings_page),
                        (r'^userprivacy/$', userprivacy),
+
+                       # plugin iframe
+                       (r'^iframe$', plugin_iframe),
 )
