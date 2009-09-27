@@ -23,6 +23,7 @@ from django.db.models import Sum
 from django.db.models import query
 from django.db.models.query import QuerySet
 from jv3.utils import json_response
+import urlparse
 
 class EVENT_SELECTORS:
     class Page:
@@ -183,7 +184,6 @@ def get_page_profile_queries(url, req_type):
     else:
         users = User.objects.all() # queryset
 
-    print users
     @cache.region('long_term')
     def fetch_data(inputURL, users):
         number = 0
@@ -198,7 +198,6 @@ def get_page_profile_queries(url, req_type):
             else:
                 number += PageView.objects.filter(user=users, url=inputURL).count()
                 totalTime += int(PageView.objects.filter(user=users, url=inputURL).aggregate(Sum('duration'))['duration__sum'])
-                print "yay"
         except:
             pass
 
@@ -519,7 +518,30 @@ def get_top_users_for_url(from_msec, to_msec, n, url, req_type):
         except:
             return results
 
-    return fetch_data(from_msec_rounded, to_msec_rounded, url, barbar)
+    return_results = fetch_data(from_msec_rounded, to_msec_rounded, url, barbar)
+    return return_results
+
+
+def get_percent_logging(url_raw, req_type):
+    if 'friends' in req_type:
+        usr = get_object_or_404(User, username=req_type['friends'])
+        users = [friendship.to_friend for friendship in usr.friend_set.all()] # list
+    else:
+        users = User.objects.all() # queryset
+
+    scheme, url_parsed, boo, foo, bar, baz = urlparse.urlparse(url_raw)
+
+    @cache.region('top_users_long_term')
+    def fetch_data(url, users):
+        results = []
+        
+        if (users) == list:
+            return PrivacySettings.objects.filter(user__in=users, whitelist__in=url).count()/User.objects.all().count()
+        else:
+            return PrivacySettings.objects.filter(whitelist__in=url).count()/User.objects.all().count()
+
+    return_results = fetch_data(url_parsed, users)
+    return return_results
 
 
 ## emax added this to be fancy
@@ -744,12 +766,13 @@ def get_pagestats(request):
 
     from_msec,to_msec = _unpack_from_to_msec(request)
 
+    percent_logging = get_percent_logging(url, request_type)
     profile_queries = get_page_profile_queries(url, request_type)
     top_users = get_top_users_for_url(from_msec, to_msec, 10, url, request_type)
     graphs = get_pagestats_graphs(from_msec, to_msec, url, request_type)
     to_from_url = get_to_from_url(7, url, request_type)
 
-    return json_response({ "code":200, "results": [graphs, top_users, profile_queries, to_from_url] });
+    return json_response({ "code":200, "results": [graphs, top_users, profile_queries, to_from_url, percent_logging] });
 
 ## GRAPHS PAGE
 def get_views_user_json(request, username):

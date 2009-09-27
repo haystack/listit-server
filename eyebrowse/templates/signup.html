@@ -1,0 +1,355 @@
+{% extends "base.html" %}
+{% block title %}track and share your web trails{% endblock %}
+{% block imports %}
+<script src="/lib/js/watchMeGraph.js">
+</script>
+<script src="/lib/js/watchhome.js">
+</script>
+<script>
+    var WatchmeVisualisation = {
+        initialize: function(zoom, canvas, width, height){
+            this.endTime = new Date().valueOf();
+            this.startTime = this.endTime - zoom; // 12 hours
+			this.endTimeRecent = this.endTime;
+			this.start = 0;
+            this.now = new Date().valueOf();
+            this.timeZoneCorrect = 0;
+			this.newDataEnd = 0;
+            this.zoom = zoom;
+            this.canvas = canvas;
+			this.width = width;
+			this.height = height;
+			this.recentID = 0;
+			this.windowHeight = height;
+			this.windowWidth = width;
+            this.getTopUsers(this.startTime, this.endTime);
+            this.getRecentPages(10, 3600000);
+        },
+		getRecentPages: function(num){
+            var this_ = this;
+			this_.startTimeRecent = this_.endTimeRecent;
+            this_.endTimeRecent = new Date().valueOf();
+            this_.now = new Date().valueOf();
+			jQuery("#loadimg").show();
+			jQuery.get("/get_most_recent_urls/" + num + "/", {
+                           id: this_.recentID
+					   }, function(data){
+						   jQuery("#loadimg").hide();
+						   if (data.code == 200) {
+							   var newData = data.results;
+							   var html = "";
+							   for (var i = newData.length -1; i >= 0; i--) {
+								   if (newData[i].end > this_.newDataEnd){
+									   html = "<li id=\"" + this_.endTimeRecent + i +  "\">";
+									   if (newData[i].title){
+										   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6";
+									   }
+									   else{
+										   html += "<h6><b><a href=\"" + newData[i].url + "\">" + trim(newData[i].url, 43) + "</a></b></h6>";
+									   }
+									   html += "<a href=\"/search/?url=" + newData[i].url + "\"><img src=\"/lib/img/smallbird.jpg\" style=\"margin-left:6px;display:inline-block;margin-top:-5px;\"/></a>";
+									   html += "<br /><h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " ago";
+									   if (newData[i].user.length > 0) {
+										   html += " by <a href=\"/profile/" + newData[i].user + "\" style=\"font-weight:bold\">" + newData[i].user + "</a>";
+									   }
+									   //if (newData[i].location.length > 0) {
+									//	   html += " in " + newData[i].location;
+									 //  }
+									   html += "</h7></li>";
+									   jQuery("#latestviews ul").prepend(html);
+									   jQuery("#" + this_.endTimeRecent + i).slideDown("slow");
+								   }
+							   }
+							   this_.recentID = newData[0].id;
+						   }
+						   else {
+							   return;
+							   //console.log("yaaaa!!!h!h!h!" + data.code + " ");
+						   }
+					   }, "json");
+        },
+		getTopUsers: function(startTime, endTime){
+            var this_ = this;
+			jQuery("#loadimg").show();
+			jQuery.get("/get_homepage", {
+						   from: this_.startTime,
+						   to: this_.endTime,
+					   }, function(data){
+						   jQuery("#loadimg").hide();
+						   if (data.code == 200) {
+							   var newData = data.results[0];
+							   this_.drawMiniGraph(data.results[1]);								   
+							   for (var i = 0; i < newData.length; i++) {
+								   if (newData[i].number > 0){
+									   var html = "";
+									   html += "<li>";
+									   html += "<h6><b><a href=\"/profile/" + newData[i].user +  "/\">" + newData[i].user + "</a></b></h6>";
+									   html += "<br /><h7>" + newData[i].number + " webpages today</h7>";
+									   html += "</li>";
+									   jQuery("#topusers").append(html);
+									   jQuery(".listItemSmall:first").slideDown("slow");									   
+								   }
+							   }
+						   }
+						   else {
+							   return;
+							   //console.log("yaaaa!!!H!H!H!" + data.code + " ");
+						   }
+					   }, "json");	
+		},
+		drawBG: function(data, startTime, endTime, viz){
+			var this_ = this;
+			var newData = data;
+			var newStartTime = startTime;
+			var newEndTime = endTime;
+			var dateArray = [];
+			var zoom = this_.zoom;
+			var wwwBarsArray = [];
+			var hour = 1600000; // fudged a litte 1 hour = 3600000
+			var bg = {};
+			bg.canvas = document.getElementById("bgcanvas");
+			bg.windowHeight = window.innerHeight - 50;
+			bg.windowWidth = getClientCords().width - 10;
+			document.getElementById("bgcanvas").setAttribute("width", bg.windowWidth - 10);
+			document.getElementById("bgcanvas").setAttribute("height",bg.windowHeight - 10);
+			
+			for (var i = 0; i < (zoom / hour); i++) {
+                var fooData = newData.filter(function(view){
+												 // console.log(view.end + "    " + newEndTime + "    " + view.start);
+												 if (view.end < (newEndTime - (hour * i)) && (view.start > (newEndTime - hour - (hour * i)))) {
+													 return view;
+												 }
+											 });
+                wwwBarsArray[i] = newify(statusFactory, viz, {
+											 canvas: bg.canvas,
+											 windowHeight: bg.windowHeight,
+											 windowWidth: bg.windowWidth,
+											 startTime: newEndTime - hour - (hour * i),
+											 endTime: newEndTime - (hour * i),
+											 xOffset: 0,
+											 yOffset: 0,
+											 marginTop: 25 * i + 11,
+											 height: 20,
+											 color: "#00ff76",
+											 staticStatic: true,
+											 data: fooData,
+											 noHover: true
+										 });				
+            }
+			return wwwBarsArray;
+		},
+		drawMiniGraph: function(data){
+			var this_ = this;
+			var newData = data;
+			this_.drawArray = [];
+			this_.statusArray = [];
+			this_.graphArray = [];
+			
+            var wwwBars = newify(statusFactory, this_, {
+									 startTime: this_.startTime,
+									 endTime: this_.endTime,
+									 xOffset: 0,
+									 yOffset: 0,
+									 marginTop: 55,
+									 height: 20,
+									 color: "#00ff76",
+									 staticStatic: true,
+									 data: newData,
+									 fooTxtY: 685,
+									 fooTxtX: (getClientCords().width - 700)/2
+ 								 });
+			this_.statusArray.push(wwwBars);
+
+			var bgStatusArray = this_.drawBG(newData, this_.startTime, this_.endTime, this_);
+			this_.statusArray = this_.statusArray.concat(bgStatusArray);
+
+            var interpNum = 100; // ALARM yea this is number of points on graph
+            // fix this. it should be dynamic or a variable
+            var interp = (this_.endTime - this_.startTime) / interpNum;
+            var count = (Math.floor((this_.endTime - this_.startTime) / interp));
+            // format the data
+            var ttData = []; // total time per count
+            var avgDataNum = []; // number of websites
+            var dateArray = function(){
+                var foo = [];
+                for (var i = 0; i < count; i++) {
+                    foo[i] = this_.startTime + (interp * i);
+                    // set all arrays to 0 so to increment them
+                    ttData[i] = 0;
+                    avgDataNum[i] = 0;
+                }
+                return foo;
+            }();
+            // function to get total time on websites per time instance (ie count)
+            for (var i = 0; i < newData.length; i++) {
+                for (var j = 0; j < count; j++) {
+                    if (j >= count) {
+                        if (newData[i].start.valueOf() > dateArray[j]) {
+                            ttData[j] += newData[i].end - newData[i].start;
+                            avgDataNum[j] += 1;
+                        }
+                    }
+                    else {
+                        if ((newData[i].start.valueOf() > dateArray[j]) && (newData[i].start.valueOf() < dateArray[j + 1])) {
+                            ttData[j] += newData[i].end - newData[i].start;
+                            avgDataNum[j] += 1;
+                        }
+                    }
+                }
+            }
+            
+            var avgData = function(){
+                var foo = [];
+                for (var i = 0; i < count; i++) {
+                    foo[i] = (ttData[i] / (avgDataNum[i] + 1));
+                }
+                return foo;
+            }();
+
+            var avgTimeG = newify(lineGraphFactoryLite, {
+									  canvas: this_.canvas,
+									  startTime: this_.startTime,
+									  endTime: this_.endTime,
+									  windowHeight: this_.windowHeight,
+									  windowWidth: this_.windowWidth,
+									  interp: (this_.endTime - this_.startTime) / interpNum,
+									  color: "#ff00ff",
+									  margintop: 30,
+									  topPadding: 0,
+									  noKey: true,
+									  fillGraph: false,
+									  data: avgData
+								  });
+			this_.graphArray.push(avgTimeG);
+            this_.drawArray.push(this_.statusArray);
+            this_.drawArray.push(this_.graphArray);
+            this_.isStatic = true; // does not move or make more ajax calls
+            var mainEvtHandlers = newify(evtHandlers, this_);
+		},
+        draw: function(){
+            if (this.canvas !== undefined && this.canvas.getContext) {
+                var ctx = this.canvas.getContext('2d');
+                ctx.clearRect(0, 0, this.windowWidth, this.windowHeight);
+                for (var i = 0; i < this.drawArray.length; i++) {
+                    for (var k = 0; k < this.drawArray[i].length; k++) {
+                        this.drawArray[i][k].draw();
+                    }
+                }
+            }
+            else {
+                alert('You need Safari 4 or Firefox 3+ to see this.');
+            }
+        },
+		getCanvas: function(){
+            return this.canvas;
+        },
+        setDrawArray: function(p){
+            this.drawArray = p;
+        }
+    };
+jQuery(document).ready(function(){
+						   var myWidth = 680;
+						   var myHeight = 80;
+						   document.getElementById("main").setAttribute("width", myWidth);
+						   document.getElementById("main").setAttribute("height", myHeight);
+						   self.viz = newify(WatchmeVisualisation, 43200000, document.getElementById("main"), myWidth, myHeight); //43200000 12 hrs  // possibly should be 86400000
+					           //setInterval("self.viz.getRecentPages(10, 0)", 9000);
+					   });
+</script>
+{% endblock %}
+{% block content %}
+<div class="loader" id="loadimg">
+</div>
+<div class="fooTxt" id="fooTxt" >
+</div>	
+<div id="background">
+  <canvas id="bgcanvas">
+  </canvas>
+</div>
+<div id="profile_content" style="margin-top:0px; margin-left:auto;margin-right:auto;">
+  <div class="logo">
+    <img src="lib/img/eyebrowse.png" />
+  </div><h1 style="font-size:35px; margin-left:10px;">share and compare your web trails</h1>
+
+  <h4 style="vertical-align:top;"><b>eyebrowse</b> is an add-on for <a href="http://mozilla.com/firefox">firefox</a> that lets you easily record, visualize, and share your trails through the web in real-time. Tell eyebrowse what sites to track, browse away and compare!</h4>
+  <h4 style="vertical-align:top;margin-left:43px;">Find out what's hot, who's reading what, and how you surfing changes over time. Plus, contribute your web trails to science! 
+  </h4>
+  <div id="indexwhyid" class="indexwhy">
+	<h4 style="margin-top:-5px;margin-left:10px;"><i>Why?</i></h4>
+    <h4>
+	  <ul>
+		<li>
+		  <b>For your friends!</b> You look at lots of cool stuff on the web every day, but only share <i>some</i> of it.  Eyebrowse is lightweight and non-invasive way for you to share your day-to-day browsing.
+		</li>		
+		<li>
+		  <b>For science!</b> It's not fair that only the top search engine companies can do real web research these days.  There should be public, <B>OPEN</B> data sets for use by researchers around the world.
+		</li>		
+		<li><b>For you!</b> How much time do you spend reading the news every day? Now you can get quantitative statistics and visualize long-term revisitation patterns. Eyebrowse personalizes your access to the web and recommends new content to you. More features are on the way!
+		</li>	  					    
+	  </ul>
+	</h4>
+	<br />
+	<h4 style="margin-top:-4px;margin-left:10px"><i>What about my privacy?</i></h4>
+	<h4>
+	  <ul>
+		<li>
+		  <b>We give you control</b>: you tell eyebrowse explicitly what you want to share on a per-site basis. You can take things off your whitelist at any time and delete things from your history.  Eyebrowse also respects Private Browsing mode. Review our <a href="/terms/" style="font-size:1em">data use policy</a>.
+		</li>
+	  </ul>
+	  <br />
+	  <h4 style="margin-left:127px;">
+		Check out some <a href="http://eyebrowse.csail.mit.edu/profile/emax/">real</a>		
+		<a href="http://eyebrowse.csail.mit.edu/graph/zamiang/">live</a>
+		<a href="http://eyebrowse.csail.mit.edu/users/">profiles</a> or click below to get started.		
+	  </h4>
+  </div>
+
+  <div id="signUpFormContainer">
+    <div id="signUpForm">
+      {% if request_user %}
+      <br /><br />
+      <h1 style="font-size:28px; margin:0px;">welcome <a href="/profile/{{ request_user }}/">{{ request_user }}</a>!</h1><br />		  
+      <div style="padding:0px;margin-top:4px; margin-bottom:8px; font-size:13px;">
+	<a href="/graph/{{ request_user }}/">your graphs</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ request_user }}/">your friends</a>&nbsp; &#124; &nbsp;<a href="/settings/">settings</a>&nbsp; &#124; &nbsp;<a href="/logout/">logout</a>
+      </div>
+      {% else %}
+      <div id="bodytext">
+        We will not disclose your e-mail address to others.
+      </div>
+      <p id="validateTips" style="margin-top:8px; margin-bottom:-10px;">
+        All form fields are required.
+      </p>
+      <fieldset>
+        <form method="post" action=".">
+          {{ form.as_p }}
+	  <input type="submit" value="register" id="registerSubmit" style="margin-top:60px;"/>
+        </form>
+      </fieldset>
+      <div class="subhead" style="position:relative; top:-115px; font-size:11pt;">
+	by registering you agree to the <a href="/terms/" style="font-size:1em">terms and conditions and data use policies</a>
+      </div>				  
+      {% endif %}
+    </div>
+  </div>
+  <div id="messageSent">
+    thanks for registering!
+  </div>
+  <div id="signUpLink">
+    Get Started
+  </div>
+  <canvas id="main" style="padding:0px;margin:0px;">
+  </canvas>
+  <div class="leftcolumn" style="width:340px;">
+    <h2>now</h2>
+    <div class="viewboxhome" id="latestviews">
+      <ul>
+      </ul>
+    </div>
+  </div>
+  <div class="rightcolumn" style="width:340px; vertical-align:top">
+    <h2>top users</h2>
+    <div class="viewboxhome" id="topusers">
+    </div>
+  </div>
+</div>
+{% endblock %}

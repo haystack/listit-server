@@ -15,9 +15,15 @@
 	  }
 	  .viewboxhome .leftside{
 		  text-align:right;
-	  } 			
-    </style>
-    <!--[if lt IE 7]><script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE7.js" type="text/javascript"></script><![endif]--><!--[if lt IE 8]><script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script><![endif]--><!--[if IE]><script type="text/javascript" src="/lib/js/excanvas.compiled.js"></script><![endif]-->
+	  } 	
+	  #amtshare img{
+		  vertical-align:bottom;
+		  margin-bottom:-2px;
+		  width:17px;
+		  height:17px;
+	  }	  
+      </style>
+      <!--[if lt IE 7]><script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE7.js" type="text/javascript"></script><![endif]--><!--[if lt IE 8]><script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script><![endif]--><!--[if IE]><script type="text/javascript" src="/lib/js/excanvas.compiled.js"></script><![endif]-->
     <script src="/lib/js/jquery-1.3.2.min.js">
     </script>
     <script src="/lib/js/protocrock.js">
@@ -82,9 +88,12 @@
 								   this_.drawToFromGraph(data.results[3]);
 								   this_.drawProfile(data.results[2]);
 								   this_.drawGraphs(data.results[0]);
-								   //this_.drawShared(data.results[4]);
+								   this_.drawShared(data.results[4]);
 								   jQuery("#topuser").html("<a href=\"http://eyebrowse.csail.mit.edu/profile/" + data.results[1][0].user + "/\">" + data.results[1][0].user + "</a>");
-
+								   jQuery("#user").css("font-weight","lighter");
+								   jQuery("#friends").css("font-weight","lighter");
+								   jQuery("#global").css("font-weight","lighter");
+								   jQuery("#" + type).css("font-weight","bold");
 								   jQuery("#loadimg").hide();
 							   }
 							   else {
@@ -100,13 +109,13 @@
 			var newData = data;
 			// fix this need images
 			if (data < 0.3) {
-				jQuery("#amtshare").html("<img src=\"http://eyebrowse.csail.mit.edu/img/foo.png\" />");
+				jQuery("#amtshare").html("<img src=\"/lib/img/low_l.png\" />");
 			}
 			if (data > 0.3 && data < 0.7) {
-				jQuery("#amtshare").html("<img src=\"http://eyebrowse.csail.mit.edu/img/foo.png\" />");
+				jQuery("#amtshare").html("<img src=\"/lib/img/med_l.png\" />");
 			}
 			if (data > 0.8) {
-				jQuery("#amtshare").html("<img src=\"http://eyebrowse.csail.mit.edu/img/foo.png\" />");
+				jQuery("#amtshare").html("<img src=\"/lib/img/high_l.png\" />");
 			}
 		},
 		drawProfile: function(data){
@@ -228,17 +237,11 @@ jQuery(document).ready(function(){
 	<div id="profile_content" style="width:700px; margin:0px;">
 	  <h1>{{ request_user }}</h1>
 	  <h3 style="float:right; font-size:14px;margin-top:16px;">
-		<div id="you" style="display:inline-block">
-		  <a href="javascript:self.viz.getProfile('user')">you</a>
-		</div>
-		&nbsp; &#124; &nbsp;
-		<div id="friends" style="display:inline-block">
-		  <a href="javascript:self.viz.getProfile('friends')">friends</a>
-		</div>
-		&nbsp; &#124; &nbsp;
-		<div id="global" style="display:inline-block">
-		  <a href="javascript:self.viz.getProfile('global')">global</a> 
-		</div>
+		<a id="user" href="javascript:self.viz.getProfile('user')">you</a>
+		 &#124; 
+		<a id="friends" href="javascript:self.viz.getProfile('friends')">friends</a>
+		 &#124; 
+		<a id="global" href="javascript:self.viz.getProfile('global')">global</a> 
 	  </h3>
 	  <div style="border-top:1px solid #999999">&nbsp;</div>
 
@@ -254,7 +257,7 @@ jQuery(document).ready(function(){
 		</div>
 	  </div>
 	  <div id="urlstats" style="float:right">
-		<div id="topuser" style="display:inline-block"></div>&nbsp; &#124; &nbsp;
+		<div id="topuser" style="display:inline-block"></div> &#124;
 		<div id="amtshare" style="display:inline-block"></div>
 	  </div>
 
