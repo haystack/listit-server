@@ -416,7 +416,7 @@ def register_success_page(request):
             if user.is_active:
                 login(request, user)
                 # success
-                return HttpResponseRedirect('/settings/')
+                return HttpResponseRedirect('/')
             else:
                 # disabled account
                 variables = RequestContext(request, {'form': form, 'error': True})

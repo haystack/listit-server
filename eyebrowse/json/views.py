@@ -779,10 +779,11 @@ def get_ticker(request):
     if not 'type' in request.GET:
         return json_response({ "code":404, "error": "get has no 'type' key" }) 
 
-    request_type = request.GET['type'].strip()
+    request_type = {}
+    request_type[request.GET['type'].strip()] = request.GET['username'].strip()
     from_msec,to_msec = _unpack_from_to_msec(request)
 
-    @cache.region('short_term')
+    @cache.region('long_term')
     def fetch_data(bar, boz):    
         top_users = get_top_users(from_msec, to_msec, 10, request_type)
         first_start,first_end,second_start,second_end = _unpack_times(request)

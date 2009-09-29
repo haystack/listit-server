@@ -87,7 +87,8 @@
 						   first_end: this_.endTime - 86400000,
 						   second_start: this_.startTime,
 						   second_end: this_.endTime,
-						   type:req_type
+						   type:req_type,
+	                       username: '{{ username }}'
 					   }, function(data){
 						   jQuery("#loadimg").hide();
 						   if (data.code == 200) {
@@ -243,7 +244,7 @@
 						   myHeight = window.innerHeight - 250;
 
 						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 86400000);// 12 hrs
-						   setInterval("self.viz.getRecentPages(25, self.viz.type)", 20000);
+						   //setInterval("self.viz.getRecentPages(25, self.viz.type)", 20000);
 					   });
 </script>
 {% endblock %}
