@@ -73,15 +73,24 @@
             this.zoom = zoom;
 			this.recentTimesArray = [];
 			this.recentID = 0;
-			this.getProfile("global");
-            this.getRecentPages(9);
+			this.type = "global";
+			this.getPage(this.type);
 		},
-        getRecentPages: function(num){
+		getPage: function(type){
+			this.type = type;
+			this.recentID = 0;
+            this.getRecentPages(9, type);
+			this.getProfile(type);			
+		},
+        getRecentPages: function(num, type){
             var this_ = this;
 			this_.now = new Date().valueOf();
 			jQuery("#loadimg").show();
-			jQuery.get("/get_most_recent_urls/" + num + "/", {
-						   id: this_.recentID
+			jQuery.get("/get_latest_views", {
+						   id: this_.recentID,
+						   type: type,
+						   num: num,
+						   username: '{{ request_user }}'
 					   }, function(data){
 						   jQuery("#loadimg").hide();
 						   if (data.code == 200) {
@@ -328,7 +337,7 @@ jQuery(document).ready(function(){
 						   document.getElementById("main").setAttribute("height", myHeight);
 
 						   self.viz = newify(WatchmeVisualisation, document.getElementById("bgcanvas"),  getClientCords().width - 10, window.innerHeight - 50, 0, 86400000/2);// 12 hrs
-						   //setInterval("self.viz.getRecentPages(10)", 15000);
+						   setInterval("self.viz.getRecentPages(9, self.viz.type)", 15000);
 					   });
 </script>
 {% endblock %}
@@ -343,11 +352,11 @@ jQuery(document).ready(function(){
 <div id="pulse_header" style="padding:15px">
   <h1>{{ request_user }}</h1>
   <h3 style="float:right; font-size:14px;margin-top:16px;">
-	<a id="user" href="javascript:self.viz.getProfile('user')">you</a>
+	<a id="user" href="javascript:self.viz.getPage('user')">you</a>
 	&#124; 
-	<a id="friends" href="javascript:self.viz.getProfile('friends')">friends</a>
+	<a id="friends" href="javascript:self.viz.getPage('friends')">friends</a>
 	&#124; 
-	<a id="global" href="javascript:self.viz.getProfile('global')">global</a> 
+	<a id="global" href="javascript:self.viz.getPage('global')">global</a> 
   </h3>
   <div style="border-top:1px solid #999999">&nbsp;</div>
   <div id="urlstats">

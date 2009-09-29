@@ -35,8 +35,9 @@
             this.interp = zoom / 192;
             this.drag = undefined;
             this.zoom = zoom;
-			this.getProfile(this.endTime - zoom, this.endTime); 
+			this.recentID = 0;
             this.getLatestPages(this.endTime - 86400000, this.endTime);
+			this.getProfile(this.endTime - zoom, this.endTime); 
         },
 		getProfile: function(startTime, endTime){
 			var this_ = this;
@@ -182,21 +183,19 @@
         },
         getLatestPages: function(){
             var this_ = this;
-            try {
-                jQuery.get("/get_recent_web_page_views_user/{{ username }}/15/", {
-								id: this_.urlID
-						   }, function(data){
-							   if (data.code == 200) {
-								   this_.drawLatestPagesList(data.results);
-							   }
-							   else {
-								   console.log("yaaaa!!!H!H!H!" + data.code + " ");
-							   }
-						   }, "json");
-            } 
-            catch (e) {
-                console.log(e);
-            }
+			jQuery.get("/get_latest_views", {
+						   num: 12,
+						   id: this_.recentID,
+						   type: 'user',
+						   username: '{{ username }}'
+					   }, function(data){
+						   if (data.code == 200) {
+							   this_.drawLatestPagesList(data.results);
+						   }
+						   else {
+							   console.log("yaaaa!!!H!H!H!" + data.code + " ");
+						   }
+					   }, "json");
         },
 		deletePage: function(urlID, num){
 			try {

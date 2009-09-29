@@ -1,4 +1,4 @@
-import re,sys,time,operator,os,math, datetime
+import re,sys,time,operator,os,math, datetime, random
 from django.template import loader, Context
 from django.http import HttpResponse,HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render_to_response
@@ -122,8 +122,24 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
     return times_per_url
 
 def defang_pageview(pview):    
-    return {"start" : long(pview.startTime), "end" : long(pview.endTime), "url" : pview.url, "host": pview.host, "title": pview.title, "id":pview.id, "user": pview.user.username } 
+    return {"start" : long(pview.startTime), "end" : long(pview.endTime), "url" : pview.url, "host": pview.host, "title": pview.title, "id":pview.id, "user": pview.user.username, "hue": _h_generator(pview.host) } 
     ## too slow "location":get_enduser_for_user(pview.user).location }
+
+## emax added this to be fancy
+def uniq(lst,key=lambda x: x,n=None):
+    result = []
+    keys = []
+    for ii in range(len(lst)):
+        xi = lst[ii]
+        ki = key(xi)
+        if ki not in keys:
+            keys.append(ki)
+            result.append(xi)
+        if n is not None and len(result) >= n:
+            return result
+    
+    return result        
+
 
 def get_views_user(from_msec, to_msec, username):
     user = get_object_or_404(User, username=username)
@@ -131,15 +147,28 @@ def get_views_user(from_msec, to_msec, username):
     hits = _get_pages_for_user(user ,from_msec,to_msec)
     return [ defang_pageview(evt) for evt in hits ]    
 
-def get_recent_web_page_view_user(request, username, n):
-    user = get_object_or_404(User, username=username)
-    n = int(n)
+## get most recent urls now returns elements with distinct titles. no repeats!
+def get_latest_views(request):
+    if not 'username' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'username' key" }) 
 
-    # gets unique pages
-    phits = PageView.objects.filter(user=user).order_by("-startTime")
+    n = int(request.GET['num'])
 
-    if n < 0 or n is None:
-        n = len(phits)
+    req_type = request.GET['type']
+
+    if 'user' in req_type:
+        user = get_object_or_404(User, username=request.GET['username'])
+        phits = PageView.objects.filter(user=user).order_by("-startTime")
+    elif 'friends' in req_type:
+        usr = get_object_or_404(User, username=request.GET['username'])
+        users = [friendship.to_friend for friendship in usr.friend_set.all()]
+        phits = PageView.objects.filter(user__in=users).order_by("-startTime")
+    else:
+        phits = PageView.objects.filter().order_by("-startTime") #global
+
+    # not sure bout this, it would return everything in the world
+    # if n < 0 or n is None:
+    #    n = len(phits)
 
     uphit = uniq(phits,lambda x:x.title,n)
     
@@ -156,8 +185,7 @@ def get_recent_web_page_view_user(request, username, n):
         else:
             return json_response({ "code":204 })
 
-    return json_response({ "code":200, "results": results });
-
+    return json_response({ "code":200, "results": results })
 
 def get_profile_queries(req_type):
     if 'user' in req_type:
@@ -646,61 +674,6 @@ def get_percent_logging(url_raw, req_type):
     return_results = fetch_data(url_parsed, users)
     return return_results
 
-
-## emax added this to be fancy
-def uniq(lst,key=lambda x: x,n=None):
-    result = []
-    keys = []
-    for ii in range(len(lst)):
-        xi = lst[ii]
-        ki = key(xi)
-        if ki not in keys:
-            keys.append(ki)
-            result.append(xi)
-        if n is not None and len(result) >= n:
-            return result
-    
-    return result        
-
-## get most recent urls now returns elements with distinct titles. no repeats!
-def get_most_recent_urls(request, n):
-    n = int(n)
-
-    # gets unique pages
-    phits = PageView.objects.filter().order_by("-startTime")
-
-    if n < 0 or n is None:
-        n = len(phits)
-
-    uphit = uniq(phits,lambda x:x.title,n)
-    
-    results = [ defang_pageview(evt) for evt in uphit ]
-
-    if request.GET.has_key('id'):
-        urlID = int(request.GET['id'])
-        filter_results = []
-        for result in results:
-            if int(result['id']) > urlID:
-                filter_results.append(result)
-        if len(filter_results) > 0:
-            return json_response({ "code":200, "results": filter_results })
-        else:
-            return json_response({ "code":204 })
-
-    return json_response({ "code":200, "results": results })
-
-
-def get_users_most_recent_urls(request, username, n):
-    if not 'from' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'from' key" }) 
-
-    user = get_object_or_404(User, username=username)
-    n = int(n)
-
-    from_msec,to_msec = _unpack_from_to_msec(request)
-    hits = _get_pages_for_user(user,from_msec,to_msec)
-
-    return json_response({ "code":200, "results": [ defang_pageview(evt) for evt in hits[0:n] ] });    
         
 def get_closest_url(request):
     if not 'url' in request.GET:
@@ -825,7 +798,7 @@ def get_ticker(request):
 def get_users_page(request):
     if not 'from' in request.GET:
         return json_response({ "code":404, "error": "get has no 'from' key" }) 
-
+    
     request_type = {'global':'all'}
 
     from_msec,to_msec = _unpack_from_to_msec(request)
@@ -914,25 +887,30 @@ def get_hourly_daily_top_urls_user(request, username, n):
             hour = datetime.datetime.fromtimestamp(view.startTime/1000).hour
             
             if view.url in hrPts[hour]:
-                hrPts[hour][view.url] += 1
+                hrPts[hour][view.url]['val'] += 1
             else:
-                hrPts[hour][view.url] = 1
+                hrPts[hour][view.url] = {}
+                hrPts[hour][view.url]['val'] = 1
+                hrPts[hour][view.url]['hue'] = _h_generator(view.host) 
 
             if view.url in weekPts[weekday]:
-                weekPts[weekday][view.url] += 1
+                weekPts[weekday][view.url]['val'] += 1
             else:
-                weekPts[weekday][view.url] = 1
+                weekPts[weekday][view.url] = {}
+                weekPts[weekday][view.url]['val'] = 1
+                weekPts[weekday][view.url]['hue'] = _h_generator(view.host) 
 
         lResult = []
+        print weekPts
         for x in range(7):
             phlat = weekPts[x].items()
-            phlat.sort(key=lambda(k,v2):-v2)
+            phlat.sort(key=lambda(k,v2):-v2['val'])
             lResult.append((x,phlat[:n]))
 
         rResult = []
         for x in range(24):
             phlat = hrPts[x].items()
-            phlat.sort(key=lambda(k,v2):-v2)
+            phlat.sort(key=lambda(k,v2):-v2['val'])
             rResult.append((x,phlat[:n]))
 
         return [lResult,rResult]
@@ -943,14 +921,16 @@ def get_hourly_daily_top_urls_user(request, username, n):
 ## PULSE PAGE
 def get_pulse(request):
     if not 'type' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'url' key" }) 
+        return json_response({ "code":404, "error": "get has no 'type' key" }) 
 
     request_type = {}
+    use_cache = random.randint(1, 10000)
     if request.GET['type'].strip() == 'user':
         request_type['user'] = request.user.username
     elif request.GET['type'].strip() == 'friends':
         request_type['friends'] = request.user.username
     else:
+        use_cache = True
         request_type['global'] = 'global'
 
     from_msec,to_msec = _unpack_from_to_msec(request)
@@ -958,7 +938,7 @@ def get_pulse(request):
     num = request.GET['num'].strip()
 
     @cache.region('short_term')
-    def fetch_data(bar):    
+    def fetch_data(bar, cache):    
         profile_queries = get_profile_queries(request_type)
         line_graph = get_mini_line_graph(from_msec, to_msec, 100, request_type)
         dot_graph = get_dot_graph(num, request_type)
@@ -967,92 +947,11 @@ def get_pulse(request):
         top_trending = get_top_and_trending_pages(first_start,first_end,second_start,second_end, 16, request_type)
         return [profile_queries, dot_graph, line_graph, top_trending, top_hosts]
         
-    results = fetch_data("foo")
+    results = fetch_data("foo", use_cache)
     return json_response({ "code":200, "results": results });
 
 
-## FRIENDS PAGE
-def get_following_views(request, username):
-    if not 'from' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'from' key" }) 
-
-    user = get_object_or_404(User, username=username)
-    enduser = get_enduser_for_user(user)
-    following = [friendship.to_friend for friendship in user.friend_set.all()]
-
-    from_msec,to_msec = _unpack_from_to_msec(request)
-    from_msec_rounded = round_time_to_day(from_msec)
-    to_msec_rounded = round_time_to_day(to_msec)
-
-    # potentially i can just not pass it the 'following' param hrmz
-    @cache.region('long_term')
-    def fetch_data(from_msec, to_msec, user, following):
-        friends_results = []
-
-        # add the request.user
-        user_events = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
-        friends_results.append( {"username": enduser.user.username, "events": [ defang_pageview(evt) for evt in user_events ] } )
-        
-        # add friends
-        for friend in following:
-            #friend_user = get_object_or_404(User, username=friend.username)
-            events = PageView.objects.filter(user=friend,startTime__gte=from_msec,endTime__lte=to_msec)
-            friends_results.append( {"username": friend.username, "events": [ defang_pageview(evt) for evt in events ] } )
-            
-        #friends_results.sort(key=lambda x:(x["username"], x["username"]))
-        return friends_results
-
-    results = fetch_data(from_msec_rounded, to_msec_rounded, user, following)
-
-    return json_response({ "code":200, "results": results });    
-
-def get_top_hosts_comparison_friends(request, username, n):
-    if not 'first_start' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'first_start' key" })
-
-    user = get_object_or_404(User, username=username)
-
-    following = [friendship.to_friend for friendship in user.friend_set.all()]
-    n = int(n)
-
-    first_start,first_end,second_start,second_end = _unpack_times(request)
-    first_start = round_time_to_day(first_start)
-    first_end = round_time_to_day(first_end)
-    second_start = round_time_to_day(second_start)
-    second_end = round_time_to_day(second_end)
-
-    @cache.region('long_term')
-    def fetch_data(following, first_star, first_end, second_start, second_end):
-        times_per_url_first = _get_top_hosts_n(following,first_start,first_end)
-        times_per_url_second = _get_top_hosts_n(following,second_start,second_end)
-
-        def index_of(what, where):
-            try:
-                return [ h[0] for h in where ].index(what)
-            except:
-                #print sys.exc_info()
-                pass
-            return None
-
-        results = []
-
-        for i in range(len(times_per_url_second)): ## iterate over the more recent dudes                  
-            old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
-            if old_rank is not None:
-                diff = - (i - old_rank)  # we want the gain not the difference     
-                results.append(times_per_url_second[i] + (diff,) )
-            else:
-                results.append( times_per_url_second[i] )
-
-        return results[0:n]
-
-    return_results = fetch_data(following,first_start,first_end,second_start,second_end)
-
-    return json_response({ "code":200, "results": return_results })
-
-
-
-## DO NOT DELETE USED BY OLD PLUGIN
+## PLUGIN
 def get_top_friend_for_url(request, username):
     if not 'url' in request.GET:
         return json_response({ "code":404, "error": "get has no 'url' key" }) 
@@ -1164,4 +1063,89 @@ def get_to_from_url_plugin(request, n):
     
         return json_response({ "code":200, "results": return_results, "friend_stats": friend_stats })
         
+    return json_response({ "code":200, "results": return_results })
+
+
+
+## OLD
+## TRASH
+
+
+## FRIENDS PAGE
+def get_following_views(request, username):
+    if not 'from' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+
+    user = get_object_or_404(User, username=username)
+    enduser = get_enduser_for_user(user)
+    following = [friendship.to_friend for friendship in user.friend_set.all()]
+
+    from_msec,to_msec = _unpack_from_to_msec(request)
+    from_msec_rounded = round_time_to_day(from_msec)
+    to_msec_rounded = round_time_to_day(to_msec)
+
+    # potentially i can just not pass it the 'following' param hrmz
+    @cache.region('long_term')
+    def fetch_data(from_msec, to_msec, user, following):
+        friends_results = []
+
+        # add the request.user
+        user_events = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
+        friends_results.append( {"username": enduser.user.username, "events": [ defang_pageview(evt) for evt in user_events ] } )
+        
+        # add friends
+        for friend in following:
+            #friend_user = get_object_or_404(User, username=friend.username)
+            events = PageView.objects.filter(user=friend,startTime__gte=from_msec,endTime__lte=to_msec)
+            friends_results.append( {"username": friend.username, "events": [ defang_pageview(evt) for evt in events ] } )
+            
+        #friends_results.sort(key=lambda x:(x["username"], x["username"]))
+        return friends_results
+
+    results = fetch_data(from_msec_rounded, to_msec_rounded, user, following)
+
+    return json_response({ "code":200, "results": results });    
+
+def get_top_hosts_comparison_friends(request, username, n):
+    if not 'first_start' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'first_start' key" })
+
+    user = get_object_or_404(User, username=username)
+
+    following = [friendship.to_friend for friendship in user.friend_set.all()]
+    n = int(n)
+
+    first_start,first_end,second_start,second_end = _unpack_times(request)
+    first_start = round_time_to_day(first_start)
+    first_end = round_time_to_day(first_end)
+    second_start = round_time_to_day(second_start)
+    second_end = round_time_to_day(second_end)
+
+    @cache.region('long_term')
+    def fetch_data(following, first_star, first_end, second_start, second_end):
+        times_per_url_first = _get_top_hosts_n(following,first_start,first_end)
+        times_per_url_second = _get_top_hosts_n(following,second_start,second_end)
+
+        def index_of(what, where):
+            try:
+                return [ h[0] for h in where ].index(what)
+            except:
+                #print sys.exc_info()
+                pass
+            return None
+
+        results = []
+
+        for i in range(len(times_per_url_second)): ## iterate over the more recent dudes                  
+            old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
+            if old_rank is not None:
+                diff = - (i - old_rank)  # we want the gain not the difference     
+                results.append(times_per_url_second[i] + (diff,) )
+            else:
+                results.append( times_per_url_second[i] )
+
+        return results[0:n]
+
+    return_results = fetch_data(following,first_start,first_end,second_start,second_end)
+
     return json_response({ "code":200, "results": return_results })

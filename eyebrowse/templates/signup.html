@@ -31,8 +31,11 @@
             this_.endTimeRecent = new Date().valueOf();
             this_.now = new Date().valueOf();
 			jQuery("#loadimg").show();
-			jQuery.get("/get_most_recent_urls/" + num + "/", {
-                           id: this_.recentID
+			jQuery.get("/get_latest_views", {
+						   num: num,
+						   id: this_.recentID,
+						   type: "global",
+						   username: "zamiang"
 					   }, function(data){
 						   jQuery("#loadimg").hide();
 						   if (data.code == 200) {

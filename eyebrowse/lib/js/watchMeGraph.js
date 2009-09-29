@@ -730,7 +730,7 @@ var statusFactory = ({
 									 }
 								 }
 								 ctx.beginPath();
-								 ctx.fillStyle = this_.selectColorForDomain(this_.domainArray[i]);
+								 ctx.fillStyle = "hsl("+ this_.hueArray[i] + ",100%,50%)";
 								 ctx.fillRect(this_.startPointArray[i], this_.marginTop, this_.widthArray[i], this_.height);
 								 if (this_.viz.highlight == this_.domainArray[i]){
 									 ctx.fillStyle = "rgba(255,255,255,0.85)"; //"#00ff00";
@@ -767,6 +767,7 @@ var statusFactory = ({
 										 this_.startPointArray = this_.startPointArray.slice(i, foo);
 										 this_.widthArray = this_.widthArray.slice(i, foo);
 										 this_.polyArray = this_.polyArray.slice(i, foo);
+										 this_.hueArray = this_.hueArray.slice(i, foo);
 										 break;
 									 }
 								 }
@@ -777,6 +778,7 @@ var statusFactory = ({
 									 this_.domainArray.push(newData[i].host);
 									 this_.urlArray.push(newData[i].url);
 									 this_.titleArray.push(newData[i].title);
+									 this_.hueArray.push(newData[i].hue);
 									 this_.startPointArray.push(this_.windowWidth * ((newData[i].start - this_.startTime) / (this_.endTime - this_.startTime)));
 									 this_.widthArray.push((this_.windowWidth * ((newData[i].end - this_.startTime) / (this_.endTime - this_.startTime))) - this_.startPointArray[i]);
 									 this_.polyArray.push(rectToPoly({xPos: this_.startPointArray[i], yPos: this_.marginTop, width: this_.widthArray[i], height: this_.height}));
@@ -794,6 +796,7 @@ var statusFactory = ({
 										 this_.startPointArray = this_.startPointArray.slice(0, i);
 										 this_.widthArray = this_.widthArray.slice(0, i);
 										 this_.polyArray = this_.polyArray.slice(0, i);
+										 this_.hueArray = this_.hueArray.slice(0, i);
 										 break;
 									 }
 								 }
@@ -804,6 +807,7 @@ var statusFactory = ({
 									 this_.domainArray.unshift(newData[i].host);
 									 this_.urlArray.unshift(newData[i].url);
 									 this_.titleArray.unshift(newData[i].title);
+									 this_.hueArray.unshift(newData[i].hue);
 									 this_.startPointArray.unshift(this_.windowWidth * ((newData[i].start - this_.startTime) / (this_.endTime - this_.startTime)));
 									 this_.widthArray.unshift((this_.windowWidth * ((newData[i].end - this_.startTime) / (this_.endTime - this_.startTime))) - this_.startPointArray[i]);
 									 this_.polyArray.push(rectToPoly({xPos: this_.startPointArray[i], yPos: this_.marginTop, width: this_.widthArray[i], height: this_.height}));
@@ -823,10 +827,12 @@ var statusFactory = ({
 							 this_.widthArray = [];
 							 this_.polyArray = [];
 							 this_.titleArray = [];
+							 this_.hueArray = [];
 							 for (var i = 0; i < this_.data.length; i++) {
 								 this_.domainArray[i] = this_.data[i].host;
 								 this_.urlArray[i] = this_.data[i].url;
 								 this_.titleArray[i] = this_.data[i].title;
+								 this_.hueArray[i] = this_.data[i].hue;
 								 this_.startPointArray[i] = this_.windowWidth * ((this_.data[i].start - this_.startTime) / (this_.endTime - this_.startTime));
 								 this_.widthArray[i] = (this_.windowWidth * ((this_.data[i].end - this_.startTime) / (this_.endTime - this_.startTime))) - this_.startPointArray[i];
 								 this_.polyArray[i] = rectToPoly({xPos: this_.startPointArray[i], yPos: this_.marginTop, width: this_.widthArray[i], height: this_.height});
@@ -1069,7 +1075,7 @@ var stackBarGraph = ({
 								 for (var i = 0; i < leftData.length; i++){
 									 max = 0;									 
 									 for (var k = 0; k < leftData[i][1].length; k++){
-										 max += leftData[i][1][k][1];
+										 max += leftData[i][1][k][1].val;
 									 }									 
 									 maxArray.push(max);
 								 }
@@ -1084,8 +1090,8 @@ var stackBarGraph = ({
 									 newBar = {};
 									 newBar.title = leftData[i][1][k][0];									 
 									 newBar.url = leftData[i][1][k][0];
-									 newBar.fillStyle = selectColorForDomain(leftData[i][1][k][0]);
-									 newBar.height = -(this_.windowHeight - this_.bottomPadding) * (leftData[i][1][k][1] / this_.dataMax);
+									 newBar.fillStyle = "hsl("+ leftData[i][1][k][1].hue + ",100%,50%)";
+									 newBar.height = -(this_.windowHeight - this_.bottomPadding) * (leftData[i][1][k][1].val / this_.dataMax);
 									 newBar.xPos = ((this_.windowWidth/2 - this_.midPad)/leftData.length)*i + (this_.padding + leftData.length)/leftData.length + this_.midPad/2;
  									 newBar.yPos = function(){
 										 var yPos = this_.windowHeight - this_.bottomPadding;
@@ -1112,7 +1118,7 @@ var stackBarGraph = ({
 								 for (var i = 0; i < rightData.length; i++){
 									 max = 0;									 
 									 for (var k = 0; k < rightData[i][1].length; k++){
-										 max += rightData[i][1][k][1];
+										 max += rightData[i][1][k][1].val;
 									 }									 
 									 maxArray.push(max);
 								 }
@@ -1126,8 +1132,8 @@ var stackBarGraph = ({
 									 newBar = {};
 									 newBar.title = rightData[i][1][k][0];									 
 									 newBar.url = rightData[i][1][k][0];
-									 newBar.fillStyle = selectColorForDomain(rightData[i][1][k][0]);
-									 newBar.height = -(this_.windowHeight - this_.bottomPadding) * (rightData[i][1][k][1] / this_.dataMax);
+									 newBar.fillStyle = "hsl("+ rightData[i][1][k][1].hue + ",100%,50%)";
+									 newBar.height = -(this_.windowHeight - this_.bottomPadding) * (rightData[i][1][k][1].val / this_.dataMax);
 									 newBar.xPos = (this_.windowWidth/2 - this_.midPad) + (((this_.windowWidth/2 - this_.midPad)/rightData.length)*i) + this_.barPadding + (this_.padding + leftData.length)/leftData.length + this_.midPad*2;
  									 newBar.yPos = function(){
 										 var yPos = this_.windowHeight - this_.bottomPadding;

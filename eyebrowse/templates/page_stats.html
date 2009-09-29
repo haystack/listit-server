@@ -69,6 +69,7 @@
                 jQuery.get("/get_pagestats", {
 							   from: this_.startTime,
 							   to: this_.endTime,
+							   type: 'global',
 							   url:url
 						   }, function(data){
 							   if (data.code == 200) {		

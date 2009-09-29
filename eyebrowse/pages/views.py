@@ -204,6 +204,7 @@ def page_profile(request):
         })
     return render_to_response('page_stats.html', variables)
 
+## OLD
 def friends(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)

@@ -11,7 +11,6 @@
   #profile_content li {
 	  width:450px;
   }
-
   #profile {
 		width:234px;
 		margin:0px;
@@ -69,32 +68,85 @@
             this.interp = zoom / 192;
             this.drag = undefined;
             this.zoom = zoom;
-            this.getTickerPage(this.startTime, this.endTime, {'global':'all'});
-            this.getRecentPages(25);
+			this.type = "global";
+            this.getTickerPage(this.type);
         },
-		getTickerPage: function(startTime, endTime, req_type){
+		getTickerPage: function(req_type){
             var this_ = this;
+			this_.type = req_type;
+			this_.recentID = 0;
 			jQuery("#loadimg").show();
 			jQuery.get("/get_ticker", {
 						   from: this_.startTime,
 						   to: this_.endTime,
-						   first_start: startTime - 86400000,
-						   first_end: endTime - 86400000,
-						   second_start: startTime,
-						   second_end: endTime,
+						   first_start: this_.startTime - 86400000,
+						   first_end: this_.endTime - 86400000,
+						   second_start: this_.startTime,
+						   second_end: this_.endTime,
 						   type:req_type
 					   }, function(data){
 						   jQuery("#loadimg").hide();
 						   if (data.code == 200) {
+							   jQuery("#user").css("font-weight","lighter");
+							   jQuery("#friends").css("font-weight","lighter");
+							   jQuery("#global").css("font-weight","lighter");
+							   jQuery("#" + req_type).css("font-weight","bold");
+							   jQuery("#loadimg").hide();
+
 							   this_.drawTopUsers(data.results[0]);
 							   this_.drawTopPagesList(data.results[1]);
 							   this_.drawProfile(data.results[2]);
+							   this_.getRecentPages(25, req_type);
 						   }
 						   else {
 							//   console.log("yaaaa!!!H!H!H!" + data.code + " ");
 						   }
 					   }, "json");	
 		},
+        getRecentPages: function(num, req_type){
+            var this_ = this;
+			this_.now = new Date().valueOf();
+			jQuery("#loadimg").show();
+			jQuery.get("/get_latest_views", {
+						   num: num,
+						   id: this_.recentID,
+						   type:req_type,
+						   username: '{{ request_user }}'
+					   }, function(data){
+						   jQuery("#loadimg").hide();
+						   if (data.code == 200) {
+							   var newData = data.results;
+							   var html = "";
+							   for (var i = newData.length -1; i >= 0; i--) {
+								   html = "<li id=\"" + newData[i].end + "\">";
+								   if (newData[i].title){
+									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title.trim(60) + "</a></b></h6>";
+								   }
+								   else{
+									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url.trim(60) + "</a></b></h6>";
+								   }
+								   html += "<h7>" + timeCounterClock((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
+								   if (newData[i].user.length > 0) {
+									   html += "<br />&nbsp; &nbsp; <a href=\"/profile/" + newData[i].user + "\" style=\"font-weight:normal; font-size:0.8em; display:inline-block\">by " + newData[i].user + "</a>";
+								   }
+								   html += "</li>";
+								   jQuery("#latestviews ul").prepend(html);
+								   jQuery("#" + newData[i].end).slideDown("slow");
+
+								   // keep track of times displayed and hide old ones
+								   this_.recentTimesArray.unshift(newData[i].end);
+								   if (this_.recentTimesArray.length > num){
+									   jQuery("#" + this_.recentTimesArray[num + 1]).hide();
+									   this_.recentTimesArray.pop();   
+								   }
+							   }
+							   this_.recentID = newData[0].id;
+						   }
+						   else {
+							  // console.log("yaaaa!!!H!H!H!" + data.code + " ");
+						   }
+					   }, "json");
+        },
 		drawTopUsers: function(data){
 			var newData = data;
 			jQuery("#topusers").html("");
@@ -177,48 +229,7 @@
 			jQuery("#totalTime").html("<b>total time: </b> " + timeCounterLongAbv(newData.totalTime));
 			jQuery("#num").html("<b>visit count: </b>" + newData.number);
 			jQuery("#avgTime").html("<b>avg time per visit: </b>" + timeCounterLongAbv(newData.average));					
-		},
-        getRecentPages: function(num){
-            var this_ = this;
-			this_.now = new Date().valueOf();
-			jQuery("#loadimg").show();
-			jQuery.get("/get_most_recent_urls/" + num + "/", {
-						   id: this_.recentID
-					   }, function(data){
-						   jQuery("#loadimg").hide();
-						   if (data.code == 200) {
-							   var newData = data.results;
-							   var html = "";
-							   for (var i = newData.length -1; i >= 0; i--) {
-								   html = "<li id=\"" + newData[i].end + "\">";
-								   if (newData[i].title){
-									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title.trim(60) + "</a></b></h6>";
-								   }
-								   else{
-									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url.trim(60) + "</a></b></h6>";
-								   }
-								   html += "<h7>" + timeCounterClock((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
-								   if (newData[i].user.length > 0) {
-									   html += "<br />&nbsp; &nbsp; <a href=\"/profile/" + newData[i].user + "\" style=\"font-weight:normal; font-size:0.8em; display:inline-block\">by " + newData[i].user + "</a>";
-								   }
-								   html += "</li>";
-								   jQuery("#latestviews ul").prepend(html);
-								   jQuery("#" + newData[i].end).slideDown("slow");
-
-								   // keep track of times displayed and hide old ones
-								   this_.recentTimesArray.unshift(newData[i].end);
-								   if (this_.recentTimesArray.length > num){
-									   jQuery("#" + this_.recentTimesArray[num + 1]).hide();
-									   this_.recentTimesArray.pop();   
-								   }
-							   }
-							   this_.recentID = newData[0].id;
-						   }
-						   else {
-							  // console.log("yaaaa!!!H!H!H!" + data.code + " ");
-						   }
-					   }, "json");
-        }
+		}
     };
 		jQuery(document).ready(function(){
 						   var myWidth = undefined;
@@ -228,14 +239,13 @@
 						   myHeight = window.innerHeight - 250;
 
 						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 86400000);// 12 hrs
-						   //setInterval("self.viz.getRecentPages(30)", 15000);
+						   setInterval("self.viz.getRecentPages(30, self.viz.type)", 15000);
 					   });
 </script>
 {% endblock %}
 {% block content %}
 <div class="loader" id="loadimg"></div>
 <div id="report" style="width:750px">
-  <div id="loading" class="loader"></div>
   <div id="profile">
     <div id="num" style="margin-top:30px;">
       <b>visit count:</b>
@@ -267,13 +277,15 @@
     <div class="userhead">
       <h1>Ticker</h1>
     </div>
+	{% if request_user %}
 	  <h3 style="float:right; font-size:14px;margin-top:31px;margin-right:21px">
-		<a id="user" href="javascript:self.viz.getProfile('user')">you</a>
+		<a id="user" href="javascript:self.viz.getTickerPage('user')">you</a>
 		&#124; 
-		<a id="friends" href="javascript:self.viz.getProfile('friends')">friends</a>
+		<a id="friends" href="javascript:self.viz.getTickerPage('friends')">friends</a>
 		&#124; 
-		<a id="global" href="javascript:self.viz.getProfile('global')">global</a> 
+		<a id="global" href="javascript:self.viz.getTickerPage('global')">global</a> 
 	  </h3>
+	{% endif %}
     <div class="viewboxprofile" id="latestviews" style="margin:0px;margin-top:-22px; border-top:1px solid lightgrey; width:480px">
 	  <ul>
 	  </ul>
