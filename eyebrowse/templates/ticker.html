@@ -101,7 +101,7 @@
 							   this_.drawTopUsers(data.results[0]);
 							   this_.drawTopPagesList(data.results[1]);
 							   this_.drawProfile(data.results[2]);
-							   this_.getRecentPages(25, req_type);
+							   this_.getRecentPages(100, req_type);
 						   }
 						   else {
 							//   console.log("yaaaa!!!H!H!H!" + data.code + " ");
@@ -170,7 +170,7 @@
             var this_ = this;
 			var html = "";
 
-			for (var i = 0; i < data.top.length; i++) {
+			for (var i = 0; i < 10; i++) {
 				var trigger = true;
 				html += "<li>";
 				if (data.top_titles[i]){
@@ -200,7 +200,7 @@
 			jQuery("#pages").html(html);					   			
 
 			html = "";
-			for (var i = 0; i < data.trending.length; i++) {
+			for (var i = 0; i < 10; i++) {
 				var trigger = true;
 				html += "<li>";
 				if (data.tre_titles[i]){
@@ -244,7 +244,7 @@
 						   myHeight = window.innerHeight - 250;
 
 						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 86400000);// 12 hrs
-						   setInterval("self.viz.getRecentPages(25, self.viz.type)", 20000);
+						   setInterval("self.viz.getRecentPages(100, self.viz.type)", 12000);
 					   });
 </script>
 {% endblock %}

@@ -81,7 +81,7 @@
 			this.type = type;
 			this.recentID = 0;
             this.getProfile(type);			
-            this.getRecentPages(9, type);
+            this.getRecentPages(30, type);
 
 		},
         getRecentPages: function(num, type){
@@ -339,7 +339,7 @@ jQuery(document).ready(function(){
 						   document.getElementById("main").setAttribute("height", myHeight);
 
 						   self.viz = newify(WatchmeVisualisation, document.getElementById("bgcanvas"),  getClientCords().width - 10, window.innerHeight - 50, 0, 86400000/2);// 12 hrs
-						   setInterval("self.viz.getRecentPages(9, self.viz.type)", 20000);
+						   setInterval("self.viz.getRecentPages(30, self.viz.type)", 12000);
 					   });
 </script>
 {% endblock %}

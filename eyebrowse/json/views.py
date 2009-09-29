@@ -147,6 +147,10 @@ def get_views_user(from_msec, to_msec, username):
     hits = _get_pages_for_user(user ,from_msec,to_msec)
     return [ defang_pageview(evt) for evt in hits ]    
 
+def defang_pageview_values(pview):    
+    return {"start" : long(pview["startTime"]), "end" : long(pview["endTime"]), "url" : pview["url"], "host": pview["host"], "title": pview["title"], "id":pview["id"], "user": User.objects.filter(id=pview["user_id"])[0].username, "hue": _h_generator(pview["host"]) } 
+    ## too slow "location":get_enduser_for_user(pview.user).location }
+
 ## get most recent urls now returns elements with distinct titles. no repeats!
 def get_latest_views(request):
     if not 'username' in request.GET:
@@ -158,21 +162,23 @@ def get_latest_views(request):
 
     if 'user' in req_type:
         user = get_object_or_404(User, username=request.GET['username'])
-        phits = PageView.objects.filter(user=user).order_by("-startTime")
+        phits = PageView.objects.filter(user=user).order_by("-startTime")[0:n].values()
     elif 'friends' in req_type:
         usr = get_object_or_404(User, username=request.GET['username'])
         users = [friendship.to_friend for friendship in usr.friend_set.all()]
-        phits = PageView.objects.filter(user__in=users).order_by("-startTime")
+        phits = PageView.objects.filter(user__in=users).order_by("-startTime")[0:n].values()
     else:
-        phits = PageView.objects.filter().order_by("-startTime") #global
+        phits = PageView.objects.filter().order_by("-startTime")[0:n].values() #global
 
-    # not sure bout this, it would return everything in the world
-    # if n < 0 or n is None:
-    #    n = len(phits)
+    uphit = uniq(phits,lambda x:x["url"],n)
+    results = [ defang_pageview_values(evt) for evt in uphit ]
 
-    uphit = uniq(phits,lambda x:x.title,n)
+    #>> will this work?
     
-    results = [ defang_pageview(evt) for evt in uphit ]
+    # results = [ evt.append({"user": pview.user.username, "hue": _h_generator(pview.host)}) for evt in uphit ]
+
+    # rather than defang_pageview
+    # really only need to ADD >  "user": pview.user.username, "hue": _h_generator(pview.host) } 
 
     if request.GET.has_key('id'):
         urlID = int(request.GET['id'])
@@ -329,7 +335,7 @@ def get_top_and_trending_pages(first_start, first_end, second_start, second_end,
     else:
         users = User.objects.all()
 
-    n = int(n)
+    n = 16
 
     @cache.region('long_term')
     def fetch_data(users, pages):
@@ -356,6 +362,7 @@ def get_top_and_trending_pages(first_start, first_end, second_start, second_end,
                     
         top_pages = results[0:n]
         results.sort(key=lambda x: -x[2])
+
         trending = results[0:n]        
 
         tre_titles = []
@@ -775,6 +782,7 @@ def get_homepage(request):
 
 
 ## TICKER PAGE
+date_now = lambda : datetime.datetime.ctime(datetime.datetime.now())
 def get_ticker(request):
     if not 'type' in request.GET:
         return json_response({ "code":404, "error": "get has no 'type' key" }) 
@@ -789,11 +797,11 @@ def get_ticker(request):
 
     from_msec,to_msec = _unpack_from_to_msec(request)
 
-    @cache.region('long_term')
+    @cache.region('short_term')
     def fetch_data(bar, boz):    
         top_users = get_top_users(from_msec, to_msec, 10, request_type)
         first_start,first_end,second_start,second_end = _unpack_times(request)
-        top_trending = get_top_and_trending_pages(first_start,first_end,second_start,second_end, 10, request_type)
+        top_trending = get_top_and_trending_pages(first_start,first_end,second_start,second_end, 16, request_type)
         profile_queries = get_profile_queries(request_type)
         return [top_users, top_trending, profile_queries]
 
