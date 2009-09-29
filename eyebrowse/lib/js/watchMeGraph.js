@@ -46,6 +46,7 @@ var evtHandlers = ({
 															y: evt.clientY - position.top
 														};
 
+
 														if (this_.viz.drag) {
 															this_.viz.startTime -= 24000 * (this_.mouse.x - this_.dragBeginX);
 															this_.viz.endTime -= 24000 * (this_.mouse.x - this_.dragBeginX);
@@ -703,35 +704,7 @@ var statusFactory = ({
 							 }
 							 if (params.noHover){
 								 this.noHover = params.noHover;
-							 }
-							 
-						 },
-						 selectColorForDomain:function(domain) {
-							 // now we need to turn this domain into a color.
-							 if (this.__color_cache === undefined) { this.__color_cache = {}; }
-							 if (this.__color_cache[domain] === undefined) {
-								 var mystery_prime =  3021377; //13646456457645727890239087; //1283180923023829; //3021377;
-
-								 // rgb generator
-								 var rgb_generator = function(d) {
-									 var biggest_color = parseInt("ffffff",16);
-									 var code = d.length > 0 ?
-										 d.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; }) * mystery_prime % biggest_color :
-									 65535;
-									 return "#"+code.toString(16);
-								 };
-
-								 // hsl generator
-								 var hsl_generator = function(domain) {
-									 var h = domain.length > 0 ?  domain.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; })  % 360 : 172;
-									 var s = "100%";
-									 var l = "50%";
-									 return   "hsl("+[""+h,s,l].join(",")+")";
-								 };
-
-								 this.__color_cache[domain] = hsl_generator(domain); //rgb_generator(domain); //hsl_generator(domain);
-							 }
-							 return this.__color_cache[domain];
+							 }							 
 						 },
 						 draw: function(){
 							 var ctx = this.canvas.getContext('2d');
@@ -1259,3 +1232,138 @@ var barGraphLite = ({
 						}
 					});
 
+var dotFactory = ({
+						 initialize: function(viz, params){
+							 this.viz = viz;
+							 this.canvas = viz.canvas;
+							 this.windowHeight = viz.windowHeight;
+							 this.windowWidth = viz.windowWidth;
+							 this.marginTop = params.marginTop;
+							 this.data = params.data;
+							 this.den = params.den;
+							 this.isInteractive = params.isInteractive;
+							 this.trigger = false;
+							 this.pIH = undefined;
+							 this.mouseVal = undefined;
+							 this.fooTxtY = params.fooTxtY;
+							 this.fooTxtX = params.fooTxtX;
+							 if (!(this.fooTxtY)){
+								 this.fooTxtY = 0;
+							 }
+							 if (!(this.fooTxtX)){
+								 this.fooTxtX = 0;
+							 }
+							 this.setPos();
+						 },
+						 draw: function(){
+							 var ctx = this.canvas.getContext('2d');
+							 var this_ = this;
+							 
+							 ctx.clearRect(0,0,this_.windowWidth,this_.windowHeight);
+
+							 for (var i = 0; i < this_.polyArray.length; i++) {
+								 ctx.beginPath();
+								 ctx.fillStyle = "hsl(" + this_.data[i][1].hue + ",100%,50%)";
+								 ctx.arc(this_.polyArray[i][0].x + this_.den/2 - 1.5, this_.polyArray[i][0].y + this_.den/2 - 1.5, 1.5,0, Math.PI*2,true);
+								 ctx.fill();
+								 ctx.closePath();
+							 }
+
+							 if (!(this_.pIH) && this_.trigger) {
+								 this_.trigger = false;
+								 this_.viz.highlight = "booo";
+								 jQuery("#fooTxt").html("");
+								 jQuery("#fooTxt").css({"padding" : "0px"});
+							 }
+						 },
+						 mouseMove: function(params){
+							 var this_ = this;
+
+							 this_.mouseVal = {
+								 x: params.mouseVal.x - 8,
+								 y: params.mouseVal.y - 40
+							 };
+
+							 // mouse pointer
+							 /*
+							 var ctx = this.canvas.getContext('2d');
+							 ctx.beginPath();
+							 ctx.fillStyle = "#ff0000";
+							 ctx.arc(this_.mouseVal.x, this_.mouseVal.y, 1.5,0, Math.PI*2,true);
+							 ctx.fill();
+							 ctx.closePath();								 
+							  */
+							 // mouse hover
+							 if (this_.isInteractive){
+								 this_.pIH = false;
+								 for (var i = 0; i < this_.rowArray.length; i++) {
+									 if (isPointInPoly(this_.rowArray[i].poly, this_.mouseVal)){
+										 for (var j = this_.rowArray[i].start; j < this_.rowArray[i].end; j++){
+											 if (isPointInPoly(this_.polyArray[j], this_.mouseVal)) {
+												 //this_.viz.highlight = this_.data[j].url;
+												 this_.trigger = true;
+												 this_.pIH = true;										 
+												 jQuery("#target").css({"left" : this_.mouseVal.x -2 + "px", "top" : this_.mouseVal.y + 30 + "px" });
+												 jQuery("#fooTxt").html("<a href=\"" + this_.data[j][1].url + "\">" + this_.data[j][1].title + "</a>");
+												 jQuery("#fooTxt").css({"left" : this_.mouseVal.x - (this_.data[j][1].title.length * 6)/2 + "px", "padding": "3px", "top" : this_.mouseVal.y + this_.fooTxtY + 19 + "px" });
+												 
+											 }
+										 }
+									 }
+								 }
+							 }
+						 },
+						 mouseDown: function(){
+						 },
+						 mouseUp: function(params){
+						 },
+						 setPos: function(){
+							 var this_ = this;
+							 this_.polyArray = [];
+							 this_.rowArray = []; // for mouse detect
+							 var colNum = 0;
+							 var rowNum = 0;
+							 var forward = true;							 
+							 var startPointArray = [];
+							 var numCol = Math.floor(this_.windowWidth/this_.den);
+							 var numRow = Math.floor(this_.windowHeight/this_.den);
+
+							 for (var i = 0; i < numRow; i++) {
+								 this_.rowArray[i] = {};
+								 this_.rowArray[i].poly = rectToPoly({
+																	xPos: 0,
+																	yPos: i * 10,
+																	height: this_.den,
+																	width: this_.windowWidth
+																});
+								 this_.rowArray[i].start = numCol * i;
+								 this_.rowArray[i].end = numCol * (i+1);
+							 }
+							 
+							 for (var i = 0; i < numCol; i++){
+								 startPointArray[i] = i * this_.den;
+							 }
+
+							 // should go backwards every other time
+							 for (var i = 0; i < this_.data.length -1; i++) {
+								 this_.polyArray[i] = rectToPoly({xPos: startPointArray[colNum], yPos: rowNum * this_.den, width: this_.den, height: this_.den});
+								 
+								 if (forward){
+									 colNum += 1;	 
+								 } else {
+									 colNum -= 1;	 
+								 }
+								 if (colNum > numCol-1){
+									 colNum = numCol-1;
+									 forward = false;
+									 rowNum += 1;
+								 }
+								 if (colNum < 0){
+									 colNum = 0;
+									 forward = true;
+									 rowNum += 1;
+								 }
+							 }
+							 this_.draw();
+						 }
+					 });

@@ -18,6 +18,7 @@ from django.utils.simplejson import JSONEncoder, JSONDecoder
 import time
 import sys
 import urlparse    
+from eyebrowse.models import PageView
 ##
 ## this set of views are used by the plugin to post new events
 ##

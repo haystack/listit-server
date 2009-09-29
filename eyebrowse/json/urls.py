@@ -24,6 +24,7 @@ urlpatterns = patterns('',
                        (r'^get_users_page$', get_users_page),                      
                        (r'^get_profile$', get_profile),                                            
                        (r'^get_pagestats$', get_pagestats),                       
+                       (r'^get_pulse$', get_pulse),                       
 
                        (r'^get_to_from_url/(\d+)/$', get_to_from_url_plugin), #for old plugin                     
 )

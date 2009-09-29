@@ -499,6 +499,11 @@ a.selected {
     margin-top: 15px;
     width: 95%;
     display: inline-block;
+} #target {
+    position: absolute;
+	background-image:url("/lib/img/target_16.png");	
+	width:16px;
+	height:16px;
 } .fooTxt {
     position: absolute;
     background: #000000;
@@ -865,3 +870,58 @@ a.selected {
 	margin-top:-10px;
 }
 
+#pulse_header {
+    margin-top: 50px;
+    width: 950px;
+    text-align: left;
+    padding-top: 2px;
+	margin-left:auto;
+	margin-right:auto;
+	background-image:url("/lib/img/80_percent.png");	
+} #pulse_header h1 {
+    font-size: 4.5em;
+    font-weight: bold;
+    display: inline-block;
+    vertical-align: top;
+    padding: 0px;
+    padding-top: 0px;
+    margin-top: -17px;
+} #pulse_header a{
+	 color:#333333;
+} #pulse_header h1 a{
+	font-weight:bold;
+} #pulse_header h2 {
+    font-size: 1.4em;
+    font-weight: bold;
+    margin-top: 0px;
+    padding: 8px;
+    padding-left: 0px;
+    padding-bottom: 8px;
+} #pulse_header h3 {
+	width:660; 
+	display:inline-block; 
+	margin-bottom:2px; 
+	margin-top:10px; 
+	margin-left:20px; 
+	font-size:18px;
+} #pulse_header h4 {
+	width:321px;
+	display:inline-block; 
+	margin-bottom:20px; 
+	margin-left:10px; 
+	margin-top:15px;
+	font-size:13.8px;
+} #pulse_header h5 {
+    width:auto; 
+    font-size:12px;
+	line-height:15px;
+	padding-left:10px;
+	padding-right:10px;	
+} #pulse_header #listNav {
+    width: 700px;
+    display: inline-block;
+    margin: 0px;
+    margin-top: 20px;
+    padding-bottom: 0px;
+    border: none;
+}

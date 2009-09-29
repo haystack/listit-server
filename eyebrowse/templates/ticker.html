@@ -2,16 +2,53 @@
 {% block title %}ticker{% endblock %}
 {% block imports %}
 <style>
-  @import url("/lib/css/datepicker.css");
   #latestviews h6 {
 	  width: 420px;
   }
-  #profile img {
+  #profile_content {
+	  width:500px;	 
+  }
+  #profile_content li {
+	  width:450px;
+  }
+
+  #profile {
+		width:234px;
+		margin:0px;
+		padding:0px;
+		vertical-align:top;
+		margin-bottom:15px;
+		line-height: 1.2em;
+		font-size:1.05em;
+		margin-top:24px;
+  }#profile a{		
+	  font-size:1.05em;
+	  font-weight:normal;
+  }#profile img{
 	  width:14px;
 	  height:14px;
+  }#profile li{
+	  padding-right:0px;	
+	  margin-top:5px;
+  }#profile ul{
+	  margin-top:10px;
+	  margin-left:0px;
+  }h7{
+	  font-size:0.8em;
+  }.viewboxright{
+	  width:231px;	  
+  }.viewboxright .imgbox{
+	  display:inline-block;
+	  float:right;	
+	  text-align:left;
+	  width:46px;
+  } .viewboxhome {
+	  width:231px;
+  } .viewboxhome li{
+	  width:221px;
   }
-</style>
-<script>
+  </style>
+  <script>
     var WatchmeVisualisation = {
         initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom){
             this.canvas = canvas;
@@ -32,8 +69,8 @@
             this.interp = zoom / 192;
             this.drag = undefined;
             this.zoom = zoom;
-            this.getRecentPages(30);
             this.getTickerPage(this.startTime, this.endTime, {'global':'all'});
+            this.getRecentPages(25);
         },
 		getTickerPage: function(startTime, endTime, req_type){
             var this_ = this;
@@ -64,7 +101,7 @@
 			for (var i = 0; i < newData.length; i++) {
 				if (newData[i].number > 0){
 					var html = "";
-					html += "<li style=\"width:170px; padding:6px\">";
+					html += "<li>";
 					html += "<h6><b><a href=\"/profile/" + newData[i].user +  "/\">" + newData[i].user + "</a></b></h6>";
 					html += "<br /><h7>" + newData[i].number + " webpages today</h7>";
 					html += "</li>";
@@ -74,39 +111,72 @@
 		},
         drawTopPagesList: function(data){
             var this_ = this;
-            var newData = data;
-            var html = "<ul>";
-            for (var i = 0; i < 10; i++) {
-                var trigger = true;
-                html += "<li>";
-                html += "<h6><b><a href=\"http://" + newData[i][0] + "\" style=\"width:50px;\">" + newData[i][0] + "</a></b></h6>";                
-                if (newData[i][2] < 0) {
-                    trigger = false;
-                    html += "<div class=\"imgbox\">";
-                    html += "<img src=\"/lib/img/arrow_full_down_16.png\" style=\"float:none\"/>";
-                    html += "<b>" + newData[i][2] + "</b>";
-                    html += "</div>";
-                }
-                if (newData[i][2] > 0) {
-                    trigger = false;
-                    html += "<div class=\"imgbox\">";		   
-					html += "<img src=\"/lib/img/arrow_full_up_16.png\" style=\"float:none\"/>";                         
-					html += "<b>" + newData[i][2] + "</b>";
+			var html = "";
+
+			for (var i = 0; i < data.top.length; i++) {
+				var trigger = true;
+				html += "<li>";
+				if (data.top_titles[i]){
+					html += "<h6><b><a href=\"http://" + data.top[i][0] + "\" style=\"width:50px;\">" + data.top_titles[i].trim(22) + "</a></b></h6>";                						
+				} else {
+					html += "<h6><b><a href=\"http://" + data.top[i][0] + "\" style=\"width:50px;\">" + data.top[i][0].trim(22) + "</a></b></h6>";                						
+				}
+				if (data.top[i][2] < 0) {
+					trigger = false;
+					html += "<div class=\"imgbox\">";
+					html += "<img src=\"/lib/img/arrow_full_down_16.png\" style=\"float:left\"/>";
+					html += "<b>" + data.top[i][2] + "</b>";
 					html += "</div>";
-                }
-                if (trigger) {
+				}
+				if (data.top[i][2] > 0) {
+					trigger = false;
+					html += "<div class=\"imgbox\">";		   
+					html += "<img src=\"/lib/img/arrow_full_up_16.png\" style=\"float:left\"/>";                         
+					html += "<b>" + data.top[i][2] + "</b>";
+					html += "</div>";
+				}
+				if (trigger) {
 					// foo
-                }
-                html += "</li>";
-            }
-			html += "</ul>";
-            jQuery("#topurls").html(html);
+				}
+				html += "</li>";
+			}
+			jQuery("#pages").html(html);					   			
+
+			html = "";
+			for (var i = 0; i < data.trending.length; i++) {
+				var trigger = true;
+				html += "<li>";
+				if (data.tre_titles[i]){
+					html += "<h6><b><a href=\"http://" + data.trending[i][0] + "\" style=\"width:50px;\">" + data.tre_titles[i].trim(28) + "</a></b></h6>";                						
+				} else {
+					html += "<h6><b><a href=\"http://" + data.trending[i][0] + "\" style=\"width:50px;\">" + data.trending[i][0].trim(28) + "</a></b></h6>";                						
+				}
+				if (data.trending[i][2] < 0) {
+					trigger = false;
+					html += "<div class=\"imgbox\">";
+					html += "<img src=\"/lib/img/arrow_full_down_16.png\" style=\"float:left\"/>";
+					html += "<b>" + data.trending[i][2] + "</b>";
+					html += "</div>";
+				}
+				if (data.trending[i][2] > 0) {
+					trigger = false;
+					html += "<div class=\"imgbox\">";		   
+					html += "<img src=\"/lib/img/arrow_full_up_16.png\" style=\"float:left\"/>";                         
+					html += "<b>" + data.trending[i][2] + "</b>";
+					html += "</div>";
+				}
+				if (trigger) {
+					// foo
+				}
+				html += "</li>";
+			}
+			jQuery("#trending").html(html);					   			
         },
 		drawProfile: function(data){
 			var newData = data;
-			jQuery("#totalTime").html("<b>total time spent: </b> " + timeCounterLongAbv(newData.totalTime));
-			jQuery("#num").html("<b>total visits: </b>" + newData.number);
-			jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv(newData.average));					
+			jQuery("#totalTime").html("<b>total time: </b> " + timeCounterLongAbv(newData.totalTime));
+			jQuery("#num").html("<b>visit count: </b>" + newData.number);
+			jQuery("#avgTime").html("<b>avg time per visit: </b>" + timeCounterLongAbv(newData.average));					
 		},
         getRecentPages: function(num){
             var this_ = this;
@@ -122,15 +192,14 @@
 							   for (var i = newData.length -1; i >= 0; i--) {
 								   html = "<li id=\"" + newData[i].end + "\">";
 								   if (newData[i].title){
-									   html += "<h6 style=\"margin-left:8px;\"><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
+									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title.trim(60) + "</a></b></h6>";
 								   }
 								   else{
-									   html += "<h6 style=\"margin-left:8px;\"><b><a href=\"" + newData[i].url + "\">" + newData[i].url + "</a></b></h6>";
+									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url.trim(60) + "</a></b></h6>";
 								   }
-								   html += "<a href=\"/search/?url=" + newData[i].url + "\"><img src=\"/lib/img/smallbird.jpg\" style=\"margin-left:6px;display:inline-block;margin-top:-3px;\"/></a>";
-								   html += "<h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
+								   html += "<h7>" + timeCounterClock((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
 								   if (newData[i].user.length > 0) {
-									   html += "<br />&nbsp; &nbsp; by <a href=\"/profile/" + newData[i].user + "\" style=\"font-weight:normal\">" + newData[i].user + "</a>";
+									   html += "<br />&nbsp; &nbsp; <a href=\"/profile/" + newData[i].user + "\" style=\"font-weight:normal; font-size:0.8em; display:inline-block\">by " + newData[i].user + "</a>";
 								   }
 								   html += "</li>";
 								   jQuery("#latestviews ul").prepend(html);
@@ -151,7 +220,7 @@
 					   }, "json");
         }
     };
-jQuery(document).ready(function(){
+		jQuery(document).ready(function(){
 						   var myWidth = undefined;
 						   var myHeight = undefined;
 						   
@@ -159,29 +228,37 @@ jQuery(document).ready(function(){
 						   myHeight = window.innerHeight - 250;
 
 						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 86400000);// 12 hrs
-						   setInterval("self.viz.getRecentPages(30)", 15000);
+						   //setInterval("self.viz.getRecentPages(30)", 15000);
 					   });
 </script>
 {% endblock %}
 {% block content %}
 <div class="loader" id="loadimg"></div>
-<div id="report">
-  <img src="/lib/img/ajax-loader.gif" class="loader" />
+<div id="report" style="width:750px">
   <div id="loading" class="loader"></div>
   <div id="profile">
     <div id="num" style="margin-top:30px;">
-      <b>total visits:</b>
+      <b>visit count:</b>
     </div>
     <div id="totalTime">
-      <b>total time spent: </b>
+      <b>total time: </b>
     </div>
     <div id="avgTime">
-      <b>average time spent:</b>
+      <b>avg time per visit:</b>
     </div>
-	<h2 style="border-top:none">Top Domains</h2>
-	<div class="viewboxright" id="topurls">
+
+	<h2>Trending</h2>
+	<div class="viewboxright" id="trending">
+	  <ul class="friends" id="trending">	  
+      </ul>
 	</div>
 
+	<h2>Top Pages</h2>
+	<div class="viewboxright" id="topurls">
+	  <ul class="friends" id="pages">	  
+      </ul>
+	</div>
+	
     <h2>Top Users</h2>
 	<div class="viewboxhome" id="topusers">
     </div>
@@ -190,9 +267,16 @@ jQuery(document).ready(function(){
     <div class="userhead">
       <h1>Ticker</h1>
     </div>
-    <div class="viewboxprofile" id="latestviews" style="margin-top:-22px; border-top:1px solid lightgrey">
-	<ul>
-	</ul>
+	  <h3 style="float:right; font-size:14px;margin-top:31px;margin-right:21px">
+		<a id="user" href="javascript:self.viz.getProfile('user')">you</a>
+		&#124; 
+		<a id="friends" href="javascript:self.viz.getProfile('friends')">friends</a>
+		&#124; 
+		<a id="global" href="javascript:self.viz.getProfile('global')">global</a> 
+	  </h3>
+    <div class="viewboxprofile" id="latestviews" style="margin:0px;margin-top:-22px; border-top:1px solid lightgrey; width:480px">
+	  <ul>
+	  </ul>
     </div>
   </div>
 </div>

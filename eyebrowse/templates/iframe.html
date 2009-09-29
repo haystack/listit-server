@@ -194,24 +194,6 @@
 										  label: ['Monday', 'Tuesday', 'Wednes', 'Thursday', '  Friday', 'Saturday', 'Sunday'],
 										  data: data['dayWeek']
 									  });
-		},
-		refresh: function(){
-			var this_ = this;	    
-			var url = 'www.nytimes.com';//jQuery("#urladdtextinput").val();
-			jQuery.get("/get_closest_url/", { url:url },
-					   function(data) {
-						   if (data.code == 200) {
-							   this_.url = data.results.length > 0 ? data.results[0] : "";
-							   jQuery("#urladdtextinput").val(this_.url);
-							   this_.getProfile(this_.startTime, this_.endTime, this_.url); 
-							   this_.initUrlGraph(this_.url);
-							   this_.initLineGraphs(this_.startTime, this_.endTime, this_.url); 
-							   this_.initBarGraphs(this_.url); 
-							   this_.initTopUsers(this_.startTime, this_.endTime, this_.url);			       
-						   } else {
-							   // console.log("error calling get_closest_url: " + data.code + " " + data);
-						   }
-					   }, "json");	    	    
 		}
 	};
 jQuery(document).ready(function(){

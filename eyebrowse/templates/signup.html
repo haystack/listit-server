@@ -303,14 +303,14 @@ jQuery(document).ready(function(){
 		<a href="http://eyebrowse.csail.mit.edu/users/">profiles</a> or click below to get started.		
 	  </h4>
   </div>
-
+  
   <div id="signUpFormContainer">
     <div id="signUpForm">
       {% if request_user %}
       <br /><br />
       <h1 style="font-size:28px; margin:0px;">welcome <a href="/profile/{{ request_user }}/">{{ request_user }}</a>!</h1><br />		  
       <div style="padding:0px;margin-top:4px; margin-bottom:8px; font-size:13px;">
-	<a href="/graph/{{ request_user }}/">your graphs</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ request_user }}/">your friends</a>&nbsp; &#124; &nbsp;<a href="/settings/">settings</a>&nbsp; &#124; &nbsp;<a href="/logout/">logout</a>
+		<a href="/graph/{{ request_user }}/">your graphs</a>&nbsp; &#124; &nbsp;<a href="/friends/{{ request_user }}/">your friends</a>&nbsp; &#124; &nbsp;<a href="/settings/">settings</a>&nbsp; &#124; &nbsp;<a href="/logout/">logout</a>
       </div>
       {% else %}
       <div id="bodytext">
@@ -322,11 +322,11 @@ jQuery(document).ready(function(){
       <fieldset>
         <form method="post" action=".">
           {{ form.as_p }}
-	  <input type="submit" value="register" id="registerSubmit" style="margin-top:60px;"/>
+		  <input type="submit" value="register" id="registerSubmit" style="margin-top:60px;"/>
         </form>
       </fieldset>
       <div class="subhead" style="position:relative; top:-115px; font-size:11pt;">
-	by registering you agree to the <a href="/terms/" style="font-size:1em">terms and conditions and data use policies</a>
+		by registering you agree to the <a href="/terms/" style="font-size:1em">terms and conditions and data use policies</a>
       </div>				  
       {% endif %}
     </div>

@@ -90,9 +90,9 @@
 		},
 		drawProfile: function(data){
 			var newData = data;
-			jQuery("#totalTime").html("&nbsp; &#124; &nbsp;<b>total time spent: </b> " + timeCounterLongAbv(newData.totalTime));
-			jQuery("#num").html("<b>total visits: </b>" + newData.number);
-			jQuery("#avgTime").html("&nbsp; &#124; &nbsp;<b>average time spent: </b>" + timeCounterLongAbv(newData.average));
+			jQuery("#totalTime").html("&nbsp; &#124; &nbsp;<b>total time: </b> " + timeCounterLongAbv(newData.totalTime));
+			jQuery("#num").html("<b>visit count: </b>" + newData.number);
+			jQuery("#avgTime").html("&nbsp; &#124; &nbsp;<b>avg time per visit: </b>" + timeCounterLongAbv(newData.average));
 		},
 		drawTopUsers: function(data){
 			var this_ = this;

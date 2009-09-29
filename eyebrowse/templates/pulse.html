@@ -12,15 +12,40 @@
     .viewboxhome .leftside{
         text-align:right;
     } 
-    input[type="text"] {
-        font-size:4.5em;
-		font-weight:bold;
-		width:845px;
-		height:57px;
-		border:none;
-		border-bottom:0px solid lightgrey;
-		display:inline-block;		
-     }
+	#profile{
+		float:none;
+		display:inline-block;
+		width:234px;
+		margin:0px;
+		padding:0px;
+		vertical-align:top;
+		margin-bottom:15px;
+		line-height: 1.2em;
+		font-size:1.05em;
+		margin-top:-10px;
+	}
+	#profile a{		
+		font-size:1.05em;
+		font-weight:normal;
+	}	
+	#profile img{
+		width:14px;
+		height:14px;
+	}
+	#profile li{
+		padding-right:24px;	
+		margin-top:5px;
+	}#profile ul{
+		margin-top:10px;
+		margin-left:8px;
+	}#profile h7{
+		font-size:0.8em;
+	}.imgbox{
+		display:inline-block;
+		float:right;	
+		text-align:left;
+		width:38px;
+	}
 </style>
 <script src="/lib/js/watchMeGraph.js">
 </script>
@@ -35,7 +60,7 @@
 </script>
 <script>
     var WatchmeVisualisation = {
-        initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom, url) {
+        initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom) {
             this.canvas = canvas;
             this.windowWidth = windowWidth;
             this.windowHeight = windowHeight;
@@ -46,214 +71,322 @@
             this.interp = zoom / 192;
             this.drag = undefined;
             this.zoom = zoom;
-			this.url = url;
-			this.getClosestUrl(this.url);
-		 },
-		getClosestUrl: function(url){
-			var this_ = this;	
-			jQuery.get("/get_closest_url/", { url:url },
-					   function(data) {						   
-						   if (data.code == 200) {
-							   this_.url = data.results.length > 0 ? data.results[0] : "";
-							   jQuery("#urladdtextinput").val(this_.url);							   
-							   //this_.getProfile(this_.startTime, this_.endTime, this_.url); 
-						   } else {
-							   //console.log("error calling get_closest_url: " + data.code + " " + data);
-						   }
-					   }, "json");	    	           	
+			this.recentTimesArray = [];
+			this.recentID = 0;
+			this.getProfile("global");
+            this.getRecentPages(9);
 		},
-		getProfile: function(startTime, endTime, url){
+        getRecentPages: function(num){
+            var this_ = this;
+			this_.now = new Date().valueOf();
+			jQuery("#loadimg").show();
+			jQuery.get("/get_most_recent_urls/" + num + "/", {
+						   id: this_.recentID
+					   }, function(data){
+						   jQuery("#loadimg").hide();
+						   if (data.code == 200) {
+							   var newData = data.results;
+							   var html = "";
+							   for (var i = newData.length -1; i >= 0; i--) {
+								   html = "<li id=\"" + newData[i].end + "\">";
+								   if (newData[i].title){
+									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title.trim(26) + "</a></b></h6>";
+								   }
+								   else{
+									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url.trim(26) + "</a></b></h6>";
+								   }
+								   html += "<h7>" + timeCounterClock((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
+								   if (newData[i].user.length > 0) {
+									   html += "<br />&nbsp; &nbsp; <a href=\"/profile/" + newData[i].user + "\" style=\"font-weight:normal; font-size:0.8em; display:inline-block\">by " + newData[i].user + "</a>";
+								   }
+								   html += "</li>";
+								   jQuery("#latestviews").prepend(html);
+								   jQuery("#" + newData[i].end).slideDown("slow");
+
+								   // keep track of times displayed and hide old ones
+								   this_.recentTimesArray.unshift(newData[i].end);
+								   if (this_.recentTimesArray.length > num){
+									   jQuery("#" + this_.recentTimesArray[num + 1]).hide();
+									   this_.recentTimesArray.pop();   
+								   }
+							   }
+							   this_.recentID = newData[0].id;
+						   }
+						   else {
+							  // console.log("yaaaa!!!H!H!H!" + data.code + " ");
+						   }
+					   }, "json");
+        },
+		getProfile: function(type){
 			var this_ = this;
 			jQuery("#loadimg").show();
-            try {
-                jQuery.get("/get_pagestats", {
+			try {
+				jQuery.get("/get_pulse", {
 							   from: this_.startTime,
 							   to: this_.endTime,
-							   url:url
+							   first_start: this_.startTime - 86400000/2,
+							   first_end: this_.endTime - 86400000/2,
+							   second_start: this_.startTime,
+							   second_end: this_.endTime,
+							   num: Math.floor((this_.windowWidth/10)*(this_.windowHeight/10)),
+							   type: type
 						   }, function(data){
-							   if (data.code == 200) {		
+							   if (data.code == 200) {										   
 								   var newData = data.results;
-								   this_.drawToFromGraph(data.results[3]);
-								   this_.drawProfile(data.results[2]);
-								   this_.drawTopUsers(data.results[1]);
-								   this_.drawGraphs(data.results[0]);
+								   this_.drawProfile(data.results[0]);
+								   this_.drawMiniGraph(data.results[2]);
+								   this_.drawBG(data.results[1]);
+								   this_.drawTopPagesList(data.results[3]);
+								   this_.drawTopDomains(data.results[4]);
+
+								   jQuery("#user").css("font-weight","lighter");
+								   jQuery("#friends").css("font-weight","lighter");
+								   jQuery("#global").css("font-weight","lighter");
+								   jQuery("#" + type).css("font-weight","bold");
 								   jQuery("#loadimg").hide();
 							   }
 							   else {
 								   //console.log("yaaaa!!!H!H!H!" + data.code + " ");
 							   }
 						   }, "json");
-            } 
-            catch (e) {
+			} 
+			catch (e) {
 				// console.log(e);
-            }
+			}
 		},
 		drawProfile: function(data){
 			var newData = data;
-			jQuery("#totalTime").html("&nbsp; &#124; &nbsp;<b>total time spent: </b> " + timeCounterLongAbv(newData.totalTime));
-			jQuery("#num").html("<b>total visits: </b>" + newData.number);
-			jQuery("#avgTime").html("&nbsp; &#124; &nbsp;<b>average time spent: </b>" + timeCounterLongAbv(newData.average));
+			jQuery("#totalTime").html("&nbsp; &#124; &nbsp;<b>total time: </b> " + timeCounterLongAbv(newData.totalTime));
+			jQuery("#num").html("<b>visit count: </b>" + newData.number);
+			jQuery("#avgTime").html("&nbsp; &#124; &nbsp;<b>avg time per visit: </b>" + timeCounterLongAbv(newData.average));
 		},
-		drawTopUsers: function(data){
+        drawTopPagesList: function(data){
+            var this_ = this;
+			var html = "";
+
+			for (var i = 0; i < data.top.length; i++) {
+				var trigger = true;
+				html += "<li>";
+				if (data.top_titles[i]){
+					html += "<h6><b><a href=\"http://" + data.top[i][0] + "\" style=\"width:50px;\">" + data.top_titles[i].trim(22) + "</a></b></h6>";                						
+				} else {
+					html += "<h6><b><a href=\"http://" + data.top[i][0] + "\" style=\"width:50px;\">" + data.top[i][0].trim(22) + "</a></b></h6>";                						
+				}
+				if (data.top[i][2] < 0) {
+					trigger = false;
+					html += "<div class=\"imgbox\">";
+					html += "<img src=\"/lib/img/arrow_full_down_16.png\" style=\"float:left\"/>";
+					html += "<b>" + data.top[i][2] + "</b>";
+					html += "</div>";
+				}
+				if (data.top[i][2] > 0) {
+					trigger = false;
+					html += "<div class=\"imgbox\">";		   
+					html += "<img src=\"/lib/img/arrow_full_up_16.png\" style=\"float:left\"/>";                         
+					html += "<b>" + data.top[i][2] + "</b>";
+					html += "</div>";
+				}
+				if (trigger) {
+					// foo
+				}
+				html += "</li>";
+			}
+			jQuery("#pages").html(html);					   			
+
+			html = "";
+			for (var i = 0; i < data.trending.length; i++) {
+				var trigger = true;
+				html += "<li>";
+				if (data.tre_titles[i]){
+					html += "<h6><b><a href=\"http://" + data.trending[i][0] + "\" style=\"width:50px;\">" + data.tre_titles[i].trim(22) + "</a></b></h6>";                						
+				} else {
+					html += "<h6><b><a href=\"http://" + data.trending[i][0] + "\" style=\"width:50px;\">" + data.trending[i][0].trim(22) + "</a></b></h6>";                						
+				}
+				if (data.trending[i][2] < 0) {
+					trigger = false;
+					html += "<div class=\"imgbox\">";
+					html += "<img src=\"/lib/img/arrow_full_down_16.png\" style=\"float:left\"/>";
+					html += "<b>" + data.trending[i][2] + "</b>";
+					html += "</div>";
+				}
+				if (data.trending[i][2] > 0) {
+					trigger = false;
+					html += "<div class=\"imgbox\">";		   
+					html += "<img src=\"/lib/img/arrow_full_up_16.png\" style=\"float:left\"/>";                         
+					html += "<b>" + data.trending[i][2] + "</b>";
+					html += "</div>";
+				}
+				if (trigger) {
+					// foo
+				}
+				html += "</li>";
+			}
+			jQuery("#trending").html(html);					   			
+        },
+		drawTopDomains: function(data){
 			var this_ = this;
 			var html = "";
+
 			for (var i = 0; i < data.length; i++) {
-				if (data[i].number > 0){
+				if (typeof(data[i][1]) != 'undefined'){
+					var trigger = true;
 					html += "<li>";
-					html += "<a href=\"/profile/" + data[i].user + "/\">" + data[i].user + "</a><h7>" + data[i].number + "</h7>";
-					html += "</li>";					
+					html += "<h6><b><a href=\"http://" + data[i][0] + "\" style=\"width:50px;\">" + data[i][0].trim(22) + "</a></b></h6>";                
+					if (data[i][2] < 0) {
+						trigger = false;
+						html += "<div class=\"imgbox\">";
+						html += "<img src=\"/lib/img/arrow_full_down_16.png\" style=\"float:left\"/>";
+						html += "<b>" + data[i][2] + "</b>";
+						html += "</div>";
+					}
+					if (data[i][2] > 0) {
+						trigger = false;
+						html += "<div class=\"imgbox\">";		   
+						html += "<img src=\"/lib/img/arrow_full_up_16.png\" style=\"float:left\"/>";                         
+						html += "<b>" + data[i][2] + "</b>";
+						html += "</div>";
+					}
+					if (trigger) {
+						// foo
+					}
+					html += "</li>";
 				}
  			}
-			jQuery("#topvisitors").html(html);					   			
+			jQuery("#domains").html(html);					   			
 		},
-		drawGraphs: function(data){
+		drawBG: function(data){
 			var this_ = this;
+			var newData = data;
+			var zoom = this_.zoom;
+			var hour = 1600000; // fudged a litte 1 hour = 3600000
+			var bg = {};
+			this_.drawArray = [];
+			this_.graphArray = [];
+			document.getElementById("bgcanvas").setAttribute("width", this_.windowWidth);
+			document.getElementById("bgcanvas").setAttribute("height", this_.windowHeight);
 			
-			var avgTimeG = newify(lineGraphFactoryLite, {
-									  canvas: document.getElementById("avgTimeGraph"),
+			this_.dotGraph = newify(dotFactory, this_, {
+									  marginTop: 11,
+									  den: 10,
+									  isInteractive: false,
+									  data: newData
+								  });	
+			this_.graphArray.push(this_.dotGraph);
+            this_.drawArray.push(this_.graphArray);
+            var mainEvtHandlers = newify(evtHandlers, this_);			
+		},
+		drawMiniGraph: function(data){
+			var this_ = this;
+			var newData = data;
+
+            var avgTimeG = newify(lineGraphFactoryLite, {
+									  canvas: document.getElementById("main"),
 									  startTime: this_.startTime,
 									  endTime: this_.endTime,
-									  windowHeight: this_.windowHeight,
-									  windowWidth: this_.windowWidth,
-									  interp: (this_.endTime - this_.startTime) / 28,
+									  windowHeight: 50,
+									  windowWidth: 950,
+									  interp: (this_.endTime - this_.startTime) / 100,
 									  color: "#ff00ff",
-									  fillGraph: true,
-									  data: data['avgTime']
+									  margintop: 30,
+									  topPadding: 0,
+									  noKey: true,
+									  fillGraph: false,
+									  data: data.totalTime
 								  });
-			
-			var dayWeekGraph = newify(barGraphLite, {
-										  canvas: document.getElementById("dayWeekGraph"),
-										  windowHeight: this_.windowHeight,
-										  windowWidth: this_.windowWidth,
-										  bottomPadding:30,
-										  barPadding:10,
-										  textPadding:4,
-										  columnWidth:20,																 
-										  label: ['Monday', 'Tuesday', 'Wednes', 'Thursday', '  Friday', 'Saturday', 'Sunday'],
-										  data: data['dayWeek']
-									  });
-			
-			var timeDayGraph = newify(barGraphLite, {
-										  canvas: document.getElementById("dayTimeGraph"),
-										  windowHeight: this_.windowHeight,
-										  windowWidth: this_.windowWidth,
-										  color: "#ff00ff",
-										  bottomPadding:30,
-										  columnWidth:8,
-										  barPadding:0,
-										  textPadding:0,
-										  label: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
-										  data: data['timeDay']
-									  });
-        },
-		refresh: function(){
-			var this_ = this;	    
-			var url = jQuery("#urladdtextinput").val();
-			jQuery.get("/get_closest_url/", { url:url },
-					   function(data) {
-						   if (data.code == 200) {
-							   this_.url = data.results.length > 0 ? data.results[0] : "";
-							   jQuery("#urladdtextinput").val(this_.url);
-							   this_.getProfile(this_.startTime, this_.endTime, this_.url); 
-							   this_.initUrlGraph(this_.url);
-							   this_.initLineGraphs(this_.startTime, this_.endTime, this_.url); 
-							   this_.initBarGraphs(this_.url); 
-							   this_.initTopUsers(this_.startTime, this_.endTime, this_.url);			       
-						   } else {
-							   // TODO: replace plz with an error div
-							  // console.log("error calling get_closest_url: " + data.code + " " + data);
-						   }
-					   }, "json");	    	    
 		},
-		swopURL: function(newURL){
-			jQuery("#urladdtextinput").val(newURL);
-			viz.refresh();
-		}
+		draw: function(){
+			// do nothing	
+		},
+		getCanvas: function(){
+            return this.canvas;
+        }
     };
 jQuery(document).ready(function(){
-						   jQuery("#urladdtextinput").focus();
+						   jQuery("#target").hide();
+						   jQuery("#toggle").click(function(){
+														   if (jQuery("#profile_content").is(":hidden")) {
+															   jQuery("#profile_content").slideDown("slow");
+															   jQuery("#footer").slideDown("slow");
+															   jQuery("#fooTxt").hide();
+															   jQuery("#target").hide();
+															   self.viz.dotGraph.isInteractive = false;
+															   
+														   }
+														   else {
+															   jQuery("#profile_content").slideUp("slow");
+															   jQuery("#footer").slideUp("slow");															   
+															   jQuery("#fooTxt").slideDown();
+															   jQuery("#target").slideDown();
+															   self.viz.dotGraph.isInteractive = true;
+														   }
+													   });
+
 						   var currentDate = new Date();																					   
-						   var myWidth = window.innerWidth - 16;
-						   var myHeight = window.innerHeight - 250;
-						   var input = jQuery("#urladdtextinput").val();
+						   var myWidth = 950;
+						   var myHeight = 50;
+						   document.getElementById("main").setAttribute("width", myWidth);
+						   document.getElementById("main").setAttribute("height", myHeight);
 
-						   document.getElementById("dayTimeGraph").setAttribute("width", 335);
-						   document.getElementById("dayTimeGraph").setAttribute("height", 200);
-						   document.getElementById("dayWeekGraph").setAttribute("width", 335);
-						   document.getElementById("dayWeekGraph").setAttribute("height", 200);
-
-						   document.getElementById("totalTimeGraph").setAttribute("width", 335);
-						   document.getElementById("totalTimeGraph").setAttribute("height", 200);
-						   document.getElementById("avgTimeGraph").setAttribute("width", 335);
-						   document.getElementById("avgTimeGraph").setAttribute("height", 200);
-						   document.getElementById("pathgraph").setAttribute("width", 950);
-						   document.getElementById("pathgraph").setAttribute("height", 350);
-
-						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 2419200000, input);// 4 weeks
+						   self.viz = newify(WatchmeVisualisation, document.getElementById("bgcanvas"),  getClientCords().width - 10, window.innerHeight - 50, 0, 86400000/2);// 12 hrs
+						   //setInterval("self.viz.getRecentPages(10)", 15000);
 					   });
 </script>
 {% endblock %}
 {% block content %}
 <div class="loader" id="loadimg"></div>
-<div id="profile_content" style="width:950px; margin-left:auto;margin-right:auto; ">
-  <h1>{{ request_user }} &#124;  pulse</h1>
-  <div id="urlstats">
-    <div id="num" style="display:inline-block">
-      <b>total visits:</b>
-    </div>
-    <div id="totalTime" style="display:inline-block">
-      <b>&nbsp; &#124; &nbsp;total time spent: </b>
-    </div>
-    <div id="avgTime" style="display:inline-block">
-      <b>&nbsp; &#124; &nbsp;average time spent:</b>
-    </div>
-  </div>
-  <div style="border-top:1px solid #999999">&nbsp;</div>
-  <div style="width:950; height:350; position:relative; z-index:0">
-	<div id="urlLeft" class="viewboxhome" style="position:absolute; left:-82px; top:12px; text-align:right;"></div>
-	<div id="urlRight" class="viewboxhome" style="position:absolute; left:712px; top:12px;"></div>
-	<div id="urlCenter" style="position:absolute; left:410px; top:110px; background:#ffffff; padding:6px; border:1px solid lightgrey"></div>
-  </div>			
-  <canvas id="pathgraph" style="z-index:-2;">
+<div id="target"></div>	
+<div class="fooTxt" id="fooTxt"></div>	
+<div id="background" style="margin-top:19px;margin-left:10px;">
+  <canvas id="bgcanvas">
   </canvas>
 </div>
-
-
-<div id="report">
-  <div id="profile" style="margin-top:-50px">
-	<h2 style="border-top:none">Top Visitors</h2>
-	<br />
-    <ul class="friends" id="topvisitors">	  
+<div id="pulse_header" style="padding:15px">
+  <h1>{{ request_user }}</h1>
+  <h3 style="float:right; font-size:14px;margin-top:16px;">
+	<a id="user" href="javascript:self.viz.getProfile('user')">you</a>
+	&#124; 
+	<a id="friends" href="javascript:self.viz.getProfile('friends')">friends</a>
+	&#124; 
+	<a id="global" href="javascript:self.viz.getProfile('global')">global</a> 
+  </h3>
+  <div style="border-top:1px solid #999999">&nbsp;</div>
+  <div id="urlstats">
+	<div id="num" style="display:inline-block">
+	  <b>visit count:</b>
+	</div>
+	<div id="totalTime" style="display:inline-block">
+	  <b>&nbsp; &#124; &nbsp;total time: </b>
+	</div>
+	<div id="avgTime" style="display:inline-block">
+	  <b>&nbsp; &#124; &nbsp;avg time per visit:</b>
+	</div>
+  </div>
+  <div id="toggle" style="display:inline-block; cursor: pointer; float:right;margin-top:-10px">
+    toggle +
+  </div>
+</div>
+<div id="profile_content" style="padding:15px; width:950px; margin-top:0px; margin-left:auto;margin-right:auto;">
+  <canvas id="main" style="padding:0px;margin:0px;">
+  </canvas>
+  <div id="profile">
+	<h2 style="border-top:none; margin-right:23px;">Ticker</h2>
+    <ul class="friends" id="latestviews">	  
     </ul>
   </div>
-  <div id="profile_content" style="margin-top:0px">
-    <div style="border-top:1px solid #999999">&nbsp;</div>
-    <div id="key" style="margin-top:-7px;margin-bottom:4px">
-      <div id="totalGraphKey" style="width:300px; text-align:center; display: inline-block;">
-        number of visits per hour of day
-      </div>
-      <div id="avgGraphKey" style="float:right; width:300px; text-align:center; display: inline-block;">
-        number visits per day of week
-      </div>
-    </div>   
-
-    <canvas id="dayTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
-    </canvas>
-    <canvas id="dayWeekGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">
-    </canvas>
-	<br /><br />
-    <canvas id="totalTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
-    </canvas>
-    <canvas id="avgTimeGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">
-    </canvas>
-    <div id="key" style="margin-top:-40px">
-      <div id="totalGraphKey" style="width:300px; text-align:center; display: inline-block;">
-        total time spent
-      </div>
-      <div id="avgGraphKey" style="float:right; width:300px; text-align:center; display: inline-block;">
-        average time spent
-      </div>
-    </div>   
+  <div id="profile">
+	<h2 style="border-top:none; margin-right:23px;">Trending</h2>
+    <ul class="friends" id="trending">	  
+    </ul>
+  </div>
+  <div id="profile">
+	<h2 style="border-top:none">Top Pages</h2>
+    <ul class="friends" id="pages">	  
+    </ul>
+  </div>
+  <div id="profile">
+	<h2 style="border-top:none; margin-right:23px;">Top Domains</h2>
+    <ul class="friends" id="domains">	  
+    </ul>
   </div>
   <br/>
 </div>
