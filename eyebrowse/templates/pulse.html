@@ -44,7 +44,7 @@
 		display:inline-block;
 		float:right;	
 		text-align:left;
-		width:38px;
+		width:45px;
 	}
 </style>
 <script src="/lib/js/watchMeGraph.js">
@@ -79,8 +79,9 @@
 		getPage: function(type){
 			this.type = type;
 			this.recentID = 0;
+            this.getProfile(type);			
             this.getRecentPages(9, type);
-			this.getProfile(type);			
+
 		},
         getRecentPages: function(num, type){
             var this_ = this;
@@ -177,9 +178,9 @@
 				var trigger = true;
 				html += "<li>";
 				if (data.top_titles[i]){
-					html += "<h6><b><a href=\"http://" + data.top[i][0] + "\" style=\"width:50px;\">" + data.top_titles[i].trim(22) + "</a></b></h6>";                						
+					html += "<h6><b><a href=\"" + data.top[i][0] + "\" style=\"width:50px;\">" + data.top_titles[i].trim(22) + "</a></b></h6>";                						
 				} else {
-					html += "<h6><b><a href=\"http://" + data.top[i][0] + "\" style=\"width:50px;\">" + data.top[i][0].trim(22) + "</a></b></h6>";                						
+					html += "<h6><b><a href=\"" + data.top[i][0] + "\" style=\"width:50px;\">" + data.top[i][0].trim(22) + "</a></b></h6>";                						
 				}
 				if (data.top[i][2] < 0) {
 					trigger = false;
@@ -207,9 +208,9 @@
 				var trigger = true;
 				html += "<li>";
 				if (data.tre_titles[i]){
-					html += "<h6><b><a href=\"http://" + data.trending[i][0] + "\" style=\"width:50px;\">" + data.tre_titles[i].trim(22) + "</a></b></h6>";                						
+					html += "<h6><b><a href=\"" + data.trending[i][0] + "\" style=\"width:50px;\">" + data.tre_titles[i].trim(22) + "</a></b></h6>";                						
 				} else {
-					html += "<h6><b><a href=\"http://" + data.trending[i][0] + "\" style=\"width:50px;\">" + data.trending[i][0].trim(22) + "</a></b></h6>";                						
+					html += "<h6><b><a href=\"" + data.trending[i][0] + "\" style=\"width:50px;\">" + data.trending[i][0].trim(22) + "</a></b></h6>";                						
 				}
 				if (data.trending[i][2] < 0) {
 					trigger = false;
@@ -337,7 +338,7 @@ jQuery(document).ready(function(){
 						   document.getElementById("main").setAttribute("height", myHeight);
 
 						   self.viz = newify(WatchmeVisualisation, document.getElementById("bgcanvas"),  getClientCords().width - 10, window.innerHeight - 50, 0, 86400000/2);// 12 hrs
-						   setInterval("self.viz.getRecentPages(9, self.viz.type)", 15000);
+						   setInterval("self.viz.getRecentPages(9, self.viz.type)", 20000);
 					   });
 </script>
 {% endblock %}
@@ -378,8 +379,8 @@ jQuery(document).ready(function(){
   <canvas id="main" style="padding:0px;margin:0px;">
   </canvas>
   <div id="profile">
-	<h2 style="border-top:none; margin-right:23px;">Ticker</h2>
-    <ul class="friends" id="latestviews">	  
+    <h2 style="border-top:none; margin-right:23px;">Ticker</h2>
+    <ul class="friends" id="latestviews" style="height:300px; overflow:hidden">	  
     </ul>
   </div>
   <div id="profile">

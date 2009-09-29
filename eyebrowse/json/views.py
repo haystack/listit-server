@@ -290,7 +290,7 @@ def get_top_hosts_compare(first_start, first_end, second_start, second_end, n, r
     n = int(n)
 
     @cache.region('long_term')
-    def fetch_data(users, first_start, first_end, second_start, second_end):
+    def fetch_data(users, hosts):
         times_per_url_first = _get_top_hosts_n(users,first_start,first_end) # can pass multiple or single users
         times_per_url_second = _get_top_hosts_n(users,second_start,second_end)
         
@@ -316,7 +316,7 @@ def get_top_hosts_compare(first_start, first_end, second_start, second_end, n, r
 
         return results[0:n]
 
-    results = fetch_data(users, first_start, first_end, second_start, second_end)
+    results = fetch_data(users, 'top_hosts')
     return results
 
 
@@ -332,7 +332,7 @@ def get_top_and_trending_pages(first_start, first_end, second_start, second_end,
     n = int(n)
 
     @cache.region('long_term')
-    def fetch_data(users, first_start, first_end, second_start, second_end, pages):
+    def fetch_data(users, pages):
         times_per_url_first = _get_top_pages_n(users,first_start,first_end)
         times_per_url_second = _get_top_pages_n(users,second_start,second_end)
         
@@ -375,7 +375,7 @@ def get_top_and_trending_pages(first_start, first_end, second_start, second_end,
 
         return {"top":top_pages, "trending":trending, "tre_titles":tre_titles, "top_titles":top_titles}
 
-    results = fetch_data(users, first_start, first_end, second_start, second_end, 'pages')
+    results = fetch_data(users, 'pages')
     return results
 
 
@@ -568,7 +568,7 @@ def get_dot_graph(n, req_type):
 
     n = int(n)
     @cache.region('long_term')
-    def fetch_data(url, users, barbar):
+    def fetch_data(users, barbar):
         if type(users) == QuerySet:
             views = PageView.objects.all().order_by("-startTime")[0:n]
         elif type(users) == list:
@@ -584,7 +584,7 @@ def get_dot_graph(n, req_type):
         #l.sort(key=lambda x: x[1])
         return l
 
-    results = fetch_data(url, users, "dot_graph") 
+    results = fetch_data(users, "dot_graph") 
     return results
 
 
@@ -1122,7 +1122,7 @@ def get_top_hosts_comparison_friends(request, username, n):
     second_end = round_time_to_day(second_end)
 
     @cache.region('long_term')
-    def fetch_data(following, first_star, first_end, second_start, second_end):
+    def fetch_data(following, first_start, first_end, second_start, second_end):
         times_per_url_first = _get_top_hosts_n(following,first_start,first_end)
         times_per_url_second = _get_top_hosts_n(following,second_start,second_end)
 
