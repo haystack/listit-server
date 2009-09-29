@@ -787,7 +787,6 @@ def get_ticker(request):
     else:
         request_type['global'] = 'global'
 
-    #request_type[request.GET['type'].strip()] = request.GET['username'].strip()
     from_msec,to_msec = _unpack_from_to_msec(request)
 
     @cache.region('long_term')
@@ -798,7 +797,7 @@ def get_ticker(request):
         profile_queries = get_profile_queries(request_type)
         return [top_users, top_trending, profile_queries]
 
-    results = fetch_data("ticker_page", "yooz")
+    results = fetch_data("ticker_page", request_type)
     return json_response({ "code":200, "results": results });
 
 
@@ -932,20 +931,18 @@ def get_pulse(request):
         return json_response({ "code":404, "error": "get has no 'type' key" }) 
 
     request_type = {}
-    use_cache = random.randint(1, 10000)
     if request.GET['type'].strip() == 'user':
         request_type['user'] = request.user.username
     elif request.GET['type'].strip() == 'friends':
         request_type['friends'] = request.user.username
     else:
-        use_cache = True
         request_type['global'] = 'global'
 
     from_msec,to_msec = _unpack_from_to_msec(request)
     first_start,first_end,second_start,second_end = _unpack_times(request)
     num = request.GET['num'].strip()
 
-    @cache.region('short_term')
+    @cache.region('long_term')
     def fetch_data(bar, cache):    
         profile_queries = get_profile_queries(request_type)
         line_graph = get_mini_line_graph(from_msec, to_msec, 100, request_type)
@@ -955,7 +952,7 @@ def get_pulse(request):
         top_trending = get_top_and_trending_pages(first_start,first_end,second_start,second_end, 16, request_type)
         return [profile_queries, dot_graph, line_graph, top_trending, top_hosts]
         
-    results = fetch_data("foo", use_cache)
+    results = fetch_data("pulse", request_type)
     return json_response({ "code":200, "results": results });
 
 
