@@ -780,7 +780,14 @@ def get_ticker(request):
         return json_response({ "code":404, "error": "get has no 'type' key" }) 
 
     request_type = {}
-    request_type[request.GET['type'].strip()] = request.GET['username'].strip()
+    if request.GET['type'].strip() == 'user':
+        request_type['user'] = request.user.username
+    elif request.GET['type'].strip() == 'friends':
+        request_type['friends'] = request.user.username
+    else:
+        request_type['global'] = 'global'
+
+    #request_type[request.GET['type'].strip()] = request.GET['username'].strip()
     from_msec,to_msec = _unpack_from_to_msec(request)
 
     @cache.region('long_term')
