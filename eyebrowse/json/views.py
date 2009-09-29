@@ -335,7 +335,7 @@ def get_top_and_trending_pages(first_start, first_end, second_start, second_end,
     else:
         users = User.objects.all()
 
-    n = 16
+    n = int(n)
 
     @cache.region('long_term')
     def fetch_data(users, pages):
@@ -782,7 +782,7 @@ def get_homepage(request):
 
 
 ## TICKER PAGE
-date_now = lambda : datetime.datetime.ctime(datetime.datetime.now())
+#date_now = lambda : datetime.datetime.ctime(datetime.datetime.now())
 def get_ticker(request):
     if not 'type' in request.GET:
         return json_response({ "code":404, "error": "get has no 'type' key" }) 

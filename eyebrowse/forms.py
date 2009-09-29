@@ -46,12 +46,11 @@ class LoginForm(forms.Form):
         username = self.cleaned_data['username']
         if not re.search(r'^\w+$', username):
             raise forms.ValidationError('Username can only contain alphanumeric characters and the underscore.')
-        try:
+	try:
             User.objects.get(username=username)
         except ObjectDoesNotExist:
             return username
         raise forms.ValidationError('Username is already taken.')
-
 
 
 class ProfileSaveForm(forms.Form):

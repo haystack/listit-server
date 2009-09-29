@@ -35,7 +35,7 @@ urlpatterns = patterns('',
                        
                        # session management
                        (r'^login/$', 'django.contrib.auth.views.login'),
-                       (r'^accounts/login/$', 'django.contrib.auth.views.login'),
+                       #(r'^accounts/login/$', 'django.contrib.auth.views.login'),
                        (r'^register/$', register_page),
                        (r'^register/success/$', register_success_page),
                        (r'^logout/$', logout_page),
