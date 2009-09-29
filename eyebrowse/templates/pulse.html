@@ -15,7 +15,7 @@
 	#profile{
 		float:none;
 		display:inline-block;
-		width:234px;
+		width:240px;
 		margin:0px;
 		padding:0px;
 		vertical-align:top;
@@ -33,7 +33,8 @@
 		height:14px;
 	}
 	#profile li{
-		padding-right:24px;	
+		padding-right:0px;	
+  width:204px;
 		margin-top:5px;
 	}#profile ul{
 		margin-top:10px;
@@ -86,14 +87,14 @@
         getRecentPages: function(num, type){
             var this_ = this;
 			this_.now = new Date().valueOf();
-			jQuery("#loadimg").show();
+			jQuery("#loadimg1").show();
 			jQuery.get("/get_latest_views", {
 						   id: this_.recentID,
 						   type: type,
 						   num: num,
 						   username: '{{ request_user }}'
 					   }, function(data){
-						   jQuery("#loadimg").hide();
+						   jQuery("#loadimg1").hide();
 						   if (data.code == 200) {
 							   var newData = data.results;
 							   var html = "";
@@ -344,6 +345,7 @@ jQuery(document).ready(function(){
 {% endblock %}
 {% block content %}
 <div class="loader" id="loadimg"></div>
+<div class="loader" id="loadimg1"></div>
 <div id="target"></div>	
 <div class="fooTxt" id="fooTxt"></div>	
 <div id="background" style="margin-top:19px;margin-left:10px;">
@@ -389,12 +391,12 @@ jQuery(document).ready(function(){
     </ul>
   </div>
   <div id="profile">
-	<h2 style="border-top:none">Top Pages</h2>
+	<h2 style="border-top:none; margin-right:23px;">Top Pages</h2>
     <ul class="friends" id="pages">	  
     </ul>
   </div>
-  <div id="profile">
-	<h2 style="border-top:none; margin-right:23px;">Top Domains</h2>
+  <div id="profile" style="width:219px">
+	<h2 style="border-top:none">Top Domains</h2>
     <ul class="friends" id="domains">	  
     </ul>
   </div>
