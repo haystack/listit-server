@@ -6,7 +6,7 @@
         <script src="/lib/js/watchlogin.js">
         </script>
 {% endblock %}
-{% block content %}
+		{% block content %}
 		<div id="home" style="width:351px">
 		  <h1>sign in</h1>
 		  <br /><br />
@@ -15,19 +15,18 @@
 		  Your username and password didn't match. Please try again.</p>
 		  {% endif %}
 		  
-		  <form method="post" action="{% url django.contrib.auth.views.login %}">
+		  <form method="post" action=".">
 			<p>{{ form.username.label_tag }}
 			  {{ form.username }}</p>
 			<p>{{ form.password.label_tag }}
 			  {{ form.password }}<p>
 			  <input type="submit" value="login" />
-			  <input type="hidden" name="next" value="/" />
+			  <input type="hidden" name="next" value="{{ next }}" />
 		  </form>
 		  
 		  <div class="bodytext" style="margin-top:30px;">
 			if you do not have an account, please <a href="/register/">register</a>
 		  </div>
 		</div>
-		
 		{% endblock %}
 

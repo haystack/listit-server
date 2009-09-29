@@ -35,7 +35,7 @@ urlpatterns = patterns('',
                        
                        # session management
                        (r'^login/$', 'django.contrib.auth.views.login'),
-                       #(r'^accounts/login/$', 'django.contrib.auth.views.login'),
+                       (r'^accounts/login/$', 'django.contrib.auth.views.login'),
                        (r'^register/$', register_page),
                        (r'^register/success/$', register_success_page),
                        (r'^logout/$', logout_page),
@@ -51,6 +51,7 @@ urlpatterns = patterns('',
                        # account management
                        (r'^profile_old/$', profile_save_page),
                        (r'^settings/$',  privacy_settings_page),
+                       (r'^accounts/profile/$',  privacy_settings_page),
                        (r'^userprivacy/$', userprivacy),
 
                        # plugin iframe
