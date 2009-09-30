@@ -1089,7 +1089,6 @@ def get_to_from_url_plugin(request, n):
 
     return_results = fetch_data(url, users, req_type)
 
-
     #this is outside the cache
     if request.GET.has_key('username'):
         username = request.GET['username']
