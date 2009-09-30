@@ -925,7 +925,7 @@ def get_hourly_daily_top_urls_user(request, username, n):
                 weekPts[weekday][view.url]['hue'] = _h_generator(view.host) 
 
         lResult = []
-        print weekPts
+
         for x in range(7):
             phlat = weekPts[x].items()
             phlat.sort(key=lambda(k,v2):-v2['val'])
