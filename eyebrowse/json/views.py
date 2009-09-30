@@ -612,11 +612,16 @@ def get_top_users(from_msec, to_msec, n, req_type):
     @cache.region('top_users_long_term')
     def fetch_data(from_msec, to_msec, req_type):
         results = []
-        for user in users:
-            try:
-                results.append( {"user": user.username, "number": PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec).count() } )
-            except:
-                pass
+
+        if type(users) == QuerySet or type(users) == list:
+            for user in users:
+                try:
+                    results.append( {"user": user.username, "number": PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec).count() } )
+                except:
+                    pass
+        else:
+            results.append( {"user": users.username, "number": PageView.objects.filter(user=users,startTime__gte=from_msec,endTime__lte=to_msec).count() } )
+
         results.sort(key=lambda x:-x["number"])
         return results[0:n]
         

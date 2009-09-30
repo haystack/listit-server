@@ -75,15 +75,17 @@
 					   }, function(data){
 						   if (data.code == 200) {		
 							   var newData = data.results;
-							   this_.drawToFromGraph(data.results[3]);
-							   this_.drawProfile(data.results[2]);
-							   this_.drawGraphs(data.results[0]);
-							   this_.drawTopUsers(data.results[1]);
 							   jQuery("#topuser").html("<a href=\"http://eyebrowse.csail.mit.edu/profile/" + data.results[1][0].user + "/\">" + data.results[1][0].user + "</a>");
 							   jQuery("#user").css("font-weight","lighter");
 							   jQuery("#friends").css("font-weight","lighter");
 							   jQuery("#global").css("font-weight","lighter");
 							   jQuery("#" + this_.type).css("font-weight","bold");
+
+							   this_.drawToFromGraph(data.results[3]);
+							   this_.drawProfile(data.results[2]);
+							   this_.drawGraphs(data.results[0]);
+							   this_.drawTopUsers(data.results[1]);
+
 							   jQuery("#loadimg").hide();
 						   }
 						   else {
@@ -164,7 +166,7 @@
 										  columnWidth:8,
 										  barPadding:0,
 										  textPadding:0,
-										  label: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
+										  label: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23],
 										  data: data['timeDay']
 									  });
 

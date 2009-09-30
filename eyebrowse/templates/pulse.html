@@ -146,16 +146,17 @@
 						   }, function(data){
 							   if (data.code == 200) {										   
 								   var newData = data.results;
+								   jQuery("#user").css("font-weight","lighter");
+								   jQuery("#friends").css("font-weight","lighter");
+								   jQuery("#global").css("font-weight","lighter");
+								   jQuery("#" + type).css("font-weight","bold");
+
 								   this_.drawProfile(data.results[0]);
 								   this_.drawMiniGraph(data.results[2]);
 								   this_.drawBG(data.results[1]);
 								   this_.drawTopPagesList(data.results[3]);
 								   this_.drawTopDomains(data.results[4]);
 
-								   jQuery("#user").css("font-weight","lighter");
-								   jQuery("#friends").css("font-weight","lighter");
-								   jQuery("#global").css("font-weight","lighter");
-								   jQuery("#" + type).css("font-weight","bold");
 								   jQuery("#loadimg").hide();
 							   }
 							   else {
@@ -277,11 +278,11 @@
 			this_.graphArray = [];
 
 			if (this_.type == 'friends'){
-				jQuery("#bginfo").html("the background displays the last " + newData.length + " pages visited by your" + this_.type);				
+				jQuery("#bginfo").html("background dots: last " + newData.length + " pages visited by your " + this_.type);				
 			} else if(this_.type == 'global'){
-				jQuery("#bginfo").html("the background displays the last " + newData.length + " pages visited by everyone");				
+				jQuery("#bginfo").html("background dots: last " + newData.length + " pages visited by everyone");				
 			} else {
-				jQuery("#bginfo").html("the background displays the last " + newData.length + " pages visited by you");				
+				jQuery("#bginfo").html("background dots: last " + newData.length + " pages visited by you");				
 			}
 			
 			this_.dotGraph = newify(dotFactory, this_, {
