@@ -173,13 +173,6 @@ def get_latest_views(request):
     uphit = uniq(phits,lambda x:x["url"],n)
     results = [ defang_pageview_values(evt) for evt in uphit ]
 
-    #>> will this work?
-    
-    # results = [ evt.append({"user": pview.user.username, "hue": _h_generator(pview.host)}) for evt in uphit ]
-
-    # rather than defang_pageview
-    # really only need to ADD >  "user": pview.user.username, "hue": _h_generator(pview.host) } 
-
     if request.GET.has_key('id'):
         urlID = int(request.GET['id'])
         filter_results = []
@@ -840,11 +833,18 @@ def get_profile(request):
     from_msec,to_msec = _unpack_from_to_msec(request)
 
     first_start,first_end,second_start,second_end = _unpack_times(request)
-    top_hosts = get_top_hosts_compare(first_start,first_end,second_start,second_end, 10, request_type)
-    profile_queries = get_profile_queries(request_type)
-    graphs = get_profile_graphs(from_msec, to_msec, request_type['user'])
 
-    return json_response({ "code":200, "results": [graphs, top_hosts, profile_queries] });
+    @cache.region('short_term')
+    def fetch_data(boom, bing):    
+        top_hosts = get_top_hosts_compare(first_start,first_end,second_start,second_end, 10, request_type)
+        profile_queries = get_profile_queries(request_type)
+        graphs = get_profile_graphs(from_msec, to_msec, request_type['user'])
+
+        return [graphs, top_hosts, profile_queries]
+
+    results = fetch_data("profile_page", request_type)
+
+    return json_response({ "code":200, "results": results });
 
 
 ## PAGE STATS PAGE
@@ -864,13 +864,17 @@ def get_pagestats(request):
 
     from_msec,to_msec = _unpack_from_to_msec(request)
 
-    percent_logging = get_percent_logging(url, request_type)
-    profile_queries = get_page_profile_queries(url, request_type)
-    top_users = get_top_users_for_url(from_msec, to_msec, 10, url, request_type)
-    graphs = get_pagestats_graphs(from_msec, to_msec, url, request_type)
-    to_from_url = get_to_from_url(7, url, request_type)
+    @cache.region('to_from_url')
+    def fetch_data(boom, request_type, url):    
+        percent_logging = get_percent_logging(url, request_type)
+        profile_queries = get_page_profile_queries(url, request_type)
+        top_users = get_top_users_for_url(from_msec, to_msec, 10, url, request_type)
+        graphs = get_pagestats_graphs(from_msec, to_msec, url, request_type)
+        to_from_url = get_to_from_url(7, url, request_type)
+        return [graphs, top_users, profile_queries, to_from_url, percent_logging]
 
-    return json_response({ "code":200, "results": [graphs, top_users, profile_queries, to_from_url, percent_logging] });
+    results = fetch_data("pagestats", request_type, url)
+    return json_response({ "code":200, "results": results });
 
 ## GRAPHS PAGE
 def get_views_user_json(request, username):
@@ -1018,8 +1022,6 @@ def get_to_from_url_plugin(request, n):
     if not 'url' in request.GET:
         return json_response({ "code":404, "error": "get has no 'url' key" }) 
 
-    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
-    to_msec_rounded = round_time_to_day(to_msec_raw)
     url = request.GET['url'].strip()
 
     # added this to check if url exists in the logs
@@ -1028,9 +1030,22 @@ def get_to_from_url_plugin(request, n):
         return json_response({ "code":200, "results": {'pre':"", 'next':"", 'pre_titles': "" , 'next_titles' : "" } })
     n = int(n)
 
+    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
+    to_msec = round_time_to_day(to_msec_raw)
+
+    users = User.objects.all()
+    req_type = {}
+    req_type['global'] = 'global'
+
     @cache.region('to_from_url')
-    def fetch_data(to_msec, url):
-        accesses = PageView.objects.filter(url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
+    def fetch_data(url, users, req_type):
+        if type(users) == QuerySet:
+            accesses = PageView.objects.filter(url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
+        elif type(users) == list:
+            accesses = PageView.objects.filter(user__in=users, url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
+        else:
+            accesses = PageView.objects.filter(user=users, url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
+
         pre = {}
         next = {}
         titles = {}
@@ -1067,14 +1082,15 @@ def get_to_from_url_plugin(request, n):
             l.sort(key=lambda x: -x[1])
             return l
         
-        pre_sorted = sort_by_counts(pre)
-        next_sorted = sort_by_counts(next)
+        pre_sorted = sort_by_counts(pre)[:7]
+        next_sorted = sort_by_counts(next)[:7]
 
-        return { 'pre':pre_sorted[:7], 'next':next_sorted[:7], 'pre_titles': [ titles[x[0]] for x in pre_sorted[:7] ] , 'next_titles' : [ titles[x[0]] for x in next_sorted[:7] ] }
+        return { 'pre':pre_sorted, 'next':next_sorted, 'pre_titles': [ titles[x[0]] for x in pre_sorted ] , 'next_titles' : [ titles[x[0]] for x in next_sorted ] }
 
-    return_results = fetch_data(to_msec_rounded, url)
+    return_results = fetch_data(url, users, req_type)
 
-    #hopefully this will be out of the cache
+
+    #this is outside the cache
     if request.GET.has_key('username'):
         username = request.GET['username']
         friend_stats = {'top_friend': get_top_friend_for_url(request, username), 'num_friends': get_number_friends_logged_url(request, username) }
