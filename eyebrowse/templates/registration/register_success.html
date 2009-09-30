@@ -1,13 +1,16 @@
 {% extends "base.html" %}
 {% block title %}Registration Successful{% endblock %}
 {% block content %}
-<div id="home">
-    <h1 style="font-size:28px; font-weight:bold;">Thank you for registering!</h1>
-    <h3 style="margin-top:5px; font-size:14px;">To get started, install the eyebrowse plugin and login</h3>
-    <div id="signUpLink" style="margin-top:30px;margin-bottom:26px;">
-        <a href="/releases/eyebrowse.xpi"> install</a>
-    </div>
-    <h5 style="width:390px;margin-left:auto;margin-right:auto; line-height:17px;">Share a url by clicking on the eyebrowse icon in the bottom-right corner of your firefox browser</h5>
-    <h2 style="margin-top:19px; padding-bottom:0px;border:none"><a href="/login/"><b>login</b></a></h2>
+<div id="home" style="width:523px">
+  <h1 style="font-size:28px; font-weight:bold;">Thanks for registering!</h1>
+  <h3 style="margin-top:5px; font-size:14px;">To get started, install the eyebrowse plugin</h3>
+  <div id="signUpLink" style="margin-top:30px;margin-bottom:26px;">
+    <a href="/releases/eyebrowse.xpi"> install</a>
+  </div>
+  <h5 style="line-height:17px;">Share a website by adding it on your <a href="/settings/" style="font-size:13.5px; text-decoration:underline;">settings page</a> or by clicking on the eyebrowse icon in the bottom-right corner of your firefox browser</h5>
+  <div class="bodytext" style="text-align:center; font-size:1.2em;">
+	check out our <a href="http://www.flickr.com/photos/brennanmoore/sets/72157622483187390/" target="_blank">flickr page</a> for a short run through of eyebrowse
+  </div>
+  
 </div>
 {% endblock %}

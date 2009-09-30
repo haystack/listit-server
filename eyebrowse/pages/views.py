@@ -6,6 +6,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, get_list_or_404
 from django.conf.urls.defaults import *
 from django.contrib.auth import logout
+import django.contrib.auth.models as authmodels
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from django.db.models import Q
@@ -13,12 +14,41 @@ from eyebrowse.forms import *
 from eyebrowse.models import *
 from cStringIO import StringIO
 from PIL import Image
+import jv3.utils
 Image.init() # populates PIL fileformats
 from django.core.files.uploadedfile import SimpleUploadedFile
 from os.path import splitext
 from django.db.models.signals import post_save
 from jv3.models import Event ## from listit, ya.
 from django.utils.simplejson import JSONEncoder, JSONDecoder
+from django.contrib.auth import authenticate, login
+
+def _create_enduser_for_user(user, request):
+    enduser = EndUser()
+    enduser.user = user
+    enduser.save()
+    privacysettings = PrivacySettings()
+    privacysettings.user = user
+    privacysettings.save()
+
+    username = request.POST['username']
+    password = request.POST['password1']
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        if user.is_active:
+            login(request, user)
+            return
+            # Redirect to a success page.
+        else:
+            # Return a 'disabled account' error message
+            print "fail"
+            pass
+    else:
+        # Return an 'invalid login' error message.
+        print "fail more"
+        pass
+
+
 
 def get_enduser_for_user(user):
     if EndUser.objects.filter(user=user).count() > 0:
@@ -106,20 +136,13 @@ def userprivacy(request):
 def index(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
-        #if request.user.username:
-        #    return HttpResponseRedirect('/settings/' + request.user.username)
         if form.is_valid():
             user = User.objects.create_user(
                 username=form.cleaned_data['username'],
                 password=form.cleaned_data['password1'],
                 email=form.cleaned_data['email']
                 )
-            enduser = EndUser()
-            enduser.user = user  
-            enduser.save()
-            privacysettings = PrivacySettings()
-            privacysettings.user = user
-            privacysettings.save()
+            _create_enduser_for_user(user, request)
             return HttpResponseRedirect('/register/success/')
         variables = RequestContext(request, {'form': form, 'error': True})
         return render_to_response('index.html', variables)
@@ -191,6 +214,12 @@ def ticker(request):
     t = loader.get_template("ticker.html")
     c = Context({ 'username': request.user.username, 'id': request.user.id, 'request_user': request.user.username })
     return HttpResponse(t.render(c))
+
+def pulse(request):
+    t = loader.get_template("pulse.html")
+    c = Context({ 'username': request.user.username, 'id': request.user.id, 'request_user': request.user.username })
+    return HttpResponse(t.render(c))
+
 
 def page_profile(request): 
     url = 'http://nytimes.com'
@@ -351,57 +380,19 @@ def plugin_iframe(request):
     return HttpResponse(t.render(c))
 
 
-def _create_enduser_for_user(user):
-    enduser = EndUser()
-    enduser.user = user
-    enduser.save()
-    privacysettings = PrivacySettings()
-    privacysettings.user = user
-    privacysettings.save()
-
 def register_page(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
+            un = form.cleaned_data['username']
+            pw = form.cleaned_data['password1']
             user = User.objects.create_user(
-                username=form.cleaned_data['username'],
-                password=form.cleaned_data['password1'],
+                username=un,
+                password=pw,
                 email=form.cleaned_data['email']
                 )
-            _create_enduser_for_user(user)
-            if 'invitation' in request.session:
-                # Retrieve the invitation object.
-                invitation = Invitation.objects.get(id=request.session['invitation'])
-                # Create friendship from user to sender.
-                friendship = FriendRequest(
-                    from_friend=user,
-                    to_friend=invitation.sender
-                    )
-                friendship.save()
-                # Create friendship from sender to user.
-                friendship = FriendRequest (
-                    from_friend=invitation.sender,
-                    to_friend=user
-                    )
-                friendship.save()
-                # Delete the invitation from the database and session.
-                invitation.delete()
-                del request.session['invitation']
-            ## CHECK THIS METHOD email_user(subject, message, from_email=None)
-            ## Sends an e-mail to the user. If from_email is None, Django uses the DEFAULT_FROM_EMAIL.
-                #template = get_template('thanks_email.txt')
-                #subject = 'Thanks for registering'
-                #context = Context({
-                #     'name': 'The Watchme Team,
-                #      'link': foolink,
-                #      'sender': sender.username,
-                #      })
-                #message = template.render(context)
-                #email_user(  ?????
-                #       subject, message,
-                #       settings.DEFAULT_FROM_EMAIL
-                #       )
-            return HttpResponseRedirect('/register/success/')
+            _create_enduser_for_user(user, request)
+            return HttpResponseRedirect('/register/success/')            
     else:
         form = RegistrationForm()
     variables = RequestContext(request, {'form': form})
@@ -421,9 +412,13 @@ def register_success_page(request):
                 # disabled account
                 variables = RequestContext(request, {'form': form, 'error': True})
                 return render_to_response('login.html', variables)
-    else:
-        variables = RequestContext(request, {'form': form})
-        return render_to_response('registration/register_success.html', variables)
+
+    variables = RequestContext(request, {
+            'form': form,
+            'username': request.user.username, 
+            'request_user': request.user.username,
+            })
+    return render_to_response('registration/register_success.html', variables)
         
 @login_required
 def profile_save_page(request):

@@ -9,14 +9,21 @@
         </script>
 {% endblock %}
 {% block content %}
-<div id="home" style="width:351px; margin-left:auto; margin-right:auto;">
-<h1>register</h1>
-<br /><br />
+		<div id="home" style="width:351px; margin-left:auto; margin-right:auto;">
+		  <h1>get started</h1>
+		  <br /><br />
+		  <p id="validateTips"></p>
+		  <form method="post" action=".">
+			{{ form.as_p }}
+			<input type="submit" value="register" style="margin-top:60px;font-size:1.5em"/>
+		  </form>
+		  <div id="messageSent">signing in...</div>
+		  <div class="subhead" style="position:relative; top:-99px; font-size:11pt;">
+			by registering you agree to the <a href="/terms/" style="font-size:1em">terms and conditions and data use policies</a>
+		  </div>				  
+		  <div class="bodytext" style="margin-top:-30px;width:391px; text-align:center; font-size:1.2em;">
+			check out our <a href="http://www.flickr.com/photos/brennanmoore/sets/72157622483187390/" target="_blank">flickr page</a> for a short run through of eyebrowse
+		  </div>
 
-<form method="post" action=".">
-{{ form.as_p }}
-<input type="submit" value="register" style="margin-top:8px;"/>
-</form>
-  <div id="messageSent">signing in...</div>
-</div>
+		</div>
 {% endblock %}

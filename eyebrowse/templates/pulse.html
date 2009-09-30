@@ -75,6 +75,8 @@
 			this.recentTimesArray = [];
 			this.recentID = 0;
 			this.type = "global";
+			document.getElementById("bgcanvas").setAttribute("width", this.windowWidth);
+			document.getElementById("bgcanvas").setAttribute("height", this.windowHeight);
 			this.getPage(this.type);
 		},
 		getPage: function(type){
@@ -101,10 +103,10 @@
 							   for (var i = newData.length -1; i >= 0; i--) {
 								   html = "<li id=\"" + newData[i].end + "\">";
 								   if (newData[i].title){
-									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title.trim(26) + "</a></b></h6>";
+									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title.trim(30) + "</a></b></h6>";
 								   }
 								   else{
-									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url.trim(26) + "</a></b></h6>";
+									   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url.trim(30) + "</a></b></h6>";
 								   }
 								   html += "<h7>" + timeCounterClock((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
 								   if (newData[i].user.length > 0) {
@@ -273,8 +275,14 @@
 			var bg = {};
 			this_.drawArray = [];
 			this_.graphArray = [];
-			document.getElementById("bgcanvas").setAttribute("width", this_.windowWidth);
-			document.getElementById("bgcanvas").setAttribute("height", this_.windowHeight);
+
+			if (this_.type == 'friends'){
+				jQuery("#bginfo").html("the background displays the last " + newData.length + " pages visited by your" + this_.type);				
+			} else if(this_.type == 'global'){
+				jQuery("#bginfo").html("the background displays the last " + newData.length + " pages visited by everyone");				
+			} else {
+				jQuery("#bginfo").html("the background displays the last " + newData.length + " pages visited by you");				
+			}
 			
 			this_.dotGraph = newify(dotFactory, this_, {
 									  marginTop: 11,
@@ -339,7 +347,7 @@ jQuery(document).ready(function(){
 						   document.getElementById("main").setAttribute("height", myHeight);
 
 						   self.viz = newify(WatchmeVisualisation, document.getElementById("bgcanvas"),  getClientCords().width - 10, window.innerHeight - 50, 0, 86400000/2);// 12 hrs
-						   setInterval("self.viz.getRecentPages(30, self.viz.type)", 12000);
+						   setInterval("self.viz.getRecentPages(30, self.viz.type)", 9000);
 					   });
 </script>
 {% endblock %}
@@ -353,14 +361,16 @@ jQuery(document).ready(function(){
   </canvas>
 </div>
 <div id="pulse_header" style="padding:15px">
+  {% if request_user %}
   <h1>{{ request_user }}</h1>
   <h3 style="float:right; font-size:14px;margin-top:16px;">
 	<a id="user" href="javascript:self.viz.getPage('user')">you</a>
 	&#124; 
 	<a id="friends" href="javascript:self.viz.getPage('friends')">friends</a>
 	&#124; 
-	<a id="global" href="javascript:self.viz.getPage('global')">global</a> 
+	<a id="global" href="javascript:self.viz.getPage('global')">everyone</a> 
   </h3>
+  {% endif %}
   <div style="border-top:1px solid #999999">&nbsp;</div>
   <div id="urlstats">
 	<div id="num" style="display:inline-block">
@@ -374,10 +384,10 @@ jQuery(document).ready(function(){
 	</div>
   </div>
   <div id="toggle" style="display:inline-block; cursor: pointer; float:right;margin-top:-10px">
-    toggle +
+    collapse +
   </div>
 </div>
-<div id="profile_content" style="padding:15px; width:950px; margin-top:0px; margin-left:auto;margin-right:auto;">
+<div id="profile_content" style="padding:15px; padding-top:0px; width:950px; margin-top:0px; margin-left:auto;margin-right:auto;">
   <canvas id="main" style="padding:0px;margin:0px;">
   </canvas>
   <div id="profile">
@@ -400,6 +410,12 @@ jQuery(document).ready(function(){
     <ul class="friends" id="domains">	  
     </ul>
   </div>
+  <div class="bodytext" style="margin-top:10px;margin-left:4px; text-align:center">
+	{% if not request_user %}
+	<a href="/register/">create an account</a> and <a href="/login/">sign in</a> to see this page for you or your friends on eyebrowse
+	{% endif %}
+	<div id="bginfo" style="margin-bottom:-6px; margin-top:6px;text-align:center; color:#222222"></div>
+  </div>  
   <br/>
 </div>
 {% endblock %}
