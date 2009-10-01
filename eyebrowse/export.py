@@ -3,17 +3,20 @@
 from eyebrowse.models import *
 import csv
 
+import random
+seed = repr(random.random())
+
 def h(s):
     import md5
     md5 = md5.md5()
-    md5.update(s) 
+    md5.update(s + seed)
     return md5.hexdigest()
 
 identity = lambda s: s
 
 def get_cols(obfuscator=h):
     return {
-        'username': lambda pageview: obfuscator(pageview.owner.email),
+        'username': lambda pageview: obfuscator(pageview.user.email),
         'start_time': lambda pageview: pageview.startTime,
         'end_time': lambda pageview: pageview.endTime,
         'url': lambda pageview: pageview.url,

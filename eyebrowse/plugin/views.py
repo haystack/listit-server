@@ -190,30 +190,27 @@ def add_delete_from_whitelist(request):
 
     privacysettings = user.privacysettings_set.all()[0]
     json = request.raw_post_data
-    errz = None
-    try:
-        add_dels = JSONDecoder().decode(json)
-        print add_dels
-        print type(add_dels)
-        assert type(add_dels) == dict, "Received thing not a dict, erroring"
-        adds = add_dels['add']
-        dels = add_dels['delete']
-        # delete urls
-        if privacysettings.whitelist is None:   privacysettings.whitelist = ''
 
-        wl = privacysettings.whitelist.split(' ')
-        wl = filter( lambda x : x not in dels , wl)
-        wl = wl +  [ x for x in adds if not x in wl ] 
-        privacysettings.whitelist = ' '.join(wl)
-        print privacysettings.whitelist
-        
-        # Save 
-        privacysettings.save()
-        return json_response({ "code":200 });
-    except:
-        errz = sys.exc_info()
-        print errz        
+    if len(json.strip()) == 0:
+        return json_response({ "code":200 })
 
-    return json_response({"code":500, "message":errz})
+    add_dels = JSONDecoder().decode(json)
+    print add_dels
+    print type(add_dels)
+    assert type(add_dels) == dict, "Received thing not a dict, erroring"
+    adds = add_dels['add']
+    dels = add_dels['delete']
+    # delete urls
+    if privacysettings.whitelist is None:   privacysettings.whitelist = ''
+    
+    wl = privacysettings.whitelist.split(' ')
+    wl = filter( lambda x : x not in dels , wl)
+    wl = wl +  [ x for x in adds if not x in wl ] 
+    privacysettings.whitelist = ' '.join(wl)
+    print privacysettings.whitelist
+    
+    # Save 
+    privacysettings.save()
+    return json_response({ "code":200 });
 
 
