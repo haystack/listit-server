@@ -98,6 +98,10 @@ def round_time_to_half_day(time):
     new_time = int(math.floor(int(time) / 43200000) * 43200000)
     return new_time        
 
+def round_time_to_hour(time):
+    new_time = int(math.floor(int(time) / 3600000) * 3600000)
+    return new_time        
+
 def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
     if type(user) == QuerySet:
         mine_events = PageView.objects.filter(startTime__gte=from_msec,endTime__lte=to_msec)
@@ -376,44 +380,6 @@ def get_top_and_trending_pages(first_start, first_end, second_start, second_end,
     return results
 
 
-def get_top_urls_following(request, username, n):
-    if not 'first_start' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'first_start' key" }) 
-
-    user = get_object_or_404(User, username=username)
-    enduser = get_enduser_for_user(user)
-    following = [friendship.to_friend for friendship in user.friend_set.all()]
-
-    n = int(n)
-    first_start,first_end,second_start,second_end = _unpack_times(request)
-    times_per_url_first = _get_top_n(user,first_start,first_end)
-    times_per_url_second = _get_top_n(user,second_start,second_end)
-
-    for friend in following:
-        friend_user = get_object_or_404(User, username=friend.username)
-        times_per_url_first.append(_get_top_n(friend_user,first_start,first_end))
-        times_per_url_second.append(_get_top_n(friend_user,first_start,first_end))
-
-    def index_of(what, where):
-        try:
-            return [ h[0] for h in where ].index(what)
-        except:
-            #print sys.exc_info()
-            pass
-        return None
-
-    results = []
-    for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
-        old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
-        if old_rank is not None:
-            diff = - (i - old_rank)  # we want the gain not the difference
-            results.append(times_per_url_second[i] + (diff,) )
-        else:
-            results.append( times_per_url_second[i] )
-
-    return json_response({ "code":200, "results": results[0:n] })
-
-
 def _get_graph_points_for_results(results, to_msec, from_msec, n):
     to_msec = int(to_msec)
     from_msec = int(from_msec)
@@ -539,6 +505,9 @@ def get_mini_line_graph(from_msec_raw, to_msec_raw, num, req_type):
     else:
         users = User.objects.all()
 
+    from_msec_rounded = round_time_to_hour(from_msec_raw)
+    to_msec_rounded = round_time_to_hour(to_msec_raw)
+
     @cache.region('long_term')
     def fetch_data(users, from_msec, to_msec, num):
         if type(users) == QuerySet:
@@ -550,7 +519,7 @@ def get_mini_line_graph(from_msec_raw, to_msec_raw, num, req_type):
 
         return _get_graph_points_for_results(views, to_msec, from_msec, num)
 
-    results = fetch_data(users, from_msec_raw, to_msec_raw, num) 
+    results = fetch_data(users, from_msec_rounded, to_msec_rounded, num) 
     return results
 
 
@@ -1102,89 +1071,4 @@ def get_to_from_url_plugin(request, n):
     
         return json_response({ "code":200, "results": return_results, "friend_stats": friend_stats })
         
-    return json_response({ "code":200, "results": return_results })
-
-
-
-## OLD
-## TRASH
-
-
-## FRIENDS PAGE
-def get_following_views(request, username):
-    if not 'from' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'from' key" }) 
-
-    user = get_object_or_404(User, username=username)
-    enduser = get_enduser_for_user(user)
-    following = [friendship.to_friend for friendship in user.friend_set.all()]
-
-    from_msec,to_msec = _unpack_from_to_msec(request)
-    from_msec_rounded = round_time_to_day(from_msec)
-    to_msec_rounded = round_time_to_day(to_msec)
-
-    # potentially i can just not pass it the 'following' param hrmz
-    @cache.region('long_term')
-    def fetch_data(from_msec, to_msec, user, following):
-        friends_results = []
-
-        # add the request.user
-        user_events = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
-        friends_results.append( {"username": enduser.user.username, "events": [ defang_pageview(evt) for evt in user_events ] } )
-        
-        # add friends
-        for friend in following:
-            #friend_user = get_object_or_404(User, username=friend.username)
-            events = PageView.objects.filter(user=friend,startTime__gte=from_msec,endTime__lte=to_msec)
-            friends_results.append( {"username": friend.username, "events": [ defang_pageview(evt) for evt in events ] } )
-            
-        #friends_results.sort(key=lambda x:(x["username"], x["username"]))
-        return friends_results
-
-    results = fetch_data(from_msec_rounded, to_msec_rounded, user, following)
-
-    return json_response({ "code":200, "results": results });    
-
-def get_top_hosts_comparison_friends(request, username, n):
-    if not 'first_start' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'first_start' key" })
-
-    user = get_object_or_404(User, username=username)
-
-    following = [friendship.to_friend for friendship in user.friend_set.all()]
-    n = int(n)
-
-    first_start,first_end,second_start,second_end = _unpack_times(request)
-    first_start = round_time_to_day(first_start)
-    first_end = round_time_to_day(first_end)
-    second_start = round_time_to_day(second_start)
-    second_end = round_time_to_day(second_end)
-
-    @cache.region('long_term')
-    def fetch_data(following, first_start, first_end, second_start, second_end):
-        times_per_url_first = _get_top_hosts_n(following,first_start,first_end)
-        times_per_url_second = _get_top_hosts_n(following,second_start,second_end)
-
-        def index_of(what, where):
-            try:
-                return [ h[0] for h in where ].index(what)
-            except:
-                #print sys.exc_info()
-                pass
-            return None
-
-        results = []
-
-        for i in range(len(times_per_url_second)): ## iterate over the more recent dudes                  
-            old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
-            if old_rank is not None:
-                diff = - (i - old_rank)  # we want the gain not the difference     
-                results.append(times_per_url_second[i] + (diff,) )
-            else:
-                results.append( times_per_url_second[i] )
-
-        return results[0:n]
-
-    return_results = fetch_data(following,first_start,first_end,second_start,second_end)
-
     return json_response({ "code":200, "results": return_results })
