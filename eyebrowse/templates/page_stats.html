@@ -73,6 +73,7 @@
 						   url:this_.url,
 						   username: '{{ request_user }}'
 					   }, function(data){
+						   jQuery("#loadimg").hide();
 						   if (data.code == 200) {		
 							   var newData = data.results;
 							   jQuery("#topuser").html("<a href=\"http://eyebrowse.csail.mit.edu/profile/" + data.results[1][0].user + "/\">" + data.results[1][0].user + "</a>");
@@ -85,8 +86,6 @@
 							   this_.drawProfile(data.results[2]);
 							   this_.drawGraphs(data.results[0]);
 							   this_.drawTopUsers(data.results[1]);
-
-							   jQuery("#loadimg").hide();
 						   }
 						   else {
 							   //console.log("yaaaa!!!H!H!H!" + data.code + " ");

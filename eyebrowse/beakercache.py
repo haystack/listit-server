@@ -3,7 +3,7 @@ from beaker.util import parse_cache_config_options
 
 CACHE_EXPIRY = '10800' ## for debug
 CACHE_EXPIRY_ST = '10800' ## 3 hours
-CACHE_EXPIRY_LT = '43200' ## 12 hours
+CACHE_EXPIRY_LT = '86400' ## 1 day
 CACHE_EXPIRY_VLT = '604800' ## 1 week
 #CACHE_EXPIRY_ST = '3600' ## 3 hours
 #CACHE_EXPIRY_LT = '43200' ## 12 hours

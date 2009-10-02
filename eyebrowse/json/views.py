@@ -53,9 +53,6 @@ def _mimic_entity_schema_from_url(url):
     prot, host, page, foo, bar, baz = urlparse.urlparse(url)
     return {"id":url, "host":host, "path": page, "type":"schemas.Webpage"}
 
-def _get_pages_for_user(user,from_msec,to_msec):
-    return PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
-
 def _unpack_from_to_msec(request):
     return (request.GET.get('from',0), request.GET.get('to',long(time.mktime(time.localtime())*1000)))
 
@@ -122,7 +119,9 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
     return times_per_url
 
 def defang_pageview(pview):    
-    return {"start" : long(pview.startTime), "end" : long(pview.endTime), "url" : pview.url, "host": pview.host, "title": pview.title, "id":pview.id, "user": pview.user.username, "hue": _h_generator(pview.host) } 
+    return {"start" : long(pview["startTime"]), "end" : long(pview["endTime"]), "url" : pview["url"], "host": pview["host"], "title": pview["title"], "id":pview["id"], "hue": _h_generator(pview["host"]) } 
+
+    #return {"start" : long(pview.startTime), "end" : long(pview.endTime), "url" : pview.url, "host": pview.host, "title": pview.title, "id":pview.id, "hue": _h_generator(pview.host) } 
     ## too slow "location":get_enduser_for_user(pview.user).location }
 
 ## emax added this to be fancy
@@ -140,16 +139,14 @@ def uniq(lst,key=lambda x: x,n=None):
     
     return result        
 
-
 def get_views_user(from_msec, to_msec, username):
     user = get_object_or_404(User, username=username)
 
-    hits = _get_pages_for_user(user ,from_msec,to_msec)
+    hits = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec).values()
     return [ defang_pageview(evt) for evt in hits ]    
 
 def defang_pageview_values(pview):    
     return {"start" : long(pview["startTime"]), "end" : long(pview["endTime"]), "url" : pview["url"], "host": pview["host"], "title": pview["title"], "id":pview["id"], "user": User.objects.filter(id=pview["user_id"])[0].username, "hue": _h_generator(pview["host"]) } 
-    ## too slow "location":get_enduser_for_user(pview.user).location }
 
 ## get most recent urls now returns elements with distinct titles. no repeats!
 def get_latest_views(request):
@@ -711,12 +708,15 @@ def get_to_from_url(n, url, req_type):
 
     @cache.region('to_from_url')
     def fetch_data(url, users, req_type):
+        to_msec = int(time.time()*1000)
+        from_msec = to_msec - (18122400000) # past three weeks
+
         if type(users) == QuerySet:
-            accesses = PageView.objects.filter(url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
+            accesses = PageView.objects.filter(url=url, startTime__gte=from_msec,endTime__lte=to_msec)
         elif type(users) == list:
-            accesses = PageView.objects.filter(user__in=users, url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
+            accesses = PageView.objects.filter(user__in=users, url=url, startTime__gte=from_msec,endTime__lte=to_msec)
         else:
-            accesses = PageView.objects.filter(user=users, url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
+            accesses = PageView.objects.filter(user=users, url=url, startTime__gte=from_msec,endTime__lte=to_msec)
 
         pre = {}
         next = {}
@@ -887,7 +887,7 @@ def get_views_user_json(request, username):
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
 
     def fetch_data(from_msec, to_msec, user):
-	hits = _get_pages_for_user(user ,from_msec,to_msec)
+	hits = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec).values()
 	return [ defang_pageview(evt) for evt in hits ]
 
     results = fetch_data(from_msec_raw, to_msec_raw, user)
@@ -896,12 +896,15 @@ def get_views_user_json(request, username):
 
 
 def get_hourly_daily_top_urls_user(request, username, n):
-    n = int(n)
+    n = 20 #int(n)
     inputUser = get_object_or_404(User, username=username)
 
     @cache.region('long_term')
-    def fetch_data(user, n, baaaa):
-        views = PageView.objects.filter(user=user)
+    def fetch_data(user, n):
+        to_msec = int(time.time()*1000)
+        from_msec = to_msec - (18122400000) # past three weeks
+
+        views = PageView.objects.filter(user=user, startTime__gte=from_msec,endTime__lte=to_msec)
 
         hrPts = dict([ (i, {}) for i in range(0,24) ])
         weekPts = dict([ (i, {}) for i in range(0,7) ])
@@ -938,7 +941,7 @@ def get_hourly_daily_top_urls_user(request, username, n):
             rResult.append((x,phlat[:n]))
 
         return [lResult,rResult]
-    return_results = fetch_data(inputUser, n, "asdkjfhasd")
+    return_results = fetch_data(inputUser, n)
         
     return json_response({ "code":200, "results": return_results }) 
 
@@ -957,7 +960,7 @@ def get_pulse(request):
 
     from_msec,to_msec = _unpack_from_to_msec(request)
     first_start,first_end,second_start,second_end = _unpack_times(request)
-    num = request.GET['num'].strip()
+    num = 9750 # this number fills a 15in screen pretty well and is prolly ok for dots ##request.GET['num'].strip()
 
     @cache.region('long_term')
     def fetch_data(bar, cache):    
@@ -1039,12 +1042,15 @@ def get_to_from_url_plugin(request, n):
 
     @cache.region('to_from_url')
     def fetch_data(url, users, req_type):
+        to_msec = int(time.time()*1000)
+        from_msec = to_msec - (18122400000) # past three weeks
+
         if type(users) == QuerySet:
-            accesses = PageView.objects.filter(url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
+            accesses = PageView.objects.filter(url=url, startTime__gte=from_msec,endTime__lte=to_msec)
         elif type(users) == list:
-            accesses = PageView.objects.filter(user__in=users, url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
+            accesses = PageView.objects.filter(user__in=users, url=url, startTime__gte=from_msec,endTime__lte=to_msec)
         else:
-            accesses = PageView.objects.filter(user=users, url=url)#,startTime__gte=from_msec,endTime__lte=to_msec)
+            accesses = PageView.objects.filter(user=users, url=url, startTime__gte=from_msec,endTime__lte=to_msec)
 
         pre = {}
         next = {}

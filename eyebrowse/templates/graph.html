@@ -204,16 +204,16 @@
 			// DANGER LIES AHEAD
 			var HTML = "<div id=\"dayHeading\">";
 			HTML +=	"<div class=\"centerLabel\"></div>";
-			HTML +=	"<div class=\"dateNav\" style=\"display:inline-block; font-size:0.8em; color:#666666;\">";
-			HTML +=	"<div id=\"minDate\" style=\"width:100px; display:inline-block\"></div>";
+			HTML +=	"<div class=\"dateNav\" style=\"display:inline-block; font-size:0.8em; color:#666666;margin-left:180px\">";
+			HTML +=	"<div id=\"minDate\" style=\"width:50px; display:inline-block\"></div>";
 			HTML +=	"<div id=\"maxDate\" style=\"width:100px; display:inline-block; text-align:right; display:inline-block;\"></div></div>";
 			HTML +=	"<div class=\"centerLabel\" style=\"float:right;\"></div></div>";
 			HTML +=	"<div id=\"fooDate\" class=\"days\" style=\"float:left; display:inline-block: width:100px\"></div>";
 			HTML +=	"<div id=\"fooTotal\" class=\"days\" style=\"float:right; display:inline-block: width:100px\"></div>";
 			HTML +=	"<canvas id=\"main\"></canvas>";
 			HTML +=	"<div class=\"centerLabel\"></div>";
-			HTML +=	"<div class=\"dateNav\">";
-			HTML +=	"<div id=\"minDateTwo\" style=\"width:100px; display:inline-block; margin-left:30px;\"></div>";
+			HTML +=	"<div class=\"dateNav\" style=\"margin-left:180px\">";
+			HTML +=	"<div id=\"minDateTwo\" style=\"width:50px; display:inline-block; margin-left:30px;\"></div>";
 			HTML +=	"<div id=\"maxDateTwo\" style=\"width:100px; display:inline-block; text-align:right; display:inline-block;\"></div></div>";
 			// end massive danger zone
 
@@ -232,7 +232,7 @@
 			this.endDate = new Date(this.endTime);
 			this.startDate = new Date(this.startTime);
 
-			this.windowWidth = getClientCords().width - 410;
+			this.windowWidth = getClientCords().width - 430;
 			this.windowHeight = 510;
 
 			this.drawArray = [];
