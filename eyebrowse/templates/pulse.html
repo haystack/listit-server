@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}pulse of the web{% endblock %}
+{% block title %}pulse{% endblock %}
 {% block imports %}
 <style>
   @import url("/lib/css/datepicker.css");
@@ -178,6 +178,8 @@
             var this_ = this;
 			var html = "";
 
+			jQuery("#pages").hide();
+			jQuery("#trending").hide();
 			for (var i = 0; i < data.top.length; i++) {
 				var trigger = true;
 				html += "<li>";
@@ -205,7 +207,6 @@
 				}
 				html += "</li>";
 			}
-			jQuery("#pages").html(html);					   			
 
 			html = "";
 			for (var i = 0; i < data.trending.length; i++) {
@@ -235,12 +236,15 @@
 				}
 				html += "</li>";
 			}
+			jQuery("#pages").html(html);					   			
 			jQuery("#trending").html(html);					   			
+			jQuery("#pages").slideDown('slow');
+			jQuery("#trending").slideDown('slow');
         },
 		drawTopDomains: function(data){
 			var this_ = this;
 			var html = "";
-
+			jQuery("#domains").hide();
 			for (var i = 0; i < data.length; i++) {
 				if (typeof(data[i][1]) != 'undefined'){
 					var trigger = true;
@@ -266,7 +270,8 @@
 					html += "</li>";
 				}
  			}
-			jQuery("#domains").html(html);					   			
+			jQuery("#domains").html(html);		
+			jQuery("#domains").slideDown("slow");
 		},
 		drawBG: function(data){
 			var this_ = this;
@@ -407,7 +412,7 @@ jQuery(document).ready(function(){
     </ul>
   </div>
   <div id="profile" style="width:219px">
-	<h2 style="border-top:none">Top Domains</h2>
+	<h2 style="border-top:none;">Top Domains</h2>
     <ul class="friends" id="domains">	  
     </ul>
   </div>

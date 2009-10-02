@@ -154,22 +154,25 @@
         },
 		drawTopUsers: function(data){
 			var newData = data;
-			jQuery("#topusers").html("");
+			jQuery("#topusers").hide();
+			var html = "";
 			for (var i = 0; i < newData.length; i++) {
 				if (newData[i].number > 0){
-					var html = "";
 					html += "<li>";
 					html += "<h6><b><a href=\"/profile/" + newData[i].user +  "/\" style=\"font-weight:bold\">" + newData[i].user + "</a></b></h6>";
 					html += "<br /><h7>" + newData[i].number + " webpages today</h7>";
 					html += "</li>";
-					jQuery("#topusers").append(html);									   
 				}
 			}
+			jQuery("#topusers").html(html);					   			
+			jQuery("#topusers").slideDown('slow');
 		},
         drawTopPagesList: function(data){
             var this_ = this;
 			var html = "";
 
+			jQuery("#pages").hide();
+			jQuery("#trending").hide();
 			for (var i = 0; i < 10; i++) {
 				var trigger = true;
 				html += "<li>";
@@ -197,7 +200,6 @@
 				}
 				html += "</li>";
 			}
-			jQuery("#pages").html(html);					   			
 
 			html = "";
 			for (var i = 0; i < 10; i++) {
@@ -227,7 +229,11 @@
 				}
 				html += "</li>";
 			}
+
+			jQuery("#pages").html(html);					   			
 			jQuery("#trending").html(html);					   			
+			jQuery("#pages").slideDown('slow');
+			jQuery("#trending").slideDown('slow');
         },
 		drawProfile: function(data){
 			var newData = data;
