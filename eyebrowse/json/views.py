@@ -867,7 +867,7 @@ def get_hourly_daily_top_urls_user(request, username, n):
     n = 20 #int(n)
     inputUser = get_object_or_404(User, username=username)
 
-    @cache.region('long_term')
+    @cache.region('to_from_url')
     def fetch_data(user, n):
         to_msec = int(time.time()*1000)
         from_msec = to_msec - (18122400000) # past three weeks
