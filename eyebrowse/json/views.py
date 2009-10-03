@@ -964,7 +964,12 @@ def get_top_friend_and_number_friends_for_url(request, username):
             if number > 0:
                 num_friends += 1
 
-        return {'top_friend':sorted(results, key=lambda x: -x["number"])[0],'num_friends':num_friends}
+        try:
+            top_friend = sorted(results, key=lambda x: -x["number"])[0]
+        except:
+            top_friend = ""
+
+        return [{'top_friend':top_friend,'num_friends':num_friends}]
 
     return_results = fetch_data(get_url, user, 'get_to_friend_and_number_friends_for_url')
     #return json_response({ "code":200, "results": return_results });
