@@ -23,6 +23,7 @@ urlpatterns = patterns('',
                        (r'^get_to_from_url/(\d+)/$', get_to_from_url_plugin), #for plugin                     
                        (r'^get_views_user/(\w+)/$', get_views_user_json), # for graphs 
                        (r'^get_hourly_daily_top_urls_user/(\w+)/(\d+)/$', get_hourly_daily_top_urls_user), # graphs
+                       #(r'^get_top_friend_and_number_friends_for_url/(\w+)$', get_top_friend_and_number_friends_for_url), # test
 )
 
     

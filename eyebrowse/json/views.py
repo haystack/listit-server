@@ -124,9 +124,11 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
 
 def defang_pageview(pview):    
     return {"start" : long(pview["startTime"]), "end" : long(pview["endTime"]), "url" : pview["url"], "host": pview["host"], "title": pview["title"], "id":pview["id"], "hue": _h_generator(pview["host"]) } 
-
-    #return {"start" : long(pview.startTime), "end" : long(pview.endTime), "url" : pview.url, "host": pview.host, "title": pview.title, "id":pview.id, "hue": _h_generator(pview.host) } 
     ## too slow "location":get_enduser_for_user(pview.user).location }
+
+# if you need username
+def defang_pageview_values(pview):    
+    return {"start" : long(pview["startTime"]), "end" : long(pview["endTime"]), "url" : pview["url"], "host": pview["host"], "title": pview["title"], "id":pview["id"], "user": User.objects.filter(id=pview["user_id"])[0].username, "hue": _h_generator(pview["host"]) } 
 
 ## emax added this to be fancy
 def uniq(lst,key=lambda x: x,n=None):
@@ -148,9 +150,6 @@ def get_views_user(from_msec, to_msec, username):
 
     hits = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec).values()
     return [ defang_pageview(evt) for evt in hits ]    
-
-def defang_pageview_values(pview):    
-    return {"start" : long(pview["startTime"]), "end" : long(pview["endTime"]), "url" : pview["url"], "host": pview["host"], "title": pview["title"], "id":pview["id"], "user": User.objects.filter(id=pview["user_id"])[0].username, "hue": _h_generator(pview["host"]) } 
 
 ## get most recent urls now returns elements with distinct titles. no repeats!
 def get_latest_views(request):
@@ -946,48 +945,29 @@ def get_pulse(request):
 
 
 ## PLUGIN
-def get_top_friend_for_url(request, username):
+def get_top_friend_and_number_friends_for_url(request, username):
     if not 'url' in request.GET:
         return json_response({ "code":404, "error": "get has no 'url' key" }) 
 
     user = get_object_or_404(User, username=username)
-    users = [friendship.to_friend for friendship in user.friend_set.all()]
-    
     get_url = request.GET['url'].strip()
 
-    barbar = "top friend for url" # to keep cache unique
     @cache.region('top_users_long_term')
-    def fetch_data( url, username):
+    def fetch_data(url, user, bar):
+        friends = [friendship.to_friend for friendship in user.friend_set.all()]
         results = []
-        for user in users:
-            number = PageView.objects.filter(user=user,url=url).count()
-            results.append( {"user": user.username, "number": number } )
-
-        results.sort(key=lambda x: -x["number"])
-        return results[0:1]
-
-    return_results = fetch_data(get_url, username)
-    return return_results
-
-def get_number_friends_logged_url(request, username):
-    if not 'url' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'url' key" }) 
-
-    user = get_object_or_404(User, username=username)
-    friends = [friendship.to_friend for friendship in user.friend_set.all()]
-
-    get_url = request.GET['url'].strip()    
-
-    @cache.region('top_users_long_term')
-    def fetch_data(url, username):
-        results = []
-        number = 0
+        num_friends = 0
         for friend in friends:
-            if PageView.objects.filter(user=friend,url=url).count() > 0:
-                number += 1
+            number = PageView.objects.filter(user=friend,url=url).count()
+            results.append( {"user": friend.username, "number": number } )
 
-        return number
-    return_results = fetch_data(get_url, username)
+            if number > 0:
+                num_friends += 1
+
+        return {'top_friend':sorted(results, key=lambda x: -x["number"])[0],'num_friends':num_friends}
+
+    return_results = fetch_data(get_url, user, 'get_to_friend_and_number_friends_for_url')
+    #return json_response({ "code":200, "results": return_results });
     return return_results
 
 def get_to_from_url_plugin(request, n):
@@ -1001,9 +981,6 @@ def get_to_from_url_plugin(request, n):
         # fail silently 
         return json_response({ "code":200, "results": {'pre':"", 'next':"", 'pre_titles': "" , 'next_titles' : "" } })
     n = int(n)
-
-    from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
-    to_msec = round_time_to_day(to_msec_raw)
 
     users = User.objects.all()
     req_type = {}
@@ -1067,8 +1044,82 @@ def get_to_from_url_plugin(request, n):
     #this is outside the cache
     if request.GET.has_key('username'):
         username = request.GET['username']
-        friend_stats = {'top_friend': get_top_friend_for_url(request, username), 'num_friends': get_number_friends_logged_url(request, username) }
-    
+        friend_stats = get_top_friend_and_number_friends_for_url(request, username)
         return json_response({ "code":200, "results": return_results, "friend_stats": friend_stats })
         
     return json_response({ "code":200, "results": return_results })
+
+# HATE
+# ok so this is 2 functions because if you indent the return statment of the cached function it doesnt cache
+def fill_to_from_url_cache():
+    to_msec = int(time.time()*1000)
+    from_msec = to_msec - (18122400000) # past three weeks
+
+    users = User.objects.all()
+    req_type = {}
+    req_type['global'] = 'global'
+
+    phits = PageView.objects.filter(startTime__gt=from_msec,endTime__lte=to_msec).order_by("-startTime").values()
+    uphit = uniq(phits,lambda x:x["url"],None)
+
+    for url in uphit:        
+        cache_to_from_url(url['url'],users, req_type, phits, uphit)
+    return 'party a lot'
+    
+def cache_to_from_url(url,users, req_type, phits, uphit):
+    @cache.region('to_from_url')
+    def fetch_data(url, users, req_type):
+        print url
+        pre = {}
+        next = {}
+        titles = {}
+        accesses = [f for f in phits if f['url'] == url] 
+        for access in accesses:
+            try:
+                # get the page we logged IMMEDIATELY before access for the particular access's user in question
+                #prev_access = sorted([f for f in phits if f['startTime'] < access['startTime'] and f['user_id'] is access['user_id']], key=lambda(v2):-v2['startTime'])[0] 
+                #sorted to give biggest number
+
+                # this is pre-sorted
+                prev_access = [f for f in phits if f['startTime'] < access['startTime'] and f['user_id'] is access['user_id']][0] 
+
+                if prev_access['url'] != url:
+                    pre[prev_access['url']] = pre.get(prev_access['url'],0) + 1
+                    if prev_access['title'] is not None:
+                        titles[prev_access['url']] = prev_access['title']
+                    else:
+                        titles[prev_access['url']] = prev_access['url']
+                else:
+                    pass
+            except:
+                pass
+            try:
+                # get the page we logged IMMEDIATELY before access for the particular access's user in question
+                next_access = sorted([f for f in phits if f['startTime'] > access['startTime'] and f['user_id'] is access['user_id']], key=lambda(v2):v2['startTime'])[0]
+                #sorted to give smallest number
+                if next_access['url'] != url:
+                    next[next_access['url']] = next.get(next_access['url'],0) + 1
+                    if next_access.title is not None:
+                        titles[next_access['url']] = next_access['title']
+                    else:
+                        titles[next_access['url']] = next_access['url']
+                else:
+                    pass
+            except:
+                pass
+            
+        def sort_by_counts(count_dict):
+            l = count_dict.items()
+            l.sort(key=lambda x: -x[1])
+            return l
+        
+        pre_sorted = sort_by_counts(pre)[:7]
+        next_sorted = sort_by_counts(next)[:7]
+
+        print pre_sorted
+
+        return { 'pre':pre_sorted, 'next':next_sorted, 'pre_titles': [ titles[x[0]] for x in pre_sorted ] , 'next_titles' : [ titles[x[0]] for x in next_sorted ] }
+
+    return_results = fetch_data(url, users, req_type)    
+    return 'party a little'
+
