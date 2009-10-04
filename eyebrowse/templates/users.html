@@ -77,8 +77,7 @@
 			jQuery("#loadimg").show();
             try {
                 jQuery.get("/get_users_page", {
-							   from: startTime,
-							   to: endTime
+							   interp: this_.zoom
 						   }, function(data){
 							   if (data.code == 200) {								   
 								   this_.drawTopUsers(data.results[0]);

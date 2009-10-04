@@ -2,7 +2,6 @@
 {% block title %}pulse{% endblock %}
 {% block imports %}
 <style>
-  @import url("/lib/css/datepicker.css");
 	.viewboxhome h6{
 		margin-bottom:31px;
         overflow:hidden;
@@ -53,8 +52,6 @@
 <script src="/lib/js/canvas.text.js">
 </script>
 <script src="/lib/js/faces/helvetiker-normal-normal.js">
-</script>
-<script src="/lib/js/datepicker.js">
 </script>
 <script>
     jQuery.noConflict();
@@ -137,10 +134,6 @@
 				jQuery.get("/get_pulse", {
 							   from: this_.startTime,
 							   to: this_.endTime,
-							   first_start: this_.startTime - 86400000/2,
-							   first_end: this_.endTime - 86400000/2,
-							   second_start: this_.startTime,
-							   second_end: this_.endTime,
 							   num: Math.floor((this_.windowWidth/10)*(this_.windowHeight/10)),
 							   type: type
 						   }, function(data){

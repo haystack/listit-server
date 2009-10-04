@@ -56,9 +56,6 @@ def _mimic_entity_schema_from_url(url):
 def _unpack_from_to_msec(request):
     return (request.GET.get('from',0), request.GET.get('to',long(time.mktime(time.localtime())*1000)))
 
-def _unpack_times(request):
-    return (long(request.GET['first_start']), long(request.GET['first_end']), long(request.GET['second_start']), long(request.GET['second_end']))
-
 def _get_top_hosts_n(users,start,end):
     time_per_host = _get_time_per_page(users,start,end,grouped_by=EVENT_SELECTORS.Host) 
 
@@ -83,6 +80,51 @@ def _h_generator(domain):
 
     #return int(360.0*summ)/( 255.0*len(domain) )%360  
     #return sum([ord(char) for char in domain.strip()]) % 360
+
+
+
+def _get_graph_points_for_results(results, to_msec, from_msec, n):
+    to_msec = int(to_msec)
+    from_msec = int(from_msec)
+    n = int(n)
+
+    interp = (to_msec - from_msec) / n
+    counts = int(math.floor((to_msec - from_msec) / interp))
+    ttData = [0]*(counts + 1) # total time spent per time block
+    avgDataNum = [0]*(counts + 1) # number of websites per time block
+    def get_date_array():
+        foo = [0]*(counts + 1)
+        for count in range(0, counts):
+            foo[count] = from_msec + (interp * count)
+        return foo
+    dateArray = get_date_array()
+
+    # gets total time on websites per time block(count)
+    for result in results:
+        for count in range(0, counts):
+            if count >= counts:
+                if result.startTime > dateArray[count]:
+                    ttData[count] += int(result.endTime - result.startTime)
+                    avgDataNum[count] += 1
+                else:
+                    pass
+            else:
+                if result.startTime > dateArray[count] and result.startTime < dateArray[count + 1]:
+                    ttData[count] += int(result.endTime - result.startTime)
+                    avgDataNum[count] += 1
+                else:
+                    pass
+                    
+    def get_avg_data():
+        foo = [0]*counts
+        for count in range(0, counts): 
+            foo[count] = ttData[count] / (avgDataNum[count] + 1)
+        return foo
+    avgData = get_avg_data()
+
+    return { "avgTime": avgData, "totalTime": ttData }
+
+
 
 def get_title_from_evt(evt):
     foo =  JSONDecoder().decode(JSONDecoder().decode(evt.entitydata)[0]['data'])
@@ -160,18 +202,22 @@ def get_latest_views(request):
 
     req_type = request.GET['type']
 
-    if 'user' in req_type:
-        user = get_object_or_404(User, username=request.GET['username'])
-        phits = PageView.objects.filter(user=user).order_by("-startTime")[0:n].values()
-    elif 'friends' in req_type:
-        usr = get_object_or_404(User, username=request.GET['username'])
-        users = [friendship.to_friend for friendship in usr.friend_set.all()]
-        phits = PageView.objects.filter(user__in=users).order_by("-startTime")[0:n].values()
-    else:
-        phits = PageView.objects.filter().order_by("-startTime")[0:n].values() #global
+    @cache.region('ticker')
+    def fetch_data(req_type):
+        if 'user' in req_type:
+            user = get_object_or_404(User, username=request.GET['username'])
+            phits = PageView.objects.filter(user=user).order_by("-startTime")[0:n].values()
+        elif 'friends' in req_type:
+            usr = get_object_or_404(User, username=request.GET['username'])
+            users = [friendship.to_friend for friendship in usr.friend_set.all()]
+            phits = PageView.objects.filter(user__in=users).order_by("-startTime")[0:n].values()
+        else:
+            phits = PageView.objects.filter().order_by("-startTime")[0:n].values() #global
 
-    uphit = uniq(phits,lambda x:x["url"],n)
-    results = [ defang_pageview_values(evt) for evt in uphit ]
+        uphit = uniq(phits,lambda x:x["url"],n)
+        return [ defang_pageview_values(evt) for evt in uphit ]
+
+    results = fetch_data(req_type)
 
     if request.GET.has_key('id'):
         urlID = int(request.GET['id'])
@@ -185,6 +231,7 @@ def get_latest_views(request):
             return json_response({ "code":204 })
 
     return json_response({ "code":200, "results": results })
+
 
 def get_profile_queries(req_type):
     if 'user' in req_type:
@@ -230,7 +277,7 @@ def get_page_profile_queries(url, req_type):
         users = User.objects.all() # queryset
 
     @cache.region('long_term')
-    def fetch_data(inputURL, users):
+    def fetch_data(inputURL, users, gaak):
         number = 0
         totalTime = 0
         try: 
@@ -251,14 +298,14 @@ def get_page_profile_queries(url, req_type):
             return { 'number': number, 'totalTime': totalTime/1000, 'average': average }
         return { 'number': 0, 'totalTime': 0, 'average': 0 }
 
-    results = fetch_data(url, users)
+    results = fetch_data(url, users, "page_profile_queries")
     return results
 
 
 def get_most_shared_hosts(request, n):
     n = int(n)
 
-    @cache.region('long_term')
+    @cache.region('very_long_term')
     def fetch_data(n, fetch_type):
         results = {}
         users = User.objects.all()
@@ -277,7 +324,7 @@ def get_most_shared_hosts(request, n):
     return json_response({ "code":200, "results": results }) 
 
     
-def get_top_hosts_compare(first_start, first_end, second_start, second_end, n, req_type):
+def get_top_hosts_compare(end_time, interp, n, req_type):
     if 'user' in req_type:
         users = get_object_or_404(User, username=req_type['user'])
     elif 'friends' in req_type:
@@ -287,6 +334,11 @@ def get_top_hosts_compare(first_start, first_end, second_start, second_end, n, r
         users = User.objects.all()
 
     n = int(n)
+
+    second_end = end_time
+    second_start = end_time - interp
+    first_end = second_start
+    first_start = second_start - interp
 
     @cache.region('long_term')
     def fetch_data(users, hosts):
@@ -319,7 +371,7 @@ def get_top_hosts_compare(first_start, first_end, second_start, second_end, n, r
     return results
 
 
-def get_top_and_trending_pages(first_start, first_end, second_start, second_end, n, req_type):
+def get_top_and_trending_pages(end_time, interp, n, req_type):
     if 'user' in req_type:
         users = get_object_or_404(User, username=req_type['user'])
     elif 'friends' in req_type:
@@ -329,6 +381,11 @@ def get_top_and_trending_pages(first_start, first_end, second_start, second_end,
         users = User.objects.all()
 
     n = int(n)
+
+    second_end = end_time
+    second_start = end_time - interp
+    first_end = second_start
+    first_start = second_start - interp
 
     @cache.region('long_term')
     def fetch_data(users, pages):
@@ -375,59 +432,18 @@ def get_top_and_trending_pages(first_start, first_end, second_start, second_end,
 
         return {"top":top_pages, "trending":trending, "tre_titles":tre_titles, "top_titles":top_titles}
 
-    results = fetch_data(users, 'pages')
+    results = fetch_data(users, 'top_and_trending_pages')
     return results
 
 
-def _get_graph_points_for_results(results, to_msec, from_msec, n):
-    to_msec = int(to_msec)
-    from_msec = int(from_msec)
-    n = int(n)
-
-    interp = (to_msec - from_msec) / n
-    counts = int(math.floor((to_msec - from_msec) / interp))
-    ttData = [0]*(counts + 1) # total time spent per time block
-    avgDataNum = [0]*(counts + 1) # number of websites per time block
-    def get_date_array():
-        foo = [0]*(counts + 1)
-        for count in range(0, counts):
-            foo[count] = from_msec + (interp * count)
-        return foo
-    dateArray = get_date_array()
-
-    # gets total time on websites per time block(count)
-    for result in results:
-        for count in range(0, counts):
-            if count >= counts:
-                if result.startTime > dateArray[count]:
-                    ttData[count] += int(result.endTime - result.startTime)
-                    avgDataNum[count] += 1
-                else:
-                    pass
-            else:
-                if result.startTime > dateArray[count] and result.startTime < dateArray[count + 1]:
-                    ttData[count] += int(result.endTime - result.startTime)
-                    avgDataNum[count] += 1
-                else:
-                    pass
-                    
-    def get_avg_data():
-        foo = [0]*counts
-        for count in range(0, counts): 
-            foo[count] = ttData[count] / (avgDataNum[count] + 1)
-        return foo
-    avgData = get_avg_data()
-
-    return { "avgTime": avgData, "totalTime": ttData }
-
-
-def get_profile_graphs(from_msec_raw, to_msec_raw, username):    
+def get_profile_graphs(endTime, interp, username):    
     user = get_object_or_404(User, username=username)
-    from_msec_rounded = round_time_to_half_day(from_msec_raw)
-    to_msec_rounded = round_time_to_half_day(to_msec_raw)
 
     @cache.region('long_term')
-    def fetch_data(user, from_msec, to_msec):
+    def fetch_data(user, baaa):
+        from_msec = round_time_to_half_day(endTime - interp)
+        to_msec = round_time_to_half_day(endTime)        
+
         views = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
         data = {}
 
@@ -448,11 +464,11 @@ def get_profile_graphs(from_msec_raw, to_msec_raw, username):
         data['timeDay'] = hrPts
         return data
 
-    results = fetch_data(user, from_msec_rounded, to_msec_rounded) 
+    results = fetch_data(user, "profile_graphs") 
     return results
 
 
-def get_pagestats_graphs(from_msec_raw, to_msec_raw, url, req_type):    
+def get_pagestats_graphs(endTime, interp, url, req_type):    
     if 'user' in req_type:
         users = get_object_or_404(User, username=req_type['user'])
     elif 'friends' in req_type:
@@ -461,11 +477,11 @@ def get_pagestats_graphs(from_msec_raw, to_msec_raw, url, req_type):
     else:
         users = User.objects.all()
 
-    from_msec_rounded = round_time_to_half_day(from_msec_raw)
-    to_msec_rounded = round_time_to_half_day(to_msec_raw)
-
     @cache.region('long_term')
-    def fetch_data(url, users, from_msec, to_msec):
+    def fetch_data(url, users, bar):
+        from_msec = round_time_to_half_day(endTime - interp)
+        to_msec = round_time_to_half_day(endTime)
+
         if type(users) == QuerySet:
             views = PageView.objects.filter(url=url,startTime__gte=from_msec,endTime__lte=to_msec)
         elif type(users) == list:
@@ -492,8 +508,9 @@ def get_pagestats_graphs(from_msec_raw, to_msec_raw, url, req_type):
         data['timeDay'] = hrPts
         return data
 
-    results = fetch_data(url, users, from_msec_rounded, to_msec_rounded) 
+    results = fetch_data(url, users, "pagestats_graphs") 
     return results
+
 
 def get_mini_line_graph(from_msec_raw, to_msec_raw, num, req_type):    
     if 'user' in req_type:
@@ -552,8 +569,8 @@ def get_dot_graph(n, req_type):
     results = fetch_data(users, "dot_graph") 
     return results
 
-
-def get_top_users(from_msec, to_msec, n, req_type):
+# NEEDS FIXIN TODO
+def get_top_users(interp, n, req_type):
     if 'user' in req_type:
         users = get_object_or_404(User, username=req_type['user'])
     elif 'friends' in req_type:
@@ -564,11 +581,11 @@ def get_top_users(from_msec, to_msec, n, req_type):
 
     n = int(n)
 
-    from_msec_rounded = round_time_to_half_day(from_msec)
-    to_msec_rounded = round_time_to_half_day(to_msec)
+    @cache.region('very_long_term')
+    def fetch_data(interp, req_type, bozon):
+        to_msec = int(time.time()*1000)
+        from_msec = to_msec - interp
 
-    @cache.region('top_users_long_term')
-    def fetch_data(from_msec, to_msec, req_type):
         results = []
 
         if type(users) == QuerySet or type(users) == list:
@@ -583,10 +600,10 @@ def get_top_users(from_msec, to_msec, n, req_type):
         results.sort(key=lambda x:-x["number"])
         return results[0:n]
         
-    return fetch_data(from_msec_rounded, to_msec_rounded, req_type)
+    return fetch_data(interp, req_type, "top_users")
 
-
-def get_top_users_for_url(from_msec, to_msec, n, url, req_type):
+# NEEDS FIXIN TODO
+def get_top_users_for_url(n, url, req_type):
     if 'user' in req_type:
         users = get_object_or_404(User, username=req_type['user'])
     elif 'friends' in req_type:
@@ -597,12 +614,11 @@ def get_top_users_for_url(from_msec, to_msec, n, url, req_type):
 
     n = int(n)
 
-    from_msec_rounded = round_time_to_half_day(from_msec)
-    to_msec_rounded = round_time_to_half_day(to_msec)
+    @cache.region('very_long_term')
+    def fetch_data(req_type, url, barbar):
+        to_msec = int(time.time()*1000)
+        from_msec = to_msec - (18122400000) # past three weeks
 
-    barbar = "foo" # to keep cache unique
-    @cache.region('top_users_long_term')
-    def fetch_data(from_msec, to_msec, url, barbar):
         results = []
 
         try:
@@ -619,10 +635,10 @@ def get_top_users_for_url(from_msec, to_msec, n, url, req_type):
         except:
             return results
 
-    return_results = fetch_data(from_msec_rounded, to_msec_rounded, url, barbar)
+    return_results = fetch_data(req_type, url, "top_users_url")
     return return_results
 
-
+# NOT USED YET
 def get_percent_logging(url_raw, req_type):
     if 'friends' in req_type:
         usr = get_object_or_404(User, username=req_type['friends'])
@@ -632,8 +648,8 @@ def get_percent_logging(url_raw, req_type):
 
     scheme, url_parsed, boo, foo, bar, baz = urlparse.urlparse(url_raw)
 
-    @cache.region('top_users_long_term')
-    def fetch_data(url, users):
+    @cache.region('long_term')
+    def fetch_data(url, users, gack):
         results = []
         
         if (users) == list:
@@ -641,7 +657,7 @@ def get_percent_logging(url_raw, req_type):
         else:
             return PrivacySettings.objects.filter(whitelist__in=url).count()/User.objects.all().count()
 
-    return_results = fetch_data(url_parsed, users)
+    return_results = fetch_data(url_parsed, users, "percent_logging")
     return return_results
 
         
@@ -668,13 +684,13 @@ def get_to_from_url(n, url, req_type):
     else:
         users = User.objects.all()
     
-    # added this to check if url exists in the logs
+    # check if url exists in the logs
     if  len(PageView.objects.filter(url=url)) < 1:
         # fail silently 
         return {'pre':"", 'next':"", 'pre_titles': "" , 'next_titles' : "" }
     n = int(n)
 
-    @cache.region('to_from_url')
+    @cache.region('very_long_term')
     def fetch_data(url, users, req_type):
         to_msec = int(time.time()*1000)
         from_msec = to_msec - (18122400000) # past three weeks
@@ -740,11 +756,15 @@ def get_homepage(request):
 
     request_type = {'global':'all'}
 
-    top_users = get_top_users(from_msec, to_msec, 10, request_type)    
-    views_user = get_views_user(from_msec, to_msec, top_users[0]['user'])
-    # eventually should probably cache get_most_recent_urls here or fix it to not sort the entire db every call
+    # this should help if the homepage gets hit really hard
+    @cache.region('ticker')
+    def fetch_data(baaa):
+        top_users = get_top_users(int(int(to_msec) - int(to_msec)), 10, request_type)    
+        views_user = get_views_user(from_msec, to_msec, top_users[0]['user'])    
+        return [top_users, views_user]
 
-    return json_response({ "code":200, "results": [top_users, views_user] });
+    results = fetch_data("get_homepage")
+    return json_response({ "code":200, "results": results });
 
 
 ## TICKER PAGE
@@ -761,13 +781,14 @@ def get_ticker(request):
     else:
         request_type['global'] = 'global'
 
-    from_msec,to_msec = _unpack_from_to_msec(request)
-
+    # not sure if caching this is necissary at all but it might help
     @cache.region('short_term')
-    def fetch_data(bar, boz):    
-        top_users = get_top_users(from_msec, to_msec, 10, request_type)
-        first_start,first_end,second_start,second_end = _unpack_times(request)
-        top_trending = get_top_and_trending_pages(first_start,first_end,second_start,second_end, 16, request_type)
+    def fetch_data(bar, boz):  
+        from_msec,to_msec = _unpack_from_to_msec(request)
+        interp = int(to_msec) - int(from_msec)
+
+        top_users = get_top_users(interp, 10, request_type)
+        top_trending = get_top_and_trending_pages(int(to_msec), interp, 16, request_type)
         profile_queries = get_profile_queries(request_type)
         return [top_users, top_trending, profile_queries]
 
@@ -777,14 +798,14 @@ def get_ticker(request):
 
 ## USERS PAGE
 def get_users_page(request):
-    if not 'from' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'from' key" }) 
+    if not 'interp' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'interp' key" }) 
     
     request_type = {'global':'all'}
 
-    from_msec,to_msec = _unpack_from_to_msec(request)
+    interp = int(request.GET['interp'].strip())
 
-    top_users = get_top_users(from_msec, to_msec, 10, request_type)
+    top_users = get_top_users(interp, 10, request_type)
     profile_queries = get_profile_queries(request_type)
 
     return json_response({ "code":200, "results": [top_users, profile_queries] });
@@ -798,16 +819,14 @@ def get_profile(request):
     request_type = {}
     request_type['user'] = request.GET['type'].strip()
 
-    from_msec,to_msec = _unpack_from_to_msec(request)
+    #@cache.region('long_term')
+    def fetch_data(boom, bing):
+        now = int(time.time()*1000)
+        interp = 604800000
 
-    first_start,first_end,second_start,second_end = _unpack_times(request)
-
-    @cache.region('short_term')
-    def fetch_data(boom, bing):    
-        top_hosts = get_top_hosts_compare(first_start,first_end,second_start,second_end, 10, request_type)
+        top_hosts = get_top_hosts_compare(now, interp, 10, request_type)
         profile_queries = get_profile_queries(request_type)
-        graphs = get_profile_graphs(from_msec, to_msec, request_type['user'])
-
+        graphs = get_profile_graphs(now, interp, request_type['user'])
         return [graphs, top_hosts, profile_queries]
 
     results = fetch_data("profile_page", request_type)
@@ -830,14 +849,16 @@ def get_pagestats(request):
 
     url = request.GET['url'].strip()
 
-    from_msec,to_msec = _unpack_from_to_msec(request)
-
-    @cache.region('to_from_url')
-    def fetch_data(boom, request_type, url):    
+    # not sure if caching this is necissary at all but it might help
+    @cache.region('short_term')
+    def fetch_data(boom, request_type, url):
+        now = int(time.time()*1000)
+        interp = 604800000*3 # 3 weeks
+    
         percent_logging = get_percent_logging(url, request_type)
         profile_queries = get_page_profile_queries(url, request_type)
-        top_users = get_top_users_for_url(from_msec, to_msec, 10, url, request_type)
-        graphs = get_pagestats_graphs(from_msec, to_msec, url, request_type)
+        top_users = get_top_users_for_url(10, url, request_type)
+        graphs = get_pagestats_graphs(now, interp, url, request_type)
         to_from_url = get_to_from_url(7, url, request_type)
         return [graphs, top_users, profile_queries, to_from_url, percent_logging]
 
@@ -854,6 +875,8 @@ def get_views_user_json(request, username):
 
     from_msec_raw,to_msec_raw = _unpack_from_to_msec(request)
 
+    ## again this is only to help in emergency and is probably unnecissary
+    @cache.region('short_term')
     def fetch_data(from_msec, to_msec, user):
 	hits = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec).values()
 	return [ defang_pageview(evt) for evt in hits ]
@@ -867,7 +890,7 @@ def get_hourly_daily_top_urls_user(request, username, n):
     n = 20 #int(n)
     inputUser = get_object_or_404(User, username=username)
 
-    @cache.region('to_from_url')
+    @cache.region('long_term')
     def fetch_data(user, n):
         to_msec = int(time.time()*1000)
         from_msec = to_msec - (18122400000) # past three weeks
@@ -926,18 +949,19 @@ def get_pulse(request):
     else:
         request_type['global'] = 'global'
 
-    from_msec,to_msec = _unpack_from_to_msec(request)
-    first_start,first_end,second_start,second_end = _unpack_times(request)
     num = 9750 # this number fills a 15in screen pretty well and is prolly ok for dots ##request.GET['num'].strip()
 
     @cache.region('long_term')
     def fetch_data(bar, cache):    
+        from_msec,to_msec = _unpack_from_to_msec(request)
+        interp = int(to_msec) - int(from_msec)
+
         profile_queries = get_profile_queries(request_type)
         line_graph = get_mini_line_graph(from_msec, to_msec, 100, request_type)
         dot_graph = get_dot_graph(num, request_type)
-        
-        top_hosts = get_top_hosts_compare(first_start,first_end,second_start,second_end, 16, request_type)
-        top_trending = get_top_and_trending_pages(first_start,first_end,second_start,second_end, 16, request_type)
+
+        top_hosts = get_top_hosts_compare(int(to_msec), interp, 16, request_type)
+        top_trending = get_top_and_trending_pages(int(to_msec), interp, 16, request_type)
         return [profile_queries, dot_graph, line_graph, top_trending, top_hosts]
         
     results = fetch_data("pulse", request_type)
@@ -952,7 +976,7 @@ def get_top_friend_and_number_friends_for_url(request, username):
     user = get_object_or_404(User, username=username)
     get_url = request.GET['url'].strip()
 
-    @cache.region('top_users_long_term')
+    @cache.region('very_long_term')
     def fetch_data(url, user, bar):
         friends = [friendship.to_friend for friendship in user.friend_set.all()]
         results = []
@@ -990,7 +1014,7 @@ def get_to_from_url_plugin(request, n):
     req_type = {}
     req_type['global'] = 'global'
 
-    @cache.region('to_from_url')
+    @cache.region('very_long_term')
     def fetch_data(url, users, req_type):
         to_msec = int(time.time()*1000)
         from_msec = to_msec - (18122400000) # past three weeks
@@ -1053,8 +1077,12 @@ def get_to_from_url_plugin(request, n):
         
     return json_response({ "code":200, "results": return_results })
 
-# HATE
-# ok so this is 2 functions because if you indent the return statment of the cached function it doesnt cache
+
+
+# FILL CACHE
+# ok so each of these are 2 functions because if you indent the return statment of the cached function it doesnt cache
+
+# to_from_url for both plugin and page stats
 def fill_to_from_url_cache():
     to_msec = int(time.time()*1000)
     from_msec = to_msec - (18122400000) # past three weeks
@@ -1071,7 +1099,7 @@ def fill_to_from_url_cache():
     return 'party a lot'
     
 def cache_to_from_url(url,users, req_type, phits, uphit):
-    @cache.region('to_from_url')
+    @cache.region('very_long_term')
     def fetch_data(url, users, req_type):
         print url
         pre = {}
@@ -1126,4 +1154,76 @@ def cache_to_from_url(url,users, req_type, phits, uphit):
 
     return_results = fetch_data(url, users, req_type)    
     return 'party a little'
+
+# user page and graphs
+def fill_user_page_graphs_cache():
+    to_msec = int(time.time()*1000)
+    from_msec = to_msec - (18122400000) # past three weeks
+
+    users = User.objects.all()
+    req_type = {}
+    req_type['global'] = 'global'
+
+    phits = PageView.objects.filter(startTime__gt=from_msec,endTime__lte=to_msec).order_by("-startTime").values()
+    uphit = uniq(phits,lambda x:x["url"],None)
+
+    for user in Users.objects.all():        
+        cache_to_from_url(url['url'],users, req_type, phits, uphit)
+    return 'party a lot'
+
+
+def cache_user_page_graphs(user):
+    #graphs
+    @cache.region('long_term')
+    def fetch_data(user, n):
+        to_msec = int(time.time()*1000)
+        from_msec = to_msec - (18122400000) # past three weeks
+
+        views = PageView.objects.filter(user=user, startTime__gte=from_msec,endTime__lte=to_msec)
+
+        hrPts = dict([ (i, {}) for i in range(0,24) ])
+        weekPts = dict([ (i, {}) for i in range(0,7) ])
+
+        for view in views:
+            weekday = datetime.datetime.fromtimestamp(view.startTime/1000).weekday()
+            hour = datetime.datetime.fromtimestamp(view.startTime/1000).hour
+            
+            if view.url in hrPts[hour]:
+                hrPts[hour][view.url]['val'] += 1
+            else:
+                hrPts[hour][view.url] = {}
+                hrPts[hour][view.url]['val'] = 1
+                hrPts[hour][view.url]['hue'] = _h_generator(view.host) 
+
+            if view.url in weekPts[weekday]:
+                weekPts[weekday][view.url]['val'] += 1
+            else:
+                weekPts[weekday][view.url] = {}
+                weekPts[weekday][view.url]['val'] = 1
+                weekPts[weekday][view.url]['hue'] = _h_generator(view.host) 
+
+        lResult = []
+
+        for x in range(7):
+            phlat = weekPts[x].items()
+            phlat.sort(key=lambda(k,v2):-v2['val'])
+            lResult.append((x,phlat[:n]))
+
+        rResult = []
+        for x in range(24):
+            phlat = hrPts[x].items()
+            phlat.sort(key=lambda(k,v2):-v2['val'])
+            rResult.append((x,phlat[:n]))
+
+        return [lResult,rResult]
+    return_results = fetch_data(inputUser, 20)
+
+    #user page
+    request_type = {}
+    request_type['user'] = user.username
+    to_msec = int(time.time()*1000)
+    from_msec = to_msec - 604800000 # 1 week
+    top_hosts = get_top_hosts_compare(to_msec, 604800000, 10, request_type)
+    profile_queries = get_profile_queries(request_type)
+    graphs = get_profile_graphs(to_msec, 604800000, request_type['user'])
 

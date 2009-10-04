@@ -53,24 +53,15 @@
   </style>
   <script>
     var WatchmeVisualisation = {
-        initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom){
+        initialize: function(canvas, windowWidth, windowHeight, zoom){
             this.canvas = canvas;
             this.windowWidth = windowWidth;
             this.windowHeight = windowHeight;
-            this.timeZoneCorrect = timeZoneCorrect;
 			this.now = new Date().valueOf();
-            this.endDate = new Date();
-            this.startDate = new Date(this.endDate.valueOf() - zoom);
-            this.endTime = this.endDate.valueOf();
-            this.startTime = this.startDate.valueOf();
-            this.OGendTime = this.endDate.valueOf();
-            this.OGstartTime = this.startDate.valueOf();
+            this.endTime = this.now;
+            this.startTime = this.now - zoom;
 			this.recentTimesArray = [];
-			this.newDataEnd = 0;
 			this.recentID = 0;
-			this.endTimeRecent = this.endTime;
-            this.interp = zoom / 192;
-            this.drag = undefined;
             this.zoom = zoom;
 			this.type = "global";
             this.getTickerPage(this.type);
@@ -83,10 +74,6 @@
 			jQuery.get("/get_ticker", {
 						   from: this_.startTime,
 						   to: this_.endTime,
-						   first_start: this_.startTime - 86400000,
-						   first_end: this_.endTime - 86400000,
-						   second_start: this_.startTime,
-						   second_end: this_.endTime,
 						   type:req_type,
 	                       username: '{{ username }}'
 					   }, function(data){
@@ -249,7 +236,7 @@
 						   myWidth = window.innerWidth - 16;
 						   myHeight = window.innerHeight - 250;
 
-						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 86400000);// 12 hrs
+						   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 86400000/2);// 12 hrs
 						   setInterval("self.viz.getRecentPages(100, self.viz.type)", 6000);
 					   });
 </script>
