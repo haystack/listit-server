@@ -375,20 +375,12 @@ jQuery(document).ready(function(){
               <br/>
               &#8230;yet
             </div>
-			{% ifequal user.username username %}<h2>Your Top 25</h2>
-            {% else %}{% if user.username %}
-			<h2 style="font-size:14px;padding-top:12px;padding-bottom:12px">
-              <a href="#top10" onclick="window.viz.top()">top 25</a>&nbsp; &#124; &nbsp;<a href="#themMinusYou" onclick="window.viz.themMinusYou()">{{ username }} vs you</a>&nbsp; &#124; &nbsp;<a href="#youMinusThem" onclick="window.viz.youMinusThem ()">you vs {{ username }}</a>
-			</h2>
-          </div>
-          {% else %}<h2>{{ username}}'s top 25</h2>
-          {% endif %}
-          {% endifequal %}
-        </div>
+	    <h2>Top 25</h2>
+	      </div>
         <div class="viewboxlarge" id="list" style="width:700px;">
         </div>
       </div>
       <br/>
-	</div>
+      </div>
 	{% endblock %}
 	

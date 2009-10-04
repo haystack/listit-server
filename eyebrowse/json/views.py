@@ -759,7 +759,7 @@ def get_homepage(request):
     # this should help if the homepage gets hit really hard
     @cache.region('ticker')
     def fetch_data(baaa):
-        top_users = get_top_users(int(int(to_msec) - int(to_msec)), 10, request_type)    
+        top_users = get_top_users(int(int(to_msec) - int(from_msec)), 10, request_type)    
         views_user = get_views_user(from_msec, to_msec, top_users[0]['user'])    
         return [top_users, views_user]
 
@@ -819,8 +819,8 @@ def get_profile(request):
     request_type = {}
     request_type['user'] = request.GET['type'].strip()
 
-    #@cache.region('long_term')
-    def fetch_data(boom, bing):
+    @cache.region('long_term')
+    def fetch_data(request_type, bozz):
         now = int(time.time()*1000)
         interp = 604800000
 
@@ -829,7 +829,7 @@ def get_profile(request):
         graphs = get_profile_graphs(now, interp, request_type['user'])
         return [graphs, top_hosts, profile_queries]
 
-    results = fetch_data("profile_page", request_type)
+    results = fetch_data(request_type, "profile_page")
 
     return json_response({ "code":200, "results": results });
 
