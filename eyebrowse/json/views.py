@@ -82,7 +82,6 @@ def _h_generator(domain):
     #return sum([ord(char) for char in domain.strip()]) % 360
 
 
-
 def _get_graph_points_for_results(results, to_msec, from_msec, n):
     to_msec = int(to_msec)
     from_msec = int(from_msec)

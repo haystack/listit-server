@@ -12,22 +12,23 @@ urlpatterns = patterns('',
                        (r'^$', index),
 
                        # browsing
-                       (r'^list/(\w+)/$', list),
-                       (r'^days/(\w+)/$', day),
-                       (r'^report/(\w+)/$', report),
-                       (r'^graph/(\w+)/$', graph),
-                       (r'^pulse/$', pulse),
-                       (r'^graphs/(\w+)/$', graph),
-                       (r'^daybyday/(\w+)/$', daybyday),
+                       #(r'^list/(\w+)/$', list),
+                       #(r'^report/(\w+)/$', report),
+                       #(r'^daybyday/(\w+)/$', daybyday),
                        #(r'^friends/(\w+)/$', friends),
-                       (r'^users/$', users),
-                       (r'^search/$', page_profile),
-                       (r'^ticker/$', ticker),
+               
+                       (r'^days/(\w+)/?$', day),
+                       (r'^graph/(\w+)/?$', graph),
+                       (r'^pulse/?$', pulse),
+                       (r'^graphs/(\w+)/$', graph),
+                       (r'^users/?$', users),
+                       (r'^search/?$', page_profile),
+                       (r'^ticker/?$', ticker),
                        
                        # user pages
                        (r'^profile/(\w+)/?$', user_page),
-                       (r'^user/(\w+)?$', user_page),                       
-                       (r'^friends/manage/(\w+)/$', friends_page),
+                       (r'^user/(\w+)/?$', user_page),                       
+                       (r'^friends/manage/(\w+)/?$', friends_page),
                        (r'^friend/add$', friend_add),
                        (r'^friend/save$', friend_save),
                        (r'^friend/invite/$', friend_invite),
@@ -42,12 +43,12 @@ urlpatterns = patterns('',
                        (r'^logout/$', logout_page),
 
                        # search
-                       (r'^search/$', user_search_page),
+                       #(r'^search/$', user_search_page),
 
                        # home
-                       (r'^help/$', help),
-                       (r'^about/$', about),
-                       (r'^terms/$', terms),
+                       (r'^help/?$', help),
+                       (r'^about/?$', about),
+                       (r'^terms/?$', terms),
 
                        # account management
                        (r'^profile_old/$', profile_save_page),
@@ -56,5 +57,5 @@ urlpatterns = patterns('',
                        (r'^userprivacy/$', userprivacy),
 
                        # plugin iframe
-                       (r'^iframe$', plugin_iframe),
+                       #(r'^iframe$', plugin_iframe),
 )

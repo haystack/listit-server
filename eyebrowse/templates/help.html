@@ -1,22 +1,124 @@
-{% extends "base.html" %}
-{% block title %}Help{% endblock %}
-{% block imports %}
-{% endblock %}
-{% block content %}
-<div id="faq">
-<h1>HELP</h1>
-<div class="bodytext">
-please email the google group <a href="mailto:eyebrowse@googlegroups.com">eyebrowse@googlegroups.com</a> or <a href="mailTo:brennanmoore@gmail.com">Brennan Moore</a> directly with any questions
-</div>
-<br />
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>eyebrowse | help</title>
+	<link rel="shortcut icon" href="/lib/img/favicon.ico">
+    <style>
+      @import url("/lib/css/reset-fonts-grids.css");
+      @import url("/lib/css/jquery-ui-1.7.2.custom.css");
+      @import url("/lib/css/watchhome.css");
+	  #faq img{
+	  margin-top:12px;
+	  display:block;
+	  margin-left:auto;
+	  margin-right:auto;
+	  }
+	  h1 {
+	  margin-bottom:13px;
+	  }
+	  #faq p{
+	  font-size:1em;
+	  letter-spacing:0.5px;
+	  line-height:1.2em;
+	  color:#000000;
+	  }
 
-<h1 style="margin-top:8px;">FAQ</h1>
-<div class="bodytext">
-*working on this*
-</div>
-  <br />
+    </style>
+    <!--[if lt IE 7]><script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE7.js" type="text/javascript"></script><![endif]--><!--[if lt IE 8]><script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script><![endif]--><!--[if IE]><script type="text/javascript" src="/lib/js/excanvas.compiled.js"></script><![endif]-->
+  </head>
+  <body>
+	<div id="header">
+	  <a href="/"><img src="/lib/img/smallbird.jpg" style="float:left; padding-left:8px; padding-right:8px; vertical-align:top"/></a>
+	  <a href="/pulse/">pulse</a>&nbsp; &#124; &nbsp;<a href="/ticker/">ticker</a>&nbsp; &#124; &nbsp;<a href="/search/">page stats</a>&nbsp; &#124; &nbsp;<a href="/users/">users</a>
+	  {% if request_user %}
+	  <div id="usersettings">
+		<a href="/profile/{{ request_user }}/">{{ request_user }}</a>&nbsp; &#124; &nbsp;<a href="/graph/{{ request_user }}/">your graphs</a>&nbsp; &#124; &nbsp;<a href="/friends/manage/{{ request_user }}">your friends</a>&nbsp; &#124; &nbsp;<a href="/settings">settings</a>&nbsp; &#124; &nbsp;<a href="/help/">help</a>&nbsp; &#124; &nbsp;<a href="/logout/">logout</a>
+	  </div>
+	  {% else %}
+	  <div id="usersettings">
+		<a href="/login/?next=/">sign in</a>&nbsp; &#124; &nbsp;<a href="/help/">help</a>
+		{% endif %} 
+	  </div>
+	</div>
 
- 
 
-</div>
-  {% endblock %}
+	<div id="faq">
+	  <h1 style="margin-top:8px; margin-bottom:8px; font-size:4.5em">help</h1>
+	  <div class="bodytext">
+		<a href="#plugin">the plugin</a>&nbsp; &#124; &nbsp;<a href="#pulse">pulse</a>&nbsp; &#124; &nbsp;<a href="#ticker">ticker</a>&nbsp; &#124; &nbsp;<a href="#pagestats">page stats</a>&nbsp; &#124; &nbsp;<a href="#yourprofile">your profile</a>&nbsp; &#124; &nbsp;<a href="#yourgraphs">your graphs</a>
+		<p style="margin-top:8px;">
+		  please email us at <a href="mailto:eyebrowse@googlegroups.com">eyebrowse@googlegroups.com</a> with any questions
+		</p>
+		<br /><br />
+		<h1 id="plugin">plugin</h1>
+		<div class="bodytext">
+		  This is a view of an active Eyebrowse plugin. When active, the plugin records the current page title, URL, duration of visit, and tab switches and sends this information to the Eyebrowse server. Clicking on the Eyebrowse icon engages this pop-up box, which displays social and contextual information about the current page, including which friend spends the most time on the current URL, how many friends have recorded that URL and a ranked list of the most common sites visited before and after. By clicking on the graph icon in the plugin, a user may visit the <a href="#pagestats">page stats page</a> for that URL.
+		</div>
+		<img src="/lib/img/plugin.jpg" style="margin-top:20px;"/>
+		<br /><br />
+		<h1 id="pulse">pulse</h1>
+		<div class="bodytext">
+		  This is the eyebrowse pulse page. It gives you an overview of everyone's recent web activity. Once signed in, you can also see this page for just your web activity or your friends web activity.
+		  <p>
+			By clicking 'collapse' you can explore an array of colored dots of the most recent web page views.
+		  </p>
+		</div>
+		<img src="/lib/img/pulse.jpg" />
+		<br /><br />
+		<h1 id="ticker">ticker</h1>
+		<div class="bodytext">
+		  Similar to the pulse page, the ticker gives you an overview of everyone's recent web activity. Once signed in, you can also see this page for just your web activity or your friends web activity.
+		</div>
+		<img src="/lib/img/ticker.jpg" />
+		<br /><br />
+		<h1 id="pagestats">page stats</h1>
+		<div class="bodytext">
+		  This is the eyebrowse page stats page, it is similar to the plugin view but allows you to input any url you like and filter the results for everyone, your friends or just you.  
+		  <p>
+			The large url is a text input box. For the input url, the graphs display a ranked list of the most common sites visited before and after, visits to the page by hour of day and day of week, and top users for this page. By clicking on the small graph icon, you may see these graphs for that url.  
+		  </p>
+		</div>
+		<img src="/lib/img/pagestats.jpg" />
+		<br /><br />
+		<h1 id="yourprofile">your profile</h1>
+		<div class="bodytext">
+		  This is an example of your profile page. It displays the last 15 pages you viewed and lets you delete them if you want.  It shows graphs of your overall browsing activity by hour, day and week, and your top 25 visited sites. 
+		</div>
+		<img src="/lib/img/profile.jpg" />
+		<br /><br />
+		<h1 id="yourgraphs">your graphs</h1>
+		<div class="bodytext">
+		  These graphs show a variety of short- and long-term visualizations to reveal recurring patterns.
+		</div>
+		<img src="/lib/img/dayweek.jpg" />
+		<img src="/lib/img/timeline.jpg" />
+		<img src="/lib/img/20days.jpg" />
+
+
+
+		<div id="disqus_thread"></div><script type="text/javascript" src="http://disqus.com/forums/eyebrowse/embed.js"></script><noscript><a href="http://eyebrowse.disqus.com/?url=ref">View the discussion thread.</a></noscript><a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+	  </div>
+	  <div id="footer">
+		<a href="/about/">about</a>&nbsp; &#124; &nbsp;<a href="/help/">help</a>&nbsp; &#124; &nbsp;<a href="http://groups.csail.mit.edu/haystack/">research</a>&nbsp; &#124; &nbsp;<a href="http://code.google.com/p/list-it/">google code</a>&nbsp; &#124; &nbsp;<a href="http://groups.google.com/group/eyebrowse">google group</a>&nbsp; &#124; &nbsp;<a href="/releases/eyebrowse.xpi">download</a>
+		<div style="margin-top:4px; line-height:15px;">created by: <a href="http://www.zamiang.com/" style="text-decoration:none; font-size:1em;">Brennan Moore</a>, 
+		  <a href="http://people.csail.mit.edu/emax" style="text-decoration:none; font-size:1em;">Max Van Kleek</a> & <a href="http://people.csail.mit.edu/karger/" style="text-decoration:none; font-size:1em;">David Karger</a><br />
+		  at MIT CSAIL</div>
+	  </div>
+	  <script type="text/javascript">
+		//<![CDATA[
+(function() {
+	var links = document.getElementsByTagName('a');
+	var query = '?';
+	for(var i = 0; i < links.length; i++) {
+	if(links[i].href.indexOf('#disqus_thread') >= 0) {
+		query += 'url' + i + '=' + encodeURIComponent(links[i].href) + '&';
+	}
+	}
+	document.write('<script charset="utf-8" type="text/javascript" src="http://disqus.com/forums/eyebrowse/get_num_replies.js' + query + '"></' + 'script>');
+})();
+//]]>
+	  </script>
+  </body>
+</html>
+
