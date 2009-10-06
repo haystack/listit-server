@@ -271,6 +271,11 @@ def users(request):
         user = get_object_or_404(User, username=request.user.username)
         username = request.user.username
 
+    if not 'letter' in request.GET:
+        letter = 'a'
+    else:
+        letter = request.GET['letter'].strip()
+
     friends_results = []
     friends = EndUser.objects.all()
   
@@ -292,6 +297,7 @@ def users(request):
             
         friends_results.append( {
                 "username": friend.user.username, 
+                "letter": friend.user.username[0].lower(), 
                 "number": Event.objects.filter(owner=friend.user,type="www-viewed").count(), 
                 "tags": tags, 
                 "id": friend.user.id,
@@ -307,7 +313,8 @@ def users(request):
 
     variables = RequestContext(request, {
         'users': friends_results,
-        'request_user': username
+        'request_user': username,
+        'letter': letter,
         })
     return render_to_response('users.html', variables)
 

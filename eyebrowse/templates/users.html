@@ -53,7 +53,14 @@
 		display:block;
 		}
 		#profile {
-		margin-top:21px;
+		margin-top:28px;
+		}
+		#letters {
+			text-align:center;
+			margin:0px;
+		}
+		#letters a{
+		text-decoration:none;
 		}
 	</style>
 	<script src="/lib/js/jquery.corner.js">
@@ -70,8 +77,18 @@
 			this.endTimeRecent = this.endTime;
             this.interp = zoom / 192;
             this.zoom = zoom;
+			this.drawUsers();
 			this.getProfile(this.startTime, this.endTime);
         },
+		drawUsers: function(){
+			var letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'];
+			var html = "";
+			for (var i = 0; i < letters.length - 1; i++){
+				html += "<a href=\"/users?letter=" + letters[i] + "\">" + letters[i] + "</a>&nbsp; &#124; &nbsp;";
+			}
+			html += "<a href=\"/users?letter=" + letters[letters.length - 1] + "\">" + letters[letters.length - 1]+ "</a>";
+			jQuery("#letters").html(html);
+		},
 		getProfile: function(startTime, endTime){
 			var this_ = this;
 			jQuery("#loadimg").show();
@@ -140,11 +157,12 @@
         </div>
 	  </div>
       <div id="profile_content" style="width:600px">
-		<h1>Users</h1>
-		<br />
+		<h1 style="font-weight:normal">Users</h1>
+	<div class="bodytext" id="letters"></div>
         <div class="viewboxlarge" id="list">
 		  <ul>
 			{% for user in users %}
+			{% ifequal letter user.letter %}
 			<li>
 			  <div style="display:inline-block;width:87px;">
 				{% if user.photo %}
@@ -162,7 +180,7 @@
 				{% endif %}
 			  </div>
 			  <div class="userhead">
-				<a href="/profile/{{ user.username }}/"><h1>{{ user.username }}</h1></a>
+				<a href="/profile/{{ user.username }}"><h1>{{ user.username }}</h1></a>
 				<h2>{{ user.number }}</h2>			  
 				
 				<div class="underuser">
@@ -195,6 +213,7 @@
 				</div>
 			  </div>
 			</li>
+			{% endifequal %}
 			{% endfor %}
 		  </ul>
         </div>

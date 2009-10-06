@@ -98,7 +98,7 @@ input[type = text] {
     border: solid 1px lightgrey;
     padding-top: 4px;
     padding-left: 3px;
-    font-size: 1.1em;
+    font-size: 1.2em;
     width: 99%;
     margin-bottom: 10px;
     height: 20px;
@@ -110,15 +110,16 @@ input[type = password] {
     width: 100%;
     margin-bottom: 10px;
     height: 24px;
+	font-size:2em;
 }
 
 input[type = submit] {
     background-color: #ffffff;
     border: solid 1px #333333;
     color: #333333;
-    padding: 5px;
-    margin-top: 8px;
-    font-size: 1.1em;
+    padding: 7px;
+    margin-top: 12px;
+    font-size: 1.8em;
 }
 
 input[type = radio] {

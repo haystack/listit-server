@@ -5,11 +5,17 @@
         </script>
         <script src="/lib/js/watchlogin.js">
         </script>
+		<style>
+input {
+width: 350px;
+}
+</style>
+
 {% endblock %}
 		{% block content %}
 		<div id="home" style="width:351px">
-		  <h1>sign in</h1>
-		  <br /><br />
+		  <h1 style="font-size:4.5em;">sign in</h1>
+		  <br />
 		  {% if form.errors %}
 		  <p id="validateTips" style="margin-top:8px; margin-bottom:10px;">
 		  Your username and password didn't match. Please try again.</p>
@@ -20,7 +26,7 @@
 			  {{ form.username }}</p>
 			<p>{{ form.password.label_tag }}
 			  {{ form.password }}<p>
-			  <input type="submit" value="login" />
+			  <input type="submit" value="sign in" />
 			  <input type="hidden" name="next" value="{{ next }}" />
 		  </form>
 		  

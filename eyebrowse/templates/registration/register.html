@@ -7,21 +7,27 @@
         </script>
         <script src="/lib/js/watchhome.js">
         </script>
+		<style>
+input {
+width: 350px;
+}
+</style>
 {% endblock %}
 {% block content %}
 		<div id="home" style="width:351px; margin-left:auto; margin-right:auto;">
-		  <h1 style="font-size:4.5em;text-align:left">get started</h1>
-		  <div class="bodytext" style="margin-top:12px;width:400px; text-align:left;font-size:1em;">
-		    check out our <a href="http://eyebrowse.csail.mit.edu/help" target="_blank">help page</a> for a short run through of eyebrowse
-		    <br />
-		    by registering you agree to the <a href="/terms/" style="font-size:1em">terms and conditions and data use policies</a>
+		  <h1 style="font-size:4.5em;">get started</h1>
+		  <div class="bodytext" style="margin-top:12px;text-align:center;font-size:1em;">
+			please create an account to begin using eyebrowse
+<p>
+		  if you would like more information, please check our <a href="http://eyebrowse.csail.mit.edu/help" target="_blank">help page</a><p>
 		  </div>
 		  <br />
 		  <p id="validateTips"></p>
 		  <form method="post" action=".">
 		    {{ form.as_p }}
-		    <input type="submit" value="register" style="margin-top:6px;font-size:1.5em"/>
+		    <input type="submit" value="register"/>
 		  </form>
-		  <div id="messageSent">signing in...</div>		  
+		    <br />
+		    by registering you agree to the <a href="/terms/" style="font-size:1em">terms and conditions and data use policies</a>
 		</div>
 {% endblock %}

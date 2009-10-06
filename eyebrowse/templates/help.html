@@ -29,26 +29,30 @@
   <body>
 	<div id="header">
 	  <a href="/"><img src="/lib/img/smallbird.jpg" style="float:left; padding-left:8px; padding-right:8px; vertical-align:top"/></a>
-	  <a href="/pulse/">pulse</a>&nbsp; &#124; &nbsp;<a href="/ticker/">ticker</a>&nbsp; &#124; &nbsp;<a href="/search/">page stats</a>&nbsp; &#124; &nbsp;<a href="/users/">users</a>
+	  <a href="/pulse">pulse</a>&nbsp; &#124; &nbsp;<a href="/ticker">ticker</a>&nbsp; &#124; &nbsp;<a href="/search">page stats</a>&nbsp; &#124; &nbsp;<a href="/users">users</a>
 	  {% if request_user %}
 	  <div id="usersettings">
-		<a href="/profile/{{ request_user }}/">{{ request_user }}</a>&nbsp; &#124; &nbsp;<a href="/graph/{{ request_user }}/">your graphs</a>&nbsp; &#124; &nbsp;<a href="/friends/manage/{{ request_user }}">your friends</a>&nbsp; &#124; &nbsp;<a href="/settings">settings</a>&nbsp; &#124; &nbsp;<a href="/help/">help</a>&nbsp; &#124; &nbsp;<a href="/logout/">logout</a>
+		<a href="/profile/{{ request_user }}">{{ request_user }}</a>&nbsp; &#124; &nbsp;<a href="/graph/{{ request_user }}">your graphs</a>&nbsp; &#124; &nbsp;<a href="/friends/manage/{{ request_user }}">your friends</a>&nbsp; &#124; &nbsp;<a href="/settings">settings</a>&nbsp; &#124; &nbsp;<a href="/help">help</a>&nbsp; &#124; &nbsp;<a href="/logout">logout</a>
 	  </div>
 	  {% else %}
 	  <div id="usersettings">
-		<a href="/login/?next=/">sign in</a>&nbsp; &#124; &nbsp;<a href="/help/">help</a>
+		<a href="/login/?next=/">sign in</a>&nbsp; &#124; &nbsp;<a href="/help">help</a>
 		{% endif %} 
 	  </div>
 	</div>
 
 
-	<div id="faq">
-	  <h1 style="margin-top:8px; margin-bottom:8px; font-size:4.5em">help</h1>
+	<div id="faq" style="width:550px">
+	  <h1 style="margin-top:8px; margin-bottom:-4px; font-size:4.5em">help</h1>
 	  <div class="bodytext">
 		<a href="#plugin">the plugin</a>&nbsp; &#124; &nbsp;<a href="#pulse">pulse</a>&nbsp; &#124; &nbsp;<a href="#ticker">ticker</a>&nbsp; &#124; &nbsp;<a href="#pagestats">page stats</a>&nbsp; &#124; &nbsp;<a href="#yourprofile">your profile</a>&nbsp; &#124; &nbsp;<a href="#yourgraphs">your graphs</a>
-		<p style="margin-top:8px;">
+<p>
+Eyebrowse is a firefox plugin that lets _you_ decide (and change your mind) which web browsing trails you want to share to a public archive. Eyebrows aggregates this information with other sharers' to show sites' popularity and common navigation trails. Eyebrowse shows this data in the form of interesting and insightful visualizations that help you gain personal insights into your browsing history and its relation to other people's and catch a glimpse of what Google knows about you 
+</p>
+		<p style="margin-top:12px; margin-left:4px;">
 		  if you have any questions please leave a <a href="#comment">comment</a>
 		</p>
+
 		<br /><br />
 		<h1 id="plugin">plugin</h1>
 		<div class="bodytext">
