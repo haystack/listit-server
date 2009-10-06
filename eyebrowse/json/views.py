@@ -980,7 +980,7 @@ def get_top_friend_and_number_friends_for_url(request, username):
         friends = [friendship.to_friend for friendship in user.friend_set.all()]
         results = []
         num_friends = 0
-        top_friend = {"user":"", "number":0}
+        top_friend = [{"user":"", "number":0}]
         for friend in friends:
             number = PageView.objects.filter(user=friend,url=url).count()
             results.append( {"user": friend.username, "number": number } )
@@ -991,7 +991,7 @@ def get_top_friend_and_number_friends_for_url(request, username):
             top_friend = sorted(results, key=lambda x: -x["number"])[0]
         except:
             pass
-        return [{'top_friend':top_friend,'num_friends':num_friends}]
+        return {'top_friend':[top_friend],'num_friends':[num_friends]}
 
     return_results = fetch_data(get_url, user, 'get_to_friend_and_number_friends_for_url')
     #return json_response({ "code":200, "results": return_results });
