@@ -435,6 +435,87 @@ def get_top_and_trending_pages(end_time, interp, n, req_type):
     return results
 
 
+def get_JSON_top_and_trending_pages(request):
+    if not 'username' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'username' key" }) 
+    
+    username = request.GET['username'].strip()
+    
+    end_time = int(time.time()*1000)
+    interp = int(86400*1000/2) # 12 hours
+    
+    req_type = {}
+    if request.GET['type'].strip() == 'user':
+        req_type['user'] = username
+    elif request.GET['type'].strip() == 'friends':
+        req_type['friends'] = username
+    else:
+        req_type['global'] = 'global'
+
+    if 'user' in req_type:
+        users = get_object_or_404(User, username=req_type['user'])
+    elif 'friends' in req_type:
+        usr = get_object_or_404(User, username=req_type['friends'])
+        users = [friendship.to_friend for friendship in usr.friend_set.all()]
+    else:
+        users = User.objects.all()
+        
+    n = int(20)
+
+    second_end = end_time
+    second_start = end_time - interp
+    first_end = second_start
+    first_start = second_start - interp
+
+    @cache.region('long_term')
+    def fetch_data(users, pages):
+        times_per_url_first = _get_top_pages_n(users,first_start,first_end)
+        times_per_url_second = _get_top_pages_n(users,second_start,second_end)
+        
+        def index_of(what, where):
+            try:
+                return [ h[0] for h in where ].index(what)
+            except:
+                # print sys.exc_info()
+                pass
+            return None
+
+        results = []
+
+        for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
+                old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
+                if old_rank is not None:
+                    diff = - (i - old_rank)  # we want the gain not the difference
+                    results.append( times_per_url_second[i] + (diff,) )
+                else:
+                    results.append( times_per_url_second[i] + (0,) )
+                    
+        top_pages = results[0:n]
+        results.sort(key=lambda x: -x[2])
+
+        trending = results[0:n]        
+
+        tre_titles = []
+        for result in trending:
+            try:
+                tre_titles.append(PageView.objects.filter(url=result[0])[0].title)
+            except:
+                tre_titles.append("")
+
+        top_titles = []
+        for result in top_pages:
+            try:
+                top_titles.append(PageView.objects.filter(url=result[0])[0].title)
+            except:
+                top_titles.append("")
+
+
+        return {"top":top_pages, "trending":trending, "tre_titles":tre_titles, "top_titles":top_titles}
+
+    results = fetch_data(users, 'top_and_trending_pages')
+    return json_response({ "code":200, "results": results });
+
+
 def get_profile_graphs(endTime, interp, username):    
     user = get_object_or_404(User, username=username)
 

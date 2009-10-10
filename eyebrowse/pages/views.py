@@ -23,6 +23,12 @@ from jv3.models import Event ## from listit, ya.
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 from django.contrib.auth import authenticate, login
 
+# zamiang browser
+def zamiang_browser(request):
+    t = loader.get_template("zamiang.html")
+    c = Context({ 'username': request.user.username, 'id': request.user.id, 'request_user': request.user.username })
+    return HttpResponse(t.render(c))
+
 def _create_enduser_for_user(user, request):
     enduser = EndUser()
     enduser.user = user
@@ -382,6 +388,14 @@ def plugin_iframe(request):
     request_user = request.user.username
 
     t = loader.get_template("iframe.html")
+    c = Context({ 'request_user': request_user })
+
+    return HttpResponse(t.render(c))
+
+def new_tab(request):
+    request_user = request.user.username
+
+    t = loader.get_template("newtab.html")
     c = Context({ 'request_user': request_user })
 
     return HttpResponse(t.render(c))

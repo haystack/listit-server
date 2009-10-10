@@ -56,6 +56,10 @@ urlpatterns = patterns('',
                        (r'^accounts/profile/?$',  privacy_settings_page),
                        #(r'^userprivacy/?$', userprivacy),
 
-                       # plugin iframe
-                       (r'^iframe$', plugin_iframe),
+                       # plugin
+                       (r'^iframe/?$', plugin_iframe),
+                       (r'^newtab/?$', new_tab),
+
+                       # zamiang browser
+                       (r'^zamiang/?$', zamiang_browser)
 )

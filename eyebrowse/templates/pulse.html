@@ -144,11 +144,11 @@
 								   jQuery("#global").css("font-weight","lighter");
 								   jQuery("#" + type).css("font-weight","bold");
 
+								   this_.drawTopPagesList(data.results[3]);
+								   this_.drawTopDomains(data.results[4]);
 								   this_.drawProfile(data.results[0]);
 								   this_.drawMiniGraph(data.results[2]);
 								   this_.drawBG(data.results[1]);
-								   this_.drawTopPagesList(data.results[3]);
-								   this_.drawTopDomains(data.results[4]);
 
 								   jQuery("#loadimg").hide();
 							   }
