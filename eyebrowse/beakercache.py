@@ -12,10 +12,10 @@ CACHE_EXPIRY_VST = '8' ## 8 seconds
 cache_opts = {
     'cache.type': 'file',
 
-    'cache.data_dir': '/Users/brennanmoore/listit-server/server/cache/data',
-    'cache.lock_dir': '/Users/brennanmoore/listit-server/server/cache/lock',
-    #'cache.data_dir': '/biggie/eyebrowse/workspace/trunk/server/eyebrowse/cache/data',
-    #'cache.lock_dir': '/biggie/eyebrowse/workspace/trunk/server/eyebrowse/cache/lock',
+    #'cache.data_dir': '/Users/brennanmoore/listit-server/server/cache/data',
+    #'cache.lock_dir': '/Users/brennanmoore/listit-server/server/cache/lock',
+    'cache.data_dir': '/biggie/eyebrowse/workspace/trunk/server/eyebrowse/cache/data',
+    'cache.lock_dir': '/biggie/eyebrowse/workspace/trunk/server/eyebrowse/cache/lock',
     
     'cache.regions': 'ticker, short_term, long_term, very_long_term',
     'cache.ticker.type': 'memory',

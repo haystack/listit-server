@@ -1269,8 +1269,8 @@ var dotFactory = ({
 
 							 for (var i = 0; i < this_.polyArray.length; i++) {
 								 ctx.beginPath();
-								 ctx.fillStyle = "hsl(" + this_.data[i][1].hue + ",100%,50%)";
-								 ctx.arc(this_.polyArray[i][0].x + this_.den/2 - 1.5, this_.polyArray[i][0].y + this_.den/2 - 1.5, 1.5,0, Math.PI*2,true);
+								 ctx.fillStyle = "hsl(" + this_.data[i][1].hue + ",100%,80%)";
+								 ctx.arc(this_.polyArray[i][0].x + this_.den/2 - 1.5, this_.polyArray[i][0].y + this_.den/2 - 1.5, 2.5,0, Math.PI*2,true);
 								 ctx.fill();
 								 ctx.closePath();
 							 }
@@ -1310,7 +1310,10 @@ var dotFactory = ({
 												 this_.trigger = true;
 												 this_.pIH = true;										 
 												 jQuery("#target").css({"left" : this_.mouseVal.x -2 + "px", "top" : this_.mouseVal.y + 30 + "px" });
+												 if (this_.data[j][1].title){
 												 jQuery("#fooTxt").html("<a href=\"" + this_.data[j][1].url + "\">" + this_.data[j][1].title + "</a>");
+												 } else { jQuery("#fooTxt").html("<a href=\"" + this_.data[j][1].url + "\">" + this_.data[j][1].url + "</a>");}
+												 
 												 jQuery("#fooTxt").css({"left" : this_.mouseVal.x - (this_.data[j][1].title.length * 6)/2 + "px", "padding": "3px", "top" : this_.mouseVal.y + this_.fooTxtY + 19 + "px" });
 												 
 											 }
@@ -1338,7 +1341,7 @@ var dotFactory = ({
 								 this_.rowArray[i] = {};
 								 this_.rowArray[i].poly = rectToPoly({
 																	xPos: 0,
-																	yPos: i * 10,
+																	yPos: i * this_.den,
 																	height: this_.den,
 																	width: this_.windowWidth
 																});
@@ -1349,7 +1352,6 @@ var dotFactory = ({
 							 for (var i = 0; i < numCol; i++){
 								 startPointArray[i] = i * this_.den;
 							 }
-
 							 // should go backwards every other time
 							 for (var i = 0; i < this_.data.length -1; i++) {
 								 this_.polyArray[i] = rectToPoly({xPos: startPointArray[colNum], yPos: rowNum * this_.den, width: this_.den, height: this_.den});

@@ -187,7 +187,7 @@
 				}
 				html += "</li>";
 			}
-
+			jQuery("#pages").html(html);					   			
 			html = "";
 			for (var i = 0; i < 10; i++) {
 				var trigger = true;
@@ -217,7 +217,6 @@
 				html += "</li>";
 			}
 
-			jQuery("#pages").html(html);					   			
 			jQuery("#trending").html(html);					   			
 			jQuery("#pages").slideDown('slow');
 			jQuery("#trending").slideDown('slow');

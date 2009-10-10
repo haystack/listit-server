@@ -414,6 +414,7 @@ def get_top_and_trending_pages(end_time, interp, n, req_type):
 
         trending = results[0:n]        
 
+        # this may be kindof intense on the db
         tre_titles = []
         for result in trending:
             try:
@@ -460,7 +461,7 @@ def get_JSON_top_and_trending_pages(request):
     else:
         users = User.objects.all()
         
-    n = int(20)
+    n = int(15)
 
     second_end = end_time
     second_start = end_time - interp
@@ -1029,7 +1030,7 @@ def get_pulse(request):
     else:
         request_type['global'] = 'global'
 
-    num = 9750 # this number fills a 15in screen pretty well and is prolly ok for dots ##request.GET['num'].strip()
+    num = 2000#9750 # this number fills a 15in screen pretty well and is prolly ok for dots ##request.GET['num'].strip()
 
     @cache.region('long_term')
     def fetch_data(bar, cache):    
@@ -1072,7 +1073,7 @@ def get_top_friend_and_number_friends_for_url(request, username):
             top_friend = sorted(results, key=lambda x: -x["number"])[0]
         except:
             pass
-        return {'top_friend':[top_friend],'num_friends':[num_friends]}
+        return {'top_friend':top_friend,'num_friends':num_friends}
 
     return_results = fetch_data(get_url, user, 'get_to_friend_and_number_friends_for_url')
     #return json_response({ "code":200, "results": return_results });
