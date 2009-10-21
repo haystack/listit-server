@@ -1030,7 +1030,8 @@ def get_pulse(request):
     else:
         request_type['global'] = 'global'
 
-    num = 2000#9750 # this number fills a 15in screen pretty well and is prolly ok for dots ##request.GET['num'].strip()
+    num = 3500 
+    #9750 # this number fills a 15in screen pretty well and is prolly ok for dots ##request.GET['num'].strip()
 
     @cache.region('long_term')
     def fetch_data(bar, cache):    
