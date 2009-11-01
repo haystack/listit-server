@@ -652,7 +652,7 @@ def get_zen(request):
     if not request_user:
         logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
         response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
-        response.status_code = 401;
+        response.status_code = 401 ## removed semi-colon??
         return response
     
     ## we want to determine order using magic note
@@ -673,6 +673,14 @@ def get_zen(request):
         # sort by creation date ?
         notes = Note.objects.filter(owner=request_user,deleted=False).order_by("-created").exclude(jid=-1)
 
+    ##startIndex = request.GET.get("START_INDEX", None)
+    ##startIndex = urllib.unquote(startIndex)
+
+    ##endIndex = request.GET.get("END_INDEX", None)
+    ##endIndex = urllib.unquote(endIndex)
+
+    print "Start Index: %s, End Index: %s" & (startIndex, endIndex)
+    
     ## make magic happen
     ndicts = [ extract_zen_notes_data(note) for note in notes ]
 
@@ -681,6 +689,121 @@ def get_zen(request):
     response.status_code = 200
     return response
 
+def put_zen(request):
+    ## copied from notes_post_multi, altered for better edit posting
+    ## Purpose: allow notes to be posted, if server has newer version, join texts and return new note
+    ##
+    ## mirrored from NoteCollections.create upstairs but updated to handle
+    ## new batch sync protocol from listit 0.4.0 and newer.
+    
+    ## changes to protocol:
+    ## call it with a list of notes { [ {id: 123981231, text:"i love you"..} ...  ] )
+    ## returns a success with a list { committed: [{ success: <code>, jid: <id> }] ... } unless something really bad happened
+
+    print "0"
+
+    request_user = basicauth_get_user_by_emailaddr(request);
+    if not request_user:
+        logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
+        response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
+        response.status_code = 401;
+        return response
+
+    print "1"
+    
+    responses = []
+    updateResponses = []
+    ## print "raw post data: %s " % repr(request.raw_post_data)
+    if not request.raw_post_data:
+        response = HttpResponse(JSONEncoder().encode({'committed':[]}), "text/json")
+        response.status_code = 200;
+        return response
+
+    print "2"
+        
+    for datum in JSONDecoder().decode(request.raw_post_data):
+        ## print "datum : %s "% repr(datum)
+        ## print datum
+        form = NoteForm(datum)
+        form.data['owner'] = request_user.id;                 ## clobber this whole-sale from authenticating user
+        matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)
+        print "3"
+        if len(matching_notes) == 0:
+            print "4a: no matching notes, make new note"
+            ## CREATE a new note
+            # If the data contains no errors, save the model,
+            if form.is_valid() :
+                print "Creating new note with JID: %s" % (form.data[jid])
+                new_model = form.save()
+                responses.append({"jid":form.data['jid'],"status":201})
+                logevent(request,'Note.create',200,form.data['jid'])
+                continue
+            print "4b: website note form not valid"
+            ## something didn't pass form validation
+            logevent(request,'Note.create',400,form.errors)
+            responses.append({"jid":form.data['jid'],"status":400})
+            print "CREATE form errors %s " % repr(form.errors)
+            continue
+        else:
+            print "4b: update old note"
+            ## UPDATE an existing note
+            ## check if the client version needs updating
+            if len(matching_notes) > 1:  print "# of Matching Notes : %d " % len(matching_notes)
+            
+            if (matching_notes[0].version > form.data['version']):
+                print "5a: client ver needs updating, form.is_valid() is: %s" % (form.is_valid()) 
+                ## Change to return {jid,contents,created,deleted,edited}
+                if form.is_valid():
+                    for key in Note.update_fields: ## key={contents,created,deleted,edited}
+                        if key == "contents":
+                            newContent = "Two versions of this note:\nSubmitted Copy:\n%s\n\nServer Copy:\n%s" % (form.data[key], matching_notes[0].contents)
+                            print "Key: %s, Data: %s" % (key, newContent)
+                            matching_notes[0].__setattr__(key, newContent)
+                        else:
+                            print "Key: %s, Data: %s" % (key, form.data[key])
+                            matching_notes[0].__setattr__(key, form.data[key])
+                    ## Now return to user jid,created,deleted,edited and new contents of note!
+                    # increment version number
+                    newVersion = max(matching_notes[0].version, form.data['version']) + 1
+                    matching_notes[0].version = newVersion ## Saved note is MOST-up-to-date, ie:(max(both versions)+1)
+                    # save!
+                    # print "SAVING %s, is it deleted? %s " % (repr(matching_notes[0]),repr(matching_notes[0].deleted))
+                    matching_notes[0].save()
+                    updateResponses.append({"jid":form.data['jid'],"content": newContent, "version": newVersion,"status":201})
+                    continue
+                ## Original Code Below
+                ##errormsg = "Versions for jid %d not compatible (local:%d, received: %d). Do you need to update? "  % (form.data["jid"],matching_notes[0].version,form.data["version"])
+                ##print "NOT UPDATED error -- server: %d, YOU %d " % (matching_notes[0].version,form.data['version'])
+                ##responses.append({"jid":form.data['jid'],"status":201}) ##was 400
+                continue            
+            # If the data contains no errors, migrate the changes over to
+            # the version of the note in the db, increment the version number
+            # and announce success
+            if form.is_valid() :
+                print "6a: update server note"
+                for key in Note.update_fields:
+                    matching_notes[0].__setattr__(key,form.data[key])
+                    print "Key: %s, Data: %s" % (key, form.data[key])
+
+                # increment version number
+                matching_notes[0].version = form.data['version'] + 1 ## matching_notes[0].version + 1;
+                # save!
+                # print "SAVING %s, is it deleted? %s " % (repr(matching_notes[0]),repr(matching_notes[0].deleted))
+                matching_notes[0].save()
+                responses.append({"jid":form.data['jid'],"status":201})
+            else:
+                print "6b: client note not valid"
+                # Otherwise return a 400 Bad Request error.
+                responses.append({"jid":form.data['jid'],"status":400})
+                logevent(request,'Note.create',400,form.errors)
+                pass
+        pass
+    print "7: almost done"
+    print responses
+    response = HttpResponse(JSONEncoder().encode({'committed':responses, 'update':updateResponses}), "text/json")
+    response.status_code = 200;
+    print "8: returning!"
+    return response
 
 def post_usage_statistics(request):
     print "usage stats"
