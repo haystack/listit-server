@@ -154,13 +154,14 @@ def basicauth_decode_email_password(request):
         if authblob is None:
             authblob = request.GET.get("HTTP_AUTHORIZATION",None)
             if authblob is None:
+                ##print "Couldn't get authorization" ## W added
                 return None
             print authblob
             authblob = urllib.unquote(authblob)
         (authmeth, auth) = authblob.split(' ', 1)
         assert authmeth.strip().lower() == 'basic', "auth token 1 must be basic %s " % authmeth.lower()
         auth = auth.strip().decode('base64')
-        print auth
+        ##print auth
         emailaddr, password = auth.split(':', 1)        
         return (emailaddr,password)        
     except:

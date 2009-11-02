@@ -648,13 +648,15 @@ def extract_zen_notes_data(note):
             
 
 def get_zen(request):
+    print 0
     request_user = basicauth_get_user_by_emailaddr(request);
+    print 1.5
     if not request_user:
         logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
         response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
         response.status_code = 401 ## removed semi-colon??
         return response
-    
+    print 1
     ## we want to determine order using magic note
     if Note.objects.filter(owner=request_user,jid="-1").count() > 0:
         magic_note = Note.objects.filter(owner=request_user,jid="-1")[0]
@@ -672,20 +674,27 @@ def get_zen(request):
     else:
         # sort by creation date ?
         notes = Note.objects.filter(owner=request_user,deleted=False).order_by("-created").exclude(jid=-1)
-
-    ##startIndex = request.GET.get("START_INDEX", None)
+    print 2
+    startIndex = int(request.GET.get("START_INDEX", 0))
+    print "Start Index: %s" % startIndex
     ##startIndex = urllib.unquote(startIndex)
-
-    ##endIndex = request.GET.get("END_INDEX", None)
+    print 3
+    endIndex = int(request.GET.get("END_INDEX", -1))
     ##endIndex = urllib.unquote(endIndex)
-
-    print "Start Index: %s, End Index: %s" & (startIndex, endIndex)
+    print "Almost!"
     
     ## make magic happen
-    ndicts = [ extract_zen_notes_data(note) for note in notes ]
+    ndicts = [ extract_zen_notes_data(note) for note in notes[startIndex:endIndex] ]
+
+    print "Almost2"
+
+    deltaIndex = endIndex - startIndex
 
     htmlblob = "\n".join([ "<div class='note'> <img class='deleteX' src='x.png' alt='Delete' onClick='zenNoteAjax.saveEditedNote(\"%(jid)s\",true)'/><textarea name='note' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onClick='zenNoteView.noteClicked(\"%(jid)s\")' cols='%(col)s' rows='%(row)s' hasFocus='false' hasSelect='false' onBlur='zenNoteView.noteBlur(\"%(jid)s\")' style='overflow:hidden'>%(noteText)s</textarea></div>" % n for n in ndicts ])
+    htmlblob += "\n <button id='requestMore' onClick='zeniPhone.requestMore()'>Get %s more notes</div>" % (deltaIndex)
+    print "Almost3"
     response = HttpResponse(htmlblob, 'text/html');
+    print "Almost4"
     response.status_code = 200
     return response
 
