@@ -703,7 +703,7 @@ def get_zen(request):
     htmlblob = "\n".join([ "<div class='note'> <img class='deleteX' src='x.png' alt='Delete' onClick='zenNoteAjax.saveEditedNote(\"%(jid)s\",true)'/><textarea name='note' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onClick='zenNoteView.noteClicked(\"%(jid)s\")' cols='%(col)s' rows='%(row)s' hasFocus='false' hasSelect='false' onBlur='zenNoteView.noteBlur(\"%(jid)s\")' style='overflow:hidden'>%(noteText)s</textarea></div>" % n for n in ndicts ])
     if iphone and additionalNotesWaiting:
         htmlblob += "\n <button id='requestMore' onClick='zeniPhone.requestMore()'>Get %s more notes</div>" % (deltaIndex)
-    else if iphone:
+    elif iphone:
         htmlblob += "\n <button id='requestMore' style='display:none' onClick='zeniPhone.requestMore()'>Get %s more notes</div>" % (deltaIndex)
         
     print "Almost3"
