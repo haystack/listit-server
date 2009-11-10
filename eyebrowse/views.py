@@ -14,10 +14,17 @@ from jv3.models import Event ## from listit, ya.
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 
 def get_title_from_evt(evt):
-    foo =  JSONDecoder().decode(JSONDecoder().decode(evt.entitydata)[0]['data'])
-    if foo.has_key('title'):
-        return foo['title']
-    return   
+    if evt.entitydata:
+        foo = JSONDecoder().decode(evt.entitydata)
+        if foo:
+            foo = foo[0]
+            if foo:
+                foo = foo['data']
+                if foo:
+                    foo = JSONDecoder().decode(foo)
+                    if foo.has_key('title'):
+                        return foo['title']
+    return 
 
 ## hook for creating relevant Page objects when new jv3.Event objects get created 
 ## by the listit server (which answers calls from listit)                    
@@ -25,7 +32,7 @@ def create_www_pageviews_for_each_event(sender, created=None, instance=None, **k
     #print "post-save event for sender %s : %s " % (repr(sender),repr(instance.entityid)) 
     if (created and instance is not None):
         if instance.entitytype == "schemas.Webpage" and instance.entityid is not None:
-            ## print "post-save url: %s " % instance.entityid ## debug!!    
+            ## print "post-save url: %s " % instance.entityid ## debug!!
             pageview = PageView.from_Event(instance)
             # print "Saving %s " % repr(pageview)                                     
             pageview.save()
