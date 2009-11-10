@@ -461,7 +461,7 @@ def get_JSON_top_and_trending_pages(request):
     else:
         users = User.objects.all()
         
-    n = int(15)
+    n = int(17)
 
     second_end = end_time
     second_start = end_time - interp

@@ -20,39 +20,39 @@ Array.prototype.min = function(){
 
 // possibly faster
 function smallest(array){
-	return Math.min.apply( Math, array );
+    return Math.min.apply( Math, array );
 }
 function largest(array){
-	return Math.max.apply( Math, array );
+    return Math.max.apply( Math, array );
 }
 
 function trim (str, i) {
-	var	str = str.replace(/^\s\s*/, '');
-	var ws = /\s/;
-	while (ws.test(str.charAt(--i)));
+    var str = str.replace(/^\s\s*/, '');
+    var ws = /\s/;
+    while (ws.test(str.charAt(--i)));
 	return str.slice(0, i + 1);
 }
 
 String.prototype.trim = function(i) {
-	var	str = this.replace(/^\s\s*/, '');
-	var ws = /\s/;
-	while (ws.test(str.charAt(--i)));
+    var str = this.replace(/^\s\s*/, '');
+    var ws = /\s/;
+    while (ws.test(str.charAt(--i)));
 	return str.slice(0, i + 1);
 }
 
 
 // merge objects
 function merge(root){
-	for ( var i = 1; i < arguments.length; i++ )
-		for ( var key in arguments[i] )
-			root[key] = arguments[i][key];
-	return root;
+    for ( var i = 1; i < arguments.length; i++ )
+	for ( var key in arguments[i] )
+	    root[key] = arguments[i][key];
+    return root;
 }
 
 // ask if something is a function or not
 function isFunction( fn ) {
-	return Object.prototype.toString.call(fn) ===
-		"[object Function]";
+    return Object.prototype.toString.call(fn) ===
+	"[object Function]";
 }
 
 //This prototype is provided by the Mozilla foundation and
@@ -61,139 +61,122 @@ function isFunction( fn ) {
 
 if (!Array.prototype.every)
 {
-  Array.prototype.every = function(fun /*, thisp*/)
-  {
-    var len = this.length;
-    if (typeof fun != "function")
-      throw new TypeError();
-
-    var thisp = arguments[1];
-    for (var i = 0; i < len; i++)
+    Array.prototype.every = function(fun /*, thisp*/)
     {
-      if (i in this &&
-          !fun.call(thisp, this[i], i, this))
-        return false;
-    }
+	var len = this.length;
+	if (typeof fun != "function")
+	    throw new TypeError();
 
-    return true;
-  };
+	var thisp = arguments[1];
+	for (var i = 0; i < len; i++)
+	{
+	    if (i in this &&
+		!fun.call(thisp, this[i], i, this))
+		return false;
+	}
+
+	return true;
+    };
 }
 
 Array.prototype.shuffle = function (){
-        for(var rnd, tmp, i=this.length; i; rnd=parseInt(Math.random()*i), tmp=this[--i], this[i]=this[rnd], this[rnd]=tmp);
-};
+    for(var rnd, tmp, i=this.length; i; rnd=parseInt(Math.random()*i), tmp=this[--i], this[i]=this[rnd], this[rnd]=tmp);
+	};
 
 /*
-Array.indexOf() is a nice method but this extension is a little more powerful and flexible. First it will return an array of all the indexes it found (it will return false if it doesn't find anything). Second in addition to passing the usual string or number to look for you can actually pass a regular expression, which makes this the ultimate Array prototype in my book.
+ Array.indexOf() is a nice method but this extension is a little more powerful and flexible. First it will return an array of all the indexes it found (it will return false if it doesn't find anything). Second in addition to passing the usual string or number to look for you can actually pass a regular expression, which makes this the ultimate Array prototype in my book.
  */
 Array.prototype.find = function(searchStr) {
-  var returnArray = false;
-  for (i=0; i<this.length; i++) {
-    if (typeof(searchStr) == 'function') {
-      if (searchStr.test(this[i])) {
-        if (!returnArray) { returnArray = [] }
-        returnArray.push(i);
-      }
-    } else {
-      if (this[i]===searchStr) {
-        if (!returnArray) { returnArray = [] }
-        returnArray.push(i);
-      }
+    var returnArray = false;
+    for (i=0; i<this.length; i++) {
+	if (typeof(searchStr) == 'function') {
+	    if (searchStr.test(this[i])) {
+		if (!returnArray) { returnArray = [] }
+		returnArray.push(i);
+	    }
+	} else {
+	    if (this[i]===searchStr) {
+		if (!returnArray) { returnArray = [] }
+		returnArray.push(i);
+	    }
+	}
     }
-  }
-  return returnArray;
+    return returnArray;
 }
 
-
-// WORDWRAP
-//+ Jonas Raoni Soares Silva
-//@ http://jsfromhell.com/string/wordwrap [rev. #2]
-
-String.prototype.wordWrap = function(m, b, c){
-    var i, j, l, s, r;
-    if (m < 1)
-        return this;
-    for (i = -1, l = (r = this.split("\n")).length; ++i < l; r[i] += s)
-        for (s = r[i], r[i] = ""; s.length > m; r[i] += s.slice(0, j) + ((s = s.slice(j)).length ? b : ""))
-            j = c == 2 || (j = s.slice(0, m + 1).match(/\S*(\s)?$/))[1] ? m : j.input.length - j[0].length ||
-            c == 1 && m ||
-            j.input.length + (j = s.slice(m).match(/^\S*/)).input.length;
-    return r.join("\n");
-};
-
 function selectColorForDomain(domain) {
-	// now we need to turn this domain into a color.
-	if (this.__color_cache === undefined) { this.__color_cache = {}; }
-	if (this.__color_cache[domain] === undefined) {
-		var mystery_prime =  3021377; //13646456457645727890239087; //1283180923023829; //3021377;
-		
-		// rgb generator
-		var rgb_generator = function(d) {
-			var biggest_color = parseInt("ffffff",16);
-			var code = d.length > 0 ?
-				d.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; }) * mystery_prime % biggest_color :
-			65535;
-			return "#"+code.toString(16);
-		};
-		
-		// hsl generator
-		var hsl_generator = function(domain) {
-			var h = domain.length > 0 ?  domain.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; })  % 360 : 172;
-			var s = "100%";
-			var l = "50%";
-			return   "hsl("+[""+h,s,l].join(",")+")";
-		};
+    // now we need to turn this domain into a color.
+    if (this.__color_cache === undefined) { this.__color_cache = {}; }
+    if (this.__color_cache[domain] === undefined) {
+	var mystery_prime =  3021377; //13646456457645727890239087; //1283180923023829; //3021377;
+	
+	// rgb generator
+	var rgb_generator = function(d) {
+	    var biggest_color = parseInt("ffffff",16);
+	    var code = d.length > 0 ?
+		d.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; }) * mystery_prime % biggest_color :
+	    65535;
+	    return "#"+code.toString(16);
+	};
+	
+	// hsl generator
+	var hsl_generator = function(domain) {
+	    var h = domain.length > 0 ?  domain.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; })  % 360 : 172;
+	    var s = "100%";
+	    var l = "50%";
+	    return   "hsl("+[""+h,s,l].join(",")+")";
+	};
 
-		this.__color_cache[domain] = hsl_generator(domain); //rgb_generator(domain); //hsl_generator(domain);
-	}
-	return this.__color_cache[domain];
+	this.__color_cache[domain] = hsl_generator(domain); //rgb_generator(domain); //hsl_generator(domain);
+    }
+    return this.__color_cache[domain];
 }
 
 function rectToPoly(p){
-  return [{
-    x: p.xPos,
-    y: p.yPos
-  }, {
-    x: p.xPos + p.width,
-    y: p.yPos
-  }, {
-    x: p.xPos + p.width,
-    y: p.yPos + p.height
-  }, {
-    x: p.xPos,
-    y: p.yPos + p.height
-  }];
+    return [{
+		x: p.xPos,
+		y: p.yPos
+	    }, {
+		x: p.xPos + p.width,
+		y: p.yPos
+	    }, {
+		x: p.xPos + p.width,
+		y: p.yPos + p.height
+	    }, {
+		x: p.xPos,
+		y: p.yPos + p.height
+	    }];
 }
 
 function circleToPoly(p){
-  return [{
-    x: p.size * Math.cos(0) + p.xPos,
-    y: p.size * Math.sin(0) + p.yPos
-  }, {
-    x: p.size * Math.cos(45) + p.xPos,
-    y: p.size * Math.sin(45) + p.yPos
-  }, {
-    x: p.size * Math.cos(90) + p.xPos,
-    y: p.size * Math.sin(90) + p.yPos
-  }, {
-    x: p.size * Math.cos(135) + p.xPos,
-    y: p.size * Math.sin(135) + p.yPos
-  }, {
-    x: p.size * Math.cos(180) + p.xPos,
-    y: p.size * Math.sin(180) + p.yPos
-  }, {
-    x: p.size * Math.cos(225) + p.xPos,
-    y: p.size * Math.sin(225) + p.yPos
-  }, {
-    x: p.size * Math.cos(270) + p.xPos,
-    y: p.size * Math.sin(270) + p.yPos
-  }, {
-    x: p.size * Math.cos(315) + p.xPos,
-    y: p.size * Math.sin(315) + p.yPos
-  }, {
-    x: p.size * Math.cos(0) + p.xPos,
-    y: p.size * Math.sin(0) + p.yPos
-  }];
+    return [{
+		x: p.size * Math.cos(0) + p.xPos,
+		y: p.size * Math.sin(0) + p.yPos
+	    }, {
+		x: p.size * Math.cos(45) + p.xPos,
+		y: p.size * Math.sin(45) + p.yPos
+	    }, {
+		x: p.size * Math.cos(90) + p.xPos,
+		y: p.size * Math.sin(90) + p.yPos
+	    }, {
+		x: p.size * Math.cos(135) + p.xPos,
+		y: p.size * Math.sin(135) + p.yPos
+	    }, {
+		x: p.size * Math.cos(180) + p.xPos,
+		y: p.size * Math.sin(180) + p.yPos
+	    }, {
+		x: p.size * Math.cos(225) + p.xPos,
+		y: p.size * Math.sin(225) + p.yPos
+	    }, {
+		x: p.size * Math.cos(270) + p.xPos,
+		y: p.size * Math.sin(270) + p.yPos
+	    }, {
+		x: p.size * Math.cos(315) + p.xPos,
+		y: p.size * Math.sin(315) + p.yPos
+	    }, {
+		x: p.size * Math.cos(0) + p.xPos,
+		y: p.size * Math.sin(0) + p.yPos
+	    }];
 };
 
 
@@ -218,8 +201,20 @@ function isPointInPoly(poly, pt){
 sum = function(o){
     for (var s = 0, i = o.length; i; s += o[--i])
         ;
-    return s;
+	return s;
 };
+
+function getClientCords() {
+    var dimensions = {width: 0, height: 0};
+    if (document.documentElement) {
+        dimensions.width = document.documentElement.offsetWidth;
+        dimensions.height = document.documentElement.offsetHeight;
+    } else if (window.innerWidth && window.innerHeight) {
+        dimensions.width = window.innerWidth;
+        dimensions.height = window.innerHeight;
+    }
+    return dimensions;
+}
 
 function timeCounter(time){
     var t = parseInt(time); // might not have to do this
@@ -242,18 +237,6 @@ function timeCounter(time){
 
     // document.getElementById('result4').innerHTML = content;
     return (content);
-}
-
-function getClientCords() {
-     var dimensions = {width: 0, height: 0};
-     if (document.documentElement) {
-         dimensions.width = document.documentElement.offsetWidth;
-         dimensions.height = document.documentElement.offsetHeight;
-     } else if (window.innerWidth && window.innerHeight) {
-         dimensions.width = window.innerWidth;
-         dimensions.height = window.innerHeight;
-     }
-     return dimensions;
 }
 
 function timeCounterLong(time){
@@ -298,9 +281,9 @@ function timeCounterLongAbv(time){
         content += hours + " h";
     }
     if (minutes) {
-      if (content)
-	content += ", ";
-      content += minutes + " min and ";
+	if (content)
+	    content += ", ";
+	content += minutes + " min and ";
     }
     content += t + " sec";
 
@@ -324,77 +307,78 @@ function timeCounterClock(time){
     content += minutes + " m " + t + " s";
     return (content);
 }
-/*
-objSort v 1.1
-copyright 2006 Thomas Frank
 
-This program is free software under the terms of the
-GNU General Public License version 2 as published by the Free
-Software Foundation. It is distributed without any warranty.
-*/
+/*
+ objSort v 1.1
+ copyright 2006 Thomas Frank
+
+ This program is free software under the terms of the
+ GNU General Public License version 2 as published by the Free
+ Software Foundation. It is distributed without any warranty.
+ */
 
 tfObjSort={
-	init:function(){
-		Array.prototype.objSort=function(){
-			tfObjSort.setThings(this);
-			var a=arguments;
-			var x=tfObjSort;
-			x.a=[];x.d=[];
-			for(var i=0;i<a.length;i++){
-				if(typeof a[i]=="string"){x.a.push(a[i]);x.d.push(1)};
-				if(a[i]===-1){x.d[x.d.length-1]=-1}
-			}
-			return this.sort(tfObjSort.sorter);
-		};
-		Array.prototype.strSort=function(){
-			tfObjSort.setThings(this);
-			return this.sort(tfObjSort.charSorter)
-		}
-	},
-	sorter:function(x,y){
-		var a=tfObjSort.a
-		var d=tfObjSort.d
-		var r=0
-		for(var i=0;i<a.length;i++){
-			if(typeof x+typeof y!="objectobject"){return typeof x=="object"?-1:1};
-			var m=x[a[i]]; var n=y[a[i]];
-			var t=typeof m+typeof n;
-			if(t=="booleanboolean"){m*=-1;n*=-1}
-			else if(t.split("string").join("").split("number").join("")!=""){continue};
-			r=m-n;
-			if(isNaN(r)){r=tfObjSort.charSorter(m,n)};
-			if(r!=0){return r*d[i]}
-		}
-		return r
-	},
-	charSorter:function(x,y){
-		if(tfObjSort.ignoreCase){x=x.toLowerCase();y=y.toLowerCase()};
-		var s=tfObjSort.chars;
-		if(!s){return x>y?1:x<y?-1:0};
-		x=x.split("");y=y.split("");l=x.length>y.length?y.length:x.length;
-		var p=0;
-		for(var i=0;i<l;i++){
-			p=s.indexOf(x[i])-s.indexOf(y[i]);
-			if(p!=0){break};
-		};
-		if(p==0){p=x.length-y.length};
-		return p
-	},
-	setThings:function(x){
-		this.ignoreCase=x.sortIgnoreCase;
-		var s=x.sortCharOrder;
-		if(!s){this.chars=false;return true};
-		if(!s.sort){s=s.split(",")};
-		var a="";
-		for(var i=1;i<1024;i++){a+=String.fromCharCode(i)};
-		for(var i=0;i<s.length;i++){
-			z=s[i].split("");
-			var m=z[0]; var n=z[1]; var o="";
-			if(z[2]=="_"){o=n+m} else {o=m+n};
-			a=a.split(m).join("").split(n).join(o);
-		};
-		this.chars=a
+    init:function(){
+	Array.prototype.objSort=function(){
+	    tfObjSort.setThings(this);
+	    var a=arguments;
+	    var x=tfObjSort;
+	    x.a=[];x.d=[];
+	    for(var i=0;i<a.length;i++){
+		if(typeof a[i]=="string"){x.a.push(a[i]);x.d.push(1)};
+		if(a[i]===-1){x.d[x.d.length-1]=-1}
+	    }
+	    return this.sort(tfObjSort.sorter);
+	};
+	Array.prototype.strSort=function(){
+	    tfObjSort.setThings(this);
+	    return this.sort(tfObjSort.charSorter)
 	}
+    },
+    sorter:function(x,y){
+	var a=tfObjSort.a
+	var d=tfObjSort.d
+	var r=0
+	for(var i=0;i<a.length;i++){
+	    if(typeof x+typeof y!="objectobject"){return typeof x=="object"?-1:1};
+	    var m=x[a[i]]; var n=y[a[i]];
+	    var t=typeof m+typeof n;
+	    if(t=="booleanboolean"){m*=-1;n*=-1}
+	    else if(t.split("string").join("").split("number").join("")!=""){continue};
+	    r=m-n;
+	    if(isNaN(r)){r=tfObjSort.charSorter(m,n)};
+	    if(r!=0){return r*d[i]}
+	}
+	return r
+    },
+    charSorter:function(x,y){
+	if(tfObjSort.ignoreCase){x=x.toLowerCase();y=y.toLowerCase()};
+	var s=tfObjSort.chars;
+	if(!s){return x>y?1:x<y?-1:0};
+	x=x.split("");y=y.split("");l=x.length>y.length?y.length:x.length;
+	var p=0;
+	for(var i=0;i<l;i++){
+	    p=s.indexOf(x[i])-s.indexOf(y[i]);
+	    if(p!=0){break};
+	};
+	if(p==0){p=x.length-y.length};
+	return p
+    },
+    setThings:function(x){
+	this.ignoreCase=x.sortIgnoreCase;
+	var s=x.sortCharOrder;
+	if(!s){this.chars=false;return true};
+	if(!s.sort){s=s.split(",")};
+	var a="";
+	for(var i=1;i<1024;i++){a+=String.fromCharCode(i)};
+	for(var i=0;i<s.length;i++){
+	    z=s[i].split("");
+	    var m=z[0]; var n=z[1]; var o="";
+	    if(z[2]=="_"){o=n+m} else {o=m+n};
+	    a=a.split(m).join("").split(n).join(o);
+	};
+	this.chars=a
+    }
 };
 tfObjSort.init();
 
@@ -478,8 +462,8 @@ var dateFormat = function(){
         };
 
         return mask.replace(token, function($0){
-            return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
-        });
+				return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
+			    });
     };
 }();
 
@@ -511,15 +495,14 @@ Date.prototype.format = function(mask, utc){
 };
 
 // console.log that works in all browsers via resig
-
 function log() {
+    try {
+	console.log.apply( console, arguments );
+    } catch(e) {
 	try {
-		console.log.apply( console, arguments );
-	} catch(e) {
-		try {
-			opera.postError.apply( opera, arguments );
-		} catch(e){
-			alert( Array.prototype.join.call( arguments, " " ) );
-		}
+	    opera.postError.apply( opera, arguments );
+	} catch(e){
+	    alert( Array.prototype.join.call( arguments, " " ) );
 	}
+    }
 }

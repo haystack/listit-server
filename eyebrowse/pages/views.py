@@ -226,6 +226,10 @@ def pulse(request):
     c = Context({ 'username': request.user.username, 'id': request.user.id, 'request_user': request.user.username })
     return HttpResponse(t.render(c))
 
+def localviz(request):
+    t = loader.get_template("localviz.html")
+    c = Context({ 'username': request.user.username, 'id': request.user.id, 'request_user': request.user.username })
+    return HttpResponse(t.render(c))
 
 def page_profile(request): 
     url = 'http://nytimes.com'
