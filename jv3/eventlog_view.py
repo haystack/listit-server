@@ -17,7 +17,7 @@ from jv3.models import Event
 from jv3.utils import get_most_recent, basicauth_get_user_by_emailaddr,json_response
 import time
 from django.template.loader import get_template
-import sys
+import sys,traceback
 
 
 def authenticate_user(request):
@@ -33,6 +33,7 @@ class EventLogCollection(Collection):
 
     def read(self,request):
         request_user = authenticate_user(request);
+        print request_user
         if not request_user:
             return self.responder.error(request, 401, ErrorDict({"autherror":"Incorrect user/password combination"}))
         
@@ -43,14 +44,19 @@ class EventLogCollection(Collection):
         ## retrieve the entire activity log
         return self.responder.list(Event.objects.filter(owner=request_user), qs_user)        
 
-    def _handle_max_log_request(self,user,request):
+    def _handle_max_log_request(self, user,request):
         ## return the max id (used by the client to determine which recordsneed to be retrieved.)
         print "_handle_max_log_request get client is : %s "  % self._get_client(request)
-        most_recent_activity = Event.objects.filter(owner=user,client=self._get_client(request)).order_by("-start");
-        if most_recent_activity:
-            return HttpResponse(JSONEncoder().encode({'value':int(most_recent_activity[0].start)}), self.responder.mimetype)
-        #print "returning 404-------"
-        print "no activity found, returning 404"
+        try:
+            most_recent_activity = Event.objects.filter(owner=user,client=self._get_client(request)).order_by("-start");
+            # print " records %d : from %s to %s "  % (len(most_recent_activity),most_recent_activity[len(most_recent_activity)-1].start,most_recent_activity[0].start)
+            if most_recent_activity:
+                return HttpResponse(JSONEncoder().encode({'value':int(most_recent_activity[0].start)}), self.responder.mimetype)
+            #print "returning 404-------"
+            print "no activity found, returning 404"
+        except:
+            print sys.exc_info()
+            
         return self.responder.error(request, 404, ErrorDict({"value":"No activity found"}));
 
     def _get_client(self,request):
@@ -96,16 +102,18 @@ def post_events(request):
     """
     lets the user post new activity in a giant single array of activity log elements
     """
+    print "post_events --"
     request_user = authenticate_user(request);
     if not request_user:
         return json_response({"error":"Incorrect user/password combination"}, 401)
 
     committed = [];
-    
+    # print "rpd:"
+    # print request.raw_post_data
+
     for item in JSONDecoder().decode(request.raw_post_data):
         try:
-            entry = Event.objects.filter(owner=request_user, start=item['start'], type=item['type'],  entityid=item['entityid'],
-                                         entitytype=item['entitytype'],client=item['client'])
+            entry = Event.objects.filter(owner=request_user, start=item['start'], type=item['type'],  entityid=item['entityid'],entitytype=item['entitytype'],client=item['client'])
             if entry.count() == 0 :
                 print "creating new event %s -> %s " % (repr(item['start']),item['entityid'])
                 entry = Event();
@@ -122,7 +130,17 @@ def post_events(request):
 
             entry.end = item['end']
             entry.entitydata = item.get('entitydata',"")
-            entry.save()
+            try:
+                entry.save()
+            except StandardError, error:
+                exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
+                print "*** print_tb:"
+                traceback.print_tb(exceptionTraceback, file=sys.stdout)
+                ##sys.exc_info()[2].print_tb()
+                ##sys.exc_info()[2].print_stack()
+                print "save err with entry %s item %s " % (repr(error),repr(item))
+                pass
+
             committed.append(item['start'])
         except StandardError, error:
             print "Error with entry %s item %s " % (repr(error),repr(item))
