@@ -27,13 +27,12 @@
       <a href="/">
 	<img src="/lib/img/smallbird.jpg" style="float:left; padding-left:8px; padding-right:8px; vertical-align:top"/></a>
       <a href="/pulse">pulse</a>&nbsp; &#124; &nbsp;
-      <a href="/ticker">ticker</a>&nbsp; &#124; &nbsp;
-      <a href="/search">page stats</a>&nbsp; &#124; &nbsp;
+      <a href="/pathways">pathways</a>&nbsp; &#124; &nbsp;
       <a href="/users">users</a>
       {% if request_user %}
       <div id="usersettings">
 	<a href="/profile/{{ request_user }}">{{ request_user }}</a>&nbsp; &#124; &nbsp;
-	<a href="/graph/{{ request_user }}">your graphs</a>&nbsp; &#124; &nbsp;
+	<a href="/lifestream">lifestream</a>&nbsp; &#124; &nbsp;
 	<a href="/friends/manage/{{ request_user }}">your friends</a>&nbsp; &#124; &nbsp;
 	<a href="/settings">settings</a>&nbsp; &#124; &nbsp;
 	<a href="/help">help</a>&nbsp; &#124; &nbsp;

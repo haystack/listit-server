@@ -1,237 +1,49 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>eyebrowse | personal visualizations</title>
-    <link rel="shortcut icon" href="/lib/img/favicon.ico">
-    <style>
-      @import url("../frameworks/reset-fonts-grids.css");
-      @import url("eyebrowse.css");
-    </style>
-    <script type="text/javascript" src="../frameworks/jquery.js"></script>
-    <script>
-      jQuery.noConflict();
-    </script>
-    <script type="text/javascript" src="../protocrock.js"></script> 
-    <script src="/lib/js/ui-utils.js"></script>
-    <script src="/lib/js/stacktime.js"></script>
-    <script src="/lib/js/nodeviz.js"></script>
-    <script src="/lib/js/canvas.text.js"></script>
-    <script src="/lib/js/faces/helvetiker-normal-normal.js"></script>
-    <script>
-var WatchmeVisualisation = {
-    initialize: function(canvas){
-        this.canvas = canvas;
-        this.now = new Date();
-        this.drag = undefined;
-        this.zoom = zoom;
-        this.drawArray = [];
-	this.swopGraph("day");
-    },
-    getData(){
-	// probably will be making local calls instead an doing a bit more to the data
-	jQuery("#loadimg").show();
-        return jQuery.get("/get_views_user/{{ username }}/", {
-		       from: this.startTime,
-		       to: this.endTime
-		   }, function(data){
-		       jQuery("#loadimg").hide();	
-		       if (data.code == 200) {
-			   return data
-		       }
-		       else {
-			   log("fail " + data.code);
-		       }
-		   }, "json");
-    },
-    createStacktime:function(){
-	var data = this.getData();
-	this.drawArray = [];
-	this.isStatic = false; 
-	
-	var this_ = this;			
-	if (data.code == 200) {
-	    if (data.results.length > 0){							
-		var wwwBarsArray = [];
-		var newDate = "";
-		var newTotal = "";
-		for (var i = 0; i < (zoom / day); i++) {
-		    var newData = newData.filter(function(view){
-						     if (view.end < (this_.endTime - (day * i)) && (view.start > (this_.endTime - day - (day * i)))) {
-							 return view;
-						     };
-						 });
-		    wwwBarsArray[i] = newify(statusFactory, this_, {
-						 startTime: this_.endTime - day - (day * i),
-						 endTime: this_.endTime - (day * i),
-						 xOffset: 0,
-						 yOffset: 0,
-						 marginTop: 25 * i + 11,
-						 height: 20,
-						 color: "#0000ff",
-						 staticStatic: true,
-						 data: newData,
-						 fooTxtY: 90,
-						 fooTxtX: ((getClientCords().width - viz.windowWidth)/2) - 50 // this plus 150 will center text over the mouse rather than having it to thoe left 
-					     });
-		    newDate += new Date(wwwBarsArray[i].endTime).format('dddd, mmmm d') + "<br />";
-		    newTotal += function(){
-			var foo = 1;
-			for (var j = 0; j < wwwBarsArray[i].data.length; j++) {
-			    foo += wwwBarsArray[i].data[j].end - wwwBarsArray[i].data[j].start;
-			}
-			return timeCounterLongAbv(foo / 1000) + "<br />";
-		    }();
-		}
-		
-		
-		/*
-		 jQuery("#fooDate").html(fooDate);
-		 jQuery("#fooTotal").html(fooTotal);
-		 jQuery("#minDate").html("| " + (new Date(this_.endTime - 86400000)).format('h:MM TT')); // maxDate minus 24 hours
-		 jQuery("#maxDate").html((new Date(this_.endTime).format('h:MM TT')) + " |");
-		 jQuery("#minDateTwo").html("| " + (new Date(this_.endTime - 86400000)).format('h:MM TT')); // maxDate minus 24 hours
-		 jQuery("#maxDateTwo").html((new Date(this_.endTime).format('h:MM TT')) + " |");
-		 
-		 var mainEvtHandlers = newify(evtHandlers, this_);
-		 
-		 this_.isStatic = true; // does not move or make more ajax calls
-		 this_.drawArray.push(wwwBarsArray);
-		 this_.draw();
-		 */
-		
-		dateSliderArray.push(mainDateSlider);
-		
-		this_.drawArray.push(lineGraphArray);
-		this_.drawArray.push(dateSliderArray);
-		this_.drawArray.push(statusArray);
-		
-		var mainEvtHandlers = newify(evtHandlers, this_);
-		
-		this_.draw();
-	    }
-	}
-    },
-    draw: function(){
-        if (this.canvas !== undefined && this.canvas.getContext) {
-            var ctx = this.canvas.getContext('2d');
-            ctx.clearRect(0, 0, this.windowWidth, this.windowHeight);
-            for (var i = 0; i < this.drawArray.length; i++) {
-                for (var k = 0; k < this.drawArray[i].length; k++) {
-                    this.drawArray[i][k].draw();
-                }
-            }
-        }
-        else {
-            alert('You need Safari 4 or Firefox 3+ to see this.');
-        }
-    },
-    updateTimeline: function(){
-	var this_ = this;
-	try {
-	    jQuery("#loadimg1").show();
-            jQuery.get("/get_views_user/{{ username }}/", {
-			   from: this.startTime,
-			   to: this.endTime
-		       }, function(data){
-			   jQuery("#loadimg1").hide();
-			   if (data.code == 200) {
-			       if (data.results.length > 0) {
-				   for (var i = 0; i < this_.drawArray.length; i++) {
-				       for (var k = 0; k < this_.drawArray[i].length; k++) {
-					   this_.drawArray[i][k].mouseUp({
-									     p: 0,
-									     newData: data.results
-									 });
-				       }
-				   }
-			       }
-			       this_.draw();									   
-			   }
-			   else {
-			       log("yaaaa!!!H!H!H!" + data.code + " ");
-			   }
-		       }, "json");
-        } 
-        catch (e) {
-            console.log(e);
-        }            
-    },
-    getCanvas: function(){
-        return this.canvas;
-    },
-    setDrawArray: function(p){
-        this.drawArray = p;
-    },
-    swopGraph: function(graph){
-	if (this.graph != graph){
-	    this.graph = graph;
-	    
-	    if (this_.graph == "timeline"){
-		this.createTimeline();
-	    }
-	    if (this_.graph == "day"){
-		this.createDays();
-	    }
-	    if (this_.graph == "20days"){
-		this.create20Days();
-	    }
-	}
-    }
-};
-
-
-jQuery(document).ready(function(){			   
-			   self.viz = newify(WatchmeVisualisation, document.getElementById("main"));
-		       });
-							   </script>
-    <body>
+{% extends "base.html" %}
+{% block title %}lifestream{% endblock %}
+{% block imports %}
+<style>
+  @import url("/lib/css/datepicker.css");
+</style>
+<script src="/lib/js/ui-utils.js"></script>
+<script src="/lib/js/ui-init.js"></script>
+<script src="/lib/js/stacktime.js"></script>
+<script src="/lib/js/nodeviz.js"></script>
+<script src="/lib/js/barstack.js"></script>
+<script src="/lib/js/canvas.text.js"></script>
+<script src="/lib/js/faces/helvetiker-normal-normal.js"></script>
+<script type="application/javascript;version=1.8">
+  jQuery(document).ready(function(){		
+			       netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect UniversalBrowserRead");
+			       var JV3 = Components.classes['@electronic.max/listit;1'].getService().wrappedJSObject;
+			       self.JV3 = JV3;
+			       
+			       let windowWidth = getClientCords().width - 50;
+			       let windowHeight = window.innerHeight - 279;
+			       
+			       document.getElementById("main").setAttribute("width", windowWidth);
+			       document.getElementById("main").setAttribute("height", windowHeight);
+			       self.xviz = newify(lifestream, document.getElementById("main"));
+			   });
+     </script>
+{% endblock %}
+{% block content %}
     <div class="loader" id="loadimg"></div>
-      <div id="header">
-	<a href="/">
-	  <img src="/lib/img/smallbird.jpg" style="float:left; padding-left:8px; padding-right:8px; vertical-align:top"/></a>
-	<a href="/pulse">pulse</a>&nbsp; &#124; &nbsp;
-	<a href="/ticker">ticker</a>&nbsp; &#124; &nbsp;
-	<a href="/search">page stats</a>&nbsp; &#124; &nbsp;
-	<a href="/users">users</a>
-	{% if request_user %}
-	<div id="usersettings">
-	  <a href="/profile/{{ request_user }}">{{ request_user }}</a>&nbsp; &#124; &nbsp;
-	  <a href="/graph/{{ request_user }}">your graphs</a>&nbsp; &#124; &nbsp;
-	  <a href="/friends/manage/{{ request_user }}">your friends</a>&nbsp; &#124; &nbsp;
-	  <a href="/settings">settings</a>&nbsp; &#124; &nbsp;
-	  <a href="/help">help</a>&nbsp; &#124; &nbsp;
-	  <a href="/logout">logout</a>
+    <div id="profile_content" style="width:98%">
+      <h1>lifestream</h1>
+    <!--
+      <h2 style="border-top: medium none;">Ticker</h2>
+      <div class="underuser">
+	<div id="timelinenav" class="graphNavBtn" onClick="viz.swopGraph(this)" >
+	  timeline 
+	</div>	
+	<div id="dayNav" class="graphNavBtn" onClick="viz.swopGraph(this)" >
+	  by hour of day
 	</div>
-	{% else %}
-	<div id="usersettings">
-	  <a href="/login/?next=/">sign in</a>&nbsp; &#124; &nbsp;
-	  <a href="/help">help</a>
-	  {% endif %} 
+	<div id="weeknav" class="graphNavBtn" onClick="viz.swopGraph(this)" >
+	  by day of week
 	</div>
       </div>
-      
-      <div id="footer">
-	<a href="/about">about</a>&nbsp; &#124; &nbsp;
-	<a href="/help">help</a>&nbsp; &#124; &nbsp;
-	<a href="http://groups.csail.mit.edu/haystack/">research</a>&nbsp; &#124; &nbsp;
-	<a href="http://code.google.com/p/list-it/">google code</a>&nbsp; &#124; &nbsp;
-	<a href="http://groups.google.com/group/eyebrowse">google group</a>&nbsp; &#124; &nbsp;
-	<a href="/releases/eyebrowse.xpi">download</a>
-	<div style="margin-top:4px; line-height:15px;">created by: 
-	  <a href="http://www.zamiang.com/" style="text-decoration:none; font-size:1em;">Brennan Moore</a>, 
-	  <a href="http://people.csail.mit.edu/emax" style="text-decoration:none; font-size:1em;">Max Van Kleek</a> & 
-	  <a href="http://people.csail.mit.edu/karger/" style="text-decoration:none; font-size:1em;">David Karger</a><br />
-	  at MIT CSAIL</div>
-      </div>
-      
-      <script type="text/javascript">
-	var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-	document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-      </script>
-      <script type="text/javascript">
-	try {
-	var pageTracker = _gat._getTracker("UA-11204544-1");
-	pageTracker._trackPageview();
-	} catch(err) {}</script>
-    </body>
-</html>
+    -->
+    <canvas id="main"></canvas>
+    </div>
+{% endblock %}

@@ -546,7 +546,7 @@ def _profile_save(request, form):
                 enduser.photo.save(name, img)
 
             # save the thumbnail            
-            THUMBNAIL_SIZE = (69, 69)
+            THUMBNAIL_SIZE = (160, 160)
             image = Image.open(enduser.photo)
             
             if image.mode not in ('L', 'RGB'):
