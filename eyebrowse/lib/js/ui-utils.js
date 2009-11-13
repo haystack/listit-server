@@ -21,14 +21,11 @@ var evtHandlers = ({
 							    x: evt.clientX - position.left,
 							    y: evt.clientY - position.top
 							};
-
+							
 							for (var i = 0; i < this_.viz.drawArray.length; i++) {
-							    for (var k = 0; k < this_.viz.drawArray[i].length; k++) {
-								this_.viz.drawArray[i][k].mouseMove({
-													// drag is handled by each visualization thought this_.viz.drag ?
-													mouseVal: this_.mouse
-												    });
-							    }
+							    this_.viz.drawArray[i].mouseMove({
+												 mouseVal: this_.mouse
+											     });
 							}
 							this_.viz.draw();
 						    });
@@ -36,11 +33,9 @@ var evtHandlers = ({
 							this_.viz.drag = true;
 							this_.dragBeginX = this_.mouse.x;
 							for (var i = 0; i < this_.viz.drawArray.length; i++) {
-							    for (var k = 0; k < this_.viz.drawArray[i].length; k++) {
-								this_.viz.drawArray[i][k].mouseDown({
+								this_.viz.drawArray[i].mouseDown({
 													mouseVal: this_.mouse
 												    });
-							    }
 							}
 						    });
 			   jQuery(canvas).mouseup(function(){
@@ -53,12 +48,10 @@ var evtHandlers = ({
 
 							  var __gangsta_draw = function(newData) {
 							      for (var i = 0; i < this_.viz.drawArray.length; i++) {
-								  for (var k = 0; k < this_.viz.drawArray[i].length; k++) {
-								      this_.viz.drawArray[i][k].mouseUp({
-													    p: p,
-													    newData: newData
-													});
-								  }
+								  this_.viz.drawArray[i].mouseUp({
+													 p: p,
+													 newData: newData
+												     });
 							      }
 							  };
 						      }

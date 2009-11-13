@@ -505,32 +505,36 @@ a.selected {
     background-image:url("/lib/img/target_16.png");	
     width:16px;
     height:16px;
-} .fooTxt {
+} #hoverTxt {
     position: absolute;
-    background: #000000;
-    color: #999999;
-    padding: 0px;
+    background: white;
+    color: #333;
+    padding: 12px;
     width: auto;
     text-decoration: none;
-} .fooTxt A {
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border:1px solid lightgrey;
+    opacity:0.95;
+} #hoverTxt a {
     text-decoration: none;
     font-size: 1em;
     background: #000000;
     padding: 3px;
     color: #ffffff;
-} #fooTxt A:visited {
+} #hoverTxt a:visited {
     text-decoration: none;
     font-size: 1em;
     padding: 3px;
     background: #000000;
     color: #ffffff;
-} #fooTxt A:active {
+} #hoverTxt A:active {
     text-decoration: none;
     font-size: 1em;
     padding: 3px;
     background: #000000;
     color: #ffffff;
-} #fooTxt A:hover {
+} #hoverTxt a:hover {
     text-decoration: underline;
     color: #ffffff;
 } .centerlabel {
@@ -929,4 +933,24 @@ a.selected {
     margin-top: 20px;
     padding-bottom: 0px;
     border: none;
+}
+#lifestream {
+    border-top:3.6px solid black;
+    margin-top:-4px;
+}
+.btn {
+    border: 1px solid lightgrey;
+    font-weight:light;
+    display:inline-block;
+    padding:4px;
+    margin-top:5px;
+    margin-right:4px;
+}
+.btn .sel{
+    border:3.6px solid lightgrey;
+    font-weight:bold;
+}
+.btn:hover{
+    border:3.6px solid magenta;
+    font-weight:bold;
 }

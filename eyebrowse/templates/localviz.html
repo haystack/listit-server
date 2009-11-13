@@ -9,41 +9,33 @@
 <script src="/lib/js/stacktime.js"></script>
 <script src="/lib/js/nodeviz.js"></script>
 <script src="/lib/js/barstack.js"></script>
-<script src="/lib/js/canvas.text.js"></script>
-<script src="/lib/js/faces/helvetiker-normal-normal.js"></script>
 <script type="application/javascript;version=1.8">
   jQuery(document).ready(function(){		
 			       netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect UniversalBrowserRead");
 			       var JV3 = Components.classes['@electronic.max/listit;1'].getService().wrappedJSObject;
 			       self.JV3 = JV3;
 			       
-			       let windowWidth = getClientCords().width - 50;
-			       let windowHeight = window.innerHeight - 279;
-			       
-			       document.getElementById("main").setAttribute("width", windowWidth);
-			       document.getElementById("main").setAttribute("height", windowHeight);
-			       self.xviz = newify(lifestream, document.getElementById("main"));
+			       self.viz = newify(lifestream, document.getElementById("main"));
 			   });
      </script>
 {% endblock %}
 {% block content %}
     <div class="loader" id="loadimg"></div>
+    <div id="hoverTxt"></div>
     <div id="profile_content" style="width:98%">
       <h1>lifestream</h1>
-    <!--
-      <h2 style="border-top: medium none;">Ticker</h2>
-      <div class="underuser">
-	<div id="timelinenav" class="graphNavBtn" onClick="viz.swopGraph(this)" >
+      <a href="addfeeds" style="float:right; margin-top:17px; font-size:14px;">add feeds</a>
+      <div id="lifestream">
+	<div class="btn" onClick="viz.swopGraph(this)" >
 	  timeline 
 	</div>	
-	<div id="dayNav" class="graphNavBtn" onClick="viz.swopGraph(this)" >
-	  by hour of day
+	<div class="btn" onClick="viz.swopGraph(this)" >
+	  locations
 	</div>
-	<div id="weeknav" class="graphNavBtn" onClick="viz.swopGraph(this)" >
-	  by day of week
+	<div class="btn" onClick="viz.swopGraph(this)" >
+	  explorer
 	</div>
       </div>
-    -->
     <canvas id="main"></canvas>
     </div>
 {% endblock %}

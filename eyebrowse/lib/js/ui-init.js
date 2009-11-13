@@ -1,7 +1,7 @@
 var lifestream = {
     initialize: function(canvas){
         this.canvas = canvas;
-        this.now = new Date();
+	this.now = new Date();
         this.drag = undefined;
         this.drawArray = [];
 	this.endTime = new Date().valueOf();
@@ -24,44 +24,47 @@ var lifestream = {
     },
     createStackTime:function(type){
 	this.drawArray = []; // clean the draw array
- 	var windowWidth = getClientCords().width - 50;
-	var windowHeight = window.innerHeight - 279;
+ 	this.windowWidth = getClientCords().width - 50;
+	this.windowHeight = 500; //window.innerHeight;
+
+	document.getElementById("main").setAttribute("width", this.windowWidth);
+	document.getElementById("main").setAttribute("height", this.windowHeight);
 
 	if (this.data){							
 	    var stackTime = newify(stackTimeFactory, this, {
-				       windowWidth: windowWidth,
-				       windowHeight: windowHeight,
+				       windowWidth: this.windowWidth,
+				       windowHeight: this.windowHeight,
 				       type: type,
-				       mouseMargin: {x:((getClientCords().width - windowWidth)/2) - 50, y:90 }
+				       mouseMargin: {x:((getClientCords().width - this.windowWidth)/2) - 50, y:90 }
 				   });
 
 	    var mainEvtHandlers = newify(evtHandlers, this);
-	    this_.drawArray.push(stackTime);	    	    
-	    this_.draw();
+	    this.drawArray.push(stackTime);	    	    
+	    this.draw();
 	}
     },
     createStackGraph: function(type){
-	var windowWidth = getClientCords().width - 50;
-	var windowHeight = window.innerHeight - 279;
+	this.windowWidth = getClientCords().width - 50;
+	this.windowHeight = window.innerHeight - 279;
 	this.drawArray = []; // clean the draw array 
 	
-	var HTML = "<div id=\"totalGraphKey\" style=\"color:#333; width:" + windowWidth/2 + "px;margin-top:15px; margin-bottom:8px;text-align:center; display: inline-block;\">top 20 each day of week</div>"
-	    + "<div id=\"avgGraphKey\" style=\"color:#333; width:" + windowWidth/3 + "px; text-align:right; display: inline-block;\">top 20 per hour of day</div>";
+	var HTML = "<div id=\"totalGraphKey\" style=\"color:#333; width:" + this.windowWidth/2 + "px;margin-top:15px; margin-bottom:8px;text-align:center; display: inline-block;\">top 20 each day of week</div>"
+	    + "<div id=\"avgGraphKey\" style=\"color:#333; width:" + this.windowWidth/3 + "px; text-align:right; display: inline-block;\">top 20 per hour of day</div>";
 	
 	jQuery('#graph').html("");
 	jQuery('#graph').html(HTML);
 	
-	document.getElementById("main").setAttribute("width", windowWidth);
-	document.getElementById("main").setAttribute("height", windowHeight);
+	document.getElementById("main").setAttribute("width", this.windowWidth);
+	document.getElementById("main").setAttribute("height", this.windowHeight);
 	
 	if (data.results.length > 0){							
 	    var graphArray = [];
 	    var stackGraph = newify(stackBarGraphFactory, this_, {
 					type: type,
-					windowWidth: windowWidth,
-					windowHeight: windowHeight,
+					windowWidth: this.windowWidth,
+					windowHeight: this.windowHeight,
 					columnWidth:8,
-					mouseMargin: {x:((getClientCords().width - viz.windowWidth)/2) - 50, y:90 },
+					mouseMargin: {x:((getClientCords().width - this.windowWidth)/2) - 50, y:140 },
 					labelLeft: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', '  Friday', 'Saturday', 'Sunday'],
 					labelRight: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
 				    });

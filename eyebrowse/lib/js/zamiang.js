@@ -1,23 +1,3 @@
-// minval maxval of array
-Array.prototype.max = function(){
-    var max = this[0];
-    var len = this.length;
-    for (var i = 1; i < len; i++)
-        if (this[i] > max) {
-            max = this[i];
-        }
-    return max;
-};
-Array.prototype.min = function(){
-    var min = this[0];
-    var len = this.length;
-    for (var i = 1; i < len; i++)
-        if (this[i] < min) {
-            min = this[i];
-        }
-    return min;
-};
-
 // possibly faster
 function smallest(array){
     return Math.min.apply( Math, array );
@@ -33,14 +13,6 @@ function trim (str, i) {
 	return str.slice(0, i + 1);
 }
 
-String.prototype.trim = function(i) {
-    var str = this.replace(/^\s\s*/, '');
-    var ws = /\s/;
-    while (ws.test(str.charAt(--i)));
-	return str.slice(0, i + 1);
-}
-
-
 // merge objects
 function merge(root){
     for ( var i = 1; i < arguments.length; i++ )
@@ -55,37 +27,10 @@ function isFunction( fn ) {
 	"[object Function]";
 }
 
-//This prototype is provided by the Mozilla foundation and
-//is distributed under the MIT license.
-//http://www.ibiblio.org/pub/Linux/LICENSES/mit.license
-
-if (!Array.prototype.every)
-{
-    Array.prototype.every = function(fun /*, thisp*/)
-    {
-	var len = this.length;
-	if (typeof fun != "function")
-	    throw new TypeError();
-
-	var thisp = arguments[1];
-	for (var i = 0; i < len; i++)
-	{
-	    if (i in this &&
-		!fun.call(thisp, this[i], i, this))
-		return false;
-	}
-
-	return true;
-    };
-}
-
-Array.prototype.shuffle = function (){
-    for(var rnd, tmp, i=this.length; i; rnd=parseInt(Math.random()*i), tmp=this[--i], this[i]=this[rnd], this[rnd]=tmp);
-	};
-
 /*
  Array.indexOf() is a nice method but this extension is a little more powerful and flexible. First it will return an array of all the indexes it found (it will return false if it doesn't find anything). Second in addition to passing the usual string or number to look for you can actually pass a regular expression, which makes this the ultimate Array prototype in my book.
  */
+/*
 Array.prototype.find = function(searchStr) {
     var returnArray = false;
     for (i=0; i<this.length; i++) {
@@ -103,6 +48,7 @@ Array.prototype.find = function(searchStr) {
     }
     return returnArray;
 }
+*/
 
 function selectColorForDomain(domain) {
     // now we need to turn this domain into a color.
@@ -307,82 +253,6 @@ function timeCounterClock(time){
     content += minutes + " m " + t + " s";
     return (content);
 }
-
-/*
- objSort v 1.1
- copyright 2006 Thomas Frank
-
- This program is free software under the terms of the
- GNU General Public License version 2 as published by the Free
- Software Foundation. It is distributed without any warranty.
- */
-
-tfObjSort={
-    init:function(){
-	Array.prototype.objSort=function(){
-	    tfObjSort.setThings(this);
-	    var a=arguments;
-	    var x=tfObjSort;
-	    x.a=[];x.d=[];
-	    for(var i=0;i<a.length;i++){
-		if(typeof a[i]=="string"){x.a.push(a[i]);x.d.push(1)};
-		if(a[i]===-1){x.d[x.d.length-1]=-1}
-	    }
-	    return this.sort(tfObjSort.sorter);
-	};
-	Array.prototype.strSort=function(){
-	    tfObjSort.setThings(this);
-	    return this.sort(tfObjSort.charSorter)
-	}
-    },
-    sorter:function(x,y){
-	var a=tfObjSort.a
-	var d=tfObjSort.d
-	var r=0
-	for(var i=0;i<a.length;i++){
-	    if(typeof x+typeof y!="objectobject"){return typeof x=="object"?-1:1};
-	    var m=x[a[i]]; var n=y[a[i]];
-	    var t=typeof m+typeof n;
-	    if(t=="booleanboolean"){m*=-1;n*=-1}
-	    else if(t.split("string").join("").split("number").join("")!=""){continue};
-	    r=m-n;
-	    if(isNaN(r)){r=tfObjSort.charSorter(m,n)};
-	    if(r!=0){return r*d[i]}
-	}
-	return r
-    },
-    charSorter:function(x,y){
-	if(tfObjSort.ignoreCase){x=x.toLowerCase();y=y.toLowerCase()};
-	var s=tfObjSort.chars;
-	if(!s){return x>y?1:x<y?-1:0};
-	x=x.split("");y=y.split("");l=x.length>y.length?y.length:x.length;
-	var p=0;
-	for(var i=0;i<l;i++){
-	    p=s.indexOf(x[i])-s.indexOf(y[i]);
-	    if(p!=0){break};
-	};
-	if(p==0){p=x.length-y.length};
-	return p
-    },
-    setThings:function(x){
-	this.ignoreCase=x.sortIgnoreCase;
-	var s=x.sortCharOrder;
-	if(!s){this.chars=false;return true};
-	if(!s.sort){s=s.split(",")};
-	var a="";
-	for(var i=1;i<1024;i++){a+=String.fromCharCode(i)};
-	for(var i=0;i<s.length;i++){
-	    z=s[i].split("");
-	    var m=z[0]; var n=z[1]; var o="";
-	    if(z[2]=="_"){o=n+m} else {o=m+n};
-	    a=a.split(m).join("").split(n).join(o);
-	};
-	this.chars=a
-    }
-};
-tfObjSort.init();
-
-
 
 
 // this is at the end because it screws up highlighting
