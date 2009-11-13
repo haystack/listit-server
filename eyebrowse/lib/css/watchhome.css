@@ -10,12 +10,6 @@ body {
     text-align: left;
 }
 
-ul {
-    list-style-type: none;
-    padding: 0;
-    margin-top: 0px;
-}
-
 h1 {
     font-size: 2em;
     font-weight: normal;
@@ -62,6 +56,12 @@ h7 {
     float: right;
     display: inline-block;
     color: #333333;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin-top: 0px;
 }
 
 canvas {
@@ -509,13 +509,15 @@ a.selected {
     position: absolute;
     background: white;
     color: #333;
-    padding: 12px;
+    padding: 6px;
     width: auto;
     text-decoration: none;
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
     border:1px solid lightgrey;
     opacity:0.95;
+    display:none;
+    line-height:15px
 } #hoverTxt a {
     text-decoration: none;
     font-size: 1em;
@@ -943,14 +945,68 @@ a.selected {
     font-weight:light;
     display:inline-block;
     padding:4px;
-    margin-top:5px;
+    margin-top:8px;
     margin-right:4px;
 }
-.btn .sel{
+.sel{
     border:3.6px solid lightgrey;
     font-weight:bold;
 }
 .btn:hover{
     border:3.6px solid magenta;
     font-weight:bold;
+}
+
+
+/* from atomate */
+#sources {
+    border-top:3.6px solid black;
+    margin-top:-4px;
+}
+#sources img {
+    height:40px;
+    width:40px;
+    vertical-align:middle;
+}
+
+#sources a {
+    text-align:underline;
+}
+#sources h3 {
+    width: 65%;
+}
+
+#sources .srchead{
+    font-size:36px;
+    font-weight:bold;
+    margin-bottom:12px;
+    padding:8px;
+    background-color:#f0ffff;
+    width:100%
+}
+#sources .srchead:hover{
+    background-color:white;
+}
+
+#sources .add {
+    margin-top:8px;
+    margin-bottom:8px;
+    margin-left:50px;
+    display:none;
+}
+#sources a{
+    padding-right: 7px;
+    padding-left:0px;
+    font-size:16px;
+    text-decoration:underline;
+}
+
+#sources .select{
+    font-weight:bold;
+    text-decoration:none;
+    color:#333;
+}
+
+#rightNav {
+    float:right;
 }

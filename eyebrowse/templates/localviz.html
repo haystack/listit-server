@@ -20,7 +20,6 @@
      </script>
 {% endblock %}
 {% block content %}
-    <div class="loader" id="loadimg"></div>
     <div id="hoverTxt"></div>
     <div id="profile_content" style="width:98%">
       <h1>lifestream</h1>
@@ -30,12 +29,18 @@
 	  timeline 
 	</div>	
 	<div class="btn" onClick="viz.swopGraph(this)" >
+	  stacked bar graph
+	</div>
+	<div class="btn" onClick="viz.swopGraph(this)" >
 	  locations
 	</div>
 	<div class="btn" onClick="viz.swopGraph(this)" >
 	  explorer
 	</div>
+	<div id="rightNav"></div>
       </div>
-    <canvas id="main"></canvas>
+      <canvas id="main"></canvas>
     </div>
-{% endblock %}
+    <div class="loader" id="loadimg"></div>
+    {% endblock %}
+    

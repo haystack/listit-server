@@ -3,7 +3,6 @@ var stackTimeFactory = ({
 				this.viz = viz;
 				this.canvas = this.viz.canvas;
 				this.type = params.type;
-				this.mouseMargin = params.mouseMargin;
 				this.windowHeight = params.windowHeight;
 				this.windowWidth = params.windowWidth;	 
 				this.marginTop = 20;
@@ -13,7 +12,6 @@ var stackTimeFactory = ({
 				this.sectionTopPadding = 20;
 				this.rowHeight = 20;
 				this.rowTopPadding = 10;
-				this.mouseVal = undefined;			 
 				this.setupData();
 				this.draw();
 			    },
@@ -46,6 +44,7 @@ var stackTimeFactory = ({
 			    },
 			    setupData: function(){
 				var this_ = this;
+				var day = 86400000;
 				if (this.type == "timeline"){			     
 				    this_.rowLabel = JV3.CMS.event_store.getEventTypes();			    
 				    this.sections = function(){
@@ -53,9 +52,9 @@ var stackTimeFactory = ({
 					var today = new Date().valueOf();
 					for (var i = 0; i < 7; i++) {
 					    sect.push({
-							  label:new Date(today - (86400000 * i)).format('dddd, mmmm dd'), 
-							  start: today - (86400000 * i) - 86400000,
-							  end: today - (86400000 * i),
+							  label:new Date(today - (day * i)).format('dddd, mmmm dd'), 
+							  start: today - (day * i) - day,
+							  end: today - (day * i),
 							  rows: this_.rowLabel.map(function(row){ return []; }),
 							  rowsDuration: this_.rowLabel.map(function(row){ return 0; }),
 							  hover: false,
@@ -104,22 +103,16 @@ var stackTimeFactory = ({
 						       });		
 				}
 			    },
-			    drawHoverTxt:function(entity){
-				var html = "<b>Label:</b> " + entity.getLabel() + "<br />"
-				    + "<b>Id:</b> " + entity.id + "<br />";
-				jQuery("#hoverTxt").html(html);
-				jQuery("#hoverTxt").css({"left" : this.mouseVal.x + this.mouseMargin.x + "px", "padding": "3px", "top" : this.mouseVal.y + this.marginTop + this.mouseMargin.y + "px" });				
-			    },
-			    mouseMove: function(params){
+			    mouseMove: function(mousePos){
 				var this_ = this;
-				this_.mouseVal = params.mouseVal;
 				for (var i = 0; i < this.sections.length; i++){			     
-				    if (isPointInPoly(this.sections[i].poly, params.mouseVal)){
+				    if (isPointInPoly(this.sections[i].poly, mousePos)){
 					this.sections[i].rows.map(function(row){
 								      row.map(function(item){
-										  if (isPointInPoly(item.poly, params.mouseVal)){
+										  if (isPointInPoly(item.poly, mousePos)){
 										      this_.hoverID = item.entity.id;
-										      this_.drawHoverTxt(item.entity);							      
+										      this_.viz.drawHoverTxt(item.entity, mousePos);							      
+										      return;
 										  };							  
 									      });
 								  });

@@ -7,9 +7,12 @@ var lifestream = {
 	this.endTime = new Date().valueOf();
 	this.startTime = this.endTime - 604800000;
 	this.data = this.getData();	
-
+	this.mouseMargin = {x: 20, y:130 };					
 	jQuery("#loadimg").show();
-	this.createStackTime('timeline');
+	//this.createStackTime('timeline');
+	//jQuery('.btn:eq(0)').addClass('sel');
+	jQuery('.btn:eq(1)').addClass('sel');
+	this.createStackGraph('www-viewed');
 	jQuery("#loadimg").hide();
     },
     getData:function(){
@@ -34,8 +37,7 @@ var lifestream = {
 	    var stackTime = newify(stackTimeFactory, this, {
 				       windowWidth: this.windowWidth,
 				       windowHeight: this.windowHeight,
-				       type: type,
-				       mouseMargin: {x:((getClientCords().width - this.windowWidth)/2) - 50, y:90 }
+				       type: type
 				   });
 
 	    var mainEvtHandlers = newify(evtHandlers, this);
@@ -44,33 +46,45 @@ var lifestream = {
 	}
     },
     createStackGraph: function(type){
-	this.windowWidth = getClientCords().width - 50;
-	this.windowHeight = window.innerHeight - 279;
 	this.drawArray = []; // clean the draw array 
-	
-	var HTML = "<div id=\"totalGraphKey\" style=\"color:#333; width:" + this.windowWidth/2 + "px;margin-top:15px; margin-bottom:8px;text-align:center; display: inline-block;\">top 20 each day of week</div>"
-	    + "<div id=\"avgGraphKey\" style=\"color:#333; width:" + this.windowWidth/3 + "px; text-align:right; display: inline-block;\">top 20 per hour of day</div>";
-	
-	jQuery('#graph').html("");
-	jQuery('#graph').html(HTML);
-	
+	this.windowWidth = getClientCords().width - 50;
+	this.windowHeight = 500;
+
 	document.getElementById("main").setAttribute("width", this.windowWidth);
 	document.getElementById("main").setAttribute("height", this.windowHeight);
 	
-	if (data.results.length > 0){							
-	    var graphArray = [];
-	    var stackGraph = newify(stackBarGraphFactory, this_, {
+	if (this.data){							
+	    var stackGraph = newify(stackBarGraphFactory, this, {
 					type: type,
 					windowWidth: this.windowWidth,
 					windowHeight: this.windowHeight,
 					columnWidth:8,
-					mouseMargin: {x:((getClientCords().width - this.windowWidth)/2) - 50, y:140 },
 					labelLeft: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', '  Friday', 'Saturday', 'Sunday'],
 					labelRight: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
 				    });
 
-	    this.drawArray.push(stackGraph);
-	    var mainEvtHandlers = newify(evtHandlers, this_);
+	    var mainEvtHandlers = newify(evtHandlers, this);
+	    this.drawArray.push(stackGraph);	    	    
+	    this.draw();
+	}
+    },
+    createNodeGraph: function(type){
+	this.drawArray = []; // clean the draw array 
+	this.windowWidth = getClientCords().width - 50;
+	this.windowHeight = 500;
+
+	document.getElementById("main").setAttribute("width", this.windowWidth);
+	document.getElementById("main").setAttribute("height", this.windowHeight);
+	
+	if (this.data){							
+	    var stackGraph = newify(stackBarGraphFactory, this, {
+					type: type,
+					windowWidth: this.windowWidth,
+					windowHeight: this.windowHeight
+				    });
+
+	    var mainEvtHandlers = newify(evtHandlers, this);
+	    this.drawArray.push(stackGraph);	    	    
 	    this.draw();
 	}
     },
@@ -83,6 +97,15 @@ var lifestream = {
         else {
 	    alert('You need Safari 4 or Firefox 3+ to see this.');
         }
+    },
+    drawHoverTxt:function(entity, mousePos){
+	var html = "<b>Label:</b> " + entity.id + "<br />"
+	    + "<b>Id:</b> " + entity.id + "<br />"
+	    + "<b>Date:</b> " + entity.id + "<br />"
+	    + "<b>Duration:</b> " + entity.id + "<br />";
+	jQuery("#hoverTxt").html(html);
+	jQuery("#hoverTxt").css({"left" : mousePos.x + this.mouseMargin.x + "px", "top" : mousePos.y + this.mouseMargin.y + "px" });				
+	jQuery("#hoverTxt").show();
     },
     getCanvas: function(){
         return this.canvas;
@@ -97,18 +120,27 @@ var lifestream = {
 	    
 	    this.graph = text;
 
-	    jQuery('.graphNavBtn').removeClass('sel');
+	    jQuery('.btn').removeClass('sel');
 	    jQuery(graph).addClass('sel');
 	    
 	    if (text == "timeline"){
-		this.createTimeline();
+		jQuery('#rightNav').html("");
+		this.createStackTime('timeline');
 	    }
-	    if (text == "by hour of day"){
-		this.createDays();
+	    if (text == "stacked bar graph"){
+		jQuery('#rightNav').html("");
+		JV3.CMS.event_store.getEventTypes().map(function(type){							   
+							    jQuery('#rightNav').append("<div class=\"btn\" onClick=\"viz.createStackGraph(" + type +")\" >" + type + "</div>");							    
+							});
+		this.createStackGraph('www-viewed');
 	    }
-	    if (text == "by day of week"){
-		this.create20Days();
+	    if (text == "locations"){
+		this.createNodes();
 	    }
+	    if (text == "explorer"){
+		this.createExplorer();
+	    }
+
 	    jQuery("#loadimg").hide();	    
 	}
     }

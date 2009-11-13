@@ -19,13 +19,11 @@ var evtHandlers = ({
 
 							this_.mouse = {
 							    x: evt.clientX - position.left,
-							    y: evt.clientY - position.top
+							    y: evt.clientY - position.top + jQuery(window).scrollTop()
 							};
 							
 							for (var i = 0; i < this_.viz.drawArray.length; i++) {
-							    this_.viz.drawArray[i].mouseMove({
-												 mouseVal: this_.mouse
-											     });
+							    this_.viz.drawArray[i].mouseMove(this_.mouse);
 							}
 							this_.viz.draw();
 						    });
@@ -33,9 +31,7 @@ var evtHandlers = ({
 							this_.viz.drag = true;
 							this_.dragBeginX = this_.mouse.x;
 							for (var i = 0; i < this_.viz.drawArray.length; i++) {
-								this_.viz.drawArray[i].mouseDown({
-													mouseVal: this_.mouse
-												    });
+								this_.viz.drawArray[i].mouseDown(this_.mouse);
 							}
 						    });
 			   jQuery(canvas).mouseup(function(){
@@ -366,7 +362,7 @@ function selectColorForDomain(domain) {
 	var hsl_generator = function(domain) {
 	    var h = domain.length > 0 ?  domain.split('').map(function(x) { return x.charCodeAt(0); }).reduce(function(x,y) { return x+y; })  % 360 : 172;
 	    var s = "100%";
-	    var l = "50%";
+	    var l = "60%";
 	    return   "hsl("+[""+h,s,l].join(",")+")";
 	};
 

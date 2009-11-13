@@ -231,6 +231,11 @@ def localviz(request):
     c = Context({ 'username': request.user.username, 'id': request.user.id, 'request_user': request.user.username })
     return HttpResponse(t.render(c))
 
+def addfeeds(request):
+    t = loader.get_template("addfeeds.html")
+    c = Context({ 'username': request.user.username, 'id': request.user.id, 'request_user': request.user.username })
+    return HttpResponse(t.render(c))
+
 def page_profile(request): 
     url = 'http://nytimes.com'
     if request.GET.has_key('url'):

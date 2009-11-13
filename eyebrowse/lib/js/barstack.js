@@ -1,215 +1,185 @@
 var stackBarGraphFactory = ({
-			 initialize: function(viz, params){
-			     this.viz = viz;
-			     this.canvas = viz.canvas;
-			     this.type = params.type;
-			     this.windowHeight = params.windowHeight;
-			     this.windowWidth = params.windowWidth;	 
-			     this.height = params.height;
-			     this.mouseMargin = params.mouseMargin;
- 			     this.bottomPadding = 60;
-			     this.textPadding = 0;
-			     this.barPadding = 7;
-			     this.padding = 20;
-			     this.topPadding = 0;
-			     this.pIH = undefined;
-			     this.trigger = undefined;
-			     this.mouseVal = 0;							 
-			     this.labelLeft = params.labelLeft;
-			     this.labelRight = params.labelRight;					
-			     this.labelLeftXpos = [];
-			     this.labelRightXpos = [];
-			     this.midPad = 15;
-			     this.setPos(params.data);
-			 },
-			 draw: function(){
-			     var ctx = this.canvas.getContext('2d');
-			     var this_ = this;
-			     ctx.clearRect(0,0,this_.windowWidth,this_.windowHeight);
-			     ctx.save();
-			     ctx.translate(0,0-10);
-			     ctx.beginPath();
-			     
-			     // draw the bars
-			     for (var i = 0; i < this_.da.length; i++){
-				 for (var k = 0; k < this_.da[i].length; k++){
-				     for (var l = 0; l < this_.da[i][k].length; l++){
-					 if (isPointInPoly(this_.da[i][k][l].poly, this_.mouseVal)){
-					     this_.viz.highlight = this_.da[i][k][l].url;
-					     this_.trigger = true;
-					     jQuery("#fooTxt").html("<a href=\"" + this_.da[i][k][l].url + "\">" +  this_.da[i][k][l].title + "</a>");
-					     jQuery("#fooTxt").css({"left" : this_.mouseVal.x + this_.fooTxtX + "px", "padding": "3px", "top" : this_.mouseVal.y + 160 + "px" });	
-					 }																		
-					 ctx.fillStyle = this_.da[i][k][l].fillStyle;
-					 ctx.fillRect(this_.da[i][k][l].xPos, this_.da[i][k][l].yPos, this_.da[i].width, this_.da[i][k][l].height);
-					 if (this_.viz.highlight == this_.da[i][k][l].url){
-					     ctx.fillStyle = "rgba(255,255,255,0.85)"; 
-					     ctx.fillRect(this_.da[i][k][l].xPos, this_.da[i][k][l].yPos, this_.da[i].width, this_.da[i][k][l].height);
-					 }								
-				     }
-				 }
-			     }
+				initialize: function(viz, params){
+				    this.viz = viz;
+				    this.canvas = viz.canvas;
+				    this.type = params.type;
+				    this.windowHeight = params.windowHeight;
+				    this.windowWidth = params.windowWidth;	 
+				    this.height = params.height;
+ 				    this.bottomPadding = 70;
+				    this.textPadding = 0;
+				    this.barPadding = 7;
+				    this.padding = 2;
+				    this.topPadding = 0;
+				    this.labelLeft = params.labelLeft;
+				    this.labelRight = params.labelRight;					
+				    this.midPad = 15;
+				    this.dataMax = [];
+				    this.setupData(params.type);
+				    this.draw();
+				},
+				draw: function(){
+				    var ctx = this.canvas.getContext('2d');
+				    ctx.clearRect(0,0,this.windowWidth,this.windowHeight);
+				    var this_ = this;
 
-			     ctx.closePath();
-			     ctx.restore();
-			     
-			     
-			     // draw the key
-			     ctx.beginPath();
-			     ctx.fillStyle = "#333333";
-			     ctx.fillRect(0, this_.windowHeight - this_.bottomPadding - 4, this_.windowWidth/2 - this_.midPad, 1);
-			     ctx.fillRect(this_.windowWidth/2 + this_.midPad, this_.windowHeight - this_.bottomPadding - 4, this_.windowWidth/2 - this_.midPad, 1);
-			     
-			     ctx.strokeStyle = "#666666";
-			     ctx.font = ".7pt helvetiker";
-			     ctx.fillStyle = "#666666";
-			     ctx.lineWidth = 0.5;
-
-			     // draw the labels
-			     for (var i = 0; i < this_.labelLeft.length; i++){
-				 ctx.fillText("" + this_.labelLeft[i], this_.labelLeftXpos[i] + this_.textPadding - 3 + (this_.labelLeftWidth - ctx.measureText(this_.labelLeft[i]).width)/2, this_.windowHeight - this_.bottomPadding + 12);
-			     }
-
-			     for (var i = 0; i < this_.labelRight.length; i++){
-				 ctx.fillText("" + this_.labelRight[i], this_.labelRightXpos[i] + this_.textPadding + (this_.labelRightWidth - ctx.measureText(this_.labelRight[i]).width)/2 - 3, this_.windowHeight - this_.bottomPadding + 12);
-
-			     }
-			     
-			     ctx.fillStyle = "#333333";
-			     
-			     // left key numbers
-			     ctx.fillText("" + this_.dataMaxLeft + "  visits", 2, 10);
-			     for (var i = 1; i < 3; i++) {								
-				 ctx.fillText("" + Math.floor(((this_.dataMaxRight) / 3) * (3 - i)), 2, ((this_.windowHeight - this_.bottomPadding) / 3) * i + 8);
-			     }
-			     // right key numbers
-			     ctx.fillText("" + this_.dataMaxRight + "  visits", (this_.windowWidth/2) - this_.padding + this_.midPad * 2, 10);
-			     for (var i = 1; i < 3; i++) {								
-				 ctx.fillText("" + Math.floor(((this_.dataMaxRight) / 3) * (3 - i)), (this_.windowWidth/2) - this_.padding + this_.midPad * 2, ((this_.windowHeight - this_.bottomPadding) / 3) * i + 8);
-			     }
-
-			     ctx.closePath();
-			     
-			     if (!(this_.pIH) && this_.trigger) {
-				 this_.trigger = false;
-				 this_.viz.highlight = "booo";
-				 jQuery("#fooTxt").html("");
-				 jQuery("#fooTxt").css({"padding" : "0px"});
-			     }
-			 },
-			 mouseMove: function(params){
-			     var this_ = this;
-			     this_.mouseVal = {
-				 x: params.mouseVal.x,
-				 y: params.mouseVal.y + 6
-			     };
-			     this_.pIH = true;
-			 },
-			 mouseDown: function(){
-			 },
-			 mouseUp: function(params){
-			 },
-			 setPos: function(data){
-			     var this_ = this;
-			     this_.da = [];
-			     var newData = data;
-			     var newBar = {};
-			     var leftData  = newData[0]; 
-			     var rightData  = newData[1]; 
-			     var lObj = [];
-			     var rObj = [];
-			     lObj.width = (this_.windowWidth/2)/(leftData.length)/(this_.padding/leftData.length/2);
-			     rObj.width = (this_.windowWidth/2)/(rightData.length)/(this_.padding/6);
-
-			     this_.labelLeftWidth = (this_.windowWidth/2)/leftData.length - this_.padding - this_.midPad; 
-			     this_.labelRightWidth = (this_.windowWidth/2)/rightData.length - this_.padding - this_.midPad; 
-
-			     // left graph
-			     this_.dataMax = function(){
-				 var maxArray = [];
-				 var max = 0;
-				 for (var i = 0; i < leftData.length; i++){
-				     max = 0;									 
-				     for (var k = 0; k < leftData[i][1].length; k++){
-					 max += leftData[i][1][k][1].val;
-				     }									 
-				     maxArray.push(max);
-				 }
-				 return maxArray.max();
-			     }();
-
-			     this_.dataMaxLeft = this_.dataMax;
-			     for (var i = 0; i < leftData.length; i++){
-				 lObj.push([]);
-				 this_.labelLeftXpos.push(((this_.windowWidth/2 - this_.midPad)/leftData.length)*i + this_.padding/2 + this_.midPad/2);
-				 for (var k = 0; k < leftData[i][1].length; k++){
-				     newBar = {};
-				     newBar.title = leftData[i][1][k][0];									 
-				     newBar.url = leftData[i][1][k][0];
-				     newBar.fillStyle = "hsl("+ leftData[i][1][k][1].hue + ",100%,50%)";
-				     newBar.height = -(this_.windowHeight - this_.bottomPadding) * (leftData[i][1][k][1].val / this_.dataMax);
-				     newBar.xPos = ((this_.windowWidth/2 - this_.midPad)/leftData.length)*i + (this_.padding + leftData.length)/leftData.length + this_.midPad/2;
- 				     newBar.yPos = function(){
-					 var yPos = this_.windowHeight - this_.bottomPadding;
-					 // -sum all heights in height array including this one
-					 for (var p = 0; p < lObj[i].length; p++){
-					     yPos += lObj[i][p].height;
-					 }
-					 return yPos;
-				     }();
-				     newBar.poly = rectToPoly({
-								  xPos: newBar.xPos,
-								  yPos: newBar.yPos,
-								  height: newBar.height,
-								  width: lObj.width
+				    // draw the bars
+				    this.data.map(function(dta){
+						      dta.map(function(column){
+								  column.map(function(item){
+										 ctx.beginPath();
+										 ctx.fillStyle = item.color;
+										 ctx.fillRect(item.poly[0].x, item.poly[0].y, item.width, item.height);
+										 
+										 if (item.ent.id == this_.hoverID){
+										     ctx.fillStyle = "#00ff00";
+										     ctx.fillRect(item.poly[0].x, item.poly[0].y, item.width, item.height);
+										 }
+										 ctx.closePath();
+									     });
 							      });
-				     lObj[i].push(newBar);
-				 }
-			     }
+						  });
 
-			     // right graph
-			     this_.dataMax = function(){
-				 var maxArray = [];
-				 var max = 0;
-				 for (var i = 0; i < rightData.length; i++){
-				     max = 0;									 
-				     for (var k = 0; k < rightData[i][1].length; k++){
-					 max += rightData[i][1][k][1].val;
-				     }									 
-				     maxArray.push(max);
-				 }
-				 return maxArray.max();
-			     }();
-			     this_.dataMaxRight = this_.dataMax;
-			     for (var i = 0; i < rightData.length; i++){
-				 rObj.push([]);
-				 this_.labelRightXpos.push((this_.windowWidth/2 - this_.midPad) + (((this_.windowWidth/2 - this_.midPad)/rightData.length)*i) + this_.midPad*3);
-				 for (var k = 0; k < rightData[i][1].length; k++){
-				     newBar = {};
-				     newBar.title = rightData[i][1][k][0];									 
-				     newBar.url = rightData[i][1][k][0];
-				     newBar.fillStyle = "hsl("+ rightData[i][1][k][1].hue + ",100%,50%)";
-				     newBar.height = -(this_.windowHeight - this_.bottomPadding) * (rightData[i][1][k][1].val / this_.dataMax);
-				     newBar.xPos = (this_.windowWidth/2 - this_.midPad) + (((this_.windowWidth/2 - this_.midPad)/rightData.length)*i) + this_.barPadding + (this_.padding + leftData.length)/leftData.length + this_.midPad*2;
- 				     newBar.yPos = function(){
-					 var yPos = this_.windowHeight - this_.bottomPadding;
-					 // -sum all heights in height array including this one
-					 for (var p = 0; p < rObj[i].length; p++){
-					     yPos += rObj[i][p].height;
-					 }
-					 return yPos;
-				     }();
-				     newBar.poly = rectToPoly({
-								  xPos: newBar.xPos,
-								  yPos: newBar.yPos,
-								  height: newBar.height,
-								  width: rObj.width
+				    
+				    // draw the key
+				    ctx.beginPath();
+				    ctx.fillStyle = "#333333";
+				    ctx.fillRect(0, this.windowHeight - this.bottomPadding + 4, this.windowWidth/2 - this.midPad, 1);
+				    ctx.fillRect(this.windowWidth/2 + this.midPad, this.windowHeight - this.bottomPadding + 4, this.windowWidth/2 - this.midPad, 1);
+				    
+				    ctx.strokeStyle = "#666666";
+				    ctx.font = "9pt Arial";
+				    ctx.fillStyle = "#666666";
+				    ctx.lineWidth = 0.5;
+
+				    // draw the labels
+				    var xPos = 0, marginLeft = -this.windowWidth/2, textMarginLeft = 0;
+				    [this.labelRight, this.labelLeft].map(function(labelSet){
+								    	      marginLeft += this_.windowWidth/2;
+									      textMarginLeft = 0;
+									      labelSet.map(function(label){
+											       xPos = this_.textPadding + (ctx.measureText(label).width)/2 + marginLeft + textMarginLeft;
+											       ctx.fillText("" + label, xPos, this_.windowHeight - this_.bottomPadding + 16);
+											       textMarginLeft += (this_.windowWidth/2 - this_.midPad)/labelSet.length;
+											   });
+									  });
+				    
+				    ctx.fillStyle = "#333333";				   
+				    xPos = 0, marginLeft = -this.windowWidth/2 - (this_.midPad * 2);
+				    this.dataMax.map(function(dataMax){
+							 marginLeft += this_.windowWidth/2 + (this_.midPad * 2);
+							 ctx.fillText(timeCounterClock(dataMax/1000), marginLeft + 2, 10);
+							 for (var i = 1; i < 3; i++) {								
+							     ctx.fillText(timeCounterClock(Math.floor(((this_.dataMax[1]) / 3) * (3 - i))/1000), marginLeft, ((this_.windowHeight - this_.bottomPadding) / 3) * i + 8);
+							 }
+						     });
+
+				    ctx.closePath();
+				},
+				setupData: function(type){
+				    var this_ = this;
+
+				    var data = undefined;
+				    var weekday = 0;
+				    var hour = 0;
+				    var hrPts = JV3.plumutil.intRange(0,24).map(function(){return {};});
+				    var weekPts = JV3.plumutil.intRange(0,7).map(function(){return {};});
+				    
+				    var idToEnt = {};
+				    this.viz.data.map(function(dta){
+							  if (dta.type == type){
+							      weekday = dta.end.getDay();	   
+							      hour = dta.end.getHours();	
+
+							      if (hrPts[hour][dta.entity.id]){
+								  hrPts[hour][dta.entity.id] += dta.end - dta.start;
+							      } else { 
+								  hrPts[hour][dta.entity.id] = dta.end - dta.start;					
+							      }
+							      
+							      if (weekPts[weekday][dta.entity.id]){
+								  weekPts[weekday][dta.entity.id] += dta.end - dta.start;
+							      } else { 
+								  weekPts[weekday][dta.entity.id] = dta.end - dta.start;
+							      }
+
+							      idToEnt[dta.entity.id] = dta.entity;
+							  }
+						      });
+				    
+				    hrPts = hrPts.map(function(hr){
+							  var foo =  JV3.plumutil.unzipdict(hr);
+							  foo.sort(function(a,b){ return b[1] - a[1]; });
+							  return foo.slice(0,10).map(function(x){
+											 return {evt:idToEnt[x[0]], val:x[1]};
+										     });
+						      });
+
+				    weekPts = weekPts.map(function(hr){
+							      var foo =  JV3.plumutil.unzipdict(hr);
+							      foo.sort(function(a,b){ return b[1] - a[1]; });
+							      return foo.slice(0,10).map(function(x){
+											     return {evt:idToEnt[x[0]], val:x[1]};
+											 });
+							  });
+				    var leftSide = -this_.windowWidth/2 + 30;
+				    this.data = [hrPts, weekPts].map(function(dta){
+									 var height = 0, xPos = 0, yPos = 0, columnHeight = 0, columnNumber = -1;
+									 var objWidth =  (this_.windowWidth/2)/(dta.length*2) - this_.padding;
+									 var dataMax = function(){
+									     var maxArray = [];
+									     var max = 0;
+									     dta.map(function(time){
+							   				 max = 0;									 
+											 time.map(function(evt){ max += evt.val; });
+											 maxArray.push(max);	 
+										     });
+									     return maxArray.sort(function(a,b){ return b - a; })[0];
+									 }();
+									 this_.dataMax.push(dataMax);
+								    	 leftSide += this_.windowWidth/2;
+									 return dta.map(
+									     function(column){
+										 columnHeight = 0;
+										 columnNumber += 1;
+										 return column.map(
+										     function(obj){
+											 height = (this_.windowHeight - this_.bottomPadding) * (obj.val / dataMax);
+											 columnHeight -= height;
+											 xPos = (this_.windowWidth/2/dta.length)*columnNumber + (this_.padding + dta.length)/dta.length + this_.midPad/2 + leftSide;
+											 yPos = this_.windowHeight - this_.bottomPadding + columnHeight;
+											 return {														 
+											     ent: obj.evt,
+											     color: selectColorForDomain(obj.evt.id),
+											     height: height,
+											     width: objWidth,
+											     poly: rectToPoly({
+														  xPos: xPos,
+														  yPos: yPos,
+														  height: height,
+														  width: objWidth
+													      })
+											 };
+										     });
+									     });
+								     });
+				},
+				mouseMove: function(mousePos){
+				    var this_ = this;
+				    this.data.map(function(dta){
+						      dta.map(function(column){
+								  column.map(function(item){
+										 if (isPointInPoly(item.poly, mousePos)){
+										     this_.hoverID = item.ent.id;											  
+										     this_.viz.drawHoverTxt(item.ent, mousePos);			
+										     return;  
+										 };							  
+									     });
 							      });
-				     rObj[i].push(newBar);
-				 }
-			     }
-			     this_.da.push(lObj);
-			     this_.da.push(rObj);
-			     this_.draw();
-			 }
-		     });
+						  });
+				},				
+				mouseDown: function(){
+				},
+				mouseUp: function(params){
+				}
+			    });

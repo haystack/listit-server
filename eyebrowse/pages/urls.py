@@ -28,6 +28,7 @@ urlpatterns = patterns('',
                        # user pages
                        (r'^profile/(\w+)/?$', user_page),
                        (r'^lifestream/?$', localviz),
+                       (r'^addfeeds/?$', addfeeds),
                        (r'^user/(\w+)/?$', user_page),                       
                        (r'^friends/manage/(\w+)/?$', friends_page),
                        (r'^friend/add$', friend_add),
