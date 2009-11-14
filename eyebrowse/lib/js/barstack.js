@@ -86,26 +86,26 @@ var stackBarGraphFactory = ({
 				    var weekPts = JV3.plumutil.intRange(0,7).map(function(){return {};});
 				    
 				    var idToEnt = {};
-				    this.viz.data.map(function(dta){
-							  if (dta.type == type){
-							      weekday = dta.end.getDay();	   
-							      hour = dta.end.getHours();	
-
-							      if (hrPts[hour][dta.entity.id]){
-								  hrPts[hour][dta.entity.id] += dta.end - dta.start;
-							      } else { 
-								  hrPts[hour][dta.entity.id] = dta.end - dta.start;					
-							      }
-							      
-							      if (weekPts[weekday][dta.entity.id]){
-								  weekPts[weekday][dta.entity.id] += dta.end - dta.start;
-							      } else { 
-								  weekPts[weekday][dta.entity.id] = dta.end - dta.start;
-							      }
-
-							      idToEnt[dta.entity.id] = dta.entity;
-							  }
-						      });
+				    this.viz.data.filter(
+					function(data){ if (data.type == type) { return data; }; }).map(
+					    function(dta){
+						weekday = dta.end.getDay();	   
+						hour = dta.end.getHours();	
+						
+						if (hrPts[hour][dta.entity.id]){
+						    hrPts[hour][dta.entity.id] += dta.end - dta.start;
+						} else { 
+						    hrPts[hour][dta.entity.id] = dta.end - dta.start;					
+						}
+						
+						if (weekPts[weekday][dta.entity.id]){
+						    weekPts[weekday][dta.entity.id] += dta.end - dta.start;
+						} else { 
+						    weekPts[weekday][dta.entity.id] = dta.end - dta.start;
+						}
+						
+						idToEnt[dta.entity.id] = dta.entity;
+					    });
 				    
 				    hrPts = hrPts.map(function(hr){
 							  var foo =  JV3.plumutil.unzipdict(hr);

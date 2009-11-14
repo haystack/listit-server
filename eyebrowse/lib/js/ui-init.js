@@ -11,8 +11,8 @@ var lifestream = {
 	jQuery("#loadimg").show();
 	//this.createStackTime('timeline');
 	//jQuery('.btn:eq(0)').addClass('sel');
-	jQuery('.btn:eq(1)').addClass('sel');
-	this.createStackGraph('www-viewed');
+	jQuery('.btn:eq(2)').addClass('sel');
+	this.createNodeGraph('location');
 	jQuery("#loadimg").hide();
     },
     getData:function(){
@@ -77,14 +77,14 @@ var lifestream = {
 	document.getElementById("main").setAttribute("height", this.windowHeight);
 	
 	if (this.data){							
-	    var stackGraph = newify(stackBarGraphFactory, this, {
+	    var nodeGraph = newify(nodeFactory, this, {
 					type: type,
 					windowWidth: this.windowWidth,
 					windowHeight: this.windowHeight
 				    });
 
 	    var mainEvtHandlers = newify(evtHandlers, this);
-	    this.drawArray.push(stackGraph);	    	    
+	    this.drawArray.push(nodeGraph);	    	    
 	    this.draw();
 	}
     },
@@ -135,7 +135,7 @@ var lifestream = {
 		this.createStackGraph('www-viewed');
 	    }
 	    if (text == "locations"){
-		this.createNodes();
+		this.createNodeGraph('location');
 	    }
 	    if (text == "explorer"){
 		this.createExplorer();
