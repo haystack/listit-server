@@ -1010,3 +1010,8 @@ a.selected {
 #rightNav {
     float:right;
 }
+.hoverHeader {
+    padding:3px;
+    border-bottom:1px solid lightgrey;
+    margin-bottom:6px;
+}

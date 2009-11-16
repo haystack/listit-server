@@ -221,6 +221,80 @@ Date.prototype.format = function(mask, utc){
     return dateFormat(this, mask, utc);
 };
 
+function getHourTime(time) {
+    var dt = new Date(time);
+    dt.setMinutes(0);
+    dt.setSeconds(0);
+    dt.setMilliseconds(0);
+    return dt.valueOf();
+}
+
+function getTimeSpentPerHour(start, end) {
+    // returns an array of objects, with hour and time spent that hour
+    var startHour = new Date(start).getHours();	
+    var endHour = new Date(end).getHours();
+    var startDate = new Date(start);
+    var results = [];
+
+    var HRINMSECS = 1*60*60*1000;
+
+    for (var t = start; t < end; t += HRINMSECS) {
+	if (t == start) {
+	    var topofNextHour = getHourTime(t) + HRINMSECS; 
+	    results.push({hour:startHour % 24, timeSpent: Math.min(end-start, topofNextHour - start) });
+	} else {
+	    var topofThisHour = getHourTime(t); 
+	    results.push({hour:startHour % 24, timeSpent: Math.min(HRINMSECS,end - topofThisHour) } );
+	}
+	startHour += 1;
+    }
+
+    return results;
+
+    /*
+    // no need to do any fancy checking in this case
+    if (startHour == endHour){ return [{hour: startHour, timeSpent: end - start}]; }
+
+    var endHrtime = getHourTime(endHour, start);
+    var hour = 3600000;
+    var timeSpent = [];
+    var ts = 0;
+    var hr = 0;
+    
+    var count = function(){
+	if (startHour > endHour) {
+	    return 23 - startHour + endHour; } 
+	else { return endHour - startHour; };  
+    }();
+    for (var i = 0; i < count; i++){
+	hr = function(){
+	    if (startHour + i > 23) {
+		return 23 - (startHour + i); } 
+	    else { return startHour + i; };  
+	}();
+	ts = function(){
+	    var hrtime = getHourTime(startHour + i, start); // dont use hr here it will return a time in the past
+
+	    //if (hrTime > start && hrTime < endHrTime){
+	    if (hrTime == endHrTime){
+		return end - endHrTime; 
+	    } else {
+		// party
+		return 'party';
+	    }
+	    
+	}();
+	
+	timeSpent.push({
+			   hour: hr,
+			   timeSpent: ts
+		       });
+    }
+    return timeSpent;
+     */
+};
+
+
 // console.log that works in all browsers via resig
 function log() {
     try {
@@ -232,6 +306,14 @@ function log() {
 	    alert( Array.prototype.join.call( arguments, " " ) );
 	}
     }
+}
+
+function degToRadMinusNinty(deg){
+    return (Math.PI/180)*(deg - 90);
+}
+
+function degToRad(deg){
+    return (Math.PI/180)*(deg);
 }
 
 function getClientCords() {

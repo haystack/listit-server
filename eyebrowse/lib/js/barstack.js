@@ -82,6 +82,8 @@ var stackBarGraphFactory = ({
 				    var data = undefined;
 				    var weekday = 0;
 				    var hour = 0;
+				    var timeSpent = 0;
+				    var color = "";
 				    var hrPts = JV3.plumutil.intRange(0,24).map(function(){return {};});
 				    var weekPts = JV3.plumutil.intRange(0,7).map(function(){return {};});
 				    
@@ -92,16 +94,18 @@ var stackBarGraphFactory = ({
 						weekday = dta.end.getDay();	   
 						hour = dta.end.getHours();	
 						
+						timeSpent = dta.end - dta.start;
+						if (timeSpent > 3600000){ timeSpent = 3600000; };
 						if (hrPts[hour][dta.entity.id]){
-						    hrPts[hour][dta.entity.id] += dta.end - dta.start;
+						    hrPts[hour][dta.entity.id] += timeSpent;
 						} else { 
-						    hrPts[hour][dta.entity.id] = dta.end - dta.start;					
+						    hrPts[hour][dta.entity.id] = timeSpent;					
 						}
 						
 						if (weekPts[weekday][dta.entity.id]){
-						    weekPts[weekday][dta.entity.id] += dta.end - dta.start;
+						    weekPts[weekday][dta.entity.id] += timeSpent;
 						} else { 
-						    weekPts[weekday][dta.entity.id] = dta.end - dta.start;
+						    weekPts[weekday][dta.entity.id] = timeSpent;
 						}
 						
 						idToEnt[dta.entity.id] = dta.entity;
@@ -148,9 +152,14 @@ var stackBarGraphFactory = ({
 											 columnHeight -= height;
 											 xPos = (this_.windowWidth/2/dta.length)*columnNumber + (this_.padding + dta.length)/dta.length + this_.midPad/2 + leftSide;
 											 yPos = this_.windowHeight - this_.bottomPadding + columnHeight;
+											 if (obj.evt.host){
+											     color = selectColorForDomain(obj.evt.host);
+											 } else {
+											     color = selectColorForDomain(obj.evt.id);
+											 }
 											 return {														 
 											     ent: obj.evt,
-											     color: selectColorForDomain(obj.evt.id),
+											     color: color,
 											     height: height,
 											     width: objWidth,
 											     poly: rectToPoly({

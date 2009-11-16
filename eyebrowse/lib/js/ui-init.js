@@ -5,9 +5,9 @@ var lifestream = {
         this.drag = undefined;
         this.drawArray = [];
 	this.endTime = new Date().valueOf();
-	this.startTime = this.endTime - 604800000;
+	this.startTime = this.endTime - (604800000 * 4);
 	this.data = this.getData();	
-	this.mouseMargin = {x: 20, y:130 };					
+	this.mouseMargin = {x: 18, y:165 };					
 	jQuery("#loadimg").show();
 	//this.createStackTime('timeline');
 	//jQuery('.btn:eq(0)').addClass('sel');
@@ -16,14 +16,15 @@ var lifestream = {
 	jQuery("#loadimg").hide();
     },
     getData:function(){
-	var startTime = this.startTime;
-	var endTime = this.endTime;
 	/*
 	return JV3.CMS.event_store.getEventTypes().map(
 	    function(type){ return JV3.CMS.event_store.getEvents(type, [startTime, endTime]); }).filter(
 		function(ent) { if (ent.length > 0) { return ent }; }); 
 	 */
-	return JV3.CMS.event_store.getEvents("", [startTime, endTime]);
+	if (JV3.__debug__data === undefined) {
+	    JV3.__debug__data = JV3.CMS.event_store.getEvents("", [this.startTime, this.endTime]);
+	}
+	return JV3.__debug__data;
     },
     createStackTime:function(type){
 	this.drawArray = []; // clean the draw array
@@ -59,7 +60,7 @@ var lifestream = {
 					windowWidth: this.windowWidth,
 					windowHeight: this.windowHeight,
 					columnWidth:8,
-					labelLeft: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', '  Friday', 'Saturday', 'Sunday'],
+					labelLeft: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', '  Friday', 'Saturday'],
 					labelRight: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
 				    });
 
@@ -99,11 +100,19 @@ var lifestream = {
         }
     },
     drawHoverTxt:function(entity, mousePos){
-	var html = "<b>Label:</b> " + entity.id + "<br />"
-	    + "<b>Id:</b> " + entity.id + "<br />"
-	    + "<b>Date:</b> " + entity.id + "<br />"
-	    + "<b>Duration:</b> " + entity.id + "<br />";
-	jQuery("#hoverTxt").html(html);
+	if (!(this.selectedEnt == entity.id)){
+	    this.selectedEnt = entity.id;
+	    var html = "<div class=\"hoverHeader\"><b> " + entity.id + "</b><br /></div>";
+	    if (entity.commonenglish) {html += "<b>Type: </b>" + entity.commonenglish + "<br />";};
+	    if (entity.host) {html += "<b>Host: </b>" + entity.host + "<br />";};
+	    if (entity.firstspotted) {html += "<b>First Spotted: </b>" + new Date(entity.firstspotted).format('dddd, mmmm dd h:MM TT') + "<br />";};
+	    if (entity.total) { html += "<b>Total Time: </b> " + timeCounterLong(entity.total/1000) + "<br />";}
+	    if (entity.topHours) { html += "<b>Top Hours Of Day: </b>" + entity.topHours.join(', ') + "<br />";}
+	    if (entity.topDOW) { html += "<b>Top Day of the Week: </b>" + entity.topDOW.join(', ') + "<br />";}
+	    
+	    jQuery("#hoverTxt").html(html);	    
+	}
+
 	jQuery("#hoverTxt").css({"left" : mousePos.x + this.mouseMargin.x + "px", "top" : mousePos.y + this.mouseMargin.y + "px" });				
 	jQuery("#hoverTxt").show();
     },
@@ -129,12 +138,17 @@ var lifestream = {
 	    }
 	    if (text == "stacked bar graph"){
 		jQuery('#rightNav').html("");
-		JV3.CMS.event_store.getEventTypes().map(function(type){							   
-							    jQuery('#rightNav').append("<div class=\"btn\" onClick=\"viz.createStackGraph(" + type +")\" >" + type + "</div>");							    
+		JV3.CMS.event_store.getEventTypes().map(function(type){					
+							    jQuery('#rightNav').append("<div class=\"btn\" onClick=\"viz.createStackGraph('" + type +"')\" >" + type + "</div>");			    
 							});
 		this.createStackGraph('www-viewed');
 	    }
 	    if (text == "locations"){
+		jQuery('#rightNav').html("");
+		JV3.CMS.event_store.getEventTypes().map(function(type){					
+							    jQuery('#rightNav').append("<div class=\"btn\" onClick=\"viz.createStackGraph('" + type +"')\" >" + type + "</div>");			    
+							});
+
 		this.createNodeGraph('location');
 	    }
 	    if (text == "explorer"){
