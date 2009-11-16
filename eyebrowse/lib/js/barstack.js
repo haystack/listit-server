@@ -91,6 +91,7 @@ var stackBarGraphFactory = ({
 				    this.viz.data.filter(
 					function(data){ if (data.type == type) { return data; }; }).map(
 					    function(dta){
+						if (!dta.entity) { return; };
 						weekday = dta.end.getDay();	   
 						hour = dta.end.getHours();	
 						
