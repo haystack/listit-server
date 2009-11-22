@@ -44,8 +44,8 @@ var stackBarGraphFactory = ({
 				    // draw the key
 				    ctx.beginPath();
 				    ctx.fillStyle = "#333333";
-				    ctx.fillRect(0, this.windowHeight - this.bottomPadding + 4, this.windowWidth/2 - this.midPad, 1);
-				    ctx.fillRect(this.windowWidth/2 + this.midPad, this.windowHeight - this.bottomPadding + 4, this.windowWidth/2 - this.midPad, 1);
+				    ctx.fillRect(0, this.windowHeight - this.bottomPadding + 6, this.windowWidth/2 - this.midPad, 1);
+				    ctx.fillRect(this.windowWidth/2 + this.midPad, this.windowHeight - this.bottomPadding + 6, this.windowWidth/2 - this.midPad, 1);
 				    
 				    ctx.strokeStyle = "#666666";
 				    ctx.font = "9pt Arial";
@@ -58,17 +58,18 @@ var stackBarGraphFactory = ({
 								    	      marginLeft += this_.windowWidth/2;
 									      textMarginLeft = 0;
 									      labelSet.map(function(label){
-											       xPos = this_.textPadding + (ctx.measureText(label).width)/2 + marginLeft + textMarginLeft;
-											       ctx.fillText("" + label, xPos, this_.windowHeight - this_.bottomPadding + 16);
-											       textMarginLeft += (this_.windowWidth/2 - this_.midPad)/labelSet.length;
+											       xPos = this_.textPadding + ctx.measureText(label).width*.7 + marginLeft + textMarginLeft;
+											       ctx.fillText("" + label, xPos, this_.windowHeight - this_.bottomPadding + 24);
+											       // (this_.windowWidth/2 - 10)/dta.length)*columnNumber + (this_.padding + dta.length)/dta.length + leftSide + 5
+											       textMarginLeft += (this_.windowWidth/2 - 10)/labelSet.length;
 											   });
 									  });
-				    
+				    ctx.font = "800 10pt Arial";
 				    ctx.fillStyle = "#333333";				   
 				    xPos = 0, marginLeft = -this.windowWidth/2 - (this_.midPad * 2);
 				    this.dataMax.map(function(dataMax){
 							 marginLeft += this_.windowWidth/2 + (this_.midPad * 2);
-							 ctx.fillText(timeCounterClock(dataMax/1000), marginLeft + 2, 10);
+							 ctx.fillText(timeCounterClock(dataMax/1000), marginLeft + 2, 20);
 							 for (var i = 1; i < 3; i++) {								
 							     ctx.fillText(timeCounterClock(Math.floor(((this_.dataMax[1]) / 3) * (3 - i))/1000), marginLeft, ((this_.windowHeight - this_.bottomPadding) / 3) * i + 8);
 							 }
@@ -127,7 +128,7 @@ var stackBarGraphFactory = ({
 											     return {evt:idToEnt[x[0]], val:x[1]};
 											 });
 							  });
-				    var leftSide = -this_.windowWidth/2 + 30;
+				    var leftSide = -this_.windowWidth/2 - 23;
 				    this.data = [hrPts, weekPts].map(function(dta){
 									 var height = 0, xPos = 0, yPos = 0, columnHeight = 0, columnNumber = -1;
 									 var objWidth =  (this_.windowWidth/2)/(dta.length*2) - this_.padding;
@@ -142,7 +143,7 @@ var stackBarGraphFactory = ({
 									     return maxArray.sort(function(a,b){ return b - a; })[0];
 									 }();
 									 this_.dataMax.push(dataMax);
-								    	 leftSide += this_.windowWidth/2;
+								    	 leftSide += this_.windowWidth/2 + 23;
 									 return dta.map(
 									     function(column){
 										 columnHeight = 0;
@@ -151,7 +152,7 @@ var stackBarGraphFactory = ({
 										     function(obj){
 											 height = (this_.windowHeight - this_.bottomPadding) * (obj.val / dataMax);
 											 columnHeight -= height;
-											 xPos = (this_.windowWidth/2/dta.length)*columnNumber + (this_.padding + dta.length)/dta.length + this_.midPad/2 + leftSide;
+											 xPos = ((this_.windowWidth/2 - 10)/dta.length)*columnNumber + (this_.padding + dta.length)/dta.length + leftSide + 5;
 											 yPos = this_.windowHeight - this_.bottomPadding + columnHeight;
 											 if (obj.evt.host){
 											     color = selectColorForDomain(obj.evt.host);

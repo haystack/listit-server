@@ -6,8 +6,8 @@ var stackTimeFactory = ({
 				this.windowHeight = params.windowHeight;
 				this.windowWidth = params.windowWidth;	 
 				this.marginTop = 20;
-				this.marginLeft = 110;
-				this.marginRight = 100;
+				this.marginLeft = 90;
+				this.marginRight = 90;
 				this.sectionHeight = 70;
 				this.sectionTopPadding = 20;
 				this.rowHeight = 20;
@@ -21,12 +21,13 @@ var stackTimeFactory = ({
 				var text = "";
 				this.sections.map(function(sect){
 						      ctx.fillStyle = "#333333";
-						      ctx.font = "11pt Arial";
-						      ctx.fillText(sect.label, 0, sect.poly[0].y);  	
+						      ctx.font = "800 10pt Arial";
+						      ctx.fillText(sect.label, 10, sect.poly[0].y);  	
 						      for (var i = 0; i < this_.rowLabel.length; i++) {
 							  ctx.fillStyle = "#333333";
-							  ctx.font = "9pt Arial";
+							  ctx.font = "400 8pt Arial";
 							  ctx.fillText(this_.rowLabel[i], this_.marginLeft - ctx.mozMeasureText(this_.rowLabel[i]) - 5, sect.poly[0].y + this_.rowTopPadding + (this_.rowHeight * i) + 13);  			
+							  ctx.font = "400 7.5pt Arial";
 							  ctx.fillText(timeCounterClock(sect.rowsDuration[i]/1000), this_.windowWidth - this_.marginRight + 5, sect.poly[0].y + this_.rowTopPadding + (this_.rowHeight * i) + 13); 
 							  sect.rows[i].map(function(item){
 									       ctx.beginPath();

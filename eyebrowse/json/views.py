@@ -517,6 +517,39 @@ def get_JSON_top_and_trending_pages(request):
     return json_response({ "code":200, "results": results });
 
 
+def get_JSON_eyebrowse_social_page(request):
+    if not 'username' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'username' key" }) 
+    
+    username = request.GET['username'].strip()
+    num = request.GET['len'].strip()
+    
+    end_msec = int(time.time()*1000)
+    interp = int(86400*1000/2) # 12 hours
+
+    @cache.region('long_term')
+    def fetch_data(username, pages):
+        req_type = {}
+        request_type = {}
+
+        req_type['friends'] = username
+
+        personalCache = get_top_and_trending_pages(int(end_msec), interp, 16, req_type)
+        personal = personalCache['trending']        
+        personal_titles = personalCache['tre_titles'] #[0:num]       
+
+        request_type['global'] = 'global'
+
+        trendingCache = get_top_and_trending_pages(int(end_msec), interp, 16, request_type)
+        trending = trendingCache['trending']  #[0:num]        
+        tre_titles = trendingCache['tre_titles'] #[0:num]       
+
+        return {"personal":personal, "trending":trending, "tre_titles":tre_titles, "personal_titles":personal_titles}
+
+    results = fetch_data(username, 'eyebrowse_social_page')
+    return json_response({ "code":200, "results": results });
+
+
 def get_profile_graphs(endTime, interp, username):    
     user = get_object_or_404(User, username=username)
 
@@ -1183,7 +1216,6 @@ def fill_to_from_url_cache():
 def cache_to_from_url(url,users, req_type, phits, uphit):
     @cache.region('very_long_term')
     def fetch_data(url, users, req_type):
-        print url
         pre = {}
         next = {}
         titles = {}
@@ -1229,8 +1261,6 @@ def cache_to_from_url(url,users, req_type, phits, uphit):
         
         pre_sorted = sort_by_counts(pre)[:7]
         next_sorted = sort_by_counts(next)[:7]
-
-        print pre_sorted
 
         return { 'pre':pre_sorted, 'next':next_sorted, 'pre_titles': [ titles[x[0]] for x in pre_sorted ] , 'next_titles' : [ titles[x[0]] for x in next_sorted ] }
 

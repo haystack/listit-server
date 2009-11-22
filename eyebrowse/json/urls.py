@@ -24,7 +24,9 @@ urlpatterns = patterns('',
                        (r'^get_views_user/(\w+)/$', get_views_user_json), # for graphs 
                        (r'^get_hourly_daily_top_urls_user/(\w+)/(\d+)/$', get_hourly_daily_top_urls_user), # graphs
 
+
                        (r'^get_JSON_top_and_trending_pages$', get_JSON_top_and_trending_pages), # plugin 
+                       (r'^get_JSON_eyebrowse_social_page$', get_JSON_eyebrowse_social_page), # plugin 
                        #(r'^get_top_friend_and_number_friends_for_url/(\w+)$', get_top_friend_and_number_friends_for_url), # test
 )
 

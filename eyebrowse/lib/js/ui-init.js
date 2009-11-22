@@ -7,19 +7,24 @@ var lifestream = {
 	this.endTime = new Date().valueOf();
 	this.startTime = this.endTime - (604800000 * 4);
 	this.data = this.getData();	
-	this.mouseMargin = {x: 18, y:165 };					
+	this.numberNodes = 5;
+	this.mouseMargin = {x: 14, y:170 };					
 	jQuery("#loadimg").show();
 	//this.createStackTime('timeline');
 	//jQuery('.btn:eq(0)').addClass('sel');
 	jQuery('.btn:eq(2)').addClass('sel');
 	this.createNodeGraph('location');
+
+	JV3.CMS.event_store.getEventTypes().map(function(type){					
+						    jQuery('#rightNav').append("<div class=\"btn\" onClick=\"viz.nodeGraph.changeMode('" + type +"')\" >" + type + "</div>");			    
+						});
 	jQuery("#loadimg").hide();
     },
     getData:function(){
 	/*
-	return JV3.CMS.event_store.getEventTypes().map(
-	    function(type){ return JV3.CMS.event_store.getEvents(type, [startTime, endTime]); }).filter(
-		function(ent) { if (ent.length > 0) { return ent }; }); 
+	 return JV3.CMS.event_store.getEventTypes().map(
+	 function(type){ return JV3.CMS.event_store.getEvents(type, [startTime, endTime]); }).filter(
+	 function(ent) { if (ent.length > 0) { return ent }; }); 
 	 */
 	if (JV3.__debug__data === undefined) {
 	    JV3.__debug__data = JV3.CMS.event_store.getEvents("", [this.startTime, this.endTime]);
@@ -72,20 +77,22 @@ var lifestream = {
     createNodeGraph: function(type){
 	this.drawArray = []; // clean the draw array 
 	this.windowWidth = getClientCords().width - 50;
-	this.windowHeight = 500;
+	this.windowHeight = 550;
 
 	document.getElementById("main").setAttribute("width", this.windowWidth);
 	document.getElementById("main").setAttribute("height", this.windowHeight);
 	
 	if (this.data){							
-	    var nodeGraph = newify(nodeFactory, this, {
+	    this.nodeGraph = newify(nodeFactory, this, {
 					type: type,
+					currentLocation: currentLocation, // TODO NEED TO FIND OUT HOW TO GET THIS
+					numNodes: this.numberNodes,
 					windowWidth: this.windowWidth,
 					windowHeight: this.windowHeight
 				    });
 
 	    var mainEvtHandlers = newify(evtHandlers, this);
-	    this.drawArray.push(nodeGraph);	    	    
+	    this.drawArray.push(this.nodeGraph);	    	    
 	    this.draw();
 	}
     },
@@ -100,6 +107,10 @@ var lifestream = {
         }
     },
     drawHoverTxt:function(entity, mousePos){
+	if (!entity.id){
+	    jQuery("#hoverTxt").hide();
+	    return;	    
+	}
 	if (!(this.selectedEnt == entity.id)){
 	    this.selectedEnt = entity.id;
 	    var html = "<div class=\"hoverHeader\"><b> " + entity.id + "</b><br /></div>";
@@ -109,10 +120,15 @@ var lifestream = {
 	    if (entity.total) { html += "<b>Total Time: </b> " + timeCounterLong(entity.total/1000) + "<br />";}
 	    if (entity.topHours) { html += "<b>Top Hours Of Day: </b>" + entity.topHours.join(', ') + "<br />";}
 	    if (entity.topDOW) { html += "<b>Top Day of the Week: </b>" + entity.topDOW.join(', ') + "<br />";}
-	    
+	    if (entity.topWWW) { 
+		html += "<b>Top Domains: </b><br /><div style='margin-left:20px; font-size:10.5px;'";
+		entity.topWWW.map(function(www){				     
+				      html += "<div class=\"hoversubtext\">" + www[0] + "</div> " + timeCounterLong(www[1]/1000) + "<br />";
+				  });	    
+		html += "</div>";
+	    }
 	    jQuery("#hoverTxt").html(html);	    
 	}
-
 	jQuery("#hoverTxt").css({"left" : mousePos.x + this.mouseMargin.x + "px", "top" : mousePos.y + this.mouseMargin.y + "px" });				
 	jQuery("#hoverTxt").show();
     },
@@ -146,7 +162,7 @@ var lifestream = {
 	    if (text == "locations"){
 		jQuery('#rightNav').html("");
 		JV3.CMS.event_store.getEventTypes().map(function(type){					
-							    jQuery('#rightNav').append("<div class=\"btn\" onClick=\"viz.createStackGraph('" + type +"')\" >" + type + "</div>");			    
+							    jQuery('#rightNav').append("<div class=\"btn\" onClick=\"viz.nodeGraph.changeMode('" + type +"')\" >" + type + "</div>");			    
 							});
 
 		this.createNodeGraph('location');
@@ -159,4 +175,3 @@ var lifestream = {
 	}
     }
 };
-

@@ -23,6 +23,7 @@ urlpatterns = patterns('',
                        (r'^graphs/(\w+)/$', graph),
                        (r'^users/?$', users),
                        (r'^search/?$', page_profile),
+                       (r'^pathways/?$', page_profile),
                        (r'^ticker/?$', ticker),
                        
                        # user pages

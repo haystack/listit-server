@@ -1015,3 +1015,11 @@ a.selected {
     border-bottom:1px solid lightgrey;
     margin-bottom:6px;
 }
+.hoversubtext {
+    width:100px; 
+    overflow:hidden;
+    font-weight:bold;
+    display:inline-block; 
+    text-align:right; 
+    vertical-align:middle;
+}
