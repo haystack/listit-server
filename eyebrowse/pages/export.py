@@ -27,7 +27,7 @@ def get_cols(obfuscator=h):
         'host': lambda pageview: pageview.host
     }     
 
-def dump_pageviews_csv(filename='/tmp/foo.csv',user=None,pvrecords=None):
+def dump_file(filename='/tmp/foo.csv',user=None,pvrecords=None):
     f = open(filename,'w')    
     csv_writer = csv.writer(f, dialect='excel')
     if user:
@@ -61,19 +61,33 @@ def dump_pageviews_csv(fle,user=None):
     
 def get_user_pageviews_as_csv(request):
     ## get user from request (brenn)
-    user = get_object_or_404(User, username=request.user.username)
+    u = get_object_or_404(User, username=request.user.username)
     
-    u = get_user_from_request(request)
     sio = StringIO.StringIO()
-    dump_pagefiles_csv(sio,u)
+    dump_pageviews_csv(sio,u)
 
     zio = StringIO.StringIO()
-    zf = zipfile.ZipFile(zio)
-    zf.writestr('eyebrowse-%s.csv',sio.getvalue())
+    zf = zipfile.ZipFile(zio,mode='a')
+    zf.writestr('eyebrowse-%s.csv' % u.username,sio.getvalue())
     zf.close()
     
     response = HttpResponse(content_type='application/x-zip-compressed')
     response.write(zio.getvalue())
-    return reponse
+    return response
     
     
+def get_dupes():
+    pviews = PageView.objects.all()
+    views = set()
+    dupes = []
+    sig = lambda pv: (pv.startTime,pv.url,pv.user.id)
+    
+    for pv in pviews:
+        spv = sig(pv)
+        if not spv in views:
+            views = views.union(spv)
+            continue
+        dupes.append(pv.id)
+
+    return dupes
+            
