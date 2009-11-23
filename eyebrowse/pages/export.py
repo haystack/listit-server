@@ -44,6 +44,19 @@ def dump_file(filename='/tmp/foo.csv',user=None,pvrecords=None):
             csv_writer.writerow([col(x) for col in colgens.values() ])
     f.close()
 
+def get_dupes():
+    pviews = PageView.objects.all()
+    views = {}
+    dupes = []
+    sig = lambda pv: "%s-%s-%s" % (repr(pv.startTime),repr(pv.url),repr(pv.user.id))
+    for pv in pviews:
+        spv = sig(pv)
+        if not spv in views:
+            views[spv] = True
+            continue
+        dupes.append(pv.id)
+    return dupes
+
 def dump_pageviews_csv(fle,user=None):
     csv_writer = csv.writer(fle, dialect='excel')
     if user:
@@ -58,36 +71,32 @@ def dump_pageviews_csv(fle,user=None):
         csv_writer.writerow(colgens.keys())
         for x in pvrecords:
             csv_writer.writerow([col(x) for col in colgens.values() ])
-    
-def get_user_pageviews_as_csv(request):
-    ## get user from request (brenn)
-    u = get_object_or_404(User, username=request.user.username)
-    
+
+def _dump_pageviews_to_sio(u=None,filesuffix='database'):
+    ## creates a sio object to dump things to
     sio = StringIO.StringIO()
     dump_pageviews_csv(sio,u)
-
     zio = StringIO.StringIO()
     zf = zipfile.ZipFile(zio,mode='a')
-    zf.writestr('eyebrowse-%s.csv' % u.username,sio.getvalue())
+    zf.writestr('eyebrowse-%s.csv' % filesuffix,sio.getvalue())
     zf.close()
-    
+    return zio
+            
+def get_user_pageviews_as_csv_view(request):
+    ## get user from request (brenn)
+    u = get_object_or_404(User, username=request.user.username)
+    zio = _dump_pageviews_to_sio(u,u.username)
     response = HttpResponse(content_type='application/x-zip-compressed')
     response.write(zio.getvalue())
     return response
-    
-    
-def get_dupes():
-    pviews = PageView.objects.all()
-    views = set()
-    dupes = []
-    sig = lambda pv: (pv.startTime,pv.url,pv.user.id)
-    
-    for pv in pviews:
-        spv = sig(pv)
-        if not spv in views:
-            views = views.union(spv)
-            continue
-        dupes.append(pv.id)
 
-    return dupes
-            
+if __name__=='__main__':
+    import sys
+    filename='/tmp/out.zip'
+    if len(sys.argv) > 1:
+        filename = sys.argv[1]
+    print "dumping db to %s " % filename
+    f = open(filename,'w')
+    f.write(_dump_pageviews_to_sio().getvalue())
+    f.close()
+
