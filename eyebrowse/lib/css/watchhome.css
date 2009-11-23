@@ -640,7 +640,7 @@ a.selected {
     margin-top: 20px;
     padding-bottom: 0px;
     border: none;
-}#profile_edit {
+}.profile_edit {
     width: 198px;
     text-align: left;
     border: 1px solid lightgrey;
@@ -648,18 +648,18 @@ a.selected {
     line-height: 1.5em;
     font-size: 1.05em;
     float: left;
-} #profile_edit form {
+} .profile_edit form {
     width: 198px;
-} #profile_edit li {
-    display: inline-block;
-} #profile_edit input[type = "submit"] {
+} .profile_edit li {
+    display: block;
+} .profile_edit input[type = "submit"] {
     margin-top: 10px;
-} #profile_edit h2 {
+} .profile_edit h2 {
     font-size: 1.33em;
     padding: 8px;
     padding-left: 0px;
     border-bottom: 1px dotted darkgrey;
-} #profile_edit .footer {
+} .profile_edit .footer {
     margin-top:8px;	 
 } #key {
     font-size: 1.1em;
@@ -692,7 +692,7 @@ a.selected {
 } #listlist {
     padding: 12px;
     border: 1px solid lightgrey;
-    width: 280px;
+    width: 375px;
     display: inline-block;
     vertical-align: top;
     padding: 12px;
@@ -952,6 +952,10 @@ a.selected {
     border:3.6px solid lightgrey;
     font-weight:bold;
 }
+.bold{
+    font-weight:bold;
+}
+
 .btn:hover{
     border:3.6px solid magenta;
     font-weight:bold;

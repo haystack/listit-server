@@ -7,6 +7,7 @@ from django.conf.urls.defaults import *
 from django.views.generic.simple import direct_to_template
 from django.conf.urls.defaults import *
 from eyebrowse.pages.views import *
+from eyebrowse.pages.export import *
 
 urlpatterns = patterns('',
                        (r'^$', index),
@@ -64,5 +65,8 @@ urlpatterns = patterns('',
                        (r'^newtab/?$', new_tab),
 
                        # zamiang browser
-                       (r'^zamiang/?$', zamiang_browser)
+                       (r'^zamiang/?$', zamiang_browser),
+
+                       # export
+                       (r'^export_your_data/?$', get_user_pageviews_as_csv)
 )

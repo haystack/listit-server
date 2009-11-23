@@ -65,7 +65,7 @@ class ProfileSaveForm(forms.Form):
         required=False
         )
     tags = forms.CharField(
-        label='Tags',
+        label='Groups',
         widget=forms.TextInput(attrs={'size': 250}), 
         required=False
         )

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Privacy Settings{% endblock %}
+{% block title %}Settings{% endblock %}
 {% block imports %}
     <style>
 	  ul {
@@ -11,163 +11,222 @@
 	  font-size:11px;
 	  width:200px;
 	  }
-	</style>
+	  #home {
+	  margin-top:-64px;
+	  margin-right:38px;
+	  float:none;	  
+	  }
+	  #groups{
+	  width:400px;
+	  margin-left:30px;
+	  margin-top:19px;
+	  vertical-align:top;
+	  }
+    </style>
     <script src="/lib/js/urllist.js">
     </script>
-	<script>
-	function initMenu(){
-		jQuery('#popularsites ul').hide();
-		jQuery('#popularsites li a').click(
-			function() {
-				jQuery(this).next().slideToggle('normal');
-			}
-		);
-		var html = "";
-		var typesArray = ["news","blogs","media","shopping","social","reference"];
-		for (var i = 0; i < typesArray.length; i++){			
-			html = "<a href=\"javascript:addAllPrivacyURLS(\'" + pageList[typesArray[i]] + "\');\" style=\"font-weight:bold;\"> add all</a>";
-			for (var j = 0; j < pageList[typesArray[i]].length; j++){
-				html += "<li>";
-				html += "<a href=\"javascript:addPrivacyURL(\'" + pageList[typesArray[i]][j] + "\');\">" + pageList[typesArray[i]][j] + "</a>";
-				html += "</li>";			
-			}
-			jQuery("#" + typesArray[i]).html(html);
-		}
-	};
+    <script>
+    function swaptab(domobj){
+	var text = jQuery.trim(jQuery(domobj).text());
+	jQuery('#nav a').removeClass('bold');	         
+	jQuery(domobj).addClass('bold');
+	if (text == 'Share Websites'){
+	    jQuery('#profleeditform, #newtab').hide();
+	    jQuery('#add_sites, #faq').show();	      
+	} else if (text == 'Edit Your Profile'){
+	    jQuery('#add_sites, #faq, #newtab').hide();
+	    jQuery('#profleeditform').show();	      
+	} else if (text == 'Firefox Plugin'){
+	    jQuery('#add_sites, #faq, #profleeditform').hide().removeClass('bold');	      
+	    jQuery('#add_sites, #faq, #profleeditform').hide().removeClass('bold');	      
+	    jQuery('#newtab').show();
+	}
+    };
+
+    function initMenu(){
+	jQuery('#popularsites ul').hide();
+	jQuery('#popularsites li a').click(
+	    function() {
+		jQuery(this).next().slideToggle('normal');
+	    }
+	);
+	var html = "";
+	var typesArray = ["news","blogs","media","shopping","social","reference"];
+	for (var i = 0; i < typesArray.length; i++){			
+	    html = "<a href=\"javascript:addAllPrivacyURLS(\'" + pageList[typesArray[i]] + "\');\" style=\"font-weight:bold;\"> add all</a>";
+	    for (var j = 0; j < pageList[typesArray[i]].length; j++){
+		html += "<li>";
+		html += "<a href=\"javascript:addPrivacyURL(\'" + pageList[typesArray[i]][j] + "\');\">" + pageList[typesArray[i]][j] + "</a>";
+		html += "</li>";			
+	    }
+	    jQuery("#" + typesArray[i]).html(html);
+	}
+    };
 function addPrivacyURL(url){
-	var urlEncoded = encodeURIComponent(url);
-	jQuery("<li>" + url + "<a href=\"/delete_privacy_url/?input=" + url + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").prependTo('#urladdul');
-	jQuery.get("/add_privacy_url/", {input:url}); 
+    var urlEncoded = encodeURIComponent(url);
+    jQuery("<li>" + url + "<a href=\"/delete_privacy_url/?input=" + url + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").prependTo('#urladdul');
+    jQuery.get("/add_privacy_url/", {input:url}); 
 };
 
 function addAllPrivacyURLS(urls){
-	var urlsArray = urls.split(",");
-	for (var i = 0; i < urlsArray.length; i++){
-		jQuery("<li>" + urlsArray[i] + "<a href=\"/delete_privacy_url/?input=" + urlsArray[i] + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").prependTo('#urladdul');		
-	}
-	jQuery.get("/add_privacy_url/", {input:urls}); 
+    var urlsArray = urls.split(",");
+    for (var i = 0; i < urlsArray.length; i++){
+	jQuery("<li>" + urlsArray[i] + "<a href=\"/delete_privacy_url/?input=" + urlsArray[i] + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").prependTo('#urladdul');		
+    }
+    jQuery.get("/add_privacy_url/", {input:urls}); 
 };
 
 jQuery(document).ready(function(){
-						   initMenu();
-						   // no params :(
-						   jQuery.get("/get_privacy_urls/", {}, 
-									  function(data){
-										  if (data.code == 200) {
-											  var html = "";
-											  for (var i = 0; i < data.results.length; i++) {
-												  html += "<li>";
-												  html += data.results[i];
-												  html += "<a href=\"/delete_privacy_url/?input=" + data.results[i] + "\"><img src=\"/lib/img/cancel_16.png\"/></a>";
-												  html += "</li>";
-											  }
-											  jQuery("#urladdul").html(html);
-										  }
-										  else {
-											  console.log("yaaaa!!!H!H!H!" + data.code + " ");
-										  }
-									  }, "json");
+			   initMenu();
+			   // no params :(
+			   jQuery.get("/get_privacy_urls/", {}, 
+				      function(data){
+					  if (data.code == 200) {
+					      var html = "";
+					      for (var i = 0; i < data.results.length; i++) {
+						  html += "<li>";
+						  html += data.results[i];
+						  html += "<a href=\"/delete_privacy_url/?input=" + data.results[i] + "\"><img src=\"/lib/img/cancel_16.png\"/></a>";
+						  html += "</li>";
+					      }
+					      jQuery("#urladdul").html(html);
+					  }
+					  else {
+					      console.log("yaaaa!!!H!H!H!" + data.code + " ");
+					  }
+				      }, "json");
 
-						   jQuery.get("/get_most_shared_hosts/25/", {}, 
-									  function(data){
-										  if (data.code == 200) {
-											  var html = "";
-											  for (var i = 0; i < data.results.length; i++) {
-												  html += "<li>";
-												  html += "<a href=\"javascript:addPrivacyURL(\'" + data.results[i][0] + "\');\">" + data.results[i][0] + "</a>";
-												  html += "</li>";			
-											  }
-											  jQuery("#top_logged").html(html);
-										  }
-										  else {
-											  console.log("yaaaa!!!H!H!H!" + data.code + " ");
-										  }
-									  }, "json");
+			   jQuery.get("/get_most_shared_hosts/25/", {}, 
+				      function(data){
+					  if (data.code == 200) {
+					      var html = "";
+					      for (var i = 0; i < data.results.length; i++) {
+						  html += "<li>";
+						  html += "<a href=\"javascript:addPrivacyURL(\'" + data.results[i][0] + "\');\">" + data.results[i][0] + "</a>";
+						  html += "</li>";			
+					      }
+					      jQuery("#top_logged").html(html);
+					  }
+					  else {
+					      console.log("yaaaa!!!H!H!H!" + data.code + " ");
+					  }
+				      }, "json");
 
-						   self.addURL = function(){
-							   var input = jQuery("#urladdtextinput").val();
-							   jQuery.ajax({
-											   type:"GET",
-											   url:"../add_privacy_url/",
-											   dataType:"json",
-											   data:{input:input},
-											   success:function(data){
-												   if (data.host && data.host.length > 0) {
-													   jQuery("<li>" + data.host + "<a href=\"/delete_privacy_url/?input=" + data.host + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").prependTo('#urladdul');
-												   }
-											   },
-											   error:function() {}
-										   });
-						   };
+			   self.addURL = function(){
+			       var input = jQuery("#urladdtextinput").val();
+			       jQuery.ajax({
+					       type:"GET",
+					       url:"../add_privacy_url/",
+					       dataType:"json",
+					       data:{input:input},
+					       success:function(data){
+						   if (data.host && data.host.length > 0) {
+						       jQuery("<li>" + data.host + "<a href=\"/delete_privacy_url/?input=" + data.host + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").prependTo('#urladdul');
+						   }
+					       },
+					       error:function() {}
 					   });
+			   };
+		       });
 </script>
 	{% endblock %}
 	{% block content %}
 	<div id="report" style="width:880px">
-      <div id="profile_edit" style="border:1px solid grey; width:210px; margin-right:50px; margin-top:50px;float:none; display:inline-block" >
-        <h2>Edit Your Profile</h2>
-        {% include 'profile_save_form.html' %}
-      </div>
-	  <div id="profile_edit" style="float:right; border:none; margin-top:40px;">
-		<br />
+
+	  <div class="profile_edit" id="nav" style="width:auto; margin-right:50px; margin-top:50px; float:none" >
+            <h2>
+	      <a onclick="swaptab(this)" class="bold">Share Websites</a>&nbsp; &#124; &nbsp;
+	      <a onclick="swaptab(this)">Edit Your Profile</a>
+	      <!--&nbsp; &#124; &nbsp;<a onclick="swaptab(this)">Firefox Plugin</a>-->
+	    </h2>
+	    
+	    <div id="profleeditform" style="display:none; margin-top:52px; height:553px">
+	      <div id="groups">
+		<h1>Filter your data</h1>
+		<br/>
+		<div class="bodytext">
+		  Adding yourself to groups will help us recommend
+		  sites to you. <br /><br />Soon you will be able to also filter
+		  sites by location, group and time viewed. You will
+		  be able to make searches like: 'hey eyebrowse, what
+		  are designers in Sweden looking at after 1am on
+		  weekdays?'
+		</div>
+	      </div>
+	      <h2 style="width:200px; float:right; margin-right:32px; margin-top:-109px; vertical-align:top;">your profile</h2>	    
+              {% include 'profile_save_form.html' %}
+
+	    </div>
+	    
+	    <div id="newtab" style="display:none;">
+	      baa
+	    </div>
+
+	    <div class="profile_edit" id="add_sites" style="border:none; float:right; margin-right:23px; margin-top:29px;">
+	      <br />
 		<h2>add popular sites</h2>
 		<br />
 		<ul id="popularsites">
 		  <li>
-			<a href="#top_logged">most shared sites + </a> 
+			<a>most shared sites + </a> 
 			<ul id="top_logged">
 			</ul>
 		  </li>
 		  <li>
-			<a href="#news">news + </a> 
+			<a>news + </a> 
 			<ul id="news">
 			</ul>
 		  </li>
 		  <li>
-			<a href="#blogs">blogs +</a>
+			<a>blogs +</a>
 			<ul id="blogs">
 			</ul>
 		  </li>
 		  <li>
-			<a href="#media">media + </a>
+			<a>media + </a>
 			<ul id="media">
 			</ul>
 		  </li>
 		  <li>
-			<a href="#shopping">shopping + </a>
+			<a>shopping + </a>
 			<ul id="shopping">
 			</ul>
 		  </li>
 		  <li>
-			<a href="#social">social + </a>
+			<a>social + </a>
 			<ul id="social">
 			</ul>
 		  </li>
 		  <li>
-			<a href="#reference">reference + </a> 
-			<ul id="reference">
-			</ul>
+		    <a>reference + </a> 
+		    <ul id="reference">
+		    </ul>
 		  </li>
 		</ul>
-	  </div>
-      <div id="faq" style="width:330px; display:inline-block; vertical-align:top">
-        <h1>Raise your eyebrowse</h1>
-        <br/>
-        <div class="bodytext">
-		  Only the websites you add to this list will be logged. At any time you can use <b><a href="http://support.mozilla.com/en-US/kb/Private+Browsing">private browsing</a></b> in Firefox to temporarily turn off logging.
-		  <br /><br />
-		  For your own safety, please do not log sites such as google.com, facebook.com, bank webpages or your emails
-        </div>
-		<div id="listlist" style="border:none; padding-left:0px">
-          <label for="list">
-            Add URL:
-          </label>
-		  <input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:227px;" value="nytimes.com" onkeypress="{if (event.keyCode==13)addURL()}"/>
-		  <input type="submit" id="urladd" value="add" onkeypress="{if (event.keyCode==13)addURL()}" onClick="addURL()" style="width:auto;" />
-          <ul id="urladdul" style="padding-left:7px;">
-          </ul>
-		</div>
+	    </div>
+	    <div id="faq" style="width:400px; display:inline-block; vertical-align:top; margin-left:30px;">
+              <h1>Raise your eyebrowse</h1>
+              <br/>
+              <div class="bodytext">
+		Only the websites you add to this list will be
+		logged. At any time you can
+		use <b><a href="http://support.mozilla.com/en-US/kb/Private+Browsing">private
+		browsing</a></b> in Firefox to temporarily turn off
+		logging.  <br /><br /> For your own safety, please do
+		not log sites such as google.com, facebook.com, bank
+		webpages or your emails
+              </div>
+	      <div id="listlist" style="border:none; padding-left:0px">
+		<label for="list">
+		  Add URL:
+		</label>
+		<input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:317px;" value="nytimes.com" onkeypress="{if (event.keyCode==13)addURL()}"/>
+		<input type="submit" id="urladd" value="add" onkeypress="{if (event.keyCode==13)addURL()}" onClick="addURL()" style="width:auto;" />
+		<ul id="urladdul" style="padding-left:7px;">
+		</ul>
+	      </div>
+	    </div>
 	  </div>
 	</div>
-{% endblock %}
-	
+	{% endblock %}
+	  

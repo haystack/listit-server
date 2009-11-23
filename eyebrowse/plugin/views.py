@@ -71,18 +71,18 @@ def post_events(request):
     if not request_user:
         return json_response({"error":"Incorrect user/password combination"}, 401)
 
-    user_events = Event.objects.filter(owner=request_user,client=_get_client(request))
+    # user_events = Event.objects.filter(owner=request_user,client=_get_client(request))
     committed = [];
     
     for item in JSONDecoder().decode(request.raw_post_data):
         try:
-            entry = Event.objects.filter(owner=request_user,
+            entries = Event.objects.filter(owner=request_user,
                                          start=item['start'],
                                          type=item['type'],
                                          entityid=item['entityid'],
                                          entitytype=item['entitytype'],
                                          client=item['client'])
-            if entry.count() == 0 : 
+            if entries.count() == 0 : 
                 entry = Event();
                 entry.owner = request_user
                 entry.start = item['start']
@@ -90,6 +90,8 @@ def post_events(request):
                 entry.entityid = item['entityid']
                 entry.entitytype = item['entitytype']
                 entry.client = item['client']
+            else:
+                entry = entries[0]
                 
             entry.end = item['end']
             entry.entitydata = item.get('entitydata',"")

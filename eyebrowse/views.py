@@ -37,4 +37,4 @@ def create_www_pageviews_for_each_event(sender, created=None, instance=None, **k
             # print "Saving %s " % repr(pageview)                                     
             pageview.save()
 
-post_save.connect(create_www_pageviews_for_each_event, sender=Event)
+post_save.connect(create_www_pageviews_for_each_event, sender=Event, dispatch_uid='booz')
