@@ -55,7 +55,6 @@ def _create_enduser_for_user(user, request):
         pass
 
 
-
 def get_enduser_for_user(user):
     if EndUser.objects.filter(user=user).count() > 0:
         enduser = EndUser.objects.filter(user=user)[0]
@@ -582,15 +581,22 @@ def friends_page(request, username):
     following = [friendship.to_friend for friendship in user.friend_set.all()]
     followers = [friendship.from_friend for friendship in user.to_friend_set.all()]
 
+    friends = enduser.friends.all()
+    friends_results = []
+    for friend in friends:
+        friends_results.append( {"username": friend.user.username, "number": Event.objects.filter(owner=friend.user,type="www-viewed").count()} )
+    friends_results.sort(key=lambda x: -x["number"])
+
     variables = RequestContext(request, {
         'username': username,
         'following': following,
         'followers': followers,
+        'friends': friends,
         'show_user': True,
         'username': enduser.user.username,
         'request_user': request.user
         })
-    return render_to_response('friends_page.html', variables)
+    return render_to_response('friends.html', variables)
 
 @login_required
 def friend_add(request): # this sends a friend request to the user

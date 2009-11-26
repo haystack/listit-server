@@ -457,8 +457,8 @@ var lineGraphFactoryLite = ({
 
 				    var newWebViewed = this_.data;
 
-				    this_.minData = 0; // newWebViewed.min();
-				    this_.maxData =  newWebViewed.max(); // should find max of entire dataset
+				    this_.minData = 0; // 
+				    this_.maxData = Math.max.apply(undefined, newWebViewed); // should find max of entire dataset
 				    var fooX = function(){
 					var foo = fooStartTime;
 					var webHrArray = [];
@@ -638,7 +638,7 @@ var lineGraphFactory = ({
 				}();
 
 				if (!this_.maxData){
-				    this_.maxData = newWebViewed.max();
+				    this_.maxData = Math.max.apply(undefined, newWebViewed); 
 				    if (this_.maxData < 1) {this_.maxData = 10;} // cant be zero or the world will explode. i chose 10 for shits
 				}
 
@@ -891,8 +891,8 @@ var compareFactory  = ({
 			       for (var i = 0; i < this.data.next.length; i++){								   
 				   dataArray.push(this.data.next[i][1]);
 			       }
-			       this.dataMin = dataArray.min();// + 1;
-			       this.dataMax = dataArray.max() + 0.1;// -1;
+			       this.dataMin = Math.min.apply(undefined,dataArray);// + 1;
+			       this.dataMax = Math.max.apply(undefined,dataArray) + 0.1;// -1;
 			       
 			       this.draw();
 			   },
@@ -1079,7 +1079,7 @@ var stackBarGraph = ({
 				     }									 
 				     maxArray.push(max);
 				 }
-				 return maxArray.max();
+				 return Math.max.apply(undefined, maxArray);
 			     }();
 
 			     this_.dataMaxLeft = this_.dataMax;
@@ -1122,7 +1122,7 @@ var stackBarGraph = ({
 				     }									 
 				     maxArray.push(max);
 				 }
-				 return maxArray.max();
+				 return Math.max.apply(undefined, maxArray); 
 			     }();
 			     this_.dataMaxRight = this_.dataMax;
 			     for (var i = 0; i < rightData.length; i++){
@@ -1223,7 +1223,7 @@ var barGraphLite = ({
 			setPos: function(data){
 			    var this_ = this;
 			    var newData = data;
-			    this_.maxData = data.max();							 
+			    this_.maxData = Math.max.apply(undefined, data); //data.max();							 
 			    this_.minData = 0;							 
 
 			    this_.da = [];

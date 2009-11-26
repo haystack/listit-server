@@ -16,7 +16,7 @@ urlpatterns = patterns('',
                        #(r'^list/(\w+)/$', list),
                        #(r'^report/(\w+)/$', report),
                        #(r'^daybyday/(\w+)/$', daybyday),
-                       #(r'^friends/(\w+)/$', friends),
+                       (r'^friends/(\w+)/$', friends_page),
                
                        (r'^days/(\w+)/?$', day),
                        (r'^graph/(\w+)/?$', graph),

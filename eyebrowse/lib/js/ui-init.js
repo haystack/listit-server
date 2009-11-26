@@ -14,7 +14,7 @@ var lifestream = {
 	//jQuery('.btn:eq(0)').addClass('sel');
 	jQuery('.btn:eq(2)').addClass('sel');
 	this.createNodeGraph('location');
-
+	
 	JV3.CMS.event_store.getEventTypes().map(function(type){					
 						    jQuery('#rightNav').append("<div class=\"btn\" onClick=\"viz.nodeGraph.changeMode('" + type +"')\" >" + type + "</div>");			    
 						});

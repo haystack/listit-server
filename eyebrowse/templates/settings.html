@@ -22,6 +22,10 @@
 	  margin-top:19px;
 	  vertical-align:top;
 	  }
+	  input[type = checkbox] {
+	  margin:4.5px;
+	  margin-right:8px;
+	  }
     </style>
     <script src="/lib/js/urllist.js">
     </script>
@@ -140,7 +144,7 @@ jQuery(document).ready(function(){
 	      <!--&nbsp; &#124; &nbsp;<a onclick="swaptab(this)">Firefox Plugin</a>-->
 	    </h2>
 	    
-	    <div id="profleeditform" style="display:none; margin-top:52px; height:553px">
+	    <div id="profleeditform" style="display:none; margin-top:52px; height:575px">
 	      <div id="groups">
 		<h1>Filter your data</h1>
 		<br/>
@@ -152,10 +156,46 @@ jQuery(document).ready(function(){
 		  are designers in Sweden looking at after 1am on
 		  weekdays?'
 		</div>
+		<br />
+		<input type="checkbox" name="business & finance">business & finance</input>
+		<br />
+		<input type="checkbox" name="computers & internet">computers & internet</input>
+		<br />
+		<input type="checkbox" name="cultures & communication">cultures & communication</input>
+		<br />
+		<input type="checkbox" name="design">design</input>
+		<br />
+		<input type="checkbox" name="entertainment & arts">entertainment & arts</input>
+		<br />
+		<input type="checkbox" name="family & home">family & home</input>
+		<br />
+		<input type="checkbox" name="games">games</input>
+		<br />
+		<input type="checkbox" name="government & politics">government & politics</input>
+		<br />
+		<input type="checkbox" name="health & wellness">health & wellness</input>
+		<br />
+		<input type="checkbox" name="hobbies & crafts">hobbies & crafts</input>
+		<br />
+		<input type="checkbox" name="music">music</input>
+		<br />
+		<input type="checkbox" name="recreation & sports">recreation & sports</input>
+		<br />
+		<input type="checkbox" name="religion & beliefs">religion & beliefs</input>
+		<br />
+		<input type="checkbox" name="schools & education">schools & education</input>
+		<br />
+		<input type="checkbox" name="science">science</input>
+		<br />
+		misc: <input type="text" name="misc" id="groupstextinput" style="display:inline-block; width:217px;margin:4px;" value="nytimes.com" onkeypress="{if (event.keyCode==13)addURL()}"/>
+		<br />
+		<input type="submit" id="groupAdd" value="add groups" onkeypress="{if (event.keyCode==13)addURL()}" onClick="addGroups()" style="width:auto;" />
+
 	      </div>
+	      <div style="float:right; margin-top:-430px">
 	      <h2 style="width:200px; float:right; margin-right:32px; margin-top:-109px; vertical-align:top;">your profile</h2>	    
               {% include 'profile_save_form.html' %}
-
+	      </div>
 	    </div>
 	    
 	    <div id="newtab" style="display:none;">
