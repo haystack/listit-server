@@ -102,7 +102,7 @@ def notes_to_bow_features(notes, text=lambda x: eliminate_urls(x["contents"]), w
 def note_lifetime(note):
     ndt = get_note_deletion_time(note)
     if ndt is not None and ndt > 0:
-        return {'note_lifetime': ( (1.0*ndt - note["created"])/(3600*1000) ) }
+        return {'note_lifetime': ( (1.0*ndt - long(note["created"]))/(3600*1000) ) }
     return {'note_lifetime':-1}
 
 def time_since_join(u):
@@ -130,6 +130,19 @@ note_phone_numbers = lambda x: {'phone_nums':count_regex_matches("(^|\s+)([0-9](
 note_emails = lambda note: {'email_addrs':str_n_emails(note["contents"])}
 numbers = lambda note: {'numbers':count_regex_matches("(^|\s+)(\d+)($|s)",note["contents"])}
 nonword_mix = lambda note: {'numword_mix':count_regex_matches("(^|\s+)(.*\d.*)($|s)",note["contents"])}
+note_punctuation = lambda note:{'note_punct': count_regex_matches("[\.\,]", note["contents"]) }
+def note_verbs(note):
+    return {'note_verbs': reduce(lambda x,y: x+y, [count for pos,count in note_pos_features(note).items() if pos in ["VB","VBD","VBG","VBN","VBP","VBZ"]])}    
+def note_verbs_over_length(note):
+    return {'note_verbs_over_length': note_verbs(note)["note_verbs"]*1.0/note_words(note)["note_words"]  }
+def names_over_length(note):
+    return {'note_names_over_length': note_names(note)["names"]*1.0/note_words(note)["note_words"]  }
+def dte_over_length(note):
+    return {'dte_over_length': note_date_count(note)["date_time_exprs"]*1.0/note_words(note)["note_words"]  }
+def urls_over_length(note):
+    return {'urls_over_length': note_urls(note)["note_urls"]*1.0/note_words(note)["note_words"]  }
+def todos_over_length(note):
+    return {'todos_over_length': count_regex_matches("(^|\s|@)((todo)|(to do)|(to-do))(\s|$)",note["contents"] )*1.0/note_words(note)["note_words"] }
 
 ## addresses?
 ## dates/times

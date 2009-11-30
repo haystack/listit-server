@@ -49,18 +49,27 @@ def activity_logs_for_notes(ns,action=None):
 #         return float(logs[0]["when"])
 #     return None
 
-__ndtime = None
 def get_note_deletion_time(n):
-    global __ndtime
-    if __ndtime is None or __nnidjid is None:
-        print "update"
-        __ndtime = {}
-        for al in ActivityLog.objects.filter(action="note-delete").values("when","noteid","owner"):
-            hh = __ndtime.get(al["owner"],{})
-            hh.update( { al["noteid"]: long(al["when"]) } )
-            __ndtime[al["owner"]] = hh
-
-    return __ndtime.get( n["owner"], {}).get( n["jid"] , -1 )
+    alfn = activity_logs_for_note(n)
+    #print "got %s " % repr(alfn)
+    if len(alfn) > 0:
+        hits = [long(x["when"]) for x in alfn if x["action"] == "note-delete"]
+        if len(hits) > 0:
+            return hits[-1]
+        pass
+    return -1
+        
+#__ndtime = None
+# def get_note_deletion_time(n):
+#     global __ndtime
+#     if __ndtime is None:
+#         print "update"
+#         __ndtime = {}
+#         for al in ActivityLog.objects.filter(action="note-delete").values("when","noteid","owner"):
+#             hh = __ndtime.get(al["owner"],{})
+#             hh.update( { al["noteid"]: long(al["when"]) } )
+#             __ndtime[al["owner"]] = hh
+#    return __ndtime.get( n["owner"], {}).get( n["jid"] , -1 )
         
 def activity_logs_for_user(user,action=None,days_ago=None):
     from jv3.study.content_analysis import _actlogs_to_values,_notes_to_values
@@ -154,7 +163,7 @@ def _coerce_to_ints(ns):
         pass
     return ints
         
-def import_notes_csv(filename="/tmp/notes.csv", load_text_col=True):
+def import_notes_csv(filename="/tmp/notes.csv", load_text_col=True,text_col=3):
     from jv3.study.content_analysis import _notes_to_values
     import sys
     f = open(filename,'r')
@@ -169,7 +178,7 @@ def import_notes_csv(filename="/tmp/notes.csv", load_text_col=True):
         try:
             nid = int(row[0])
             nids.append(nid) ## load notes and text
-            ntext[nid]=row[3] ## store text
+            ntext[nid]=row[text_col] ## store text
         except:
             print sys.exc_info();
             fails = fails+1        
