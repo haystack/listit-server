@@ -68,10 +68,10 @@
   {% if request_user %}
   <h1>{{ request_user }}</h1>
   <h3 style="float:right; font-size:14px;margin-top:16px;">
-	<a id="user" href="javascript:self.viz.getPage('user')">you</a>
+	<a id="user" href="javascript:self.viz.getPage('friends')">you</a>
 	&#124; 
-	<a id="friends" href="javascript:self.viz.getPage('friends')">friends</a>
-	&#124; 
+<!--	<a id="friends" href="javascript:self.viz.getPage('friends')">friends</a>
+	&#124;--> 
 	<a id="global" href="javascript:self.viz.getPage('global')">everyone</a> 
   </h3>
   {% endif %}
@@ -87,9 +87,11 @@
 	  <b>&nbsp; &#124; &nbsp;avg time per visit:</b>
 	</div>
   </div>
+<!--
   <div id="toggle" style="display:inline-block; cursor: pointer; float:right;margin-top:-10px">
     collapse +
   </div>
+-->
 </div>
 <div id="profile_content" style="padding:15px; padding-top:0px; width:950px; margin-top:0px; margin-left:auto;margin-right:auto;">
   <canvas id="main" style="padding:0px;margin:0px;">

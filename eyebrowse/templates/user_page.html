@@ -5,192 +5,47 @@
         #latestlist h6 {
 			width: 420px;
 		}
-	</style>
-	<script src="/lib/js/jquery.corner.js">
-	</script>
-	<script src="/lib/js/watchMeGraph.js">
-	</script>
-	<script src="/lib/js/canvas.text.js">
-	</script>
-	<script src="/lib/js/faces/helvetiker-normal-normal.js">
-	</script>
-	<script>
-    var WatchmeVisualisation = {
-        initialize: function(canvas, windowWidth, windowHeight, timeZoneCorrect, zoom){
-            this.canvas = canvas;
-            this.windowWidth = windowWidth;
-            this.windowHeight = windowHeight;
-            this.timeZoneCorrect = timeZoneCorrect;
-            this.endDate = new Date();
-	    this.now = new Date().valueOf();
-            this.startDate = new Date(this.endDate.valueOf() - zoom);
-            this.endTime = this.endDate.valueOf();
-            this.startTime = this.startDate.valueOf();
-            this.OGendTime = this.endDate.valueOf();
-            this.OGstartTime = this.startDate.valueOf();
-	    this.urlID = 0;
-            this.interp = zoom / 192;
-            this.drag = undefined;
-            this.zoom = zoom;
-	    this.recentID = 0;
-            this.getLatestPages();
-	    this.getProfile(this.endTime); 
-        },
-	getProfile: function(endTime){
-	    var this_ = this;
-	    jQuery("#loadimg").show();
-            try {
-                jQuery.get("/get_profile", {
-			       type: '{{ username }}'
-			   }, function(data){
-			       jQuery("#loadimg").hide();				
-			       if (data.code == 200) {								   
-				   this_.drawProfile(data.results[2]);
-				   this_.drawTopPages(data.results[1]);
-				   this_.drawGraphs(data.results[0]);
-			       }
-			       else {
-				   //log("yaaaa!!!H!H!H!" + data.code + " ");
-			       }
-			   }, "json");
-            } 
-            catch (e) {
-                console.log(e);
-            }
-	},
-	drawProfile: function(data){
-	    var newData = data;	
-	    jQuery("#totalTime").html("<b>total time spent: </b> " + timeCounterLongAbv(newData.totalTime));
-	    jQuery("#num").html("<b>total visits: </b>" + newData.number);
-	    jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv(newData.average));					
-	},
-        drawTopPages: function(data){
-            var this_ = this;
-            var newData = data;
-            var html = "<ul>";
-            for (var i = 0; i < newData.length; i++) {
-                var trigger = true;
-                html += "<li>";
-                html += "<h6><b><a href=\"http://" + newData[i][0] + "\">" + newData[i][0] + "</a></b></h6>";                
-                if (newData[i][2] < 0) {
-                    trigger = false;
-                    html += "<div class=\"imgbox\">";
-                    html += "<img src=\"/lib/img/arrow_full_down_16.png\" />";
-                    html += "<b>" + newData[i][2] + "</b>";
-                    html += "</div>";
-                }
-                if (newData[i][2] > 0) {
-                    trigger = false;
-                    html += "<div class=\"imgbox\">";	
-		    html += "<img src=\"/lib/img/arrow_full_up_16.png\" />";                         	   
-		    html += "<b>" + newData[i][2] + "</b>";
-		    html += "</div>";
-                }
-                if (trigger) {
-                    html += "<div class=\"imgbox\">&nbsp;";
-                    html += "</div>";
-                }
-                html += "<h7>" + timeCounterLong((newData[i][1]) / 1000) + "</h7>";
-                html += "</li>";
-            }
-	    html += "</ul>";
-            jQuery("#list").html(html);
-        },
-	drawGraphs: function(data){
-	    var this_ = this;
-
-	    var dayWeekGraph = newify(barGraphLite, {
-					  canvas: document.getElementById("dayWeekGraph"),
-					  windowHeight: this_.windowHeight,
-					  windowWidth: this_.windowWidth,
-					  bottomPadding:30,
-					  barPadding:10,
-					  textPadding:4,
-					  columnWidth:20,																 
-					  label: ['Monday', 'Tuesday', 'Wednes', 'Thursday', '  Friday', 'Saturday', 'Sunday'],
-					  data: data['dayWeek']
-				      });
-	    
-	    var timeDayGraph = newify(barGraphLite, {
-					  canvas: document.getElementById("dayTimeGraph"),
-					  windowHeight: this_.windowHeight,
-					  windowWidth: this_.windowWidth,
-					  color: "#ff00ff",
-					  bottomPadding:30,
-					  columnWidth:8,
-					  barPadding:0,
-					  textPadding:0,
-					  label: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23],
-					  data: data['timeDay']
-				      });
-        },
-        drawLatestPagesList: function(data){
-	    var this_ = this;
-            var newData = data;
-            var html = "";
-	    jQuery("#latestlist").html(" ");
-	    html = "<ul >";
-            for (var i = 0; i < newData.length; i++) {
-                html += "<li id=\"url" + i +  "\">";
-		if (newData[i].title){
-		    html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
-		}
-		else{
-		    html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url + "</a></b></h6>";
-		}				
-		{% ifequal user.username username %}
-		html += "<a href=\"javascript:self.viz.deletePage('" + newData[i].id + "','" + i + "');\" style=\"float:right; margin-right:6px; margin-left:6px;\" >";
-		html += "<img src=\"/lib/img/cancel_16.png\" /></a>";
-		{% endifequal %}
-                html += "<h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
-                html += "</li>";
-	    }
-            html += "</ul>";
-	    jQuery("#latestlist").prepend(html);			
-        },
-        getLatestPages: function(){
-            var this_ = this;
-	    jQuery.get("/get_latest_views", {
-			   num: 40,
-			   id: this_.recentID,
-			   type: 'user',
-			   username: '{{ username }}'
-		       }, function(data){
-			   if (data.code == 200) {
-			       this_.drawLatestPagesList(data.results);
-			   }
-			   else {
-			       console.log("yaaaa!!!H!H!H!" + data.code + " ");
-			   }
-		       }, "json");
-        },
-	deletePage: function(urlID, num){
-	    try {
-		jQuery.post("/delete_url_entry/", {
-				'ID': "" + urlID
-			    }, function(data){							   
-				if (data.code == 200) {
-				    jQuery("\#url" + num).hide("slow");
-				}
-				else {
-				    console.log("yaaaa!!!H!H!H!" + data.code + " ");
-				}
-			    }, "json");
-            } 
-            catch (e) {
-                console.log(e);
-            }			
-	},
-	refresh: function(startTime, endTime){
-            var this_ = this;
-            this_.endTime = endTime;
-            this_.startTime = startTime;
-            
-	    this.getProfile(endTime); 
+	.viewboxprofile {
+	border:medium none;
+	margin-right:auto;
+	padding-top:4px;
+	text-align:left;
+	width:96%;
+	margin-left:auto;
 	}
-    };
-
-
+	#profile_content #listNav{
+	width:95%;
+	margin-left:auto;
+	margin-right:auto;
+	text-align:center;
+	margin:0px;
+	}
+	.viewboxprofile li {
+	width:auto;
+	}
+	#list {
+	width:100%;
+	margin-left:auto;
+	margin-right:auto;
+	}
+	h2 {
+	text-align:left;
+	}
+ul {
+list-style-type:none;
+margin-left:auto;
+margin-right:auto;
+margin-top:0;
+padding:0;
+width:98%;
+}
+    </style>
+    <script src="/lib/js/jquery.corner.js"></script>
+    <script src="/lib/js/watchMeGraph.js"></script>
+    <script src="/lib/js/canvas.text.js"></script>
+    <script src="/lib/js/faces/helvetiker-normal-normal.js"></script>
+    <script src="/lib/js/user_page.js"></script>
+<script>
 jQuery(document).ready(function(){
 			   jQuery('.imgborder').css({'width': jQuery("#profimg").width() + "px"});
 			   jQuery(".imgborder").corner();
@@ -199,146 +54,160 @@ jQuery(document).ready(function(){
 			   
 			   myWidth = window.innerWidth - 16;
 			   myHeight = window.innerHeight - 250;
+
+var width = jQuery('#listNav').width()/2.1;
 			   
-			   document.getElementById("dayTimeGraph").setAttribute("width", 335);
+			   document.getElementById("dayTimeGraph").setAttribute("width", width);
 			   document.getElementById("dayTimeGraph").setAttribute("height", 200);
-			   document.getElementById("dayWeekGraph").setAttribute("width", 335);
+			   document.getElementById("dayWeekGraph").setAttribute("width", width);
 			   document.getElementById("dayWeekGraph").setAttribute("height", 200);
 			   
-			   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), 335, 200, 0, 604800000);// 1 week
-					   });
+			   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), width, 200, 0, 604800000, '{{ username }}');// 1 week
+		       });
 </script>
+
 {% endblock %}
 {% block content %}
-<div class="loader" id="loadimg"></div>
-<div id="report">
-	<img src="/lib/img/ajax-loader.gif" class="loader" />
-	<div id="loading" class="loader"></div>
-    <div id="profile" style="margin-top:32px">
-        {% if user.username %}
-        {% if is_friend %}
-        {% else %}
-		{% ifequal user.username username %}
-        {% else %}<a href="/friend/add?username={{ username }}">follow {{ username }} <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a>
-        {% endifequal %}
-        {% endif %}
-        {% endif %}
-
-        <div id="num" style="margin-top:10px;">
-            <b>total visits:</b>
-        </div>
-        <div id="totalTime">
-            <b>total time spent: </b>
-        </div>
-        <div id="avgTime">
-            <b>average time spent:</b>
-        </div>
-        <br />
-        {% if location %}<b>Location:</b>
-        {{ location }} 
-        <br/>
-        {% endif %}
-
-        {% if tags %}
-	<b>Groups:</b>
-        {{ tags }}
-	<br />
-        {% endif %}
-
-        {% if birthdate %}<b>Age:</b>
-        {{ birthdate }} 
-        <br/>
-        {% endif %}
-
-        {% if homepage %}<b>Website:</b>
-        <a href="{{ homepage }}">{{ homepage }}</a> 
-        <br/>
-        {% endif %}
-
-        <h2>Followers</h2>
-        {% if followers %}
-        <ul class="friends" style="margin-top:10px">
-            {% for friend in followers %}
-            <li>
-                <a href="/profile/{{ friend.username }}/">{{ friend.username }}</a><h7> {{ friend.number }}</h7>
-            </li>
-            {% endfor %}
-        </ul>
-        {% ifequal user.username username %}<div class="footer"><a href="/friends/manage/{{ username }}/">view all of your followers</a></div>
-        {% else %}
-        {% endifequal %}
-        {% else %}
-        <p>
-            {{ username }} has no followers :(
-        </p>
-        {% endif %}
-
-        <h2>Following</h2>
-        {% if following %}
-        <ul class="friends" style="margin-top:10px;">
-            {% for friend in following %}
-            <li>
-                <a href="/profile/{{ friend.username }}/">{{ friend.username }}</a><h7> {{ friend.number }}</h7>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p>
-            {{ username }} is not following anyone :(
-        </p>
-        {% endif %}
-    </div>
-    <div id="profile_content">
-	  {% if photo %}
-	  <div class="imgborder" id="profbrdr" style="height:160px; display:inline-block;">
-      <img src="/profiles/{{ id }}.jpg" class="profileimage" id="profimg"/>
+	<div class="loader" id="loadimg"></div>
+	<div id="report" style="width:98%">
+	  <img src="/lib/img/ajax-loader.gif" class="loader" />
+	  <div id="loading" class="loader"></div>
+	  <div id="profile" style="margin-top:32px">
 	  </div>
-	  {% endif %}
-      <div class="userhead">
-        <h1><a href="/profile/{{ username }}/">{{ username }}</a></h1>
-        <br/>
-      </div>
-      <br/>
-      <div id="listNav">
-        <div class="user_page_top">
-		  <h2>Latest</h2>		  
-        </div>
-	  </div>
-      <div class="viewboxprofile" id="latestlist">
-      </div>
-	  <br />
-      <div id="listNav">
-        <div class="user_page_top">
-		  <h2>Graphs</h2>
+	  <div id="profile_content" style="width: 98%;">
+	    <div style="width: 98%; border-bottom:4px solid black">
+	      {% if photo %}
+	    <div class="imgborder" id="profbrdr" style="height:110px; display:inline-block;">
+	      <img src="/profiles/{{ id }}.jpg" class="profileimage" id="profimg"/>
+	    </div>
+	    {% endif %}
+	    <div class="userhead">
+              <h1><a href="/profile/{{ username }}/">{{ username }}</a></h1>
+	      <br />
+
+              {% if user.username %}
+              {% if is_friend %}
+              {% else %}
+	      {% ifequal user.username username %}
+              {% else %}<a href="/friend/add?username={{ username }}">follow {{ username }} <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a>
+              {% endifequal %}
+              {% endif %}
+              {% endif %}
+
+	      <div style="display:inline-block; ">
+              {% if birthdate %}<b>Age:</b>
+              {{ birthdate }} 
+              <br/>
+              {% endif %}
+
+              {% if location %}<b>Location:</b>
+              {{ location }} 
+              <br/>
+              {% endif %}
+
+              {% if tags %}
+	      <b>Groups:</b>
+              {{ tags }}
+	      <br />
+              {% endif %}
+
+              {% if homepage %}<b>Website:</b>
+              <a href="{{ homepage }}">{{ homepage }}</a> 
+              {% endif %}
+	      </div>
+	      <div style="display:inline-block; vertical-align:top; margin-left:40px;">
+		<div id="num" style="margin-top:10px; ">
+		  <b>total visits:</b>
 		</div>
-		<br />
-    <div id="key" style="margin-top:-7px;margin-bottom:4px">
-      <div id="totalGraphKey" style="width:300px; text-align:center; display: inline-block;">
-        number of visits per hour of day
-      </div>
-      <div id="avgGraphKey" style="float:right; width:300px; text-align:center; display: inline-block;">
-        number visits per day of week
-      </div>
-    </div>   
+		<div id="totalTime" >
+		  <b>total time spent: </b>
+		</div>
+		<div id="avgTime" >
+		  <b>average time spent:</b>
+		</div>
+              </div>
+            </div>
+            </div>
+	    <div id="listNav">
+	      <!--
+		 <div class="user_page_top">
+		   <h2>Graphs</h2>
+		 </div>
+		 -->
+	      <br />
+	      <div id="key" style="margin-top:-7px; margin-left:20px; text-align:left; margin-bottom:4px">
+		<div id="totalGraphKey" style="text-align:left; display: inline-block;">
+		  number of visits per hour of day
+		</div>
+		<div id="avgGraphKey" style="float:right; text-align:center; display: inline-block;">
+		  number visits per day of week
+		</div>
+	      </div>   
 
-    <canvas id="dayTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
-    </canvas>
-    <canvas id="dayWeekGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:24px; display: inline-block">
-    </canvas>
+	      <canvas id="dayTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
+	      </canvas>
+	      <canvas id="dayWeekGraph" style="border-bottom:0px solid lightgrey; margin: 0px; float:right; display: inline-block">
+	      </canvas>
 
-    <div id="listNav">
-      <div class="user_page_top">
-        <div id="messageSent"  style="font-size:12px";>
-          robots do not know the future :( 
-          <br/>
-          &#8230;yet
-        </div>
-	<h2>Top 10</h2>
-      </div>
-      <div class="viewboxlarge" id="list" style="width:700px;">
-      </div>
-    </div>
-    <br/>
-      </div>
-      {% endblock %}
-      
+
+	      <div id="listNav">
+		<div class="user_page_top">
+		  <h2>latest</h2>		  
+		</div>
+	      </div>
+	      <div class="viewboxprofile" id="latestlist"></div>
+
+	      <br />
+	      <div id="listNav">
+		<div class="user_page_top">
+		  <div id="messageSent"  style="font-size:12px";>
+		    robots do not know the future :( 
+		    <br/>
+		    &#8230;yet
+		  </div>
+		  <h2>top 10</h2>
+		</div>
+		<div class="viewboxlarge" id="list">
+		</div>
+	      </div>
+	      <br/>
+	    </div>
+
+
+	    <!--
+               <h2>Followers</h2>
+               {% if followers %}
+               <ul class="friends" style="margin-top:10px">
+		 {% for friend in followers %}
+		 <li>
+                   <a href="/profile/{{ friend.username }}/">{{ friend.username }}</a><h7> {{ friend.number }}</h7>
+		 </li>
+		 {% endfor %}
+               </ul>
+               {% ifequal user.username username %}<div class="footer"><a href="/friends/manage/{{ username }}/">view all of your followers</a></div>
+               {% else %}
+               {% endifequal %}
+               {% else %}
+            <p>
+              {{ username }} has no followers :(
+            </p>
+            {% endif %}
+
+            <h2>Following</h2>
+            {% if following %}
+            <ul class="friends" style="margin-top:10px;">
+              {% for friend in following %}
+              <li>
+                <a href="/profile/{{ friend.username }}/">{{ friend.username }}</a><h7> {{ friend.number }}</h7>
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <p>
+              {{ username }} is not following anyone :(
+            </p>
+            {% endif %}
+	    -->
+
+	    {% endblock %}
+	    

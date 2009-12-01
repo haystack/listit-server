@@ -36,10 +36,10 @@ input[type="text"] {
 	<input type="text" name="list" id="urladdtextinput" value="{{ url }}" onkeypress="{if (event.keyCode==13)viz.refresh()}"/>
 	{% if request_user %}
 	  <h3 style="float:right; font-size:14px;margin-top:40px;">
-		<a id="user" href="javascript:self.viz.changeType('user')">you</a>
+		<a id="user" href="javascript:self.viz.changeType('friends')">you</a>
 		 &#124; 
-		<a id="friends" href="javascript:self.viz.changeType('friends')">friends</a>
-		 &#124; 
+<!--		<a id="friends" href="javascript:self.viz.changeType('friends')">friends</a>
+		 &#124; -->
 		<a id="global" href="javascript:self.viz.changeType('global')">everyone</a> 
 	  </h3>
 	{% endif %}

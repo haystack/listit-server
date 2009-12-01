@@ -418,7 +418,7 @@ a.selected {
     padding-top: 8px;
     padding-bottom: 8px;
 } #footer {
-    width: 440px;
+    width: 545px;
     border-top: 1px lightgrey solid;
     padding: 8px;
     margin-left: auto;
@@ -562,7 +562,7 @@ a.selected {
     padding: 0px;
     padding-top: 5px;
 } .profileimage {
-    height: 160px;
+    height: 110px;
     width: auto;
     padding-right: 4px;
 } #profile h2 {
@@ -729,10 +729,11 @@ a.selected {
     vertical-align: top;
     padding-left: 3px;
 } .userhead {
-    display: inline-block;
-    vertical-align: top;
-    padding-top: 15px;
-    margin-bottom: 20px;
+    display:inline-block;
+    margin-bottom:18px;
+    margin-left:10px;
+    padding-top:12px;
+    vertical-align:top;
 } #profile img {
     height:69px;
     width:69px;

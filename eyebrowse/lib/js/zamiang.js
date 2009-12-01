@@ -1,3 +1,29 @@
+function _keepGroup1(regex,s) {
+    var result = s.match(regex); 
+    if (result && result.length > 0) {
+	return result[1];
+    }
+    return s;
+};
+function cleanupURL(url){
+    url = this._keepGroup1(/([^?]*)\?.*$/,url);
+    url = this._keepGroup1(/(.*)\/$/,url);
+    url = this._keepGroup1(/https?:\/\/(.*)/,url);
+    
+    if (url.length > 43){
+	// grab the last token
+	var last = this._keepGroup1(/\/([^/]*)$/,url);
+	last = last.substring(Math.max(0,last.length-20));			  
+	url = url.trim(0,43-last.length-3) + "..." + last;
+    } else {
+	url = url.trim(0, 43);
+    }	
+    if (url.indexOf('www') == 0){
+	url = url.substring(4);
+    }
+    return url;
+};
+
 // possibly faster
 function smallest(array){
     return Math.min.apply( Math, array );

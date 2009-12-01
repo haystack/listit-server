@@ -44,7 +44,7 @@ var WatchmeVisualisation = {
 				   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title.substring(0,30) + "</a></b></h6>";
 			       }
 			       else{
-				   html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url.substring(0,30) + "</a></b></h6>";
+				   html += "<h6><b><a href=\"" + newData[i].url + "\">" + cleanupURL(newData[i].url) + "</a></b></h6>";
 			       }
 			       html += "<h7>" + timeCounterClock((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
 			       if (newData[i].user.length > 0) {
@@ -91,7 +91,7 @@ var WatchmeVisualisation = {
 			       this_.drawTopPagesList(data.results[3]);
 			       this_.drawTopDomains(data.results[4]);
 			       this_.drawMiniGraph(data.results[2]);
-			       this_.drawBG(data.results[1]);
+			       //this_.drawBG(data.results[1]);
 			   }
 			   else {
 			       //console.log("yaaaa!!!H!H!H!" + data.code + " ");
@@ -121,7 +121,7 @@ var WatchmeVisualisation = {
 	    if (data.top_titles[i]){
 		html += "<h6><b><a href=\"" + data.top[i][0] + "\" style=\"width:50px;\">" + data.top_titles[i].substring(0,22) + "</a></b></h6>";                						
 	    } else {
-		html += "<h6><b><a href=\"" + data.top[i][0] + "\" style=\"width:50px;\">" + data.top[i][0].substring(0,22) + "</a></b></h6>";                						
+		html += "<h6><b><a href=\"" + data.top[i][0] + "\" style=\"width:50px;\">" + cleanupURL(data.top[i][0]) + "</a></b></h6>";                						
 	    }
 	    if (data.top[i][2] < 0) {
 		trigger = false;
@@ -150,7 +150,7 @@ var WatchmeVisualisation = {
 	    if (data.tre_titles[i]){
 		html += "<h6><b><a href=\"" + data.trending[i][0] + "\" style=\"width:50px;\">" + data.tre_titles[i].substring(0,21) + "</a></b></h6>";                						
 	    } else {
-		html += "<h6><b><a href=\"" + data.trending[i][0] + "\" style=\"width:50px;\">" + data.trending[i][0].substring(0,21) + "</a></b></h6>";                						
+		html += "<h6><b><a href=\"" + data.trending[i][0] + "\" style=\"width:50px;\">" + cleanupURL(data.trending[i][0]) + "</a></b></h6>";                						
 	    }
 	    if (data.trending[i][2] < 0) {
 		trigger = false;
