@@ -2,51 +2,54 @@
 {% block title %}{{ username }}{% endblock %}
 {% block imports %}
     <style>
-        #latestlist h6 {
-			width: 420px;
-		}
-	.viewboxprofile {
+    #latestlist h6 {
+	width: 420px;
+    }
+    .viewboxprofile {
 	border:medium none;
 	margin-right:auto;
 	padding-top:4px;
 	text-align:left;
-	width:96%;
-	margin-left:auto;
-	}
-	#profile_content #listNav{
-	width:95%;
-	margin-left:auto;
-	margin-right:auto;
-	text-align:center;
-	margin:0px;
-	}
-	.viewboxprofile li {
+	width:99%;
+	margin-left:3px;
+    }
+    #profile_content #listNav{
+	margin-left:13px;
+	margin-top:-2px;
+	text-align:left;
+	width:66%
+    }
+    .viewboxprofile li {
 	width:auto;
-	}
-	#list {
+    }
+    #list {
 	width:100%;
 	margin-left:auto;
 	margin-right:auto;
-	}
-	h2 {
+    }
+    h2 {
 	text-align:left;
-	}
-ul {
-list-style-type:none;
-margin-left:auto;
-margin-right:auto;
-margin-top:0;
-padding:0;
-width:98%;
-}
+    }
+    ul {
+	list-style-type:none;
+	margin-left:auto;
+	margin-right:auto;
+	margin-top:0;
+	padding:0;
+	width:98%;
+    }
+    #rightcolumn {
+	float:right;
+	margin-right:3%;
+	width:28%;
+	margin-top:14px;
+    }
     </style>
     <script src="/lib/js/jquery.corner.js"></script>
     <script src="/lib/js/watchMeGraph.js"></script>
-    <script src="/lib/js/canvas.text.js"></script>
-    <script src="/lib/js/faces/helvetiker-normal-normal.js"></script>
     <script src="/lib/js/user_page.js"></script>
-<script>
-jQuery(document).ready(function(){
+    <script>
+      jQuery(document).ready(function(){
 			   jQuery('.imgborder').css({'width': jQuery("#profimg").width() + "px"});
 			   jQuery(".imgborder").corner();
 			   var myWidth = undefined;
@@ -55,7 +58,7 @@ jQuery(document).ready(function(){
 			   myWidth = window.innerWidth - 16;
 			   myHeight = window.innerHeight - 250;
 
-var width = jQuery('#listNav').width()/2.1;
+			   var width = jQuery('#listNav').width()*0.48;
 			   
 			   document.getElementById("dayTimeGraph").setAttribute("width", width);
 			   document.getElementById("dayTimeGraph").setAttribute("height", 200);
@@ -75,124 +78,79 @@ var width = jQuery('#listNav').width()/2.1;
 	  <div id="profile" style="margin-top:32px">
 	  </div>
 	  <div id="profile_content" style="width: 98%;">
-	    <div style="width: 98%; border-bottom:4px solid black">
+	    <div style="width: 98%; border-bottom:3px solid black">
 	      {% if photo %}
-	    <div class="imgborder" id="profbrdr" style="height:110px; display:inline-block;">
-	      <img src="/profiles/{{ id }}.jpg" class="profileimage" id="profimg"/>
-	    </div>
-	    {% endif %}
-	    <div class="userhead">
-              <h1><a href="/profile/{{ username }}/">{{ username }}</a></h1>
-	      <br />
-
-              {% if user.username %}
-              {% if is_friend %}
-              {% else %}
-	      {% ifequal user.username username %}
-              {% else %}<a href="/friend/add?username={{ username }}">follow {{ username }} <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a>
-              {% endifequal %}
-              {% endif %}
-              {% endif %}
-
-	      <div style="display:inline-block; ">
-              {% if birthdate %}<b>Age:</b>
-              {{ birthdate }} 
-              <br/>
-              {% endif %}
-
-              {% if location %}<b>Location:</b>
-              {{ location }} 
-              <br/>
-              {% endif %}
-
-              {% if tags %}
-	      <b>Groups:</b>
-              {{ tags }}
-	      <br />
-              {% endif %}
-
-              {% if homepage %}<b>Website:</b>
-              <a href="{{ homepage }}">{{ homepage }}</a> 
-              {% endif %}
+	      <div class="imgborder" id="profbrdr" style="height:110px; display:inline-block;">
+		<img src="/profiles/{{ id }}.jpg" class="profileimage" id="profimg"/>
 	      </div>
-	      <div style="display:inline-block; vertical-align:top; margin-left:40px;">
-		<div id="num" style="margin-top:10px; ">
-		  <b>total visits:</b>
+	      {% endif %}
+	      <div class="userhead">
+		<h1><a href="/profile/{{ username }}/">{{ username }}</a></h1>
+		<br />
+		
+		{% if user.username %}
+		{% if is_friend %}
+		{% else %}
+		{% ifequal user.username username %}
+		{% else %}<a href="/friend/add?username={{ username }}">follow {{ username }} <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a>
+		{% endifequal %}
+		{% endif %}
+		{% endif %}
+		
+		<div style="display:inline-block; ">
+		  {% if birthdate %}<b>Age:</b>
+		  {{ birthdate }} 
+		  <br/>
+		  {% endif %}
+
+		  {% if location %}<b>Location:</b>
+		  {{ location }} 
+		  <br/>
+		  {% endif %}
+		  
+		  {% if tags %}
+		  <b>Groups:</b>
+		  {{ tags }}
+		  <br />
+		  {% endif %}
+		  
+		  {% if homepage %}<b>Website:</b>
+		  <a href="{{ homepage }}">{{ homepage }}</a> 
+		  {% endif %}
 		</div>
-		<div id="totalTime" >
-		  <b>total time spent: </b>
-		</div>
-		<div id="avgTime" >
-		  <b>average time spent:</b>
+		<div style="display:inline-block; vertical-align:top; margin-left:40px;">
+		  <div id="num" style="margin-top:10px; ">
+		    <b>total visits:</b>
+		  </div>
+		  <div id="totalTime" >
+		    <b>total time spent: </b>
+		  </div>
+		  <div id="avgTime" >
+		    <b>average time spent:</b>
+		  </div>
 		</div>
               </div>
             </div>
-            </div>
-	    <div id="listNav">
-	      <!--
-		 <div class="user_page_top">
-		   <h2>Graphs</h2>
-		 </div>
-		 -->
-	      <br />
-	      <div id="key" style="margin-top:-7px; margin-left:20px; text-align:left; margin-bottom:4px">
-		<div id="totalGraphKey" style="text-align:left; display: inline-block;">
-		  number of visits per hour of day
-		</div>
-		<div id="avgGraphKey" style="float:right; text-align:center; display: inline-block;">
-		  number visits per day of week
-		</div>
-	      </div>   
 
-	      <canvas id="dayTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
-	      </canvas>
-	      <canvas id="dayWeekGraph" style="border-bottom:0px solid lightgrey; margin: 0px; float:right; display: inline-block">
-	      </canvas>
-
-
-	      <div id="listNav">
-		<div class="user_page_top">
-		  <h2>latest</h2>		  
-		</div>
-	      </div>
-	      <div class="viewboxprofile" id="latestlist"></div>
-
-	      <br />
-	      <div id="listNav">
-		<div class="user_page_top">
-		  <div id="messageSent"  style="font-size:12px";>
-		    robots do not know the future :( 
-		    <br/>
-		    &#8230;yet
-		  </div>
-		  <h2>top 10</h2>
-		</div>
-		<div class="viewboxlarge" id="list">
-		</div>
-	      </div>
-	      <br/>
-	    </div>
-
-
-	    <!--
-               <h2>Followers</h2>
-               {% if followers %}
-               <ul class="friends" style="margin-top:10px">
-		 {% for friend in followers %}
-		 <li>
-                   <a href="/profile/{{ friend.username }}/">{{ friend.username }}</a><h7> {{ friend.number }}</h7>
-		 </li>
-		 {% endfor %}
-               </ul>
-               {% ifequal user.username username %}<div class="footer"><a href="/friends/manage/{{ username }}/">view all of your followers</a></div>
-               {% else %}
-               {% endifequal %}
-               {% else %}
+	  <div id="rightcolumn">
+            <h2>Followers</h2>
+            {% if followers %}
+            <ul class="friends" style="margin-top:10px">
+	      {% for friend in followers %}
+	      <li>
+                <a href="/profile/{{ friend.username }}/">{{ friend.username }}</a><h7> {{ friend.number }}</h7>
+	      </li>
+	      {% endfor %}
+            </ul>
+            {% ifequal user.username username %}<div class="footer"><a href="/friends/manage/{{ username }}/">view all of your followers</a></div>
+            {% else %}
+            {% endifequal %}
+            {% else %}
             <p>
               {{ username }} has no followers :(
             </p>
             {% endif %}
-
+	    
             <h2>Following</h2>
             {% if following %}
             <ul class="friends" style="margin-top:10px;">
@@ -207,7 +165,53 @@ var width = jQuery('#listNav').width()/2.1;
               {{ username }} is not following anyone :(
             </p>
             {% endif %}
-	    -->
+	    
+	  </div>
 
+	  <div id="listNav">
+	      <!--
+		 <div class="user_page_top">
+		   <h2>Graphs</h2>
+		 </div>
+		 -->
+	      <br />
+	      <div id="key" style="margin-top; font-weight:bold; text-align:left; margin-bottom:4px">
+		<div id="totalGraphKey" style="text-align:left; display: inline-block;">
+		  number of visits per hour of day
+		</div>
+		<div id="avgGraphKey" style="float:right; text-align:center; display: inline-block;">
+		  number visits per day of week
+		</div>
+	      </div>   
+	      
+	      <canvas id="dayTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; display: inline-block">
+	      </canvas>
+	      <canvas id="dayWeekGraph" style="border-bottom:0px solid lightgrey; margin: 0px; float:right; display: inline-block">
+	      </canvas>	      
+
+	      <div>
+		<div class="user_page_top">
+		  <h2>latest</h2>		  
+		</div>
+	      </div>
+	      <div class="viewboxprofile" id="latestlist"></div>
+
+	      <br />
+	      <div >
+		<div class="user_page_top">
+		  <div id="messageSent"  style="font-size:12px";>
+		    robots do not know the future :( 
+		    <br/>
+		    &#8230;yet
+		  </div>
+		  <h2>top 10</h2>
+		</div>
+		<div class="viewboxlarge" id="list">
+		</div>
+	      </div>
+	      <br/>
+	    </div>
+	  </div>
+	</div>
 	    {% endblock %}
 	    

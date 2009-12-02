@@ -1,4 +1,4 @@
-html {
+html, body {
     font-size: 62.5%;
     font-family: Helvetica, Arial, sans-serif;
     line-height: 1.45em;
@@ -578,7 +578,7 @@ a.selected {
 } #profile .footer {
     margin-top:8px;
 } #profile_content {
-    margin-top: 50px;
+    margin-top: 25px;
     width: 700px;
     text-align: left;
     padding: 12px;
@@ -607,10 +607,11 @@ a.selected {
 }#profile_content h2 {
     font-size: 1.4em;
     font-weight: bold;
-    margin-top: 0px;
+    margin-top: 10px;
     padding: 8px;
     padding-left: 0px;
     padding-bottom: 8px;
+    border-bottom:2px solid black;
 } #profile_content h3 {
     width:660; 
     display:inline-block; 
@@ -729,11 +730,10 @@ a.selected {
     vertical-align: top;
     padding-left: 3px;
 } .userhead {
-    display:inline-block;
-    margin-bottom:18px;
-    margin-left:10px;
-    padding-top:12px;
-    vertical-align:top;
+display:inline-block;
+margin-bottom:9px;
+margin-left:10px;
+vertical-align:inherit;
 } #profile img {
     height:69px;
     width:69px;

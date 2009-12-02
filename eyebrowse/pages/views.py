@@ -253,6 +253,9 @@ def friends(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
 
+    following = [friendship.to_friend for friendship in user.friend_set.all()]
+    followers = [friendship.from_friend for friendship in user.to_friend_set.all()]
+
     friends = enduser.friends.all()
     friends_results = []
     for friend in friends:
@@ -267,7 +270,7 @@ def friends(request, username):
         'friends': friends_results,
         'request_user': request_user
         })
-    return render_to_response('friends.html', variables)
+    return render_to_response('friends_page.html', variables)
 
 def daybyday(request, username):
     request_user = request.user.username
@@ -357,12 +360,6 @@ def user_page(request, username):
                 return HttpResponseRedirect('/userprivacy/%s/'% enduser.user.username)
             pass
 
-    friends = enduser.friends.all()
-    friends_results = []
-    for friend in friends:
-        friends_results.append( {"username": friend.user.username, "number": Event.objects.filter(owner=friend.user,type="www-viewed").count()} )
-    friends_results.sort(key=lambda x: -x["number"])
-    
     tags = ' '.join(
         tag.name for tag in enduser.tags.all()
         )

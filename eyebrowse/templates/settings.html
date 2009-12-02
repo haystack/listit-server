@@ -151,6 +151,7 @@ jQuery(document).ready(function(){
 					       error:function() {}
 					   });
 			   };
+			   jQuery('#groupstextinput').val("");
 		       });
 </script>
 	{% endblock %}
@@ -171,15 +172,17 @@ jQuery(document).ready(function(){
 		<div class="bodytext">
 		  Adding yourself to groups will help us recommend
 		  sites to you. <br /><br />Soon you will be able to also filter
-		  sites by location, group and time viewed. You will
+		  sites by location and time viewed. You will
 		  be able to make searches like: 'hey eyebrowse, what
 		  are designers in Sweden looking at after 1am on
 		  weekdays?'
 		</div>
 		<br />
+		custom: <input type="text" name="misc" id="groupstextinput" style="display:inline-block; width:217px;margin:4px;" value="nytimes.com" onkeypress="{if (event.keyCode==13)addURL()}"/>
+		<br />
 		<input type="checkbox" name="hacker">hacker</input>
 		<br />
-		<input type="checkbox" name="web2">web 2.0</input>
+		<input type="checkbox" name="web2">web2</input>
 		<br />
 		<input type="checkbox" name="designer">designer</input>
 		<br />
@@ -191,13 +194,13 @@ jQuery(document).ready(function(){
 		<br />
 		<input type="checkbox" name="pollitics">politics</input>
 		<br />
-		<input type="checkbox" name="healthy_hippie">healthy hippie</input>
+		<input type="checkbox" name="healthy_hippie">hippie</input>
 		<br />
-		<input type="checkbox" name="crafty_craftsman">crafty craftsman</input>
+		<input type="checkbox" name="crafty_craftsman">craftsman</input>
 		<br />
-		<input type="checkbox" name="money">money money money</input>
+		<input type="checkbox" name="money">business</input>
 		<br />
-		<input type="checkbox" name="music_junkie">music junkie</input>
+		<input type="checkbox" name="music_junkie">music-junkie</input>
 		<br />
 		<input type="checkbox" name="sports">sports</input>
 		<br />
@@ -205,9 +208,7 @@ jQuery(document).ready(function(){
 		<br />
 		<input type="checkbox" name="scholarly">scholarly</input>
 		<br />
-		<input type="checkbox" name="mad scientist">mad scientist</input>
-		<br />
-		misc: <input type="text" name="misc" id="groupstextinput" style="display:inline-block; width:217px;margin:4px;" value="nytimes.com" onkeypress="{if (event.keyCode==13)addURL()}"/>
+		<input type="checkbox" name="mad scientist">mad-scientist</input>
 		<br />
 		<input type="submit" id="groupAdd" value="add groups" onkeypress="{if (event.keyCode==13)addURL()}" onClick="addGroups()" style="width:auto;" />
 

@@ -1195,18 +1195,20 @@ var barGraphLite = ({
 			    // draw the key
 			    ctx.beginPath();
 			    ctx.fillStyle = "#333333";
-			    ctx.fillRect(0, this_.windowHeight - this_.bottomPadding-4, this_.windowWidth, 1);
+			    ctx.fillRect(0, this_.windowHeight - this_.bottomPadding-4, this_.windowWidth, 1.8);
 			    
 			    ctx.strokeStyle = "#333333";
-			    ctx.font = ".7pt helvetiker";
+			    ctx.font = "500 8.5pt Arial";
 			    ctx.fillStyle = "#666666";
-			    ctx.lineWidth = 0.5;
+			    //ctx.lineWidth = 0.5;
 
 			    // draw the labelss
 			    for (var i = 0; i < this_.label.length; i++){
 				ctx.fillText("" + this_.label[i], this_.da[i].xPos + this_.textPadding, this_.windowHeight - this_.bottomPadding + 12);
 			    }
 
+			    ctx.font = "600 8.5pt Arial";
+			    ctx.fillStyle = "#333333";
 			    ctx.fillText("" + this_.maxData, 2, 10);
 			    //ctx.fillText("" + 0, 9, this_.windowHeight - this_.bottomPadding - 3);
 			    for (var i = 1; i < 3; i++) {								
