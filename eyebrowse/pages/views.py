@@ -256,18 +256,13 @@ def friends(request, username):
     following = [friendship.to_friend for friendship in user.friend_set.all()]
     followers = [friendship.from_friend for friendship in user.to_friend_set.all()]
 
-    friends = enduser.friends.all()
-    friends_results = []
-    for friend in friends:
-        friends_results.append( {"username": friend.user.username, "number": Event.objects.filter(owner=friend.user,type="www-viewed").count()} )
-    friends_results.sort(key=lambda x: -x["number"])
-    
     request_user = request.user.username
 
     variables = RequestContext(request, {
         'username': username,
         'show_edit': username == request.user.username,
-        'friends': friends_results,
+        'following': following,
+        'followers': followers,
         'request_user': request_user
         })
     return render_to_response('friends_page.html', variables)
