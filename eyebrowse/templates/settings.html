@@ -47,6 +47,26 @@
 	}
     };
 
+    function addGroups(){
+	var groups = [];
+	
+	jQuery('#groups :checkbox:checked').each(function(check){ groups.push(this.name); });
+	if (jQuery('#groupstextinput').val()) {groups.push(jQuery('#groupstextinput').val()); };
+	console.log(groups);	
+
+	jQuery.post("/add_groups/", {groups: groups}, 
+		   function(data){
+		       if (data.code == 200) {
+			   jQuery('#groups :checkbox:checked').each(function(check){  this.checked = !this.checked; });
+			   jQuery('#groupstextinput').val("");
+			   jQuery('#id_tags').val(data.results);
+		       }
+		       else {
+			   //console.log("yaaaa!!!H!H!H!" + data.code + " ");
+		       }
+		   }, "json");
+    }
+
     function initMenu(){
 	jQuery('#popularsites ul').hide();
 	jQuery('#popularsites li a').click(

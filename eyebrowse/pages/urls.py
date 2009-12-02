@@ -57,6 +57,7 @@ urlpatterns = patterns('',
                        # account management
                        (r'^profile_old/?$', profile_save_page),
                        (r'^settings/?$',  privacy_settings_page),
+                       (r'^add_groups/?$',  add_groups),
                        (r'^accounts/profile/?$',  privacy_settings_page),
                        #(r'^userprivacy/?$', userprivacy),
 

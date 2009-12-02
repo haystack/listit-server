@@ -22,6 +22,7 @@ from django.db.models.signals import post_save
 from jv3.models import Event ## from listit, ya.
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 from django.contrib.auth import authenticate, login
+from jv3.utils import json_response
 
 # zamiang browser
 def zamiang_browser(request):
@@ -573,6 +574,27 @@ def _profile_save(request, form):
 
     enduser.save()
     return user
+
+def add_groups(request):
+    username = request.user.username
+    user = get_object_or_404(User, username=username)
+    enduser = get_enduser_for_user(user)
+    if request.POST.has_key('groups'):    
+        groups = request.POST['groups'].split()
+        print groups
+
+        for group in groups:
+            if re.search(r'^(/w|/W|[^<>+?$%{}&])+$', group):
+                tag, dummy = UserTag.objects.get_or_create(name=group)
+                enduser.tags.add(tag) 
+
+        enduser.save()
+        result = ' '.join(
+            tag.name for tag in enduser.tags.all()
+            )
+
+        return json_response({ "code":200, "results": result }) 
+    return json_response({ "code":501 }) 
 
 def friends_page(request, username):
     user = get_object_or_404(User, username=username)
