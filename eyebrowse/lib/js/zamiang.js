@@ -23,9 +23,9 @@ function cleanupURL(url){
 	// grab the last token
 	var last = this._keepGroup1(/\/([^/]*)$/,url);
 	last = last.substring(Math.max(0,last.length-20));			  
-	url = url.trim(0,43-last.length-3) + "..." + last;
+	url = url.substring(0,43-last.length-3) + "..." + last;
     } else {
-	url = url.trim(0, 43);
+	url = url.substring(0, 43);
     }	
     if (url.indexOf('www') == 0){
 	url = url.substring(4);

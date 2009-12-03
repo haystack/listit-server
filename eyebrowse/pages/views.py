@@ -573,7 +573,7 @@ def add_groups(request):
     enduser = get_enduser_for_user(user)
     if request.POST.has_key('groups'):    
         groups = request.POST['groups'].split()
-        print groups
+        #print groups
 
         for group in groups:
             if re.search(r'^(/w|/W|[^<>+?$%{}&])+$', group):

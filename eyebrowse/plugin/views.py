@@ -54,10 +54,10 @@ def get_most_recent_event_time(request):
         user = authenticate_user(request);    
         if not user:
             return json_response({"error":"Incorrect user/password combination"},401);
-        print "!! get_most_recent %s " % _get_client(request)
+        #print "!! get_most_recent %s " % _get_client(request)
         most_recent_activity = Event.objects.filter(owner=user,client=_get_client(request)).order_by("-start");
         if most_recent_activity:
-            print " most recent %d " % int(most_recent_activity[0].start)
+            #print " most recent %d " % int(most_recent_activity[0].start)
             return json_response({'value':int(most_recent_activity[0].start)},200)
         return json_response({'value':0},200)
     except:
@@ -197,8 +197,8 @@ def add_delete_from_whitelist(request):
         return json_response({ "code":200 })
 
     add_dels = JSONDecoder().decode(json)
-    print add_dels
-    print type(add_dels)
+    #print add_dels
+    #print type(add_dels)
     assert type(add_dels) == dict, "Received thing not a dict, erroring"
     adds = add_dels['add']
     dels = add_dels['delete']
@@ -209,7 +209,7 @@ def add_delete_from_whitelist(request):
     wl = filter( lambda x : x not in dels , wl)
     wl = wl +  [ x for x in adds if not x in wl ] 
     privacysettings.whitelist = ' '.join(wl)
-    print privacysettings.whitelist
+    #print privacysettings.whitelist
     
     # Save 
     privacysettings.save()
