@@ -1,3 +1,11 @@
+function trim (str, i) {
+    var str = str.replace(/^\s\s*/, '');
+    var ws = /\s/;
+    while (ws.test(str.charAt(--i)));
+	return str.slice(0, i + 1);
+}
+
+
 function _keepGroup1(regex,s) {
     var result = s.match(regex); 
     if (result && result.length > 0) {
@@ -5,6 +13,7 @@ function _keepGroup1(regex,s) {
     }
     return s;
 };
+
 function cleanupURL(url){
     url = this._keepGroup1(/([^?]*)\?.*$/,url);
     url = this._keepGroup1(/(.*)\/$/,url);
@@ -32,12 +41,6 @@ function largest(array){
     return Math.max.apply( Math, array );
 }
 
-function trim (str, i) {
-    var str = str.replace(/^\s\s*/, '');
-    var ws = /\s/;
-    while (ws.test(str.charAt(--i)));
-	return str.slice(0, i + 1);
-}
 
 // merge objects
 function merge(root){

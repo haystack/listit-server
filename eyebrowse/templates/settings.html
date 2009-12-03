@@ -52,7 +52,6 @@
 	
 	jQuery('#groups :checkbox:checked').each(function(check){ groups.push(this.name); });
 	if (jQuery('#groupstextinput').val()) {groups.push(jQuery('#groupstextinput').val()); };
-	console.log(groups);	
 
 	jQuery.post("/add_groups/", {groups: groups}, 
 		   function(data){
@@ -62,7 +61,6 @@
 			   jQuery('#id_tags').val(data.results);
 		       }
 		       else {
-			   //console.log("yaaaa!!!H!H!H!" + data.code + " ");
 		       }
 		   }, "json");
     }
@@ -116,7 +114,6 @@ jQuery(document).ready(function(){
 					      jQuery("#urladdul").html(html);
 					  }
 					  else {
-					      console.log("yaaaa!!!H!H!H!" + data.code + " ");
 					  }
 				      }, "json");
 
@@ -132,7 +129,6 @@ jQuery(document).ready(function(){
 					      jQuery("#top_logged").html(html);
 					  }
 					  else {
-					      console.log("yaaaa!!!H!H!H!" + data.code + " ");
 					  }
 				      }, "json");
 
