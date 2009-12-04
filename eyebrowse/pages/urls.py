@@ -66,7 +66,7 @@ urlpatterns = patterns('',
                        (r'^newtab/?$', new_tab),
 
                        # zamiang browser
-                       (r'^zamiang/?$', zamiang_browser),
+                      # (r'^zamiang/?$', zamiang_browser),
 
                        # export
                        (r'^my_eyebrowse_data.zip$', get_user_pageviews_as_csv_view)
