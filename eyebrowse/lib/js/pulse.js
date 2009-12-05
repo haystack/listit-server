@@ -121,7 +121,7 @@ var WatchmeVisualisation = {
 	    if (data.top_titles[i]){
 		html += "<h6><b><a href=\"" + data.top[i][0] + "\" style=\"width:50px;\">" + data.top_titles[i].substring(0,22) + "</a></b></h6>";                						
 	    } else {
-		html += "<h6><b><a href=\"" + data.top[i][0] + "\" style=\"width:50px;\">" + cleanupURL(data.top[i][0]) + "</a></b></h6>";                						
+		html += "<h6><b><a href=\"" + data.top[i][0] + "\" style=\"width:50px;\">" + cleanupURL(data.top[i][0]).substring(0,22) + "</a></b></h6>";                						
 	    }
 	    if (data.top[i][2] < 0) {
 		trigger = false;
@@ -150,7 +150,7 @@ var WatchmeVisualisation = {
 	    if (data.tre_titles[i]){
 		html += "<h6><b><a href=\"" + data.trending[i][0] + "\" style=\"width:50px;\">" + data.tre_titles[i].substring(0,21) + "</a></b></h6>";                						
 	    } else {
-		html += "<h6><b><a href=\"" + data.trending[i][0] + "\" style=\"width:50px;\">" + cleanupURL(data.trending[i][0]) + "</a></b></h6>";                						
+		html += "<h6><b><a href=\"" + data.trending[i][0] + "\" style=\"width:50px;\">" + cleanupURL(data.trending[i][0]).substring(0,21) + "</a></b></h6>";                						
 	    }
 	    if (data.trending[i][2] < 0) {
 		trigger = false;

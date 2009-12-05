@@ -1186,7 +1186,12 @@ var barGraphLite = ({
 			    // draw the bars
 			    for (var i = 0; i < this_.da.length; i++){
 				ctx.fillStyle = this_.da[i].fillColor;
-				ctx.fillRect(this_.da[i].xPos + this_.barPadding, this_.windowHeight - this_.bottomPadding, this_.columnWidth, this_.da[i].height);
+				//console.log(this_.da);
+				if (this_.da[i].xPos >= 0 && this_.da[i].height){
+				    ctx.fillRect(this_.da[i].xPos + this_.barPadding, this_.windowHeight - this_.bottomPadding, this_.columnWidth, this_.da[i].height);
+				} else {
+				    ctx.fillRect(0 + this_.barPadding, this_.windowHeight - this_.bottomPadding, this_.columnWidth, 0);
+				}
 			    }
 
 			    ctx.closePath();
