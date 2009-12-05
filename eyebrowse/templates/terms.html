@@ -6,11 +6,14 @@
 <div id="faq">
   <h1 style="margin-top:8px;">Data Use Policy</h1>
   <div class="bodytext"><p>
-	Users should be aware that all captured data is PUBLIC.  WE TAKE NO RESPONSIBILITY FOR WHAT THIRD PARTIES MAY DO WITH THE DATA. By signing up for the service, you assume responsibility for risks you may incur to yourself by sharing your web browsing activities with the public.  Only data that you have told eyebrowse to share explicitly will be logged or transmitted.<p/>
+	Users should be aware that all shared data is PUBLIC.  WE TAKE NO RESPONSIBILITY FOR WHAT THIRD PARTIES MAY DO WITH THE DATA. By signing up for the service, you assume responsibility for risks you may incur to yourself by sharing your web browsing activities with the public.  Only data that you have told eyebrowse to share explicitly will be logged or transmitted.<p/>
 	<p>
 	Archives of the data may be kept by MIT CSAIL indefinitely. If you wish to erase your data from the dataset, send a request to <a href="mailto:eyebrowse@csail.mit.edu">eyebrowse@csail.mit.edu</a> and we will remove your data from our copies on our server. However since the data is public, others may have acquired copies prior to your request and we are unable to guarantee that such copies of your records will be cleared.</p>
 <p>
-	We will soon provide an interface for downloading daily database snapshots of collected eyebrowse data for public consumption. In the meantime, if you wish to have a copy of the dataset, we will provie it upon request. Email us at the address below.
+  <a href="/data/all_the_data.zip">download all public data</a>
+  {% if request_user %}
+  or just <a href="my_eyebrowse_data.zip">your data</a>&nbsp; &#124; &nbsp;
+  {% endif %}
 </p>	
   </div>
   <br />

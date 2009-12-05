@@ -170,6 +170,8 @@ var WatchmeVisualisation = {
     }
 };
 jQuery(document).ready(function(){
+			   jQuery('#header').width(window.innerWidth - 15);
+			   
 			   jQuery("#urladdtextinput").focus();
 			   var currentDate = new Date();																			
 			   var myWidth = 700;

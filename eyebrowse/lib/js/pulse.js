@@ -261,6 +261,7 @@ var WatchmeVisualisation = {
     }
 };
 jQuery(document).ready(function(){
+			   jQuery('#header').width(window.innerWidth - 15);
 			   jQuery("#target").hide();
 			   jQuery("#toggle").click(function(){
 						       if (jQuery("#profile_content").is(":hidden")) {

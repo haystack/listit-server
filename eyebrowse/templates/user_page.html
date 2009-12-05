@@ -50,6 +50,8 @@
     <script src="/lib/js/user_page.js"></script>
     <script>
       jQuery(document).ready(function(){
+			   jQuery('#header').width(window.innerWidth - 15);
+      
 			   jQuery('.imgborder').css({'width': jQuery("#profimg").width() + "px"});
 			   jQuery(".imgborder").corner();
 			   var myWidth = undefined;
@@ -98,11 +100,12 @@
 		{% endif %}
 		
 		<div style="display:inline-block; ">
+		  <!--
 		  {% if birthdate %}<b>Age:</b>
 		  {{ birthdate }} 
 		  <br/>
 		  {% endif %}
-
+		  -->
 		  {% if location %}<b>Location:</b>
 		  {{ location }} 
 		  <br/>

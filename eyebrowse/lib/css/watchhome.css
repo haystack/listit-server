@@ -294,7 +294,7 @@ a.selected {
     padding-top:2px;
     padding-left:5px;
 } .viewboxhome {
-    width: 320px;
+    width: 415px;
     height: auto;
     border: none;
     margin-left: auto;
@@ -303,7 +303,7 @@ a.selected {
 } .viewboxhome li {
     padding: 10px;
     border-bottom: 1px solid lightgrey;
-    width: 300px;
+    width: 400px;
     padding-right: 0px;
 } .viewboxhome li A:link {
     font-weight: bold;
@@ -620,7 +620,7 @@ a.selected {
     margin-left:20px; 
     font-size:18px;
 } #profile_content h4 {
-    width:321px;
+    width:396px;
     display:inline-block; 
     margin-bottom:20px; 
     margin-left:10px; 
@@ -1027,4 +1027,7 @@ vertical-align:inherit;
     display:inline-block; 
     text-align:right; 
     vertical-align:middle;
+}
+.indexwhy {
+    margin-left:88px;
 }

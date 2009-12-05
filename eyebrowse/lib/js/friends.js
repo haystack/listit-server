@@ -239,6 +239,8 @@ var WatchmeVisualisation = {
 
 
 jQuery(document).ready(function(){
+			   jQuery('#header').width(window.innerWidth - 15);
+
 			   // init the datepicker
 			   var currentDate = new Date();
 			   jQuery("#datepicker").val(currentDate.format('mm/dd/yyyy'));
