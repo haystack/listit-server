@@ -27,13 +27,19 @@
 	margin-right:8px;
     }
     #lifestream{
-    border-top:none;
+	border-top:none;
+    }
+    .profile_edit h2 {
+	border-bottom:3px solid black;
+	font-weight:bold;
+	font-size:18px;	
     }
     </style>
     <script>      
       jQuery(document).ready(function(){
+      jQuery('#header').width(window.innerWidth - 15);
       jQuery('#nav').height(jQuery(document).height())
-		       });
+      });
     </script>
     {% endblock %}
     {% block content %}    
@@ -45,7 +51,7 @@
 	
 	<div class="profile_edit" id="add_sites" style="border:none; float:right; margin-right:23px; margin-top:29px;">
 	  <br />
-	  <h2>quick links</h2>
+	  <h2></h2>
 	  <br />
 	  <ul id="popularsites">
 	    <li>
@@ -116,14 +122,14 @@
 	    <br /><br />
 
 	    <h2 id="lifestream">lifestream</h2>
-            <div class="bodytext">	      
-	      The lifestream page is accessed by going to File ->
-	      New Tab or by pressing command + t on the Mac. 
+            <div class="bodytext"> The lifestream page visualizes your
+	      private data in a variety of ways to help you gain
+	      personal insights.
             </div>	    
 	    <div class="bodytext">
-	      Due to Firefox security restrictions we cannot link to
-	      the lifestream page from a url but you can access it and
-	      bookmark it from <a href='#newtab'>newtab</a> page's footer.
+	      Due to Firefox security restrictions you mus access the
+	      lifestreams page from the <a href='#newtab'>'newtab'</a>
+	      page's footer where you may bookmark it.
 	    </div>
 	    <img src="/lib/img/lifestream.jpg" style="margin-top:20px;"/>
 	    <br /><br />
@@ -167,8 +173,6 @@
 	    </div>
 	    <img src="/lib/img/plugin.jpg" style="margin-top:20px;"/>
 
-
-
 	    <br /><br /><br />
 	    <div id="comment"></div>
 	    <div id="disqus_thread"></div><script type="text/javascript"
@@ -181,4 +185,5 @@
 	  </div>
 	</div>
       </div>
-	  {% endblock %}
+      {% endblock %}
+      

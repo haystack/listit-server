@@ -99,6 +99,7 @@ function addAllPrivacyURLS(urls){
 };
 
 jQuery(document).ready(function(){
+			   jQuery('#header').width(window.innerWidth - 15);
 			   initMenu();
 			   // no params :(
 			   jQuery.get("/get_privacy_urls/", {}, 
