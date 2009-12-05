@@ -1051,10 +1051,9 @@ def get_hourly_daily_top_urls_user(request, username, n):
     return json_response({ "code":200, "results": return_results }) 
 
 ## PULSE PAGE
-def get_pulse_json(request_type):
+def get_pulse_json(request_type, from_msec, to_msec):
     @cache.region('long_term')
     def fetch_data(bar, cache):    
-        from_msec,to_msec = _unpack_from_to_msec(request)
         interp = int(to_msec) - int(from_msec)
 
         profile_queries = get_profile_queries(request_type)
@@ -1072,6 +1071,8 @@ def get_pulse(request):
     if not 'type' in request.GET:
         return json_response({ "code":404, "error": "get has no 'type' key" }) 
 
+    from_msec,to_msec = _unpack_from_to_msec(request)
+
     request_type = {}
     if request.GET['type'].strip() == 'user':
         request_type['user'] = request.user.username
@@ -1080,7 +1081,7 @@ def get_pulse(request):
     else:
         request_type['global'] = 'global'
 
-    results = get_pulse_json(request_type)
+    results = get_pulse_json(request_type, from_msec, to_msec)
 
     return json_response({ "code":200, "results": results });
 
@@ -1090,6 +1091,8 @@ def get_plugin_stats(request):
     if not 'type' in request.GET:
         return json_response({ "code":404, "error": "get has no 'type' key" }) 
 
+    from_msec,to_msec = _unpack_from_to_msec(request)
+
     request_type = {}
     if request.GET['type'].strip() == 'user':
         request_type['user'] = request.user.username
@@ -1098,7 +1101,7 @@ def get_plugin_stats(request):
     else:
         request_type['global'] = 'global'
 
-    results = get_pulse_json(request_type)
+    results = get_pulse_json(request_type, from_msec, to_msec)
 
     num = 3500 
     results.append(get_dot_graph(num, request_type))
