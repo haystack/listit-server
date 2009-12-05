@@ -128,9 +128,9 @@ def _authenticate_user(emailaddr_or_username,password):
         if settings.EYEBROWSE_SERVER:
 
             user = authmodels.User.objects.filter(username=emailaddr_or_username)
-            print "authenticating eyebrowse server style %s -- %d password %s " % (emailaddr_or_username, user.count(), password)
+            #print "authenticating eyebrowse server style %s -- %d password %s " % (emailaddr_or_username, user.count(), password)
             if user.count() == 1 and user[0].check_password(password):
-                print "returning %s "%  user[0]
+                #print "returning %s "%  user[0]
                 return user[0];            
             
     except authmodels.User.DoesNotExist:

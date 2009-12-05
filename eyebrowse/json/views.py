@@ -1084,6 +1084,39 @@ def get_pulse(request):
 
 
 ## PLUGIN
+def get_plugin_stats(request):
+    if not 'type' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'type' key" }) 
+
+    request_type = {}
+    if request.GET['type'].strip() == 'user':
+        request_type['user'] = request.user.username
+    elif request.GET['type'].strip() == 'friends':
+        request_type['friends'] = request.user.username
+    else:
+        request_type['global'] = 'global'
+
+    num = 3500 
+    #9750 # this number fills a 15in screen pretty well and is prolly ok for dots ##request.GET['num'].strip()
+
+    @cache.region('long_term')
+    def fetch_data(bar, cache):    
+        from_msec,to_msec = _unpack_from_to_msec(request)
+        interp = int(to_msec) - int(from_msec)
+
+        profile_queries = get_profile_queries(request_type)
+        line_graph = get_mini_line_graph(from_msec, to_msec, 100, request_type)
+        dot_graph = get_dot_graph(num, request_type) ## old
+
+        top_hosts = get_top_hosts_compare(int(to_msec), interp, 16, request_type)
+        top_trending = get_top_and_trending_pages(int(to_msec), interp, 16, request_type)
+        return [profile_queries, dot_graph, line_graph, top_trending, top_hosts]
+        
+    results = fetch_data("plugin_stats", request_type)
+    return json_response({ "code":200, "results": results });
+
+
+
 def get_top_friend_and_number_friends_for_url(request, username):
     if not 'url' in request.GET:
         return json_response({ "code":404, "error": "get has no 'url' key" }) 
