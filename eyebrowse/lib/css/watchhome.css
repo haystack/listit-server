@@ -676,9 +676,9 @@ a.selected {
     line-height: 1.2em;
     padding: 12px;
 } .bodytext {
-    line-height: 1.2em;
-    letter-spacing: 0.5px;
-    font-size: 1em;
+    color:#444444;
+    font-size:12px;
+    line-height:17.5px;
 } .bodytext A:link {
     text-decoration: underline;
     font-size: 1em;
