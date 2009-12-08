@@ -29,18 +29,18 @@ input[type="text"] {
 {% endblock %}
 {% block content %}
 <div class="loader" id="loadimg"></div>
-	<div id="profile_content" style="width:950px; margin-left:auto;margin-right:auto; ">
+<div id="profile_content" style="width:950px; margin-left:auto;margin-right:auto; ">
   <img src="/lib/img/statistics.png" onkeypress="{if (event.keyCode==13)viz.refresh()}" onClick="viz.refresh()" style="vertical-align:middle;float:left;margin-bottom:24px;" />
-	<input type="text" name="list" id="urladdtextinput" value="{{ url }}" onkeypress="{if (event.keyCode==13)viz.refresh()}"/>
-	{% if request_user %}
-	  <h3 style="float:right; font-size:14px;margin-top:40px;">
-		<a id="user" href="javascript:self.viz.changeType('friends')">you</a>
-		 &#124; 
-<!--		<a id="friends" href="javascript:self.viz.changeType('friends')">friends</a>
-		 &#124; -->
-		<a id="global" href="javascript:self.viz.changeType('global')">everyone</a> 
-	  </h3>
-	{% endif %}
+  <input type="text" name="list" id="urladdtextinput" value="{{ url }}" onkeypress="{if (event.keyCode==13)viz.refresh()}"/>
+  {% if request_user %}
+  <h3 style="float:right; font-size:14px;margin-top:40px;">
+    <a id="user" href="javascript:self.viz.changeType('friends')">you</a>
+    &#124; 
+    <!--		<a id="friends" href="javascript:self.viz.changeType('friends')">friends</a>
+			&#124; -->
+    <a id="global" href="javascript:self.viz.changeType('global')">everyone</a> 
+  </h3>
+  {% endif %}
   <div style="border-top:1px solid #999999">&nbsp;</div>
   <div id="urlstats">
     <div id="num" style="display:inline-block">
@@ -54,9 +54,9 @@ input[type="text"] {
     </div>
   </div>
   <div style="width:950; height:350; position:relative; z-index:0">
-	<div id="urlLeft" class="viewboxhome" style="position:absolute; left:-27px; top:12px; text-align:right;"></div>
-	<div id="urlRight" class="viewboxhome" style="position:absolute; left:655px; top:12px;"></div>
-	<div id="urlCenter" style="position:absolute; left:500px; top:60px; background:#ffffff; padding:6px; border:1px solid lightgrey"></div>
+    <div id="urlLeft" class="viewboxhome" style="position:absolute; left:-120px; top:12px; text-align:right;"></div>
+    <div id="urlRight" class="viewboxhome" style="position:absolute; left:655px; top:12px;"></div>
+    <div id="urlCenter" style="position:absolute; left:500px; top:60px; background:#ffffff; padding:6px; border:1px solid lightgrey"></div>
   </div>			
   <canvas id="main" style="z-index:-2;">
   </canvas>
@@ -65,27 +65,27 @@ input[type="text"] {
 
 <div id="report">
   <div id="profile" style="margin-top:-50px">
-	<h2 style="border-top:none">Top Visitors</h2>
-	<br />
+    <h2 style="border-top:none">Top Visitors</h2>
+    <br />
     <ul class="friends" id="topvisitors">	  
     </ul>
   </div>
   <div id="profile_content" style="margin-top:20px">
     <div style="border-top:1px solid #999999">&nbsp;</div>
-	  <div id="profile_content" style="margin-top:0px">
-		<div id="key" style="margin-top:-7px;margin-bottom:4px">
-		  <div id="totalGraphKey" style="width:330px; text-align:center; display: inline-block;">
-			visits per hour of day
-		  </div>
-		  <div id="avgGraphKey" style="width:330px; text-align:center; display: inline-block; margin-left:20px">
-			visits per day of week
-		  </div>
-		</div>   
-		<canvas id="dayTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; margin-left:4px; display: inline-block">
-		</canvas>
-		<canvas id="dayWeekGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:20px; display: inline-block">
-		</canvas>
-	  </div>
+    <div id="profile_content" style="margin-top:0px">
+      <div id="key" style="margin-top:-7px;margin-bottom:4px">
+	<div id="totalGraphKey" style="width:330px; text-align:center; display: inline-block;">
+	  visits per hour of day
+	</div>
+	<div id="avgGraphKey" style="width:330px; text-align:center; display: inline-block; margin-left:20px">
+	  visits per day of week
+	</div>
+      </div>   
+      <canvas id="dayTimeGraph" style="border-bottom:px solid lightgrey; margin: 0px; margin-left:4px; display: inline-block">
+      </canvas>
+      <canvas id="dayWeekGraph" style="border-bottom:0px solid lightgrey; margin: 0px; margin-left:20px; display: inline-block">
+      </canvas>
+    </div>
   </div>
   <br/>
 </div>
