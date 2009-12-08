@@ -261,16 +261,16 @@ def friends(request, username):
     following = [friendship.to_friend for friendship in user.friend_set.all()]
     followers = [friendship.from_friend for friendship in user.to_friend_set.all()]
 
-    request_user = request.user.username
-
-    variables = RequestContext(request, {
-        'username': username,
-        'show_edit': username == request.user.username,
-        'following': following,
-        'followers': followers,
-        'request_user': request_user
-        })
-    return render_to_response('friends_page.html', variables)
+    t = loader.get_template("friends_page.html")
+    c = Context({ 
+            'username': request.user.username, 
+            'id': request.user.id, 
+            'request_user': request.user.username,
+            'show_edit': username == request.user.username,
+            'following': following,
+            'followers': followers            
+            })
+    return HttpResponse(t.render(c))
 
 def daybyday(request, username):
     request_user = request.user.username
