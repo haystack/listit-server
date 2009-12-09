@@ -56,7 +56,7 @@ def get_most_recent_event_time(request):
             return json_response({"error":"Incorrect user/password combination"},401);
         #print "!! get_most_recent %s " % _get_client(request)
         most_recent_activity = Event.objects.filter(owner=user,client=_get_client(request)).order_by("-start");
-        if most_recent_activity:
+        if most_recent_activity.count() > 0:
             #print " most recent %d " % int(most_recent_activity[0].start)
             return json_response({'value':int(most_recent_activity[0].start)},200)
         return json_response({'value':0},200)
