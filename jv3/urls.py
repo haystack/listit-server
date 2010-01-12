@@ -145,7 +145,7 @@ urlpatterns = patterns('server.jv3.views.',
 if hasattr(settings,'ACTIVITY_CONTEXT_MODELS') and settings.ACTIVITY_CONTEXT_MODELS:
     from jv3.eventlog_view import EventLogCollection, post_events
     from jv3.models import Event
-    
+    print "EVENT LOG"
     contextlog_view = EventLogCollection(
         queryset=Event.objects.all(),
         permitted_methods= ('GET','POST',),
@@ -154,7 +154,7 @@ if hasattr(settings,'ACTIVITY_CONTEXT_MODELS') and settings.ACTIVITY_CONTEXT_MOD
         receiver=JSONReceiver())
     
     urlpatterns += patterns('server.jv3.views.',
-                            (r'^eventlog/$', contextlog_view),
+                            (r'^eventlog/', contextlog_view),
                             (r'^post_events/$', post_events),
                             )
 

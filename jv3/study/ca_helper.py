@@ -1,4 +1,17 @@
-_activity_log_cache = None
+
+from django.contrib.auth.models import User
+from jv3.models import *
+from jv3.utils import *
+import jv3.study.content_analysis as ca
+import jv3.study.ca_datetime as cadt
+import jv3.study.ca_sigscroll as cass
+import jv3.study.ca_load as cal
+import jv3.study.ca_plot as cap
+import rpy2
+import rpy2.robjects as ro
+from jv3.study.study import *
+
+
 def populate_activity_logs(notes):
     ## gets activity logs for all users of all notes passed in 
     global _activity_log_cache
@@ -54,8 +67,7 @@ def _random_notes(n=1000,created_before=None):
         #print "%g " % (len(results)*1.0/n)
     return results
 
-def lm(notes=None,min_word_freq=3,labeler=note_edits,
-       context_fn=lambda x : x,min_content_features_per_note=1,lexicon=None):
+def lm(notes=None,min_word_freq=3,labeler=note_edits,context_fn=lambda x : x,min_content_features_per_note=1,lexicon=None):
 
     if notes is None:
         full_notes = random_notes()

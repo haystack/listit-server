@@ -1,0 +1,1086 @@
+4148P-DU712-H823H-0TW28-9HQH0
+
+
+# indexify your database!
+CREATE INDEX `jv3_activitylog_when` ON `jv3_activitylog` (`when`);
+CREATE INDEX `jv3_activitylog_noteid` ON `jv3_activitylog` (`noteid`);
+CREATE FULLTEXT INDEX `jv3_activitylog_action` ON `jv3_activitylog` (`action`);
+CREATE INDEX `jv3_userregistration_when` ON `jv3_activitylog` (`when`);
+CREATE INDEX `jv3_userregistration_email` ON `jv3_activitylog` (`email`);
+f
+## 
+cd /var/listit/workspace/trunk/server/
+
+## 
+python manage.py shell
+
+## startup
+from django.contrib.auth.models import User
+from jv3.models import *
+from jv3.utils import *
+import jv3.study.content_analysis as ca
+import jv3.study.ca_datetime as cadt
+import jv3.study.ca_sigscroll as cass
+import jv3.study.ca_load as cal
+import jv3.study.ca_plot as cap
+import rpy2
+import rpy2.robjects as ro
+from jv3.study.study import *
+
+from numpy import array
+r = ro.r
+em = User.objects.filter(email="emax@csail.mit.edu")[0]
+c = lambda vv : apply(r.c,vv)
+
+from eyebrowse.models import *
+
+## consenting users 
+u2 = [ u for u in User.objects.all() if is_consenting_study2(u)]
+u1 = [ u for u in User.objects.all() if is_consenting_study1(u)]
+
+## we can start to party already
+## for example, if you wanted to plot the number of notes that people had, overall
+nc = [n.note_owner.count() for n in u2]
+r.png('/var/www/listit-study/test.png',width=1920,height=1080)
+r.plot(c(nc),ylab="f")
+r('dev.off()')
+
+## keep versus delete
+r.png('/var/www/listit-study/test.png',width=1920,height=1080)
+r('par(mfrow=c(2,1))')
+r.plot(c([n.note_owner.filter(deleted=0).count() for n in u2]),ylab="not",ylim=c([1,200]))
+r.plot(c([n.note_owner.filter(deleted=1).count() for n in u2]),ylab="deleted",ylim=c([1,200]))
+r('dev.off()')
+
+
+## consenting notes
+n1 = Note.objects.filter( owner__in=[ u for u in User.objects.all() if is_consenting_study1(u)] )
+n2 = Note.objects.filter( owner__in=[ u for u in User.objects.all() if is_consenting_study2(u)] )
+ns = [ca._note_instance_to_value(n) for n in cal.filter_notes( list(set(n1).union(n2)) ) ]
+
+n1w = [n for n in ns if len(n["contents"].strip().split())==1]
+
+#ns = cal.random_fast(1000)
+
+ns = cal.random_notes(10000)
+cal._prime_actlog_cache(ns)
+nfk,nf = ca.notes_to_features(ns,False) 
+nd = [ n for n in nf.values() if n["note_deleted"] and n["note_lifetime"] > 0]
+xs = [een["note_words"] for een in nd]
+ys = [een["note_lifetime"] for een in nd]
+xh = cap.loghist(xs,filename='/var/www/listit-study/note_words.png')
+yh = cap.loghist([y/(3600*1000) for y in ys],filename='/var/www/listit-study/note_lifetime.png',title="note lifetime, in hours since creation",ylab="log(number of notes)")
+yh = cap.loghist([int(y)/(3600*1000) for y in ys],breaks=[0,1,2,3,5,12,24,48,72,168,336,720,1440,2880,5760,11420],filename='/var/www/listit-study/note_lifetime.png',title="note lifetime, in hours since creation",ylab="log(number of notes)")
+
+ro.globalEnv['x'] = c(xs)
+ro.globalEnv['y'] = c(ys)
+print r('summary(lm(y~x))')
+cap.hist(xs)
+
+cap.loghist( tt["notes_normalized"] , breaks=[0,0.1,0.2,0.3,0.4,0.5,1,2,4,8,10,20], filename="/var/www/listit-study/num-notes-norm-join-date.png" )
+#
+
+
+
+## single words analysis ==================================================================>
+## consenting notes
+n1 = Note.objects.filter( owner__in=[ u for u in User.objects.all() if is_consenting_study1(u)] )
+n2 = Note.objects.filter( owner__in=[ u for u in User.objects.all() if is_consenting_study2(u)] )
+ns = [ca._note_instance_to_value(n) for n in cal.filter_notes( list(set(n1).union(n2)) ) ]
+
+nsfk,nsf = ca.notes_to_features(n1w,note_feature_fns=[ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.numbers,ca.nonword_mix,ca.note_phone_numbers,ca.note_pos_features])
+
+n1w = [n for n in ns if len(n["contents"].strip().split()) < 2]
+nwf,nw = ca.notes_to_features(n1w,note_feature_fns=[ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.numbers,ca.nonword_mix,ca.note_phone_numbers,ca.note_pos_features])
+
+names1 = [ (w,v['note_words']) for w,v in nw.iteritems() if v['note_words'] == 1 and v['note_names'] == 1]
+email1 = [ (w,v['note_words']) for w,v in nw.iteritems() if v['note_words'] == 1 and v['note_emails'] == 1]
+urls1 = [ (w,v['note_words']) for w,v in nw.iteritems() if v['note_words'] == 1 and v['note_urls'] == 1]
+num1 = [ (w,v['note_words']) for w,v in nw.iteritems() if v['note_words'] == 1 and v['numbers'] == 1]
+numword1 = [ (w,v['note_words']) for w,v in nw.iteritems() if v['note_words'] == 1 and v['numword_mix'] == 1]
+
+#
+n1w = [n for n in ns if len(n["contents"].strip().split()) < 2]
+n1wff,n1wf = ca.notes_to_features(n1w,note_feature_fns=[ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.numbers,ca.nonword_mix,ca.note_phone_numbers,ca.note_pos_features])
+
+n1d,n1fd = ca.subset_test(n1w,n1wf,nctest=lambda nc: nc["deleted"])
+
+n1wurl,n1wfurl = ca.subset_test(n1w,n1wf,nftest=lambda nf: nf["note_words"] == 1 and nf["note_urls"] == 1)
+n1wurld,n1wfurld = ca.subset_test(n1wurl,n1wfurl,nctest=lambda nc: nc["deleted"])
+print "deleted 1-word notes JUST URL %g " % (1.0*len(n1wurld)/len(n1wurl))
+
+n1wNOTURL,n1wfNOTURL = ca.subset_test(n1w,n1wf,nftest=lambda nf: nf["note_words"] == 1 and nf["note_urls"] == 0)
+n1wNOTURLd,n1wfNOTURLd = ca.subset_test(n1wNOTURL,n1wfNOTURL,nctest=lambda nc: nc["deleted"])
+print "DELETED 1-word notes NOT URL %g " % (1.0*len(n1wNOTURLd)/len(n1wNOTURL))
+
+n1namesd,n1wfnamesd = ca.subset_test(n1w,n1wf,nctest=lambda nc: nc["deleted"] == 1,nftest=lambda nf: nf["note_words"] == 1 and nf["names"] == 1)
+n1namesnd,n1wfnamesnd = ca.subset_test(n1w,n1wf,nctest=lambda nc: nc["deleted"] == 0,nftest=lambda nf: nf["note_words"] == 1 and nf["names"] == 1)
+
+1n1numbersd,n1fnumbersd = ca.subset_test(n1w,n1wf,nctest=lambda nc: nc["deleted"] == 1,nftest=lambda nf: nf["note_words"] == 1 and nf["numbers"] == 1)
+n1numbersnd,n1fnumbersnd = ca.subset_test(n1w,n1wf,nctest=lambda nc: nc["deleted"] == 0,nftest=lambda nf: nf["note_words"] == 1 and nf["numbers"] == 1)
+1.0*len(n1numbersd),len(n1numbersnd)
+
+n1foned,xxx = ca.subset_test(n1w,n1wf,nctest=lambda nc: nc["deleted"] == 1,nftest=lambda nf: nf["note_words"] == 1 and nf["phone_nums"] == 1)
+n1fonend,xxx = ca.subset_test(n1w,n1wf,nctest=lambda nc: nc["deleted"] == 0,nftest=lambda nf: nf["note_words"] == 1 and nf["phone_nums"] == 1)
+1.0*len(n1foned),len(n1fonend)
+
+n1fmixd,xxx = ca.subset_test(n1w,n1wf,nctest=lambda nc: nc["deleted"] == 1,nftest=lambda nf: nf["note_words"] == 1 and nf["numword_mix"] == 1)
+n1fmixnd,xxx = ca.subset_test(n1w,n1wf,nctest=lambda nc: nc["deleted"] == 0,nftest=lambda nf: nf["note_words"] == 1 and nf["numword_mix"] == 1)
+1.0*len(n1fmixd),len(n1fmixnd)
+
+## urls
+
+## other urls
+Nurls = [ v['note_urls'] for w,v in nw.iteritems() if v['note_urls'] > 0]
+## note length
+Lurls = [ v['note_words'] for w,v in nw.iteritems() if v['note_urls'] > 0]
+print ca.s(Lurls)
+
+## LENGTH VERSUS LIFETIME
+## do notes that are longer have longer survival times?
+## first filter for those that are deleted
+nd = [n for n in ns if n["deleted"]]
+ndk,ndf = ca.notes_to_features(nd,note_feature_fns=[ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.note_lifetime])
+ndlp,ndflp = ca.subset_test(nd,ndf,nftest=lambda nf: nf["note_lifetime"] > 1.0/3600)
+## now check correlation // scatterplot
+ndxx = [ n["note_words"] for n in ndflp.values() ]
+ndyy = [ n["note_lifetime"] for n in ndflp.values() ]
+cap.scatter( zip(ndxx,ndyy), filename="/var/www/listit-study/note_word_vs_lifetime.png", xlabel="words", ylabel="lifetime", title="note words vs lifetime", log="xy")
+
+
+## straight up 
+buckets = []
+breaks = [0,3,5,10,20,100,200,5000]
+for i in range(len(breaks) - 1):
+    bucket_low = breaks[i]
+    bucket_high = breaks[i+1]
+    buckets = buckets + [ ca.subset_values(ndlp,ndflp,"note_lifetime",nftest=lambda nf: nf["note_words"] < bucket_high and nf["note_words"] >= bucket_low) ]
+    pass
+
+r.png(file='/var/www/listit-study/note_length_boxplot.png',width=640,height=480)
+apply(r('boxplot'), [c(ar) for ar in buckets], {"names":cap.make_axis_labels(breaks),"range":0,"varwidth":r('TRUE')})
+r('dev.off()')
+
+## log scale version
+buckets = []
+breaks = [0,50,5000] 
+for i in range(len(breaks) - 1):
+    bucket_low = breaks[i]
+    bucket_high = breaks[i+1]
+    bv = [ log(x)/log(10) for x in ca.subset_values(ndlp,ndflp,"note_lifetime",nftest=lambda nf: nf["note_words"] < bucket_high and nf["note_words"] >= bucket_low) ]
+    buckets = buckets + [ bv ]
+    pass
+
+r.png(file='/var/www/listit-study/note_length_boxplot_log_times__.png',width=1280,height=1024)
+apply(r('boxplot'), [c(ar) for ar in buckets], {"names":cap.make_axis_labels(breaks),"range":0,"varwidth":r('TRUE')})
+r('dev.off()')
+
+## log scale version
+buckets = []
+breaks = [0,3,5,10,20,100,200,5000] 
+for i in range(len(breaks) - 1):
+    bucket_low = breaks[i]
+    bucket_high = breaks[i+1]
+    bv = [ x for x in ca.subset_values(ndlp,ndflp,"note_lifetime",nftest=lambda nf: nf["note_words"] < bucket_high and nf["note_words"] >= bucket_low) ]
+    buckets = buckets + [ bv ]
+    pass
+
+r.png(file='/var/www/listit-study/note_length_boxplot_log_times__.png',width=1280,height=1024)
+apply(r('boxplot'), [c(ar) for ar in buckets], {"names":cap.make_axis_labels(breaks),"range":0,"varwidth":r('TRUE')})
+r('dev.off()')
+
+
+# are longer things kept longer?                                                                                                                                                                                                       
+nshorts = ca.subset_values(ndlp,ndflp,"note_lifetime",nftest=lambda nf: nf["note_words"] < 50)
+nlongs = ca.subset_values(ndlp,ndflp,"note_lifetime",nftest=lambda nf: nf["note_words"] > 50)
+rr = r('t.test')(c(nshorts),c(nlongs))
+for i in range(7):
+    print rr[i]
+
+
+nshorts = ca.subset_values(ndlp,ndflp,"note_lifetime",nftest=lambda nf: nf["note_words"] < 5)
+nlongs = ca.subset_values(ndlp,ndflp,"note_lifetime",nftest=lambda nf: nf["note_words"] > 5)
+rr = r('t.test')(c(nshorts),c(nlongs))
+for i in range(7):
+    print rr[i]
+
+## revisitations
+
+## notes with urls //
+nsfk,nsf = ca.notes_to_features(ns,note_feature_fns=[ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.note_phone_numbers])
+
+## distribution of # of urls
+cap.loghist( ca.subset_values(ns,nsf,"note_urls",nftest=lambda nf: nf["note_urls"] >= 1), breaks=[0,2,5,10,20,70], filename="/var/www/listit-study/num_urls_for_bookmarks.png")
+# words without urls
+cap.loghist( ca.subset_values(ns,nsf,"note_words_sans_urls",nftest=lambda nf: nf["note_urls"] >= 1), breaks=[0,2,5,10,20,70], filename="/var/www/listit-study/num_words_for_bookmarks.png" )
+
+## notes with names // 
+cap.loghist (ca.subset_values(ns,nsf,"names",nftest=lambda nf: nf["names"] >= 1), breaks=[0,1,5,10,20,50,500],filename="/var/www/listit-study/names_per_note_640x480.png",width=640,height=480 )
+
+###
+## eyeballing individual features
+ns = cal.random_notes(10000)
+cal._prime_actlog_cache(ns)
+nfk,nf = ca.notes_to_features(ns,False)
+ca.show_notes(ns,nf,nffilter=lambda nf: nf["note_words"] == 1)
+
+## perform histogram/stats on ALL features
+ca.feature_hists(nfk,nf)
+[cass.note_ss(n) for n in ns]
+startend_cache = cass.sigscroll_startend_cache
+
+## revisitations
+
+def counts(items):
+    c = {}
+    for i in items:
+        c[i] = c.get(i,0)+1
+    return c        
+
+ugood_revisit = [u for u in User.objects.all() if u.activitylog_set.filter(action="significant-scroll").count() > 400 and u.email not in GLOBAL_STOP ]
+
+# select users that have some substantial revisitation-action
+ugood_revisit = [u for u in User.objects.all() if u.activitylog_set.filter(action="significant-scroll").count() > 200 and u.email not in GLOBAL_STOP ]
+random.shuffle(ugood_revisit)
+ngood_revisit = [ca._note_instance_to_value(n) for n in  reduce(lambda x,y: x + y, [[ n for n in u.note_owner.all() if n.created > 1243828800000] for u in ugood_revisit[:30]])]
+print len(ngood_revisit)
+0#nsfkr,nsfr = ca.notes_to_features(ngood_revisit,note_feature_fns=[ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.note_phone_numbers,cass.note_ss])
+nsfkr,nsfr = ca.notes_to_features(ngood_revisit,note_feature_fns=[ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.note_phone_numbers,cass.note_ss])
+revisits = []
+for noteid in cass.__sigscroll_startend_cache_flat.keys():
+    nrevs = cass.__sigscroll_startend_cache_flat[noteid]
+    for i in xrange(len(nrevs)-1):
+        if nrevs[i+1][0] < nrevs[i][1]:
+            print "uhoh: %s " % repr((nrevs[i],nrevs[i+1]))
+            continue
+        revisits.append(nrevs[i+1][0]-nrevs[i][1])
+
+revisits_hs = [x/(3600.0*1000) for x in revisits]
+cap.loghist(revisits_hs,filename="/var/www/listit-study/revisits_log_nofilter.png")
+print "%d users, %d notes " % (len(ugood_revisit),len(ngood_revisit))
+
+## re-editations
+## how many notes get re-edited?
+random.shuffle(ugood_revisit)
+ngood_revisit = [ca._note_instance_to_value(n) for n in  reduce(lambda x,y: x + y, [[ n for n in u.note_owner.all() if n.created > 1243828800000 and n.jid > -1] for u in ugood_revisit[:100]])]
+notes_edited = [ int(a.noteid) for a in ActivityLog.objects.filter(action="note-save",noteid__in=[x["jid"] for x in ngood_revisit] ) ]
+maxnotes = max(counts(notes_edited).values())
+cap.loghist(counts(notes_edited).values(),filename='/var/www/listit-study/edits_per_note.png',breaks=range(1,maxnotes+1),breaklabels=["%d"%x for x in range(1,maxnotes)],width=640,height=480,title="")
+len(ngood_revisit) # find the df
+
+## open and close
+alog = ActivityLog.objects.filter(action__in=["sidebar-open","sidebar-close"],owner__in=ugood_revisit,when__gt=1243828800000).order_by('when')
+
+## sort into
+openclose_per_owner = dict([(x['owner'],[]) for x in alog.values('owner')])
+last_open = {}
+
+for a in alog.values('action','owner','when'):
+    if a["action"]=='sidebar-open':
+        last_open[a["owner"]] = a["when"]
+    else:
+        if a["owner"] in last_open:
+            openclose_per_owner[a["owner"]].append( (long(last_open[a["owner"]]),long(a["when"])) )
+            del last_open[a["owner"]]
+
+cap.hist([len(x) for x in openclose_per_owner.values()],filename='/var/www/listit-study/listit-openclose-per-user.png',title="",width=800,height=600)
+ca.s([len(x) for x in openclose_per_owner.values()])
+#>>> ca.s([len(x) for x in openclose_per_owner.values()])
+#min:3 max:517 mode:16 mean:62.4059 median:41 var:4746.66
+#(3, 517, 16, 62.405857740585773, 41, 4746.66231848388)
+[x for x,y in openclose_per_owner.items() if len(y) == 3]
+## number of notes kept for peole who 
+[User.objects.filter(id=x)[0].note_owner.count() for x,y in openclose_per_owner.items() if len(y) == 16]A
+## open-close durations?
+ca.s([ (y-x)/(60*1000.0) for x,y in reduce(lambda x,y: x+y, openclose_per_owner.values()) ])
+
+# relation between and 
+cap.loghist([ (y-x)/(60*1000.0) for x,y in reduce(lambda x,y: x+y, openclose_per_owner.values()) ],breaks=range(0,6580,5),filename='/var/www/listit-study/listit-open-durations.png')
+durations_per_owner = dict( [ (user,[(y-x)/(60*1000.0) for x,y in xys] ) for  user,xys in openclose_per_owner ])
+
+### usage per user per day -->
+ugood_revisit = [u for u in User.objects.all() if u.activitylog_set.filter(action="significant-scroll").count() > 200 and u.email not in GLOBAL_STOP ]
+user_events = {}
+user_days = {}
+for u in ugood_revisit:
+    THRESH = 30000
+    auserlogs = ActivityLog.objects.filter(owner=u,action__in=['search','note-add','note-delete','significant-scroll','note-edit']).order_by('when')
+    first_when = auserlogs[0].when
+    last_when = auserlogs[auserlogs.count()-1].when
+    last = None
+    for a in auserlogs:
+        if last and a.when-last.when > 30000:
+            user_events[u] = user_events.get(u,0) + 1
+        last = a
+    user_days[u] = (last_when-first_when)/(24*3600*1000) 
+
+events_per_day = [user_events[u]*1.0/float(user_days[u]) for u in ugood_revisit]
+
+
+#### 
+### CATEGORICAL ANALYSIS
+
+#rek,ref = ca.notes_to_features(renotes,False,[ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.note_lifetime,ca.note_pos_features])
+#todos_both = [get_note_byid(x) for x in cols[1:] if x[8].strip()== '1' and x[9].strip()=='1']
+
+renotes,cols = cal.import_notes_csv('/biggie/listit/study2010/VERBAGE.csv')
+
+get_note_byid = lambda id : [x for x in renotes if x["id"] == long(id)][0]
+get_note_byjid = lambda jid : [x for x in renotes if x["jid"] == long(jid)][0]
+todos_kp = [get_note_byid(x[0]) for x in cols[1:] if x[8].strip() == '1']
+
+tdk,tdf = ca.notes_to_features(todos_kp,False,note_feature_fns=[ca.note_length,ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.note_lifetime,ca.note_punctuation,ca.note_verbs,ca.note_verbs_over_length,ca.dte_over_length,ca.names_over_length,ca.urls_over_length])
+
+rn = cal.random_notes(2500)
+rnk,rnf = ca.notes_to_features(rn,False,note_feature_fns=[ca.note_length,ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.note_lifetime,ca.note_punctuation,ca.note_verbs,ca.note_verbs_over_length,ca.dte_over_length,ca.names_over_length,ca.urls_over_length,ca.todos_over_length,ca.numbers,ca.note_phone_numbers,ca.nonword_mix])
+
+## are todos significantly shorter or longer than av?
+rn_length = ca.subset_values(rn,rnf,"note_words")
+td_length = ca.subset_values(todos_kp,tdf,"note_words")
+print "word length"
+print r('t.test')(c(td_length),c(rn_length))
+
+rn_names = ca.subset_values(rn,rnf,"names")
+td_names = ca.subset_values(todos_kp,tdf,"names")
+print "word length"
+print r('t.test')(c(td_names),c(rn_names))
+#t = -2.92, df = 3490.772, p-value = 0.003522
+#alternative hypothesis: true difference in means is not equal to 0 
+#95 percent confidence interval:
+# -0.17789721 -0.03496907 
+#sample estimates:
+#mean of x mean of y 
+#0.4023669 0.5088000
+
+rn_ = ca.subset_values(rn,rnf,"note_names_over_length")
+td_ = ca.subset_values(todos_kp,tdf,"note_names_over_length")
+print r('t.test')(c(td_),c(rn_))
+# t = -0.5249, df = 2418.679, p-value = 0.5997
+# alternative hypothesis: true difference in means is not equal to 0 
+# 95 percent confidence interval:
+#  -0.013395925  0.007738558 
+# sample estimates:
+#  mean of x  mean of y 
+#0.06839934 0.07122802 
+
+rn_ = ca.subset_values(rn,rnf,"date_time_exprs")
+td_ = ca.subset_values(todos_kp,tdf,"date_time_exprs")
+print r('t.test')(c(td_),c(rn_))
+# t = -2.3135, df = 3491.968, p-value = 0.02075
+# alternative hypothesis: true difference in means is not equal to 0 
+# 95 percent confidence interval:
+#  -0.09428748 -0.00778432 
+# sample estimates:
+# mean of x mean of y 
+# 0.1025641 0.1536000
+
+td_ = ca.subset_values(todos_kp,tdf,"dte_over_length")
+rn_ = ca.subset_values(rn,rnf,"dte_over_length")
+print r('t.test')(c(td_),c(rn_))
+# t = -1.683, df = 2531.291, p-value = 0.0925
+# alternative hypothesis: true difference in means is not equal to 0 
+# 95 percent confidence interval:
+#  -0.0082378758  0.0006281755 
+# sample estimates:
+#  mean of x  mean of y 
+#0.01377923 0.01758408 
+
+
+# verbs
+rn_ = ca.subset_values(rn,rnf,"note_verbs")
+td_ = ca.subset_values(todos_kp,tdf,"note_verbs")
+print r('t.test')(c(td_),c(rn_))
+# t = -4.3532, df = 3339.117, p-value = 1.382e-05
+# alternative hypothesis: true difference in means is not equal to 0 
+# 95 percent confidence interval:
+#  -0.5156984 -0.1954132 
+# sample estimates:
+# mean of x mean of y 
+# 0.7968442 1.1524000 
+
+rn_ = ca.subset_values(rn,rnf,"note_verbs_over_length")
+td_ = ca.subset_values(todos_kp,tdf,"note_verbs_over_length")
+print r('t.test')(c(td_),c(rn_))
+# t = 3.1177, df = 1748.087, p-value = 0.001852
+# alternative hypothesis: true difference in means is not equal to 0 
+# 95 percent confidence interval:
+#  0.006529944 0.028680045 
+# sample estimates:
+# mean of x mean of y 
+# 0.1177681 0.1001631 
+
+del rn_
+del td_
+rn_ = ca.subset_values(rn,rnf,"note_punct")
+td_ = ca.subset_values(todos_kp,tdf,"note_punct")
+print r('t.test')(c(td_),c(rn_))
+# t = -11.9471, df = 3314.45, p-value < 2.2e-16
+# alternative hypothesis: true difference in means is not equal to 0 
+# 95 percent confidence interval:
+#  -1.1899972 -0.8544715 
+# sample estimates:
+# mean of x mean of y 
+# 0.4881657 1.5104000
+
+
+renotes,cols = cal.import_notes_csv('/biggie/listit/study2010/brenn-coded.csv',text_col=1)
+refs_ = [get_note_byid(x[0]) for x in cols[1:] if x[cols[0].index("REFERENCE")].strip() == '1']
+tdk,tdf = ca.notes_to_features(refs_,False,note_feature_fns=[ca.note_length,ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.note_lifetime,ca.note_punctuation,ca.note_verbs,ca.note_verbs_over_length,ca.dte_over_length,ca.names_over_length,ca.urls_over_length,ca.todos_over_length,ca.numbers,ca.note_phone_numbers,ca.nonword_mix])
+
+## are todos significantly shorter or longer than av?
+
+## REFERENCES ::::::::::::::::::::::::::::::::::::::::::::::::::
+## refs shorter!
+rn_ = ca.subset_values(rn,rnf,"note_words")
+td_ = ca.subset_values(refs_,tdf,"note_words")
+print "word length"
+print r('t.test')(c(td_),c(rn_))
+# REF SHORTER :: t = -2.3235, df = 1135.511, p-value = 0.02033
+# mean of x mean of y  8.657143 10.348000 
+
+rn_ = ca.subset_values(rn,rnf,"note_length")
+td_ = ca.subset_values(refs_,tdf,"note_length")
+print "word length"
+print r('t.test')(c(td_),c(rn_))
+## INSIGNIF
+
+## REF DATETIME
+rn_ = ca.subset_values(rn,rnf,"dte_over_length")
+td_ = ca.subset_values(refs_,tdf,"dte_over_length")
+print r('t.test')(c(td_),c(rn_))
+## REF LESSDATETIME: 
+#t = -2.9602, df = 427.903, p-value = 0.003246
+#  mean of x   mean of y 0.007429409 0.014790932
+
+## REF NAMES
+td_ = ca.subset_values(refs_,tdf,"names")
+rn_ = ca.subset_values(rn,rnf,"names")
+print r('t.test')(c(td_),c(rn_))
+## REF NAME INSIGNIF
+rn_ = ca.subset_values(rn,rnf,"note_names_over_length")
+td_ = ca.subset_values(refs_,tdf,"note_names_over_length")
+print r('t.test')(c(td_),c(rn_))
+## REF NAME_NORM INSIGNIF
+
+rn_ = ca.subset_values(rn,rnf,"urls_over_length")
+td_ = ca.subset_values(refs_,tdf,"urls_over_length")
+print r('t.test')(c(td_),c(rn_))
+## REF MORE URLS 
+# t = 3.1728, df = 287.726, p-value = 0.001673
+# 0.1643685 0.1026915 
+rn_ = ca.subset_values(rn,rnf,"note_urls")
+td_ = ca.subset_values(refs_,tdf,"note_urls")
+print r('t.test')(c(td_),c(rn_))
+# MORE URLS per note
+# t = 5.0172, df = 401.81, p-value = 7.889e-07
+#  0.477551  0.255200
+
+rn_ = ca.subset_values(rn,rnf,"todos_over_length")
+td_ = ca.subset_values(refs_,tdf,"todos_over_length")
+print r('t.test')(c(td_),c(rn_))
+# REF > fewer TODOs:
+# t = -4.3992, df = 2067.836, p-value = 1.142e-05
+#    mean of x    mean of y 
+# 0.0002473717 0.0024168151
+pause
+
+rn_ = ca.subset_values(rn,rnf,"email_addrs")
+td_ = ca.subset_values(refs_,tdf,"email_addrs")
+print r('t.test')(c(td_),c(rn_))
+# REF > more emails!
+# t = 1.0327, df = 904.385, p-value = 0.302
+#  83.16735  77.92640
+
+rn_ = ca.subset_values(rn,rnf,"note_verbs_over_length")
+td_ = ca.subset_values(refs_,tdf,"note_verbs_over_length")
+print r('t.test')(c(td_),c(rn_))
+# REFS FEWER VERBS PER WORD
+# t = -2.843, df = 323.605, p-value = 0.004754
+# 0.08271255 0.10576108
+
+rn_ = ca.subset_values(rn,rnf,"note_punct")
+td_ = ca.subset_values(refs_,tdf,"note_punct")
+print r('t.test')(c(td_),c(rn_))
+# REFS PUNCT
+# t = 2.9737, df = 403.432, p-value = 0.003119
+#  2.220408  1.653600
+
+rn_ = ca.subset_values(rn,rnf,"numbers")
+td_ = ca.subset_values(refs_,tdf,"numbers")
+print r('t.test')(c(td_),c(rn_))
+# REFS MORE NUMBERS
+# t = 2.3745, df = 266.47, p-value = 0.01828
+# 0.08571429 0.04000000 
+
+rn_ = ca.subset_values(rn,rnf,"numword_mix")
+td_ = ca.subset_values(refs_,tdf,"numword_mix")
+print r('t.test')(c(td_),c(rn_))
+
+
+# REFS MORE NUMWORDS
+# t = 4.585, df = 365.531, p-value = 6.243e-06
+# 0.6122449 0.4172000
+
+rn_ = ca.subset_values(rn,rnf,"phone_nums")
+td_ = ca.subset_values(refs_,tdf,"phone_nums")
+print r('t.test')(c(td_),c(rn_))
+
+# POSTERITY
+renotes,cols = cal.import_notes_csv('/biggie/listit/study2010/brenn-coded.csv',text_col=1)
+refs_ = [get_note_byid(x[0]) for x in cols[1:] if x[cols[0].index("POSTERITY")].strip() == '1']
+tdk,tdf = ca.notes_to_features(refs_,False,note_feature_fns=[ca.note_length,ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.note_lifetime,ca.note_punctuation,ca.note_verbs,ca.note_verbs_over_length,ca.dte_over_length,ca.names_over_length,ca.urls_over_length,ca.todos_over_length,ca.numbers,ca.note_phone_numbers,ca.nonword_mix])
+
+
+rn_ = ca.subset_values(rn,rnf,"note_words")
+td_ = ca.subset_values(refs_,tdf,"note_words")
+print r('t.test')(c(td_),c(rn_))
+# POSTERITY LONGER: 
+#t = 4.0545, df = 28.676, p-value = 0.0003506
+# 20.55556  10.34800 
+
+rn_ = ca.subset_values(rn,rnf,"note_length")
+td_ = ca.subset_values(refs_,tdf,"note_length")
+print r('t.test')(c(td_),c(rn_))
+# t = 2.9091, df = 29.786, p-value = 0.006791
+# POSTERITY LONGER
+#t = 2.9091, df = 29.786, p-value = 0.006791
+# 118.8519   77.9264 
+ 
+rn_ = ca.subset_values(rn,rnf,"dte_over_length")
+td_ = ca.subset_values(refs_,tdf,"dte_over_length")
+print r('t.test')(c(td_),c(rn_))
+# POSTERITY LESS DATETIME
+# t = -11.9218, df = 2499, p-value < 2.2e-16
+# 0.00000000 0.01479093
+
+td_ = ca.subset_values(refs_,tdf,"names")
+rn_ = ca.subset_values(rn,rnf,"names")
+print r('t.test')(c(td_),c(rn_))
+# POSTERITY MORE NAMES 
+# t = 1.8543, df = 27.323, p-value = 0.07452
+# 0.8518519 0.5240000 
+
+rn_ = ca.subset_values(rn,rnf,"note_names_over_length")
+td_ = ca.subset_values(refs_,tdf,"note_names_over_length")
+print r('t.test')(c(td_),c(rn_))
+# POSTERITY FEWER DATES PER WORD
+# t = -3.9531, df = 37.097, p-value = 0.0003336
+# 0.03625180 0.07289226
+
+rn_ = ca.subset_values(rn,rnf,"note_urls")
+td_ = ca.subset_values(refs_,tdf,"note_urls")
+print r('t.test')(c(td_),c(rn_))
+# POSTERITY FEWER URLS 
+# t = -3.2649, df = 35.38, p-value = 0.002434
+# 0.07407407 0.25520000
+
+rn_ = ca.subset_values(rn,rnf,"urls_over_length")
+td_ = ca.subset_values(refs_,tdf,"urls_over_length")
+print r('t.test')(c(td_),c(rn_))
+# POSTERITY FEWER URLS PER WORD
+# t = -4.3043, df = 30.755, p-value = 0.0001578
+# 0.01960784 0.10269154 
+
+rn_ = ca.subset_values(rn,rnf,"todos_over_length")
+td_ = ca.subset_values(refs_,tdf,"todos_over_length")
+print r('t.test')(c(td_),c(rn_))
+# POSTERITY FEWER TODOS
+#t = -4.3043, df = 30.755, p-value = 0.0001578
+# 0.01960784 0.10269154 
+
+rn_ = ca.subset_values(rn,rnf,"email_addrs")
+td_ = ca.subset_values(refs_,tdf,"email_addrs")
+print r('t.test')(c(td_),c(rn_))
+# POSTERITY EMAIL INSIG
+
+rn_ = ca.subset_values(rn,rnf,"note_verbs_over_length")
+td_ = ca.subset_values(refs_,tdf,"note_verbs_over_length")
+print r('t.test')(c(td_),c(rn_))
+# t = 3.5091, df = 26.909, p-value = 0.001601
+# 0.1851639 0.1057611
+# more verbs
+
+rn_ = ca.subset_values(rn,rnf,"note_punct")
+td_ = ca.subset_values(refs_,tdf,"note_punct")
+print r('t.test')(c(td_),c(rn_))
+# t = 2.0525, df = 27.588, p-value = 0.04971
+#  2.740741  1.653600 
+
+rn_ = ca.subset_values(rn,rnf,"numbers")
+td_ = ca.subset_values(refs_,tdf,"numbers")
+print r('t.test')(c(td_),c(rn_))
+# t = -9.998, df = 2499, p-value < 2.2e-16
+#  0.00      0.04 
+
+rn_ = ca.subset_values(rn,rnf,"numword_mix")
+td_ = ca.subset_values(refs_,tdf,"numword_mix")
+print r('t.test')(c(td_),c(rn_))
+# POSTERITY
+# t = -2.9613, df = 29.086, p-value = 0.006044
+# 0.1851852 0.4172000 
+
+rn_ = ca.subset_values(rn,rnf,"phone_nums")
+td_ = ca.subset_values(refs_,tdf,"phone_nums")
+print r('t.test')(c(td_),c(rn_))
+
+
+
+# POSTERITY
+renotes,cols = cal.import_notes_csv('/biggie/listit/study2010/brenn-coded.csv',text_col=1)
+refs_ = [get_note_byid(x[0]) for x in cols[1:] if x[cols[0].index("HOLDING")].strip() == '1']
+tdk,tdf = ca.notes_to_features(refs_,False,note_feature_fns=[ca.note_length,ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.note_lifetime,ca.note_punctuation,ca.note_verbs,ca.note_verbs_over_length,ca.dte_over_length,ca.names_over_length,ca.urls_over_length,ca.todos_over_length,ca.numbers,ca.note_phone_numbers,ca.nonword_mix])
+
+
+## edit, access characteristics
+
+# TODOs deleted
+# TODO edits
+# TODOs lifetime
+
+renotes,cols = cal.import_notes_csv('/biggie/listit/study2010/VERBAGE.csv')
+get_note_byid = lambda id : [x for x in renotes if x["id"] == long(id)][0]
+get_note_byjid = lambda jid : [x for x in renotes if x["jid"] == long(jid)][0]
+
+todos_kp = [get_note_byid(x[0]) for x in cols[1:] if x[8].strip() == '1']
+cal._prime_actlog_cache(todos_kp)
+tdk,tdf = ca.notes_to_features(todos_kp,False,note_feature_fns=[ca.note_length,ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.note_lifetime,ca.note_punctuation,ca.note_verbs,ca.note_verbs_over_length,ca.dte_over_length,ca.names_over_length,ca.urls_over_length,ca.note_edits])
+
+rn = cal.random_notes(2500)
+cal._prime_actlog_cache(rn)
+rnk,rnf = ca.notes_to_features(rn,False,note_feature_fns=[ca.note_length,ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.note_lifetime,ca.note_punctuation,ca.note_verbs,ca.note_verbs_over_length,ca.dte_over_length,ca.names_over_length,ca.urls_over_length,ca.todos_over_length,ca.numbers,ca.note_phone_numbers,ca.nonword_mix,ca.note_edits])
+
+## TODOS: EDITED?
+td_ = ca.subset_values(todos_kp,tdf,"note_edits")
+rn_ = ca.subset_values(rn,rnf,"note_edits")
+print r('t.test')(c(td_),c(rn_))
+# t = -1.4981, df = 2552.328, p-value = 0.1342
+# alternative hypothesis: true difference in means is not equal to 0 
+# 95 percent confidence interval:
+#  -2.8840639  0.3859005 
+# sample estimates:
+# mean of x mean of y 
+#  2.920118  4.169200
+
+tdd_ = len(ca.subset_values(todos_kp,tdf,"note_edits",nctest=lambda nc: nc["deleted"]))
+td_ = len(ca.subset_values(todos_kp,tdf,"note_edits",nctest=lambda nc: not nc["deleted"]))
+rn_ = len(ca.subset_values(rn,rnf,"note_edits",nctest=lambda nc: nc["deleted"]))*1.0/len(rn)
+r('binom.test')( c([tdd_,td_]), p=rn_ )
+# MEMORY TRIGGERS > MORE LIKELY TO BE DELETED
+#	Exact binomial test
+#
+#data:  c(743L, 271L) 
+#number of successes = 743, number of trials = 1014, p-value < 2.2e-16
+#alternative hypothesis: true probability of success is not equal to 0.588 
+#95 percent confidence interval:
+# 0.7043608 0.7597642 
+#nsample estimates:
+#probability of success 
+#             0.7327416 
+
+
+## TODOS: lifetime
+td_ = ca.subset_values(todos_kp,tdf,"note_lifetime",nctest=lambda nc: nc["deleted"], nftest=lambda nf: nf["note_lifetime"] > 0)
+rn_ = ca.subset_values(rn,rnf,"note_lifetime",nctest=lambda nc: nc["deleted"], nftest=lambda nf: nf["note_lifetime"] > 0)
+print r('t.test')(c(td_),c(rn_))
+# t = -1.9259, df = 1227.401, p-value = 0.05434
+# alternative hypothesis: true difference in means is not equal to 0 
+# 95 percent confidence interval:
+#  -221.281184    2.046105 
+# sample estimates:
+# mean of x mean of y 
+#  543.9635  653.5811 
+
+
+## REFERENCE EDITED, LIFETIME, DELETED
+renotes,cols = cal.import_notes_csv('/biggie/listit/study2010/brenn-coded.csv',text_col=1)
+refs_ = [get_note_byid(x[0]) for x in cols[1:] if x[cols[0].index("REFERENCE")].strip() == '1']
+cal._prime_actlog_cache(renotes)
+tdk,tdf = ca.notes_to_features(refs_,False,note_feature_fns=[ca.note_length,ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.note_lifetime,ca.note_punctuation,ca.note_verbs,ca.note_verbs_over_length,ca.dte_over_length,ca.names_over_length,ca.urls_over_length,ca.todos_over_length,ca.numbers,ca.note_phone_numbers,ca.nonword_mix,ca.note_edits])
+
+## REF EDITED?
+td_ = ca.subset_values(refs_,tdf,"note_edits")
+rn_ = ca.subset_values(rn,rnf,"note_edits")
+print r('t.test')(c(td_),c(rn_))
+## INSIG
+
+
+## REF DELETED?
+tdd_ = len(ca.subset_values(refs_,tdf,"note_edits",nctest=lambda nc: nc["deleted"]))
+td_ = len(ca.subset_values(refs_,tdf,"note_edits",nctest=lambda nc: not nc["deleted"]))
+rn_ = len(ca.subset_values(rn,rnf,"note_edits",nctest=lambda nc: nc["deleted"]))*1.0/len(rn)
+r('binom.test')( c([tdd_,td_]), p=rn_ )
+# data:  c(74L, 171L) 
+# number of successes = 74, number of trials = 245, p-value < 2.2e-16
+# alternative hypothesis: true probability of success is not equal to 0.596
+# 95 percent confidence interval:
+#  0.2452182 0.3637272
+# sample estimates:
+# probability of success
+#              0.3020408
+
+# REF LIFETIME?
+td_ = ca.subset_values(refs_,tdf,"note_lifetime",nctest=lambda nc: nc["deleted"], nftest=lambda nf: nf["note_lifetime"] > 0)
+rn_ = ca.subset_values(rn,rnf,"note_lifetime",nctest=lambda nc: nc["deleted"], nftest=lambda nf: nf["note_lifetime"] > 0)
+print r('t.test')(c(td_),c(rn_))
+# INSIGNIFICANT
+
+## POSTERITY EDITS, DELETION, LIFETIME
+renotes,cols = cal.import_notes_csv('/biggie/listit/study2010/brenn-coded.csv',text_col=1)
+refs_ = [get_note_byid(x[0]) for x in cols[1:] if x[cols[0].index("HOLDING")].strip() == '1']
+cal._prime_actlog_cache(renotes)
+tdk,tdf = ca.notes_to_features(refs_,False,note_feature_fns=[ca.note_length,ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.note_lifetime,ca.note_punctuation,ca.note_verbs,ca.note_verbs_over_length,ca.dte_over_length,ca.names_over_length,ca.urls_over_length,ca.todos_over_length,ca.numbers,ca.note_phone_numbers,ca.nonword_mix,ca.note_edits])
+
+
+## POSTERITY
+td_ = ca.subset_values(refs_,tdf,"note_edits")
+rn_ = ca.subset_values(rn,rnf,"note_edits")
+print r('t.test')(c(td_),c(rn_))
+## INSIG
+
+
+## POSTERITY DELETED?
+tdd_ = len(ca.subset_values(refs_,tdf,"note_edits",nctest=lambda nc: nc["deleted"]))
+td_ = len(ca.subset_values(refs_,tdf,"note_edits",nctest=lambda nc: not nc["deleted"]))
+rn_ = len(ca.subset_values(rn,rnf,"note_edits",nctest=lambda nc: nc["deleted"]))*1.0/len(rn)
+print r('binom.test')( c([tdd_,td_]), p=rn_ )
+
+## DELETED LESS
+# Exact binomial test
+# data:  c(7L, 13L) 
+# number of successes = 7, number of trials = 20, p-value = 0.03761
+# alternative hypothesis: true probability of success is not equal to 0.596 
+# 95 percent confidence interval:
+#  0.1539092 0.5921885 
+# sample estimates:
+# probability of success 
+#                   0.35 
+
+# gestalt note-edit statistics
+
+
+## LIFETIME
+td_ = ca.subset_values(refs_,tdf,"note_lifetime",nctest=lambda nc: nc["deleted"], nftest=lambda nf: nf["note_lifetime"] > 0)
+rn_ = ca.subset_values(rn,rnf,"note_lifetime",nctest=lambda nc: nc["deleted"], nftest=lambda nf: nf["note_lifetime"] > 0)
+print r('t.test')(c(td_),c(rn_))
+#
+#t = -0.416, df = 6.184, p-value = 0.6915
+# alternative hypothesis: true difference in means is not equal to 0 
+# 95 percent confidence interval:
+#  -828.4497  586.2015 
+# sample estimates:
+# mean of x mean of y 
+#   532.457   653.581 
+
+
+
+# revisiting edits
+rn = cal.random_notes(2500)
+cal._prime_actlog_cache(rn)
+rnk,rnf = ca.notes_to_features(rn,False,note_feature_fns=[ca.note_length,ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.note_lifetime,ca.note_punctuation,ca.note_verbs,ca.note_verbs_over_length,ca.dte_over_length,ca.names_over_length,ca.urls_over_length,ca.todos_over_length,ca.numbers,ca.note_phone_numbers,ca.nonword_mix,ca.note_edits])
+
+rn_ = len(ca.subset_values(rn,rnf,"note_edits")
+
+
+
+>>> ca.s(rn_)
+min:0 max:120 mode:1 mean:2.7484 median:2 var:19.1632
+(0, 120, 1, 2.7484000000000002, 2, 19.163162705081902)
+
+
+## KP 
+rn = cal.random_notes(25000)
+cal._prime_actlog_cache(rn)
+rnk,rnf = ca.notes_to_features(rn,False,note_feature_fns=[ca.note_lifetime])
+ca.subset_values(rn,rnf,nftest=lambda nf: nf["note_lifetime"] < 300000 and nf["note_lifetime"] > 0)
+
+rnD,rnfD = ca.subset_test(rn,rnf,nftest=lambda nf: nf["note_lifetime"] > 0)
+>>> len(rnfd)*1.0/len(rnD)
+
+rnk,rnf = ca.notes_to_features(rn,False,note_feature_fns=[ca.note_lifetime])
+rnd,rnfd = ca.subset_test(rn,rnf,nftest=lambda nf: nf["note_lifetime"] > 4800 and nf["note_lifetime"] > 0)
+
+# rnnd_,rnndf_ = ca.subset_test(rn,rnf,nctest=lambda nc: nc["deleted"])
+
+
+
+# % of reference deleted
+# avg ref lifetime
+
+# % of posteirty deleted
+# avg posterity lifetime
+
+# TODOs # of searches (?)
+
+
+
+###
+refs_kp = [get_note_byid(x[0]) for x in cols[1:] if x[8].strip() == '1']
+tdk,tdf = ca.notes_to_features(todos_kp,False,note_feature_fns=[ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.note_lifetime,ca.note_punctuation,ca.note_verbs,ca.note_verbs_over_length])
+rn_ = ca.subset_values(rn,rnf,"note_words")
+td_ = ca.subset_values(todos_kp,tdf,"note_words")
+print "word length"
+print r('t.test')(c(td_),c(rn_))
+
+
+get_todos = [get_note_byid(x) for x in cols if x[3] == 1]
+
+## notes versus durations
+endure = [(User.objects.filter(id=user)[0].note_owner.count(),[(y-x)/(60*1000.0) for x,y in xys]) for user,xys in openclose_per_owner.items()]
+
+durations_per_owner_l16 = dict( [ (user,[(y-x)/(60*1000.0) for x,y in xys] ) for  user,xys in openclose_per_owner if len(xys) < 16 ])
+durations_per_owner_g16 = dict( [ (user,[(y-x)/(60*1000.0) for x,y in xys] ) for  user,xys in openclose_per_owner.items() if len(xys) < 16 ])
+
+r('wilcox.test')( c(reduce(lambda x,y:x+y,durations_per_owner_l16.values())),c(reduce(lambda x,y:x+y,durations_per_owner_g16.values())) )
+## [ (y-x)/(60*1000.0) for x,y in reduce(lambda x,y: x+y, openclose_per_owner.values()) ]
+## User.objects.filter(id=11137)[0].note_owner.count() => 716
+
+
+## find the biggest guy:
+biggest = [x for x,y in counts(notes_edited).items() if y == max(counts(notes_edited).values())][0]
+Note.objects.filter(jid=biggest)
+
+from jv3.study.exporter import user_joindate
+ugood_revisit = [u for u in User.objects.all() if u.activitylog_set.filter(action="note-save").count() > 200 and u.email not in GLOBAL_STOP and user_joindate(u) > 11235883600000 ] ## Feb 
+random.shuffle(ugood_revisit)
+ngood_revisit = [ca._note_instance_to_value(n) for n in  reduce(lambda x,y: x + y, [[ n for n in u.note_owner.all() ] for u in ugood_revisit[:20]])]
+nsfkr,nsfr = ca.notes_to_features(ngood_revisit,note_feature_fns=[ca.note_words,ca.note_urls,ca.note_emails,ca.note_names,ca.note_phone_numbers])
+##[ (n["id"],activity_logs_for_note(n,"note-save")) for n in ngood_revisit ]
+saves_by_note = cal.activity_logs_for_notes(ngood_revisit,"note-save")
+# 
+ca.loghist([ (id,len(saves)) for id,saves in saves_by_note.items()], filename="/var/www/listit-study/log_saves_by_note.png")
+cap.loghist([ len(saves) for id,saves in saves_by_note.items()], filename="/var/www/listit-study/log_saves_by_note.png")
+cap.loghist([ len(saves) for id,saves in saves_by_note.items()], filename="/var/www/listit-study/log_saves_by_note.png")
+
+# distribution of when things are re-edited, relative to note creation!
+findnote = lambda id,notes : [x for x in notes if x["id"] == id][0]
+time_since_save = reduce(lambda x,y: x + y, [ [long(ns["when"]-findnote(id,ngood_revisit)["created"]) for ns in saves ] for id,saves in saves_by_note.items() ] )
+time_since_save = [math.sqrt(math.pow(ts/(3600.0*1000.0),2)) for ts in time_since_save]
+
+for id,saves in saves_by_note.items():
+    for ns in saves:
+        print "%s created %d, when %d, %s %d" % ( repr(id),findnote(id,ngood_revisit)["created"], ns["when"],  repr(findnote(id,ngood_revisit)["created"] < ns["when"]),  -findnote(id,ngood_revisit)["created"] + ns["when"])
+
+
+
+
+## search
+## first find the date that search started --- >
+
+## then query only search
+
+
+## pairwise correlation levels
+ca.pairwise_feature_correlation( nfk, nf )
+
+## note length
+cap.hist([log(v['note_length'])/log(10) for n,v in ft.items()],breaks=r('nclass.FD'),width=800,height=600)
+
+## # of words
+cap.hist([log(v['note_words']+1.0)/log(10) for n,v in ft.items()],breaks=r('nclass.FD'),xlabel="log(words)",ylabel="note count",width=800,height=600)
+
+## content analysis
+
+## 44100 -> post filtering for english, non-stop-user and length >= 2 : 29481
+
+# DAYS TILL DELETION
+ca.s([int(float(x.edited - x.created)/(3600*1000.0*24) ) for x in n4 if x.deleted and x.edited - x.created > 1000])
+cap.hist([float(x.edited - x.created)/(3600*1000.0*24) for x in n4 if x.deleted and x.edited - x.created > 1000],
+	  breaks=r('nclass.FD'),title="notes, days between creation and deletion")
+
+	 
+## NUMBER OF NOTES (deleted, not deleted) per user
+vv = ca.notes_per_user(ns)
+ca.hist_notes_per_user(npu=vv)
+
+## sort top users
+us = [u for u in User.objects.all() if is_consenting_study2(u)]
+un = dict([(u.id,u.note_owner.all().count()) for u in us])
+us.sort(lambda a,b: un[b.id] - un[a.id])
+us[0:10]
+
+## sampling notes
+rn = cal.random_notes(25000)
+
+## content features
+x,y = ca.notes_to_features(rn,False,ca.content_features)
+
+## only 
+
+## significance testing
+
+## PLOTTING
+## printing a pdf
+r.pdf(file="/var/www/foo2.pdf")
+
+r('dev.off()')
+
+## setting a font
+print r.par(font=2) ## set a font
+r.par(cex=1) ## set a font
+
+## snapshot 09.
+>>> n = Note.objects.filter( owner__in=[ u for u in User.objects.all() if is_consenting_study2(u)] )
+>>> len(n)
+29287
+
+## load marked up
+renotes,cols = cal.import_notes_csv('/biggie/listit/study2010/wolfe-kp-2.5k.csv')
+x,y = ca.notes_to_features(renotes,False)
+ca.export_features(x,y)
+
+[u for u in User.objects.filter(email__contains="mit.edu") if is_consenting_study2(u) and u.note_owner.all().count() > 30]
+
+## examining largenotes
+rn = cal.random_notes(25000)
+x,y = ca.notes_to_features(rn,False)
+cass.number_of_revisitations_per_note_per_user()
+
+ca.export_features(x,y,'/tmp/features-ss.csv')
+
+## sigscrol computes
+ssdist = [ x['sigscroll_count'] for x in y.values() ] 
+sshist = r.hist(c(ssdist),breaks=r.c(r.seq(0,50,1),10000),plot=False)
+
+
+rr = ca.random_notes(250)
+x,y = ca.notes_to_features(rr,False)
+ca.export_features(x,y,'/tmp/features-ss.csv')
+
+
+renotes = cal.import_notes_csv('/tmp/features.csv')
+x,y = ca.notes_to_features(renotes,False)
+ca.export_features(x,y)
+
+
+rr = ca.random_notes(250)
+x,y = ca.notes_to_features(rr,False)
+ca.export_features(x,y)
+
+#f = open('/Users/emax/Desktop/chi2010-listit/data/results20k','r')
+import pickle
+f = open('jv3/study/datastudy2/results20k','r')
+
+import pickle
+f = open('jv3/study/datastudy2/diagnostics-results','r')
+x,y = pickle.loads(''.join(f.readlines()))
+ln = ca.load_notes(y.keys())
+
+f = open('jv3/study/datastudy2/','r')
+x,y = pickle.loads(''.join(f.readlines()))
+ln = ca.load_notes(y.keys())
+
+import jv3.models
+from django.contrib.auth.models import *
+from jv3.models import *
+
+import jv3.study.content_analysis as ca
+import rpy2.robjects as robjects
+r = robjects.r
+
+rn = ca.random_notes(1000)
+ca.populate_activity_logs(rn)
+nedithist = [ ca.num_edits(n) for note in rn ]
+notehist = [len(User.objects.all()[ii].note_owner.all()) for ii in range(User.objects.all().count())]
+
+
+## experiment analyze todo
+## try-reloading writeup notes spreadsheet
+import pickle
+f = open('jv3/study/datastudy2/diagnostics-results','r')
+x,y = pickle.loads(''.join(f.readlines()))
+ln = ca.load_notes(y.keys())
+
+
+## testing:
+# this doesn't work
+r.png(file="/var/www/foo2.png")
+mfcol=c(3,2) # fill by column
+mfrow=c(3,2) # fill by row
+
+r.par(cex=0.9)
+r('mfcol=c(3,2)') # fill by column
+#r('mfc=c(1,1,3,2)') # fill by column
+r.hist(c([random.randint(0,100) for x in range(4)]))
+#r('mfc=c(1,2,3,2)') # fill by column
+r.hist(c([random.randint(0,100) for x in range(10)]))
+#r('mfc=c(2,1,3,2)') # fill by column
+r.hist(c([random.randint(0,100) for x in range(30)]))
+#r('mfc=c(2,2,3,2)') # fill by column
+r.hist(c([random.randint(0,100) for x in range(100)]))
+#r('mfc=c(3,1,3,2)') # fill by column
+r.hist(c([random.randint(0,100) for x in range(20)]))
+#r('mfc=c(3,2,3,2)') # fill by column
+r.hist(c([random.randint(0,100) for x in range(10)]))
+r('dev.off()')
+
+
+<VirtualHost *:443>
+	#ServerName listit.nrcc.noklab.com
+	ServerName notes.csail.mit.edu
+	ServerAdmin jourknow-dev@csail.mit.edu
+
+	SSLEngine on
+	SSLCertificateFile /var/listit/conf/ssl.crt/listit.nrcc.noklab.com.crt
+	SSLCertificateKeyFile /var/listit/conf/ssl.key/listit.nrcc.noklab.com.key
+	SSLCertificateChainFile /var/listit/conf/ssl.crt/gd_intermediate_bundle.crt
+
+	DocumentRoot /var/listit/www-ssl/
+
+	<Directory />
+		Options FollowSymLinks
+		AllowOverride None
+	</Directory>
+	<Directory /var/www/listit>
+		Options Indexes FollowSymLinks MultiViews
+		AllowOverride None
+		Order allow,deny
+		allow from all
+		# Uncomment this directive is you want to see apache2's
+		# default start page (in /apache2-default) when you go to /
+		#RedirectMatch ^/$ /apache2-default/
+	</Directory>
+
+	ErrorLog /var/log/apache2/error.log
+
+	# Possible values include: debug, info, notice, warn, error, crit,
+	# alert, emerg.
+	LogLevel warn
+
+	CustomLog /var/log/apache2/access.log combined
+	ServerSignature On
+
+	<Location /listit>
+	    SetHandler python-program
+	    PythonHandler django.core.handlers.modpython
+	    SetEnv DJANGO_SETTINGS_MODULE settings
+	    PythonOption django.root /listit
+	    PythonDebug On
+	    PythonPath "['/usr/lib/python2.6/site-packages/','/usr/local/lib/python2.6/site-packages/','/var/listit/workspace/trunk/', '/var/listit/workspace/trunk/server/'] + sys.path"
+	</Location>
+
+</VirtualHost>
+
+# export a user's notes
+
+from django.contrib.auth.models import User
+from jv3.models import *
+from jv3.utils import *
+import jv3.study.content_analysis as ca
+import jv3.study.ca_datetime as cadt
+import jv3.study.ca_sigscroll as cass
+import jv3.study.ca_load as cal
+import jv3.study.ca_plot as cap
+import rpy2
+import rpy2.robjects as ro
+from jv3.study.study import *
+from jv3.study.ca_user import *
+em = User.objects.filter(email="emax@csail.mit.edu")[0]
+reload(jv3.study.ca_user)
+
+ems = jv3.study.ca_user.StudyUser(em)
+n2 = Note.objects.filter( owner__in=[ u for u in User.objects.all() if is_consenting_study2(u)] )
+
+## reload bit
+reload(jv3.study.ca_user)
+
+jv3.study.ca_user.users_for_more_than_n_days(100,n2,maxN=10)
