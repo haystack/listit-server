@@ -1,16 +1,5 @@
-4148P-DU712-H823H-0TW28-9HQH0
 
-
-# indexify your database!
-CREATE INDEX `jv3_activitylog_when` ON `jv3_activitylog` (`when`);
-CREATE INDEX `jv3_activitylog_noteid` ON `jv3_activitylog` (`noteid`);
-CREATE FULLTEXT INDEX `jv3_activitylog_action` ON `jv3_activitylog` (`action`);
-CREATE INDEX `jv3_userregistration_when` ON `jv3_activitylog` (`when`);
-CREATE INDEX `jv3_userregistration_email` ON `jv3_activitylog` (`email`);
-f
-## 
-cd /var/listit/workspace/trunk/server/
-
+## emax's cliff notes for science >> 
 ## 
 python manage.py shell
 
@@ -1084,3 +1073,12 @@ n2 = Note.objects.filter( owner__in=[ u for u in User.objects.all() if is_consen
 reload(jv3.study.ca_user)
 
 jv3.study.ca_user.users_for_more_than_n_days(100,n2,maxN=10)
+
+
+##
+# indexify your database!
+CREATE INDEX `jv3_activitylog_when` ON `jv3_activitylog` (`when`);
+CREATE INDEX `jv3_activitylog_noteid` ON `jv3_activitylog` (`noteid`);
+CREATE FULLTEXT INDEX `jv3_activitylog_action` ON `jv3_activitylog` (`action`);
+CREATE INDEX `jv3_userregistration_when` ON `jv3_activitylog` (`when`);
+CREATE INDEX `jv3_userregistration_email` ON `jv3_activitylog` (`email`);
