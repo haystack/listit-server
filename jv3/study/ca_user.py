@@ -12,15 +12,21 @@ import rpy2
 import rpy2.robjects as ro
 from jv3.study.study import *
 
-class PerUser:    
+class PerUser:
+    
     def __init__(self,user):
         self.u = user
         self._compute_duration()
 
     def _compute_duration(self):
         # first and last notecapture-focus
-        self.start = long(ActivityLog.objects.filter(owner=self.u,action='notecapture-focus').order_by('when')[0].when)
-        self.end = long(ActivityLog.objects.filter(owner=self.u,action='notecapture-focus').order_by('-when')[0].when)
+        try: 
+            self.start = long(ActivityLog.objects.filter(owner=self.u,action='notecapture-focus').order_by('when')[0].when)
+            self.end = long(ActivityLog.objects.filter(owner=self.u,action='notecapture-focus').order_by('-when')[0].when)
+        except :
+            self.start = -1
+            self.end = -1
+            
         return (self.start,self.end)
 
     def consenting(self):
@@ -66,7 +72,7 @@ class PerUser:
 
 ## static methods
     
-def users_for_more_than_n_days(min_days,out_of,maxN=None):
+def perusers_for_more_than_n_days(min_days,out_of,maxN=None):
     if out_of is None: out_of = [u for u in User.objects.all() if is_consenting_study2(u)]
     results = []
     for x in out_of:

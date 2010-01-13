@@ -1077,10 +1077,14 @@ reload(jv3.study.ca_user)
 ems = jv3.study.ca_user.StudyUser(em)
 n2 = Note.objects.filter( owner__in=[ u for u in User.objects.all() if is_consenting_study2(u)] )
 
-## reload bit
+## getting all consenting users as PerUsers who have more than 100 days of note use
+cupu100 = perusers_for_more_than_n_days(100,u2)
+
+
+# if you want to reload
 reload(jv3.study.ca_user)
 
-jv3.study.ca_user.users_for_more_than_n_days(100,n2,maxN=10)
+
 
 
 ##
