@@ -1063,6 +1063,14 @@ import rpy2
 import rpy2.robjects as ro
 from jv3.study.study import *
 from jv3.study.ca_user import *
+
+## using per-user statistics
+
+## for 1 dude(tte)
+empu = PerUser(em)
+empu.notes()
+empu.duration()
+
 em = User.objects.filter(email="emax@csail.mit.edu")[0]
 reload(jv3.study.ca_user)
 
