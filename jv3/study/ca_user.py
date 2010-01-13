@@ -79,4 +79,11 @@ def users_for_more_than_n_days(min_days,out_of,maxN=None):
     return results
     #return [ x for x in out_of if x.days_of_use() >= min_days ]
 
-
+def make_lists_for_plot(users):
+    deleted = []
+    undeleted = []
+    for user in users:
+        deleted = deleted + [len(Note.objects.all().filter(owner=user).filter(deleted=1))]
+        undeleted = undeleted + [len(Note.objects.all().filter(owner=user).filter(deleted=0))]
+    
+    return deleted, undeleted
