@@ -93,3 +93,15 @@ def make_lists_for_plot(users):
         undeleted = undeleted + [len(Note.objects.all().filter(owner=user).filter(deleted=0))]
     
     return deleted, undeleted
+
+
+def make_lists_for_hist(users):
+    ratio = []
+    for user in users:
+        deleted = len(Note.objects.all().filter(owner=user).filter(deleted=1))
+        undeleted = len(Note.objects.all().filter(owner=user).filter(deleted=0))
+	if deleted == 0:
+		deleted=1;
+	ratio = ratio + [undeleted*1.0/deleted]
+	#ratio.append(undeleted*1.0/deleted)
+    return ratio
