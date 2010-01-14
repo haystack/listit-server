@@ -85,6 +85,14 @@ def perusers_for_more_than_n_days(min_days,out_of,maxN=None):
     return results
     #return [ x for x in out_of if x.days_of_use() >= min_days ]
 
+
+## 
+## QUESTION: are there individual differences in KEEPING -- whether people ACCUMULATE
+##   NOTES or use listit as a temporary holding ground for information
+
+
+## METHOD 1:histogram the ratio of kept : deleted notes to see if there are multiple modes
+
 def make_lists_for_plot(users):
     deleted = []
     undeleted = []
@@ -93,15 +101,14 @@ def make_lists_for_plot(users):
         undeleted = undeleted + [len(Note.objects.all().filter(owner=user).filter(deleted=0))]
     
     return deleted, undeleted
-
-
 def make_lists_for_hist(users):
     ratio = []
     for user in users:
         deleted = len(Note.objects.all().filter(owner=user).filter(deleted=1))
         undeleted = len(Note.objects.all().filter(owner=user).filter(deleted=0))
-	if deleted == 0:
-		deleted=1;
+	if deleted == 0: deleted=1;
 	ratio = ratio + [undeleted*1.0/deleted]
 	#ratio.append(undeleted*1.0/deleted)
     return ratio
+
+## METHOD 2: 
