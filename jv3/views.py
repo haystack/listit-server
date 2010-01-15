@@ -831,11 +831,13 @@ def put_zen(request):
 def get_iphone(request):
     print "get_iphone started"
     request_user = basicauth_get_user_by_emailaddr(request);
+    print 0
     if not request_user:
         logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
         response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
         response.status_code = 401 ## removed semi-colon??
         return response
+    print 1
     ## we want to determine order using magic note
     if Note.objects.filter(owner=request_user,jid="-1").count() > 0:
         magic_note = Note.objects.filter(owner=request_user,jid="-1")[0]
@@ -852,19 +854,27 @@ def get_iphone(request):
     else:
         # sort by creation date ?
         notes = Note.objects.filter(owner=request_user,deleted=False).order_by("-created").exclude(jid=-1)
+    print 2
+    numNotes = len(notes)
     startIndex = int(request.GET.get("START_INDEX", 0))
-    endIndex = int(request.GET.get("END_INDEX", -1))
-    
+    endIndex = int(request.GET.get("END_INDEX", None))
+    print 3
+    if not endIndex:
+        endIndex = numNotes
+    notesLeft = numNotes - endIndex
+    print 4
     ## make magic happen
     ndicts = [ extract_zen_notes_data(note) for note in notes[startIndex:endIndex] ]
-
-
+    print 5
     deltaIndex = endIndex - startIndex
-
-    htmlblob = "\n".join([ "<li><div name='note' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onClick='zenNoteView.noteClicked(\"%(jid)s\")' onBlur='zenNoteView.noteBlur(\"%(jid)s\")'>%(noteText)s</div></li>" % n for n in ndicts ])
-    htmlblob += "<li><div><button id='requestMore' onClick='zeniPhone.requestMore()'>Get %s more notes</button></div></li>" % (deltaIndex)
+    print 6
+    htmlblob = "\n".join(["<li><div name='note' style='overflow:hidden;' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onClick='zenNoteView.noteClicked(\"%(jid)s\")' onBlur='zenNoteView.noteBlur(\"%(jid)s\")'><pre>%(noteText)s</pre></div></li>" % n for n in ndicts ])
+    if notesLeft > 0:       ## height:25px was in style for new notes (=2 lines visible without pre tags)
+        htmlblob += "<li><div id='reqMore'><button id='requestMore' onClick='zenAjax.requestMore()'>Get %s of %s more notes</button></div></li>" % (min(deltaIndex, notesLeft), notesLeft)
+    print 7
     response = HttpResponse(htmlblob, 'text/html');
     response.status_code = 200
+    print 8
     return response
 
 def post_usage_statistics(request):
