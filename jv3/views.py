@@ -868,7 +868,7 @@ def get_iphone(request):
     print 5
     deltaIndex = endIndex - startIndex
     print 6
-    htmlblob = "\n".join(["<li><div name='note' style='overflow:hidden;' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onClick='zenNoteView.noteClicked(\"%(jid)s\")' onBlur='zenNoteView.noteBlur(\"%(jid)s\")'><pre>%(noteText)s</pre></div></li>" % n for n in ndicts ])
+    htmlblob = "\n".join(["<li><div name='note' style='overflow:hidden;' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onClick='gid(\"%(jid)s\").blur(); zenNoteView.noteClicked(\"%(jid)s\")'><pre>%(noteText)s</pre></div></li>" % n for n in ndicts ]) # onBlur='zenNoteView.noteBlur(\"%(jid)s\")' 
     if notesLeft > 0:       ## height:25px was in style for new notes (=2 lines visible without pre tags)
         htmlblob += "<li><div id='reqMore'><button id='requestMore' onClick='zenAjax.requestMore()'>Get %s of %s more notes</button></div></li>" % (min(deltaIndex, notesLeft), notesLeft)
     print 7
