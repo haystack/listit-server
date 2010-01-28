@@ -65,7 +65,6 @@ ul {
 }
 
 canvas {
-    border: solid lightgrey 0px;
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -730,10 +729,10 @@ a.selected {
     vertical-align: top;
     padding-left: 3px;
 } .userhead {
-display:inline-block;
-margin-bottom:9px;
-margin-left:10px;
-vertical-align:inherit;
+    display:inline-block;
+    margin-bottom:9px;
+    margin-left:10px;
+    vertical-align:inherit;
 } #profile img {
     height:69px;
     width:69px;
@@ -837,7 +836,7 @@ vertical-align:inherit;
     font-weight: normal;
     border-bottom: 1px double lightgrey;
     background:#ffffff;	
-} .sel{
+} .sel {
     border-bottom:3px solid black;
 } 
 

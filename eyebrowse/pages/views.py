@@ -120,7 +120,6 @@ def privacy_settings_page(request):
 
     return render_to_response('settings.html', variables )
 
-
 def _privacy_save(request, form):
     username = request.user.username
     user = get_object_or_404(User, username=username)
@@ -240,6 +239,28 @@ def addfeeds(request):
     t = loader.get_template("addfeeds.html")
     c = Context({ 'username': request.user.username, 'id': request.user.id, 'request_user': request.user.username })
     return HttpResponse(t.render(c))
+
+def eyebrowser(request):
+    groups = [];
+    friends = [];
+
+    if request.user.username: 
+        user = get_object_or_404(User, username=request.user.username)
+        enduser = get_enduser_for_user(user)
+        groups = enduser.tags.all()
+        friends = [friendship.to_friend for friendship in user.friend_set.all()]        
+
+    
+    t = loader.get_template("eyebrowser.html")
+    c = Context({ 
+            'username': request.user.username, 
+            'id': request.user.id, 
+            'request_user': request.user.username,
+            'groups': groups,
+            'friends': friends
+            })
+    return HttpResponse(t.render(c))
+
 
 def page_profile(request): 
     url = 'http://nytimes.com'

@@ -1,6 +1,5 @@
 from django import forms
 from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render_to_response
 from django_restapi.model_resource import Collection
 from django.forms.util import ErrorDict
 from django.utils.translation.trans_null import _
@@ -8,13 +7,13 @@ from django.core import serializers
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from jv3.models import Event
-from jv3.utils import json_response
-import jv3.utils
-import django.contrib.auth.models as authmodels
 from django_restapi.resource import Resource
 from django_restapi.model_resource import InvalidModelData
 from django.utils.simplejson import JSONEncoder, JSONDecoder
+import django.contrib.auth.models as authmodels
+from jv3.models import Event
+from jv3.utils import json_response
+import jv3.utils
 import time
 import sys
 import urlparse    
@@ -61,20 +60,10 @@ def get_most_recent_event_time(request):
             return json_response({'value':int(most_recent_activity[0].start)},200)
         return json_response({'value':0},200)
     except:
-        err = sys.exc_info()        
+        err = sys.exc_info()                
     return json_response({'message':err},500)
 
-def post_events(request):
-    ## lets the user post new activity in a giant single array of activity log elements
-
-    request_user = authenticate_user(request);
-    if not request_user:
-        return json_response({"error":"Incorrect user/password combination"}, 401)
-
-    # user_events = Event.objects.filter(owner=request_user,client=_get_client(request))
-    committed = [];
-    
-    for item in JSONDecoder().decode(request.raw_post_data):
+def save_entry(item, request_user):
         try:
             entries = Event.objects.filter(owner=request_user,
                                          start=item['start'],
@@ -93,14 +82,46 @@ def post_events(request):
             else:
                 entry = entries[0]
                 
+            # yooz dont indent these - disgruntled python user
             entry.end = item['end']
             entry.entitydata = item.get('entitydata',"")
             entry.save()
-            committed.append(item['start'])
+
+            return item['start']
         except StandardError, error:
             print "Error with entry %s item %s " % (repr(error),repr(item))
             pass
+
+
+def post_events(request):
+    ## lets the user post new activity in a giant single array of activity log elements
+    print time.time()
+
+    request_user = authenticate_user(request);
+    if not request_user:
+        return json_response({"error":"Incorrect user/password combination"}, 401)
+    
+    committed = len([save_entry(entry, request_user) for entry in JSONDecoder().decode(request.raw_post_data)])
+
+    print time.time()
     return json_response({"committed":committed}, 200)
+
+
+def post_events_and_keep_alive(request):
+    ## lets the user post new activity in a giant single array of activity log elements
+
+    request_user = authenticate_user(request);
+    if not request_user:
+        return json_response({"error":"Incorrect user/password combination"}, 401)
+
+    committed = 0;
+    
+    while connection:
+        committed += len(map, JSONDecoder().decode(request.raw_post_data))
+
+    return json_response({"committed":committed}, 200)
+
+
 
 ## USER PRIVACY 
 
@@ -118,7 +139,6 @@ def get_privacy_urls(request):
 
     return json_response({ "code":200, "results": lst }) 
 
-# depricated
 ## @login_required
 def delete_privacy_url(request):
     ## added by emax:
@@ -135,7 +155,6 @@ def delete_privacy_url(request):
     privacysettings.save()
     return HttpResponseRedirect('/settings/')
 
-# depricated
 ## @login_required
 def add_privacy_url(request):
     ## added by emax:
@@ -184,7 +203,7 @@ def delete_url_entry(request):
     return json_response({ "code":200 });
 
 #@login_required
-## CALLED ONLY FROM THE PLUGIN, YOS.
+## CALLED ONLY FROM THE PLUGIN
 def add_delete_from_whitelist(request):
     user = authenticate_user(request)
     if user is None:
@@ -197,8 +216,6 @@ def add_delete_from_whitelist(request):
         return json_response({ "code":200 })
 
     add_dels = JSONDecoder().decode(json)
-    #print add_dels
-    #print type(add_dels)
     assert type(add_dels) == dict, "Received thing not a dict, erroring"
     adds = add_dels['add']
     dels = add_dels['delete']
@@ -209,7 +226,6 @@ def add_delete_from_whitelist(request):
     wl = filter( lambda x : x not in dels , wl)
     wl = wl +  [ x for x in adds if not x in wl ] 
     privacysettings.whitelist = ' '.join(wl)
-    #print privacysettings.whitelist
     
     # Save 
     privacysettings.save()

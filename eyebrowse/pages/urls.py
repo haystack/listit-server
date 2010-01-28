@@ -26,6 +26,7 @@ urlpatterns = patterns('',
                        (r'^search/?$', page_profile),
                        (r'^pathways/?$', page_profile),
                        (r'^ticker/?$', ticker),
+                       (r'^eyebrowser/?$', eyebrowser),
                        
                        # user pages
                        (r'^profile/(\w+)/?$', user_page),
