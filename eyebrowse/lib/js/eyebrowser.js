@@ -106,12 +106,12 @@ let addGroup = function(div) { toggleAdd(div); }; // more later
 
 let addGroups = function(div) {
     // more verbose but safer
-    if (jQuery('#mainpanel #home').is(':hidden')) {
+    if (jQuery('#mainpanel #recs').is(':hidden')) {
 	jQuery('#mainpanel #addGroups').hide();
-	jQuery('#mainpanel #home').show();	  
+	jQuery('#mainpanel #recs').show();	  
     } else {
 	jQuery('#mainpanel #addGroups').show();
-	jQuery('#mainpanel #home').hide();	
+	jQuery('#mainpanel #recs').hide();	
     }
 };
  
@@ -126,6 +126,6 @@ let toggleAdd = function(div) {
 jQuery(document).ready(
     function(){	
 	var currentDate = new Date();				   
-	self.viz = newify(Eyebrowser, '#mainpanel #home #query');
+	self.viz = newify(Eyebrowser, '#mainpanel #recs #query');
     });
 

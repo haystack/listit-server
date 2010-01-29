@@ -1,15 +1,7 @@
 import re,sys,time,operator,os,math, datetime, random
-from django.template import loader, Context
-from django.http import HttpResponse,HttpResponseRedirect, HttpResponseForbidden
-from django.shortcuts import render_to_response
 from django.http import Http404
 from django.shortcuts import get_object_or_404, get_list_or_404
 from django.conf.urls.defaults import *
-from django.contrib.auth import logout
-from django.contrib.auth.decorators import login_required
-from django.template import RequestContext
-from django.db.models import Q
-from eyebrowse.forms import *
 from eyebrowse.models import *
 from cStringIO import StringIO
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -17,13 +9,13 @@ from os.path import splitext
 from django.db.models.signals import post_save
 from jv3.models import Event ## from listit, ya.
 from django.utils.simplejson import JSONEncoder, JSONDecoder
-# beaker
-from eyebrowse.beakercache import cache
 from django.db.models import Sum
 from django.db.models import query
 from django.db.models.query import QuerySet
 from jv3.utils import json_response
 import urlparse
+# beaker
+from eyebrowse.beakercache import cache
 
 class EVENT_SELECTORS:
     class Page:
@@ -36,11 +28,11 @@ class EVENT_SELECTORS:
     class Host:
         @staticmethod
         def access(queryset):
-            return [s[0] for s in queryset.values_list('host')] # <- comparatively lame. # pretty badass too: [urlparse.urlparse(url[0])[1] for url in queryset.values_list('host')]
+            return [s[0] for s in queryset.values_list('host')] 
         @staticmethod
         def filter_queryset(queryset,host):
-            return queryset.filter(host=host) #queryset.filter(entityid__contains="://%s/"%url)         ## tres. badass!!!
-
+            return queryset.filter(host=host)
+        
 def get_enduser_for_user(user):
     if EndUser.objects.filter(user=user).count() > 0:
         enduser = EndUser.objects.filter(user=user)[0]
@@ -70,17 +62,12 @@ def _get_top_pages_n(users,start,end):
     ordered_visits.sort(lambda u1,u2: int(u2[1] - u1[1]))
     return ordered_visits    
 
-
 def _h_generator(domain):
     domain = domain.lower().strip()
     summ = sum([ ord(char) for char in domain ])
     denom = 1  # in case you want to play.
     ratio = summ/denom 
     return ratio % 360
-
-    #return int(360.0*summ)/( 255.0*len(domain) )%360  
-    #return sum([ord(char) for char in domain.strip()]) % 360
-
 
 def _get_graph_points_for_results(results, to_msec, from_msec, n):
     to_msec = int(to_msec)
@@ -163,13 +150,33 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
             pass
     return times_per_url
 
+def sort_by_counts(count_dict):
+    l = count_dict.items()
+    l.sort(key=lambda x: -x[1])
+    return l
+
 def defang_pageview(pview):    
-    return {"start" : long(pview["startTime"]), "end" : long(pview["endTime"]), "url" : pview["url"], "host": pview["host"], "title": pview["title"], "id":pview["id"], "hue": _h_generator(pview["host"]) } 
+    return {
+        "start" : long(pview["startTime"]), 
+        "end" : long(pview["endTime"]), 
+        "url" : pview["url"], 
+        "host": pview["host"], 
+        "title": pview["title"], 
+        "id":pview["id"], 
+        "hue": _h_generator(pview["host"]) } 
     ## too slow "location":get_enduser_for_user(pview.user).location }
 
 # if you need username
 def defang_pageview_values(pview):    
-    return {"start" : long(pview["startTime"]), "end" : long(pview["endTime"]), "url" : pview["url"], "host": pview["host"], "title": pview["title"], "id":pview["id"], "user": User.objects.filter(id=pview["user_id"])[0].username, "hue": _h_generator(pview["host"]) } 
+    return {
+        "start" : long(pview["startTime"]), 
+        "end" : long(pview["endTime"]), 
+        "url" : pview["url"], 
+        "host": pview["host"], 
+        "title": pview["title"], 
+        "id":pview["id"],
+        "user": User.objects.filter(id=pview["user_id"])[0].username, 
+        "hue": _h_generator(pview["host"]) } 
 
 ## emax added this to be fancy
 def uniq(lst,key=lambda x: x,n=None):
@@ -370,22 +377,7 @@ def get_top_hosts_compare(end_time, interp, n, req_type):
     return results
 
 
-def get_top_and_trending_pages(end_time, interp, n, req_type):
-    if 'user' in req_type:
-        users = get_object_or_404(User, username=req_type['user'])
-    elif 'friends' in req_type:
-        usr = get_object_or_404(User, username=req_type['friends'])
-        users = [friendship.to_friend for friendship in usr.friend_set.all()]
-    else:
-        users = User.objects.all()
-
-    n = int(n)
-
-    second_end = end_time
-    second_start = end_time - interp
-    first_end = second_start
-    first_start = second_start - interp
-
+def top_and_trending_pages(users, req_type, first_start, first_end, second_start, second_end):
     @cache.region('long_term')
     def fetch_data(users, pages):
         times_per_url_first = _get_top_pages_n(users,first_start,first_end)
@@ -414,7 +406,6 @@ def get_top_and_trending_pages(end_time, interp, n, req_type):
 
         trending = results[0:n]        
 
-        # this may be kindof intense on the db
         tre_titles = []
         for result in trending:
             try:
@@ -429,10 +420,29 @@ def get_top_and_trending_pages(end_time, interp, n, req_type):
             except:
                 top_titles.append("")
 
-
         return {"top":top_pages, "trending":trending, "tre_titles":tre_titles, "top_titles":top_titles}
 
     results = fetch_data(users, 'top_and_trending_pages')
+    return results;
+
+
+def get_top_and_trending_pages(end_time, interp, n, req_type):
+    if 'user' in req_type:
+        users = get_object_or_404(User, username=req_type['user'])
+    elif 'friends' in req_type:
+        usr = get_object_or_404(User, username=req_type['friends'])
+        users = [friendship.to_friend for friendship in usr.friend_set.all()]
+    else:
+        users = User.objects.all()
+
+    n = int(n)
+
+    second_end = end_time
+    second_start = end_time - interp
+    first_end = second_start
+    first_start = second_start - interp
+
+    results = top_and_trending_pages(users, 'top_and_trending_pages', first_start, first_end, second_start, second_end)
     return results
 
 
@@ -468,52 +478,7 @@ def get_JSON_top_and_trending_pages(request):
     first_end = second_start
     first_start = second_start - interp
 
-    @cache.region('long_term')
-    def fetch_data(users, pages):
-        times_per_url_first = _get_top_pages_n(users,first_start,first_end)
-        times_per_url_second = _get_top_pages_n(users,second_start,second_end)
-        
-        def index_of(what, where):
-            try:
-                return [ h[0] for h in where ].index(what)
-            except:
-                # print sys.exc_info()
-                pass
-            return None
-
-        results = []
-
-        for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
-                old_rank = index_of(times_per_url_second[i][0],times_per_url_first)
-                if old_rank is not None:
-                    diff = - (i - old_rank)  # we want the gain not the difference
-                    results.append( times_per_url_second[i] + (diff,) )
-                else:
-                    results.append( times_per_url_second[i] + (0,) )
-                    
-        top_pages = results[0:n]
-        results.sort(key=lambda x: -x[2])
-
-        trending = results[0:n]        
-
-        tre_titles = []
-        for result in trending:
-            try:
-                tre_titles.append(PageView.objects.filter(url=result[0])[0].title)
-            except:
-                tre_titles.append("")
-
-        top_titles = []
-        for result in top_pages:
-            try:
-                top_titles.append(PageView.objects.filter(url=result[0])[0].title)
-            except:
-                top_titles.append("")
-
-
-        return {"top":top_pages, "trending":trending, "tre_titles":tre_titles, "top_titles":top_titles}
-
-    results = fetch_data(users, 'top_and_trending_pages')
+    results = top_and_trending_pages(users, req_type, first_start, first_end, second_start, second_end)
     return json_response({ "code":200, "results": results });
 
 
@@ -789,21 +754,8 @@ def get_closest_url(request):
     hits.sort( lambda x,y: len(x)-len(y) )
     return json_response({ "code":200, "results": hits });
 
-def get_to_from_url(n, url, req_type):
-    if 'user' in req_type:
-        users = get_object_or_404(User, username=req_type['user'])
-    elif 'friends' in req_type:
-        usr = get_object_or_404(User, username=req_type['friends'])
-        users = [friendship.to_friend for friendship in usr.friend_set.all()]
-    else:
-        users = User.objects.all()
-    
-    # check if url exists in the logs
-    if  len(PageView.objects.filter(url=url)) < 1:
-        # fail silently 
-        return {'pre':"", 'next':"", 'pre_titles': "" , 'next_titles' : "" }
-    n = int(n)
 
+def to_from_url(url, users, req_type):
     @cache.region('very_long_term')
     def fetch_data(url, users, req_type):
         to_msec = int(time.time()*1000)
@@ -820,44 +772,49 @@ def get_to_from_url(n, url, req_type):
         next = {}
         titles = {}
         for access in accesses:
-            try:
-                # get the page we logged IMMEDIATELY before access for the particular access's user in question
-                prev_access = PageView.objects.filter(startTime__lt=access.startTime,user=access.user).order_by("-startTime")[0]
-                if prev_access.url != url:
-                    pre[prev_access.url] = pre.get(prev_access.url,0) + 1
-                    if prev_access.title is not None:
-                        titles[prev_access.url] = prev_access.title
-                    else:
-                        titles[prev_access.url] = prev_access.url
+            # get the page we logged IMMEDIATELY before access for the particular access's user in question
+            prev_access = PageView.objects.filter(startTime__lt=access.startTime,user=access.user).order_by("-startTime")[0]
+            if prev_access.url != url:
+                pre[prev_access.url] = pre.get(prev_access.url,0) + 1
+                if prev_access.title is not None:
+                    titles[prev_access.url] = prev_access.title
                 else:
-                    pass
-            except:
+                    titles[prev_access.url] = prev_access.url
+            else:
                 pass
-            try:
-                # get the page we logged IMMEDIATELY before access for the particular access's user in question
-                next_access = PageView.objects.filter(startTime__gt=access.startTime,user=access.user).order_by("startTime")[0]
-                if next_access.url != url:
-                    next[next_access.url] = next.get(next_access.url,0) + 1
-                    if next_access.title is not None:
-                        titles[next_access.url] = next_access.title
-                    else:
-                        titles[next_access.url] = next_access.url
+            # get the page we logged IMMEDIATELY before access for the particular access's user in question
+            next_access = PageView.objects.filter(startTime__gt=access.startTime,user=access.user).order_by("startTime")[0]
+            if next_access.url != url:
+                next[next_access.url] = next.get(next_access.url,0) + 1
+                if next_access.title is not None:
+                    titles[next_access.url] = next_access.title
                 else:
-                    pass
-            except:
+                    titles[next_access.url] = next_access.url
+            else:
                 pass
-            
-        def sort_by_counts(count_dict):
-            l = count_dict.items()
-            l.sort(key=lambda x: -x[1])
-            return l
-        
+                    
         pre_sorted = sort_by_counts(pre)[:7]
         next_sorted = sort_by_counts(next)[:7]
 
         return { 'pre':pre_sorted, 'next':next_sorted, 'pre_titles': [ titles[x[0]] for x in pre_sorted ] , 'next_titles' : [ titles[x[0]] for x in next_sorted ] }
+    return fetch_data(url, users, req_type)
 
-    return_results = fetch_data(url, users, req_type)
+
+def get_to_from_url(n, url, req_type):
+    if 'user' in req_type:
+        users = get_object_or_404(User, username=req_type['user'])
+    elif 'friends' in req_type:
+        usr = get_object_or_404(User, username=req_type['friends'])
+        users = [friendship.to_friend for friendship in usr.friend_set.all()]
+    else:
+        users = User.objects.all()
+    
+    # check if url exists in the logs
+    if  len(PageView.objects.filter(url=url)) < 1:
+        # fail silently 
+        return {'pre':"", 'next':"", 'pre_titles': "" , 'next_titles' : "" }
+
+    return_results = to_from_url(url, users, req_type)
     return return_results
 
 
@@ -1134,7 +1091,6 @@ def get_top_friend_and_number_friends_for_url(request, username):
         return {'top_friend':top_friend,'num_friends':num_friends}
 
     return_results = fetch_data(get_url, user, 'get_to_friend_and_number_friends_for_url')
-    #return json_response({ "code":200, "results": return_results });
     return return_results
 
 def get_to_from_url_plugin(request, n):
@@ -1153,62 +1109,8 @@ def get_to_from_url_plugin(request, n):
     req_type = {}
     req_type['global'] = 'global'
 
-    @cache.region('very_long_term')
-    def fetch_data(url, users, req_type):
-        to_msec = int(time.time()*1000)
-        from_msec = to_msec - (18122400000) # past three weeks
+    return_results = to_from_url(url, users, req_type)
 
-        if type(users) == QuerySet:
-            accesses = PageView.objects.filter(url=url, startTime__gte=from_msec,endTime__lte=to_msec)
-        elif type(users) == list:
-            accesses = PageView.objects.filter(user__in=users, url=url, startTime__gte=from_msec,endTime__lte=to_msec)
-        else:
-            accesses = PageView.objects.filter(user=users, url=url, startTime__gte=from_msec,endTime__lte=to_msec)
-
-        pre = {}
-        next = {}
-        titles = {}
-        for access in accesses:
-            try:
-                # get the page we logged IMMEDIATELY before access for the particular access's user in question
-                prev_access = PageView.objects.filter(startTime__lt=access.startTime,user=access.user).order_by("-startTime")[0]
-                if prev_access.url != url:
-                    pre[prev_access.url] = pre.get(prev_access.url,0) + 1
-                    if prev_access.title is not None:
-                        titles[prev_access.url] = prev_access.title
-                    else:
-                        titles[prev_access.url] = prev_access.url
-                else:
-                    pass
-            except:
-                pass
-            try:
-                # get the page we logged IMMEDIATELY before access for the particular access's user in question
-                next_access = PageView.objects.filter(startTime__gt=access.startTime,user=access.user).order_by("startTime")[0]
-                if next_access.url != url:
-                    next[next_access.url] = next.get(next_access.url,0) + 1
-                    if next_access.title is not None:
-                        titles[next_access.url] = next_access.title
-                    else:
-                        titles[next_access.url] = next_access.url
-                else:
-                    pass
-            except:
-                pass
-            
-        def sort_by_counts(count_dict):
-            l = count_dict.items()
-            l.sort(key=lambda x: -x[1])
-            return l
-        
-        pre_sorted = sort_by_counts(pre)[:7]
-        next_sorted = sort_by_counts(next)[:7]
-
-        return { 'pre':pre_sorted, 'next':next_sorted, 'pre_titles': [ titles[x[0]] for x in pre_sorted ] , 'next_titles' : [ titles[x[0]] for x in next_sorted ] }
-
-    return_results = fetch_data(url, users, req_type)
-
-    #this is outside the cache
     if request.GET.has_key('username'):
         username = request.GET['username']
         friend_stats = get_top_friend_and_number_friends_for_url(request, username)
@@ -1290,76 +1192,3 @@ def cache_to_from_url(url,users, req_type, phits, uphit):
 
     return_results = fetch_data(url, users, req_type)    
     return 'party a little'
-
-# user page and graphs
-def fill_user_page_graphs_cache():
-    to_msec = int(time.time()*1000)
-    from_msec = to_msec - (18122400000) # past three weeks
-
-    users = User.objects.all()
-    req_type = {}
-    req_type['global'] = 'global'
-
-    phits = PageView.objects.filter(startTime__gt=from_msec,endTime__lte=to_msec).order_by("-startTime").values()
-    uphit = uniq(phits,lambda x:x["url"],None)
-
-    for user in Users.objects.all():        
-        cache_to_from_url(url['url'],users, req_type, phits, uphit)
-    return 'party a lot'
-
-
-def cache_user_page_graphs(user):
-    #graphs
-    @cache.region('long_term')
-    def fetch_data(user, n):
-        to_msec = int(time.time()*1000)
-        from_msec = to_msec - (18122400000) # past three weeks
-
-        views = PageView.objects.filter(user=user, startTime__gte=from_msec,endTime__lte=to_msec)
-
-        hrPts = dict([ (i, {}) for i in range(0,24) ])
-        weekPts = dict([ (i, {}) for i in range(0,7) ])
-
-        for view in views:
-            weekday = datetime.datetime.fromtimestamp(view.startTime/1000).weekday()
-            hour = datetime.datetime.fromtimestamp(view.startTime/1000).hour
-            
-            if view.url in hrPts[hour]:
-                hrPts[hour][view.url]['val'] += 1
-            else:
-                hrPts[hour][view.url] = {}
-                hrPts[hour][view.url]['val'] = 1
-                hrPts[hour][view.url]['hue'] = _h_generator(view.host) 
-
-            if view.url in weekPts[weekday]:
-                weekPts[weekday][view.url]['val'] += 1
-            else:
-                weekPts[weekday][view.url] = {}
-                weekPts[weekday][view.url]['val'] = 1
-                weekPts[weekday][view.url]['hue'] = _h_generator(view.host) 
-
-        lResult = []
-
-        for x in range(7):
-            phlat = weekPts[x].items()
-            phlat.sort(key=lambda(k,v2):-v2['val'])
-            lResult.append((x,phlat[:n]))
-
-        rResult = []
-        for x in range(24):
-            phlat = hrPts[x].items()
-            phlat.sort(key=lambda(k,v2):-v2['val'])
-            rResult.append((x,phlat[:n]))
-
-        return [lResult,rResult]
-    return_results = fetch_data(inputUser, 20)
-
-    #user page
-    request_type = {}
-    request_type['user'] = user.username
-    to_msec = int(time.time()*1000)
-    from_msec = to_msec - 604800000 # 1 week
-    top_hosts = get_top_hosts_compare(to_msec, 604800000, 10, request_type)
-    profile_queries = get_profile_queries(request_type)
-    graphs = get_profile_graphs(to_msec, 604800000, request_type['user'])
-

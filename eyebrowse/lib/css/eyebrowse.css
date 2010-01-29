@@ -363,3 +363,866 @@ a.add {
 #signin_button .clicked {
     border:1px solid lightgrey;
 }
+
+
+
+/* BELOW THIS LINE THERE BE DEAMONS */
+
+.question {
+    font-size: 1.3em;
+    font-weight: normal;
+    margin-bottom: 3px;
+} .answer {
+    font-size: 1.0em;
+    font-weight: normal;
+    margin-bottom: 6px;
+} .days {
+    color: #666666;
+    font-size: 1em;
+    line-height: 25px;
+    margin-top: 10px;
+    margin-left: 30px;
+    margin-right: 30px;
+    overflow:hidden;
+} .ui-button {
+    outline: 0;
+    margin: 0;
+    padding: .3em 1em .3em;
+    text-decoration: none;
+    cursor: pointer;
+    position: relative;
+    text-align: center;
+} .ui-dialog .ui-state-highlight, .ui-dialog .ui-state-error {
+    padding: .3em;
+} .viewbox {
+    width: 200px;
+    height: 250px;
+    text-align: left;
+    margin-bottom: 12px;
+    overflow: hidden;
+    margin-top: 8px;
+}  .viewboxprofile {
+    width:700px;
+    margin-left: 11px;
+    padding-top:4px;
+    border: none;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+} .viewboxprofile a {
+    font-weight:bold;
+} .viewboxprofile li{
+    border-bottom:1px solid lightgrey;
+    padding:3px;
+    margin-left: auto;
+    margin-right: auto;
+    width:690px;
+} .viewboxlarge {
+    width: 700px;
+    margin-left: 11px;
+    height: auto;
+    border: none;
+    margin-top:-20px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+} .viewboxlarge a {
+    font-weight:bold;
+} .viewboxlarge li {
+    padding: 8px;
+    border-bottom: 1px solid lightgrey;
+    padding-right: 0px;
+} .viewboxlarge li img{
+    float:none;
+}
+.viewboxlarge .imgbox {
+    float: right;
+    padding: 0px;
+    margin: 0px;
+    margin-top:1px;
+    text-align: left;
+    font-size: 1.1em;
+    vertical-align: top;
+    width:45px;
+} .viewboxlarge b{
+    vertical-align:top;
+    padding-top:2px;
+    padding-left:5px;
+}.viewboxlarge h7{
+    padding-right: 10px;
+    float:right;
+    text-align:right;
+    width:40%;
+    vertical-align:top;
+} .viewboxright {
+    width: 200px;
+    margin-left: 11px;
+    height: auto;
+    border: none;
+    margin-top:0px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+} .viewboxright a {
+    font-weight:bold;
+} .viewboxright li {
+    padding: 2px;
+    border-bottom: 1px solid lightgrey;
+    padding-right: 0px;
+}
+.viewboxright .imgbox {
+    float: right;
+    padding: 0px;
+    margin: 0px;
+    margin-top:1px;
+    text-align: left;
+    font-size: 1.1em;
+    vertical-align: top;
+    width:43px;
+} .viewboxright b{
+    vertical-align:top;
+    padding-top:2px;
+    padding-left:5px;
+} .viewboxhome {
+    width: 415px;
+    height: auto;
+    border: none;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+} .viewboxhome li {
+    padding: 10px;
+    border-bottom: 1px solid lightgrey;
+    width: 400px;
+    padding-right: 0px;
+} .viewboxhome li A:link {
+    font-weight: bold;
+    text-decoration: none
+} .viewboxhome li A:visited {
+    font-weight: bold;
+    text-decoration: none
+} .viewboxhome li A:active {
+    font-weight: bolder;
+    text-decoration: none
+} .viewboxhome li A:hover {
+    font-weight: bolder;
+    text-decoration: underline;
+} .viewboxhome li h7 {
+    padding-left: 10px;
+    text-align:left;
+    float:none;
+} .viewboxhome li h6 {
+    line-height:14px;
+    margin-left:8px;
+} .viewboxhome .imgBox {
+    float: right;
+    padding: 0pox;
+    margin: 0px;
+    margin-top:10px;
+    text-align: left;
+    font-size: 1.1em;
+    vertical-align: top;
+} .viewboxhome li b {
+    vertical-align: top;
+} .viewboxhome img {
+    padding:0px;
+    vertical-align:top;
+} .viewboxsmall {
+    height: 280px;
+    text-align: left;
+    margin-bottom: 12px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+.viewboxsmall li {
+    font-size: 0.8em;
+    padding: 2px;
+    text-align: left;
+} .viewboxsmall A:link {
+    font-weight: bold;
+    text-decoration: none
+} .viewboxsmall A:visited {
+    font-weight: bold;
+    text-decoration: none;
+} .viewboxsmall A:active {
+    font-weight: bolder;
+    text-decoration: none;
+} .viewboxsmall A:hover {
+    font-weight: bolder;
+    text-decoration: underline;
+} .viewboxsmall h7 {
+    margin-left: 8px;
+    text-align: left;
+    float: none;
+} .imgBox li {
+    float: right;
+    width: 60px;
+    text-align: right;
+} imgBox img {
+    margin-left:6px;
+    width:14px;
+    height:14px;
+}.friendStatus {
+    position: absolute;
+    width: auto;
+    top: 0px;
+    left: 0px;
+} #hai {
+    width: 150px;
+    margin: 20px;
+    padding: 20px;
+    background-color: #eeefee;
+    height: auto;
+    position: absolute;
+    top: 50;
+} #list {
+    width: 600px;
+    margin-left: 260px;
+} #listNav {
+    width: 625px;
+    display: inline-block;
+    margin-left: 250px;
+    margin-top: 20px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid lightgrey;
+} #infoz {
+    line-height: 16px;
+    margin-top: 8px;
+} #list {
+    margin: 0px;
+    display: inline-block;
+} #twoLists {
+    width: 950px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px
+} #mainContent {
+    width: 950px;
+    margin-left: auto;
+    margin-right: auto;
+} #header {
+    color: #333333;
+    border-bottom: 1px lightgrey solid;
+    display: inline-block;
+    width: 99%;
+    padding-top: 8px;
+    padding-bottom: 8px;
+} #footer {
+    width: 545px;
+    border-top: 1px lightgrey solid;
+    padding: 8px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 50px;
+    text-align: center;
+} #home {
+    margin-top: 60px;
+    width: 750px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+} #home #h4 {
+    width: 97%;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+} #usersettings {
+    float: right;
+    display: inline-block;
+    padding-right: 8px;
+} #signUpFormContainer {
+    width: 351px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+} #signUpForm {
+    height: auto;
+    width: 351px;
+    display: none;
+} #signUpForm fieldset {
+    padding: 20px;
+    border: none;
+} #signUpValidateTips {
+    margin-top: 20px;
+    margin-bottom: -20px;
+} #signUpLink {
+    padding: 10px;
+    width: 90px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom:12px;
+    margin-top:28px;
+    display: block;
+    font-size: 1.47em;
+    cursor: pointer;
+    font-weight: normal;
+    border: 1px double black;
+    background:#ffffff;
+} #signIn {
+    text-decoration: underline;
+    display: inline-block;
+    font-size: 1.1em;
+    cursor: pointer;
+} #messageSent {
+    padding: 10px;
+    color: #333333;
+    display: none;
+} #faq {
+    width: 650px;
+    margin-top: 50px;
+    margin-left: auto;
+    margin-right: auto;
+} #content {
+    margin-top: 100px;
+    width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+} #report {
+    width: 950px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0px;
+    text-align: left;
+} #dayHeading {
+    margin-left: 30px;
+    margin-right: 30px;
+    margin-top: 15px;
+    width: 95%;
+    display: inline-block;
+} #target {
+    position: absolute;
+    background-image:url("/lib/img/target_16.png");	
+    width:16px;
+    height:16px;
+} #hoverTxt {
+    position: absolute;
+    background: white;
+    color: #333;
+    padding: 6px;
+    width: auto;
+    text-decoration: none;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border:1px solid lightgrey;
+    opacity:0.95;
+    display:none;
+    line-height:15px
+} #hoverTxt a {
+    text-decoration: none;
+    font-size: 1em;
+    background: #000000;
+    padding: 3px;
+    color: #ffffff;
+} #hoverTxt a:visited {
+    text-decoration: none;
+    font-size: 1em;
+    padding: 3px;
+    background: #000000;
+    color: #ffffff;
+} #hoverTxt A:active {
+    text-decoration: none;
+    font-size: 1em;
+    padding: 3px;
+    background: #000000;
+    color: #ffffff;
+} #hoverTxt a:hover {
+    text-decoration: underline;
+    color: #ffffff;
+} .centerlabel {
+    display: inline-block;
+    width: 120px;
+    text-align: center;
+    font-weight: normal;
+    font-size: 1.2em;
+} #profile {
+    width: 198px;
+    text-align: left;
+    border-top: none;
+    padding: 12px;
+    line-height: 1.5em;
+    font-size: 1.05em;
+    float: right;
+    margin-top: 10px;
+} #profile h1 {
+    font-size: 1.6em;
+    height: auto;
+    display: inline-block;
+    vertical-align: top;
+    padding: 0px;
+    padding-top: 5px;
+} .profileimage {
+    height: 110px;
+    width: auto;
+    padding-right: 4px;
+} #profile h2 {
+    font-size: 1.4em;
+    font-weight: bold;
+    margin-top: 10px;
+    padding: 8px;
+    padding-bottom:6px;
+    padding-left: 0px;
+} #profile p {
+    padding: 8px;
+    padding-left: 0px;
+} #profile .footer {
+    margin-top:8px;
+} #profile_content {
+    margin-top: 0px;
+    width: 700px;
+    text-align: left;
+    padding: 12px;
+    padding-top: 2px;
+    background-image:url("/lib/img/80_percent.png");	
+} #profile_content .thumb {
+    height: 14px;
+    width: 14px;
+    padding-right: 12px;
+    padding-left: 12px;
+    vertical-align: middle;
+} #profile_content h1 {
+    font-size: 4.5em;
+    font-weight: bold;
+    display: inline-block;
+    vertical-align: top;
+    padding: 0px;
+    padding-top: 0px;
+    margin-top: -17px;
+} #profile_content a{
+    color:#333333;
+} #profile_content li{
+}
+#profile_content h1 a{
+    font-weight:bold;
+}#profile_content h2 {
+    font-size: 1.4em;
+    font-weight: bold;
+    margin-top: 10px;
+    padding: 8px;
+    padding-left: 0px;
+    padding-bottom: 8px;
+    border-bottom:2px solid black;
+} #profile_content h3 {
+    width:660; 
+    display:inline-block; 
+    margin-bottom:2px; 
+    margin-top:10px; 
+    margin-left:20px; 
+    font-size:18px;
+} #profile_content h4 {
+    width:396px;
+    display:inline-block; 
+    margin-bottom:20px; 
+    margin-left:10px; 
+    margin-top:15px;
+    font-size:13.8px;
+} #profile_content h5 {
+    width:auto; 
+    font-size:12px;
+    line-height:15px;
+    padding-left:10px;
+    padding-right:10px;	
+} 
+
+#profile_content #listNav {
+    width: 700px;
+    display: inline-block;
+    margin: 0px;
+    margin-top: 20px;
+    padding-bottom: 0px;
+    border: none;
+}.profile_edit {
+    width: 198px;
+    text-align: left;
+    border: 1px solid lightgrey;
+    padding: 12px;
+    line-height: 1.5em;
+    font-size: 1.05em;
+    float: left;
+} .profile_edit form {
+    width: 198px;
+} .profile_edit li {
+    display: block;
+} .profile_edit input[type = "submit"] {
+    margin-top: 10px;
+} .profile_edit h2 {
+    font-size: 1.33em;
+    padding: 8px;
+    padding-left: 0px;
+    border-bottom: 1px dotted darkgrey;
+} .profile_edit .footer {
+    margin-top:8px;	 
+} #key {
+    font-size: 1.1em;
+    padding: 8px;
+    padding-left: 0px;
+    color: #333333;
+} #whitelist {
+    padding: 12px;
+    border: 1px solid lightgrey;
+    width: 280px;
+} .subhead {
+    font-size: 0.8em;
+    line-height: 1.2em;
+    padding: 12px;
+} .bodytext {
+    color:#444444;
+    font-size:12px;
+    line-height:17.5px;
+} .bodytext A:link {
+    text-decoration: underline;
+    font-size: 1em;
+} .bodytext A:visited {
+    text-decoration: underline;
+    font-size: 1em;
+} .bodytext A:active {
+    text-decoration: none;
+    font-size: 1em;
+} .bodytext A:hover {
+    text-decoration: underline;
+} #listlist {
+    padding: 12px;
+    border: 1px solid lightgrey;
+    width: 375px;
+    display: inline-block;
+    vertical-align: top;
+    padding: 12px;
+    margin-top: 30px;
+} #listlist img {
+    margin-right: 12px;
+} #dateselector {
+    font-size: 0.8em;
+    width: 260px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: -30px;
+    text-align: center;
+} #datepicker{
+    padding-top: 4px; 
+    padding-left: 6px;
+    width: 70px;
+    height: 18px; 
+    display: inline-block;
+    font-size:1.35em;
+}.rightcolumn {
+    display: inline-block;
+    width: 320px;
+} .leftcolumn {
+    display: inline-block;
+    width: 320px;
+} .logo {
+    padding-top: 28px;
+    padding-bottom:31px;
+    margin-left:39px;
+    width:330px;
+} .underuser {
+    display: inline-block;
+    vertical-align: top;
+    padding-left: 3px;
+} .userhead {
+    display:inline-block;
+    margin-bottom:2px;
+    margin-left:10px;
+    vertical-align:bottom;
+} #profile img {
+    height:69px;
+    width:69px;
+}.user_page_top {
+    font-size: 1.53em;
+    margin-top: -15px;
+    text-decoration: none;
+    padding-bottom: 4px;
+} .user_page_top {
+    text-decoration: none;
+}.user_page_top h2 {
+    color: #333333;
+    font-weight: normal;
+} .user_page_top A:link {
+    font-size: 1.2em;
+    font-weight: bold;
+    text-decoration: none;
+} .user_page_top A:visited {
+    font-size: 1.2em;
+    font-weight: bold;
+    text-decoration: none
+} .user_page_top A:active {
+    font-size: 1.2em;
+    font-weight: bold;
+    text-decoration: none
+} .user_page_top A:hover {
+    font-size: 1.2em;
+    font-weight: bold;
+    text-decoration: underline;
+} .bodytext {
+    margin-top: 10px;
+} .dateNav {
+    display: inline-block;
+    font-size: 0.8em;
+    color: #666666;
+    margin-left: 130px;
+} #urladd {
+    background-color: #ffffff;
+    border: solid 1px #333333;
+    color: #333333;
+    margin-top: 8px;
+    font-size: 1.1em;
+    width: 22px;
+    padding: 3px;
+    padding-left: 4px;
+    margin-left: 8px;
+    display: inline-block;
+    cursor: pointer;
+} #urladdul li{
+    padding-bottom:10px;
+} #rightmenu {
+    float: right;
+    width: 340px;
+} .loader {   	
+    position:fixed;
+    top:40px;
+    left:15px;
+    z-index: 5000;	
+    display:none;
+    width:66px;
+    height:66px;
+    background-image:url("/lib/img/ajax-loader.gif");
+} #background {
+    filter:alpha(opacity=40); 
+    -moz-opacity: 0.4; 
+    opacity: 0.4; 
+    position: absolute;
+    top:22px;
+    left:0px;
+    z-index:-1;
+} #faq p {
+    font-size:11pt;
+    line-height:18px;
+    color:#444444;
+    margin-top:12px;
+} .imgborder {
+    width:69px;
+    height:69px; 
+    margin-right:3px;
+    margin-top:12px;
+    display:inline-block;
+} #latestviews li{
+    display:none;
+} #urlstats {
+    display:inline-block;
+    margin-top:-8px;
+    padding-bottom:8px;
+    padding-left:8px;
+    vertical-align:top;
+} #graphNav{
+    float:right;
+} .graphNavBtn {
+    padding-bottom:2px;
+    padding-left:5px;
+    padding-right:5px;
+    width: auto;
+    margin-right: 5px;
+    display: inline-block;
+    font-size: 1.1em;
+    cursor: pointer;
+    font-weight: normal;
+    border-bottom: 1px double lightgrey;
+    background:#ffffff;	
+} .sel {
+    border-bottom:3px solid black;
+} 
+
+
+#indexwhyid h4 {
+    display:block; 
+    margin:0px; 
+    margin-left:46px;
+    width:618px;
+}
+
+#moreinfo li {
+    text-align:left;
+    margin:0px;
+    margin-top:14px;
+    margin-left:10px;
+}
+
+#moreinfo p  {
+    text-align:left;
+    margin-top:14px;
+    margin-left:14px;
+}
+
+.indexwhy a {
+    text-decoration:underline;
+}
+.indexwhy li {
+    margin-top:10px;
+}
+
+#moreinfo{
+    display:none;
+    margin-left:auto;
+    margin-right:auto;
+    margin-top:10px;
+    margin-left:10px;
+}
+#moreinfoLink{
+    display:inline-block;
+    cursor:pointer;
+    margin-top:-10px;
+}
+
+#pulse_header {
+    margin-top: 50px;
+    width: 950px;
+    text-align: left;
+    padding-top: 2px;
+    margin-left:auto;
+    margin-right:auto;
+    background-image:url("/lib/img/80_percent.png");	
+} #pulse_header h1 {
+    font-size: 4.5em;
+    font-weight: bold;
+    display: inline-block;
+    vertical-align: top;
+    padding: 0px;
+    padding-top: 0px;
+    margin-top: -17px;
+} #pulse_header a{
+    color:#333333;
+} #pulse_header h1 a{
+    font-weight:bold;
+} #pulse_header h2 {
+    font-size: 1.4em;
+    font-weight: bold;
+    margin-top: 0px;
+    padding: 8px;
+    padding-left: 0px;
+    padding-bottom: 8px;
+} #pulse_header h3 {
+    width:660; 
+    display:inline-block; 
+    margin-bottom:2px; 
+    margin-top:10px; 
+    margin-left:20px; 
+    font-size:18px;
+} #pulse_header h4 {
+    width:321px;
+    display:inline-block; 
+    margin-bottom:20px; 
+    margin-left:10px; 
+    margin-top:15px;
+    font-size:13.8px;
+} #pulse_header h5 {
+    width:auto; 
+    font-size:12px;
+    line-height:15px;
+    padding-left:10px;
+    padding-right:10px;	
+} #pulse_header #listNav {
+    width: 700px;
+    display: inline-block;
+    margin: 0px;
+    margin-top: 20px;
+    padding-bottom: 0px;
+    border: none;
+}
+#lifestream {
+    border-top:3.6px solid black;
+    margin-top:-4px;
+}
+.btn {
+    border: 1px solid lightgrey;
+    font-weight:light;
+    display:inline-block;
+    padding:4px;
+    margin-top:8px;
+    margin-right:4px;
+}
+.sel{
+    border:3.6px solid lightgrey;
+    font-weight:bold;
+}
+.bold{
+    font-weight:bold;
+}
+
+.btn:hover{
+    border:3.6px solid magenta;
+    font-weight:bold;
+}
+
+
+/* from atomate */
+#sources {
+    border-top:3.6px solid black;
+    margin-top:-4px;
+}
+#sources img {
+    height:40px;
+    width:40px;
+    vertical-align:middle;
+}
+
+#sources a {
+    text-align:underline;
+}
+#sources h3 {
+    width: 65%;
+}
+
+#sources .srchead{
+    font-size:36px;
+    font-weight:bold;
+    margin-bottom:12px;
+    padding:8px;
+    background-color:#f0ffff;
+    width:100%
+}
+#sources .srchead:hover{
+    background-color:white;
+}
+
+#sources .add {
+    margin-top:8px;
+    margin-bottom:8px;
+    margin-left:50px;
+    display:none;
+}
+#sources a{
+    padding-right: 7px;
+    padding-left:0px;
+    font-size:16px;
+    text-decoration:underline;
+}
+
+#sources .select{
+    font-weight:bold;
+    text-decoration:none;
+    color:#333;
+}
+
+#rightNav {
+    float:right;
+}
+.hoverHeader {
+    padding:3px;
+    border-bottom:1px solid lightgrey;
+    margin-bottom:6px;
+}
+.hoversubtext {
+    width:100px; 
+    overflow:hidden;
+    font-weight:bold;
+    display:inline-block; 
+    text-align:right; 
+    vertical-align:middle;
+}
+.indexwhy {
+    margin-left:88px;
+}
+
+
+#latestlist h6 {
+    width: 387px;
+}

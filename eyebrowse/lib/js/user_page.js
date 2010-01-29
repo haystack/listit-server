@@ -28,7 +28,7 @@ var WatchmeVisualisation = {
 			   type: this_.username
 		       }, function(data){
 			   jQuery("#loadimg").hide();				
-			   if (data.code == 200) {								   
+			   if (data.code == 200) {
 			       this_.drawProfile(data.results[2]);
 			       this_.drawTopPages(data.results[1]);
 			       this_.drawGraphs(data.results[0]);
@@ -44,9 +44,11 @@ var WatchmeVisualisation = {
     },
     drawProfile: function(data){
 	var newData = data;	
-	jQuery("#totalTime").html("<b>total time spent: </b> " + timeCounterLongAbv(newData.totalTime));
+	jQuery("#totalTime").html("<b>total time spent: </b> " +
+				  timeCounterLongAbv(newData.totalTime));
 	jQuery("#num").html("<b>total visits: </b>" + newData.number);
-	jQuery("#avgTime").html("<b>average time spent: </b>" + timeCounterLongAbv(newData.average));					
+	jQuery("#avgTime").html("<b>average time spent: </b>"+ 
+		timeCounterLongAbv(newData.average));					
     },
     drawTopPages: function(data){
         var this_ = this;
@@ -172,5 +174,3 @@ var WatchmeVisualisation = {
 	this.getProfile(endTime); 
     }
 };
-
-

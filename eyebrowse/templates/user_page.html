@@ -2,9 +2,6 @@
 {% block title %}{{ username }}{% endblock %}
 {% block imports %}
     <style>
-    #latestlist h6 {
-	width: 420px;
-    }
     .viewboxprofile {
 	border:medium none;
 	margin-right:auto;
@@ -49,28 +46,28 @@
     <script src="/lib/js/watchMeGraph.js"></script>
     <script src="/lib/js/user_page.js"></script>
     <script>
-      jQuery(document).ready(function(){
-			   jQuery('#header').width(window.innerWidth - 15);
-      
-			   jQuery('.imgborder').css({'width': jQuery("#profimg").width() + "px"});
-			   jQuery(".imgborder").corner();
-			   var myWidth = undefined;
-			   var myHeight = undefined;
-			   
-			   myWidth = window.innerWidth - 16;
-			   myHeight = window.innerHeight - 250;
-
-			   var width = jQuery('#listNav').width()*0.48;
-			   
-			   document.getElementById("dayTimeGraph").setAttribute("width", width);
-			   document.getElementById("dayTimeGraph").setAttribute("height", 200);
-			   document.getElementById("dayWeekGraph").setAttribute("width", width);
-			   document.getElementById("dayWeekGraph").setAttribute("height", 200);
-			   
-			   self.viz = newify(WatchmeVisualisation, document.getElementById("main"), width, 200, 0, 604800000, '{{ username }}');// 1 week
-		       });
+jQuery(document).ready(
+    function(){
+	jQuery('#header').width(window.innerWidth - 15);
+	
+	jQuery('.imgborder').css({'width': jQuery("#profimg").width() + "px"});
+	jQuery(".imgborder").corner();
+	var myWidth = undefined;
+	var myHeight = undefined;
+	
+	myWidth = window.innerWidth - 16;
+	myHeight = window.innerHeight - 250;
+	
+	var width = jQuery('#listNav').width()*0.48;
+	
+	document.getElementById("dayTimeGraph").setAttribute("width", width);
+	document.getElementById("dayTimeGraph").setAttribute("height", 200);
+	document.getElementById("dayWeekGraph").setAttribute("width", width);
+	document.getElementById("dayWeekGraph").setAttribute("height", 200);
+	
+	self.viz = newify(WatchmeVisualisation, document.getElementById("main"), width, 200, 0, 604800000, '{{ username }}');// 1 week
+    });
 </script>
-
 {% endblock %}
 {% block content %}
 	<div class="loader" id="loadimg"></div>
@@ -80,7 +77,7 @@
 	  <div id="profile" style="margin-top:32px">
 	  </div>
 	  <div id="profile_content" style="width: 98%;">
-	    <div style="width: 98%; border-bottom:3px solid black">
+	    <div style="width: 98%; border-bottom:3px solid black; display:inline-block; padding-bottom:11px;">
 	      {% if photo %}
 	      <div class="imgborder" id="profbrdr" style="height:110px; display:inline-block;">
 		<img src="/profiles/{{ id }}.jpg" class="profileimage" id="profimg"/>
@@ -218,3 +215,4 @@
 	</div>
 	    {% endblock %}
 	    
+
