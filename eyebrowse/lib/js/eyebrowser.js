@@ -7,8 +7,6 @@ function clone(obj){ // TODO: is there something like this in plumutil??
     return temp;
 }
 
-
-
 var Eyebrowser = {
     initialize: function(mainPanelDiv) {
 	this.lastPageID = 0;
@@ -24,7 +22,6 @@ var Eyebrowser = {
 	};
 	this.baseQuery = clone(this.blankQuery);
 	this.initQueryInterface(this.baseQuery, mainPanelDiv);
-	// initCompareQueryInterface(this.blankQuery.clone(), this.baseQuery)	
     },
     initQueryInterface: function(query, div) {	
 	let this_ = this;
@@ -51,9 +48,11 @@ var Eyebrowser = {
 	    });
 	this.refreshQueryInterface(query, div);
     },
-    initCompareQueryInterface: function(blankQuery, baseQuery){
-
+    initCompareQueryInterface: function(blankQuery, baseQuery){	  
+	jQuery('.panel').append(jQuery('.subpanel').clone().addClass('compare'));
 	
+	jQuery('#report').append(jQuery('#latest').clone().addClass('compare').show().css({'float':'left'}));
+	jQuery('#report').append(jQuery('#latest').clone().addClass('compare').show());
     },
     refreshQueryResults: function(){	
 	// need to do real filtering/display stuff here
@@ -114,6 +113,31 @@ var Eyebrowser = {
 		      "\ style=\"float:right\">" + page.user + "</a>"); 
 	}
 	jQuery(divid).append(np);
+    },
+    makeSearch: function(){
+	if (this.mode == "search"){ return;}
+	this.mode = "search";
+
+	jQuery('#topnav a:eq(1)').removeClass('selected');	
+	jQuery('#topnav a:eq(0)').addClass('selected');	
+
+	jQuery('#mainpanel, #latest').show();
+	jQuery('#comparetitle, .compare').hide();
+	this.deleteCompare();
+    },
+    makeCompare: function(){
+	if (this.mode == "compare"){ return;}
+	this.mode = "compare";
+	
+	jQuery('#topnav a:eq(0)').removeClass('selected');	
+	jQuery('#topnav a:eq(1)').addClass('selected');	
+
+	jQuery('#mainpanel, #latest').hide();
+	jQuery('#comparetitle').show();
+	this.initCompareQueryInterface(clone(this.blankQuery), this.baseQuery);	
+    },
+    deleteCompare: function() {
+	jQuery('.subpanel:eq(1)').remove(); // TODO delete everything past 0 
     }
 };
 

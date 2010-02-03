@@ -245,22 +245,22 @@ def addfeeds(request):
 def eyebrowser(request):
     groups = [];
     friends = [];
+    countries = [];
 
-    if request.user.username: 
-        user = get_object_or_404(User, username=request.user.username)
-        enduser = get_enduser_for_user(user)
-        groups = enduser.tags.all()
-        friends = [friendship.to_friend for friendship in user.friend_set.all()]        
+    groups = [tag for tag in UserTag.objects.values_list('name', flat=True) if len(tag) > 1]
 
-    
+    usedcountries = [loc for loc in EndUser.objects.values_list('location', flat=True)] 
+    countries = [country for country in Country.objects.all()]  # if usedcountries[country.printable_name]
+    # todo filter countries for ones actually used
+
     t = loader.get_template("eyebrowser.html")
     c = Context({ 
             'username': request.user.username, 
             'id': request.user.id, 
             'request_user': request.user.username,
             'groups': groups,
-            'friends': friends,
-            'countries': [country for country in Country.objects.all()]
+            #'friends': friends,
+            'countries': countries 
             })
     return HttpResponse(t.render(c))
 

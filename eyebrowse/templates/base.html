@@ -11,14 +11,17 @@
   </head>
   <body>
     <div id="header">
-      <a href="/">
-	<img src="/lib/img/smallbird.jpg" style="float:left; padding-left:8px; padding-right:8px; vertical-align:top"/></a>
-      <a href="/">home</a>&nbsp; &nbsp;
+<!--	      <a href="/">
+<img src="/lib/img/smallbird.jpg" style="float:left; padding-left:8px; padding-right:8px; vertical-align:top"/></a> -->
+      <!--<a href="/">home</a>&nbsp; &nbsp;-->
+
+      <!--<a href="/pulse">pulse</a>&nbsp; &nbsp;-->
+
       <a href="/eyebrowser">eyebrowser</a>&nbsp; &nbsp;
-      <a href="/pulse">pulse</a>&nbsp; &nbsp;
       <a href="/pathways">pathways</a>&nbsp; &nbsp;
       <a href="/blog">blog</a>&nbsp; &nbsp;
       <a href="/users">users</a>
+
       {% if request_user %}
       <div id="usersettings">
 	<a href="/profile/{{ request_user }}">{{ request_user }}</a>&nbsp; &nbsp;

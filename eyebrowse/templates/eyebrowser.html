@@ -10,29 +10,35 @@ width:216px;
 </style>
 
 {% endblock %}
-
 {% block name %}eyebrowser{% endblock %}
 
 {% block content %}
 <div id="loadimg"></div>
 <div id="report" style="width:990px">
 
-<!--
-<div class="logo">
-  <img src="lib/img/eyebrowse.png" height="24px"/> reader
+
+<div class="logo" style="padding-bottom:0px">
+<!--  <img src="lib/img/eyebrowser.png" /> -->
+<br /><br /><br />
 </div>
--->
+
+<a style="float:right" onclick="jQuery('#topnav, #toppanel').slideToggle('300')">show / hide</a>
+<br />
+<div id="topnav">
+  <a onclick="viz.makeSearch()" class="selected">search</a>
+  <a onclick="viz.makeCompare()">compare</a>
+</div>
+
 
 <div id="toppanel">
   <div id="search">
-    <!--
-       <div style="float:right;">
-	 <a class="add" onclick="editprofile()">+ edit profile</a>
-	 <a class="add" onclick="editgroups()">+ edit groups</a>
-	 <a class="add" onclick="editfriends()">+ edit friends</a>
-       </div>
-       -->
+    <div id="searchinfo">
+      <a class="add" onclick="editprofile()">+ save current search</a>
+      <a class="add" onclick="editprofile()">+ view saved searches</a>
+    </div>
+    <br />
     <div class="panel">
+      <div id="comparetitle">vs</div>
       <div class="subpanel">
 	{% if groups %}
 	<div class="item">
@@ -88,6 +94,7 @@ width:216px;
 </div>
 
 <div id="query"></div>  
+
 <div id="latest">  
 </div>
 
