@@ -9,6 +9,7 @@ import eyebrowse.views
 import eyebrowse.json.urls
 import eyebrowse.pages.urls
 import eyebrowse.plugin.urls
+import eyebrowse.blog.urls
 
 lib = os.path.join(
     os.path.dirname(__file__), 'lib'
@@ -21,6 +22,7 @@ profile_uploads = os.path.join(
 urlpatterns = eyebrowse.json.urls.urlpatterns
 urlpatterns += eyebrowse.pages.urls.urlpatterns
 urlpatterns += eyebrowse.plugin.urls.urlpatterns
+urlpatterns += eyebrowse.blog.urls.urlpatterns
 
 ## enable static serving for standalone server
 if settings.DEVELOPMENT:

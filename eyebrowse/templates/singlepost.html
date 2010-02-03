@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if post.title %} | {% endif %}{{ post.title }}
+{% endblock %}
+
+{% block content %}
+
+<div style="margin-left:0px">
+  <h7>{{ post.timestamp|date:"d . m . y" }}</h7>
+  <h1><a href="/blog/{{ post.timestamp|date:"Y/m" }}/{{ post.slug }}/" style="color:#333" >
+      {{ post.title }}</a></h1>
+  <div style="margin-left:0px">
+    <h5>{{ post.body|safe|linebreaks }}</h5>    
+    <div>      
+      <h6><div id="{{ post.tags }}Top"></	
+        <div id="comments">
+          <a href="/blog/{{ post.timestamp|date:"Y/m" }}/{{ post.slug }}/">Comment</a>
+        </div>
+      </h6>      
+    </div>    
+    <div>
+      <div id="disqus_thread" style="width:588px"></div>
+      <script type="text/javascript" src="http://disqus.com/forums/zamiangblog/embed.js"></script>
+      <noscript><a href="http://zamiangblog.disqus.com/?url=ref">View the discussion thread.</a></noscript>
+      <a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+      <br /><br />
+    </div>    
+  </div>
+</div>
+{% endblock %}
+
+

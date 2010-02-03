@@ -189,8 +189,7 @@ def uniq(lst,key=lambda x: x,n=None):
             keys.append(ki)
             result.append(xi)
         if n is not None and len(result) >= n:
-            return result
-    
+            return result    
     return result        
 
 def get_views_user(from_msec, to_msec, username):
@@ -378,6 +377,7 @@ def get_top_hosts_compare(end_time, interp, n, req_type):
 
 
 def top_and_trending_pages(users, req_type, first_start, first_end, second_start, second_end):
+    n = 17
     @cache.region('long_term')
     def fetch_data(users, pages):
         times_per_url_first = _get_top_pages_n(users,first_start,first_end)
@@ -1093,6 +1093,30 @@ def get_top_friend_and_number_friends_for_url(request, username):
     return_results = fetch_data(get_url, user, 'get_to_friend_and_number_friends_for_url')
     return return_results
 
+
+# EYEBROWSER
+def get_recommended_sites_matrix(request):
+
+
+    return json_response({ "code":200, "results": return_results })
+
+# this function will take a user's selection from a collaborative filtering matrix(x,y) (yet-to-be-built) and return recommended sites
+def get_recommended_sites_from_matrix(request, n, x, y):
+    n = int(n)
+    
+
+    # filter out sites seen by user 
+    # maybe shoud do this on the client
+    if request.user.username:
+        user = get_object_or_404(User, username=request.user.username)
+
+        user_uniq = uniq(PageView.objects.filter(user=user).values(),lambda x:x["url"],None)
+        recs = [site for site in recs if not user_uniq[site["url"]]] # not tested  -- maybe user_uniq[site] ??
+    
+        
+    return json_response({ "code":200, "results": [ defang_pageview_values(evt) for evt in recs[n] ]})
+
+
 def get_to_from_url_plugin(request, n):
     if not 'url' in request.GET:
         return json_response({ "code":404, "error": "get has no 'url' key" }) 
@@ -1117,7 +1141,6 @@ def get_to_from_url_plugin(request, n):
         return json_response({ "code":200, "results": return_results, "friend_stats": friend_stats })
         
     return json_response({ "code":200, "results": return_results })
-
 
 
 # FILL CACHE

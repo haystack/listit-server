@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Users{% endblock %}
+{% block name %}users{% endblock %}
 {% block imports %}
     <style>
         #list h1 {
@@ -65,6 +66,10 @@
 		}
 	#profile_content {
 	margin-top:85px;
+	}
+	#letters a:hover {
+	text-decoration:underline;
+	color:magenta;
 	}
 	</style>
 	<script src="/lib/js/jquery.corner.js">

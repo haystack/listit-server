@@ -164,3 +164,42 @@ class Invitation(models.Model):
             subject, message,
             settings.DEFAULT_FROM_EMAIL, [self.email]
             )
+
+
+class BlogPost(models.Model):
+    title = models.CharField(max_length=150)
+    slug = slug = models.SlugField(max_length=50)
+    body = models.TextField()
+    tags = models.CharField(max_length=150)
+    timestamp = models.DateTimeField()
+    date_created = models.DateTimeField()
+    date_modified = models.DateTimeField(auto_now=True)
+
+    image = models.ImageField(
+	'Attach Image',
+        upload_to='postimgs',
+	blank=True
+	)
+
+    def save(self):
+	models.Model.save(self)
+
+    def get_tag_list(self):
+	return re.split(" ", self.tags)
+
+    def __str__(self):
+	return self.title
+
+    def get_absolute_url(self):
+	return "/%d/%02d/%s/" % (self.date_created.year,
+                                 self.date_created.month,
+                                 self.slug)
+    
+    def get_previous_published(self):
+	return self.get_previous_by_pub_date(status__exact=1)
+
+    def get_next_published(self):
+	return self.get_next_by_pub_date(status__exact=1)
+
+    class Meta:
+	ordering = ('-timestamp',)

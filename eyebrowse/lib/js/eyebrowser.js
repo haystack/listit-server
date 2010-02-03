@@ -1,67 +1,92 @@
+function clone(obj){ // TODO: is there something like this in plumutil??
+    if(obj == null || typeof(obj) != 'object')
+        return obj;
+    var temp = new obj.constructor(); 
+    for(var key in obj)
+        temp[key] = clone(obj[key]);
+    return temp;
+}
+
+
+
 var Eyebrowser = {
     initialize: function(mainPanelDiv) {
 	this.lastPageID = 0;
 	this.type = 'global';
 	this.mainPanel = mainPanelDiv;
+	this.getRecentPages("#latest", 30, this.type, jQuery("#latest .sign"));
+	this.blankQuery = {
+	    group: "any", //[],
+	    country: "any", //[],
+	    friends: "everyone",
+	    sex: "all",
+	    age: "all"
+	};
+	this.baseQuery = clone(this.blankQuery);
+	this.initQueryInterface(this.baseQuery, mainPanelDiv);
+	// initCompareQueryInterface(this.blankQuery.clone(), this.baseQuery)	
     },
-    refreshMainPanelQuery: function(){
-	this.refreshMainPanelDisplay();
+    initQueryInterface: function(query, div) {	
+	let this_ = this;
+	jQuery("#search .subpanel a.add").each(
+	    function(i, item) {
+		let type = jQuery(item).parent().find('.name').text();
+		if (query[type] == jQuery(item).text()){ jQuery(item).addClass('selected');}
+		jQuery(item).click(
+		    function() {
+			jQuery(this).parent().find('a.add').each(function(i, item){ jQuery(item).removeClass('selected');});
+			jQuery(this).addClass('selected');
+			query[type] = jQuery(this).text();
+			this_.refreshQueryInterface(query, div);
+		    });
+	    });	
 
+	jQuery("#search select").each(
+	    function(i, item) {
+		jQuery(item).click(
+		    function(){
+			query[jQuery(this).attr('name')] = jQuery(this).val();
+			this_.refreshQueryInterface(query, div);
+		    });
+	    });
+	this.refreshQueryInterface(query, div);
+    },
+    initCompareQueryInterface: function(blankQuery, baseQuery){
+
+	
+    },
+    refreshQueryResults: function(){	
 	// need to do real filtering/display stuff here
     },
-    refreshMainPanelDisplay: function(){
+    refreshQueryInterface: function(query, div){
 	let this_ = this;
-	jQuery(this.mainPanel).html('webpages '); // remove all old items
-
-	if (jQuery('#leftpanel .item').find('.selected').length) {	   
-	    jQuery('#leftpanel .item').parent().each(
-		function(i, group) {
-		    let text = jQuery(group).parent().find('.label').text();
-		    
-		    // nasty - this will prepend the next section with what type it is
-		    if (text == 'friends' && jQuery(group).children().find('.selected').length) {
-			jQuery(this_.mainPanel).append('viewed by ');		   
-		    } else if (text =='groups' && jQuery(group).children().find('.selected').length){
-			jQuery(this_.mainPanel).append('in the group(s) ');		   
-		    }
-
-		    jQuery(group).children().find('.selected').each(
-			function(i, item) {
-			    let np = jQuery('#templates>.filterquery')
-				.clone();
-			    np.find('.name')
-				.text(jQuery(item).parent().find('name').text())
-				.addClass('selected');	
-			    jQuery(this_.mainPanel).append(np);
-			});
-		});
-	} else {
-	    jQuery(this.mainPanel).html(''); // cleanup if nothing happened
-	}
+	this.refreshQueryResults(query);
+	jQuery(div).html("webpages viewed by " +
+				    "<b>" + query['friends'] + "</b>" +
+				    " of the <b>" + query['sex'] + "</b> sex(s) " +
+				    " age <b>" + query['age'] + "</b>" +
+				    " in <b>" + query['country'] + "</b> country" +
+				    " and <b>" + query['group'] + "</b> group");
     },
-    getRecentPages: function(divid, num, type, div){
+    getRecentPages: function(divid, num, type){
         let this_ = this;
 	jQuery("#loadimg").show();
 
-	// return if 
-	if (jQuery(div).text() == 'show latest views') {
-	    jQuery('#notifications>.recentpage').remove();
-	    return;
-	} else {
-	    jQuery.get("/get_latest_views", {
-			   id: this_.lastPageID,
-			   type: type,
-			   num: num,
-			   username: 'zamiang'
-		       }, function(data){
-			   jQuery("#loadimg1").hide();
-			   if (data.code == 200) {
-			       let now = new Date().valueOf();
-			       data.results.map(function(item) { this_.addRecentPage(divid, item, now); });
-			       this_.lastPageID = data.results[0].id;
-			   }
-		       }, "json");
-	}
+	// should get the current query
+	jQuery.get("/get_latest_views", {
+		       id: this_.lastPageID,
+		       type: type,
+		       num: num,
+		       username: 'zamiang'
+		   }, function(data){
+		       jQuery("#loadimg").hide();
+		       if (data.code == 200) {
+			   let now = new Date().valueOf();
+			   jQuery(divid).html('<h2>latest sites</h2><br />');
+			   data.results.map(function(item) { this_.addRecentPage(divid, item, now); });
+			   this_.lastPageID = data.results[0].id;
+		       }
+		   }, "json");
     },
     addRecentPage: function(divid, page, now) {
 	let name = page.title?page.title.substring(0,30):cleanupURL(page.url);
@@ -90,31 +115,17 @@ var Eyebrowser = {
 	}
 	jQuery(divid).append(np);
     }
-
 };
 
-// ui events
-let showNotifications = function(div) { 
-    jQuery(div).text()=='show latest views'?
-	jQuery(div).text('hide latest views')
-	:jQuery(div).text('show latest views');    
-    self.viz.getRecentPages(jQuery(div).parent(), 30, self.viz.type, div);
- };
+jQuery(document).ready(
+    function(){	
+	var currentDate = new Date();				   
+	self.viz = newify(Eyebrowser, '#query');
+    });
 
-let addUser = function(div) { toggleAdd(div); }; //more later
-let addGroup = function(div) { toggleAdd(div); }; // more later
 
-let addGroups = function(div) {
-    // more verbose but safer
-    if (jQuery('#mainpanel #recs').is(':hidden')) {
-	jQuery('#mainpanel #addGroups').hide();
-	jQuery('#mainpanel #recs').show();	  
-    } else {
-	jQuery('#mainpanel #addGroups').show();
-	jQuery('#mainpanel #recs').hide();	
-    }
-};
- 
+/*
+ * CRUFT
 
 let toggleAdd = function(div) {     
     // potential bug here with removing items via the list in main panel
@@ -123,9 +134,26 @@ let toggleAdd = function(div) {
     viz.refreshMainPanelQuery(div);
 };
 
-jQuery(document).ready(
-    function(){	
-	var currentDate = new Date();				   
-	self.viz = newify(Eyebrowser, '#mainpanel #recs #query');
-    });
 
+ // ui events
+ 
+    showNotifications: function(div) { 
+	jQuery(div).text()=='show latest views'?
+	    jQuery(div).text('hide latest views')
+	    :jQuery(div).text('show latest views');    
+	self.viz.getRecentPages(jQuery(div).parent(), 30, self.viz.type, div);
+    },
+    addUser: function(div) { toggleAdd(div); }, //more later
+    addGroup: function(div) { toggleAdd(div); }, // more later
+    addGroups: function(div) {
+	// more verbose but safer
+	if (jQuery('#mainpanel #recs').is(':hidden')) {
+	    jQuery('#mainpanel #addGroups').hide();
+	    jQuery('#mainpanel #recs').show();	  
+	} else {
+	    jQuery('#mainpanel #addGroups').show();
+	    jQuery('#mainpanel #recs').hide();	
+	}
+    }
+
+ */

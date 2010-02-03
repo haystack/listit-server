@@ -12,6 +12,7 @@ from django.template import RequestContext
 from django.db.models import Q
 from eyebrowse.forms import *
 from eyebrowse.models import *
+from countries.models import Country
 from cStringIO import StringIO
 from PIL import Image
 import jv3.utils
@@ -29,6 +30,7 @@ from jv3.utils import json_response
 #    t = loader.get_template("zamiang.html")
 #    c = Context({ 'username': request.user.username, 'id': request.user.id, 'request_user': request.user.username })
 #    return HttpResponse(t.render(c))
+
 
 def _create_enduser_for_user(user, request):
     enduser = EndUser()
@@ -257,7 +259,8 @@ def eyebrowser(request):
             'id': request.user.id, 
             'request_user': request.user.username,
             'groups': groups,
-            'friends': friends
+            'friends': friends,
+            'countries': [country for country in Country.objects.all()]
             })
     return HttpResponse(t.render(c))
 

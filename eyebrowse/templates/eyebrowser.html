@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}eyebrowser{% endblock %}
+{% block imports %}
+<script  type="text/javascript;version=1.8" src="/lib/js/eyebrowser.js"></script>
+<style>
+select {
+padding:2px;
+width:216px;
+}
+</style>
+
+{% endblock %}
+
+{% block name %}eyebrowser{% endblock %}
+
+{% block content %}
+<div id="loadimg"></div>
+<div id="report" style="width:990px">
+
+<!--
+<div class="logo">
+  <img src="lib/img/eyebrowse.png" height="24px"/> reader
+</div>
+-->
+
+<div id="toppanel">
+  <div id="search">
+    <!--
+       <div style="float:right;">
+	 <a class="add" onclick="editprofile()">+ edit profile</a>
+	 <a class="add" onclick="editgroups()">+ edit groups</a>
+	 <a class="add" onclick="editfriends()">+ edit friends</a>
+       </div>
+       -->
+    <div class="panel">
+      <div class="subpanel">
+	{% if groups %}
+	<div class="item">
+	  <div class="name">groups</div>
+	  <select name="group">
+	    <option value="any">any</option>
+	    {% for group in groups %}
+	    <option value="{{ group }}">{{ group }}</option>
+	    {% endfor %}
+	  </select>
+	  <!--<a class="add">add</a>-->
+	</div>
+	{% endif %}	
+	{% if countries %}
+	<div class="item">
+	  <div class="name">country</div>
+	  <select name="country">
+	    <option value="any">any</option>
+	    {% for country in countries %}
+	    <option value="{{ country.name }}">{{ country.printable_name }}</option>
+	    {% endfor %}
+	  </select>
+	  <!--<a class="add">add</a>-->
+	</div>
+	{% endif %}	
+	<div class="item">
+	  <div class="name">friends</div>
+	  <a class="add">my friends</a>
+	  <a class="add">everyone</a>
+	</div>
+	<div class="item">
+	  <div class="name">sex</div>
+	  <a class="add">male</a>
+	  <a class="add">female</a>
+	  <a class="add">robot</a>
+	  <a class="add">all</a>
+	</div>
+	<div class="item">
+	  <div class="name">age</div>
+	  <a class="add">under 15</a>
+	  <a class="add">15-17</a>
+	  <a class="add">18-21</a>
+	  <a class="add">22-34</a>
+	  <a class="add">35-44</a>
+	  <a class="add">45-54</a>
+	  <a class="add">55-64</a>
+	  <a class="add">65+</a>
+	  <a class="add">all</a>
+	</div>
+      </div>  
+    </div>    
+  </div>
+</div>
+
+<div id="query"></div>  
+<div id="latest">  
+</div>
+
+<div id="custom">
+  show:
+  <a onclick="collapse()" class="selected">collapsed</a>
+  <a onclick="expand()">expanded</a>
+</div>
+
+<div id="mainpanel" style="border-left:solid 1px #eee">  
+  <div id="recs">
+    <div id="items">
+      <div class="item">
+	<!-- each item should look like this -->
+	<img src="/lib/img/listit.png" />
+	<cite>Cory Doctorow / <a HREF="http://www.boingboing.net/">Boing Boing</a>:</cite>
+	<h3>
+	  <a href="http://www.boingboing.net/2010/01/22/oreilly-drops-ebook.html">
+	    O'Reilly drops ebook DRM, sees 104% increase in sales
+	  </a>
+	</h3>
+	It's been 18 months since O'Reilly, the world's largest
+	publisher of tech books, stopped using DRM on its ebooks.&nbsp;
+	In the intervening time, O'Reilly's ebook sales have increased
+	by 104 percent.&nbsp; Now, when you talk about ebooks and DRM
+	&hellip;
+	<div class="footer">
+	  <a>+</a>
+	  <span class="discuss">Discussion:</span>
+	  <a>TOC Combined Feed</A>
+	</div>
+      </div>	  
+      <div class="item">
+	<!-- each item should look like this -->
+	<img src="/lib/img/listit.png" />
+	<cite>Cory Doctorow / <a HREF="http://www.boingboing.net/">Boing Boing</a>:</cite>
+	<h3>
+	  <a href="http://www.boingboing.net/2010/01/22/oreilly-drops-ebook.html">
+	    O'Reilly drops ebook DRM, sees 104% increase in sales
+	  </a>
+	</h3>
+	It's been 18 months since O'Reilly, the world's largest
+	publisher of tech books, stopped using DRM on its ebooks.&nbsp;
+	In the intervening time, O'Reilly's ebook sales have increased
+	by 104 percent.&nbsp; Now, when you talk about ebooks and DRM
+	&hellip;
+	<div class="footer">
+	  <a>+</a>
+	  <span class="discuss">Discussion:</span>
+	  <a>TOC Combined Feed</A>
+	</div>
+      </div>	  
+      <div class="item">
+	<!-- each item should look like this -->
+	<img src="/lib/img/listit.png" />
+	<cite>Cory Doctorow / <a HREF="http://www.boingboing.net/">Boing Boing</a>:</cite>
+	<h3>
+	  <a href="http://www.boingboing.net/2010/01/22/oreilly-drops-ebook.html">
+	    O'Reilly drops ebook DRM, sees 104% increase in sales
+	  </a>
+	</h3>
+	It's been 18 months since O'Reilly, the world's largest
+	publisher of tech books, stopped using DRM on its ebooks.&nbsp;
+	In the intervening time, O'Reilly's ebook sales have increased
+	by 104 percent.&nbsp; Now, when you talk about ebooks and DRM
+	&hellip;
+	<div class="footer">
+	  <a>+</a>
+	  <span class="discuss">Discussion:</span>
+	  <a>TOC Combined Feed</A>
+	</div>
+      </div>	  
+    </div>
+  </div>
+  
+  <!--
+  <div id="addGroups">
+    <a onclick="addGroups()"><< back home</a>
+    <h1>Add Groups</h1>
+    <div class="bodytext">
+      Adding yourself to groups will help us recommend
+      sites to you. Soon you will be able to also filter
+      sites by location and time viewed. You will
+      be able to make searches like: 'hey eyebrowse, what
+      are designers in Sweden looking at after 1am on
+      weekdays?'
+    </div>
+    <br />
+    custom: <input type="text" name="misc" id="groupstextinput" style="display:inline-block; width:217px;margin:4px;" value="nytimes.com" onkeypress="{if (event.keyCode==13)addURL()}"/>
+    <br />    
+    <input type="checkbox" name="hacker">hacker</input><br />      
+    <input type="checkbox" name="web2">web2</input><br />      
+    <input type="checkbox" name="designer">designer</input><br />      
+    <input type="checkbox" name="cinemaniac">cinemaniac</input><br />            
+    <input type="checkbox" name="artist">artist</input><br />      
+    <input type="checkbox" name="gamer">gamer</input><br />      
+    <input type="checkbox" name="pollitics">politics</input><br />            
+    <input type="checkbox" name="healthy_hippie">hippie</input><br />      
+    <input type="checkbox" name="crafty_craftsman">craftsman</input><br />      
+    <input type="checkbox" name="money">business</input><br />      
+    <input type="checkbox" name="music_junkie">music-junkie</input><br />            
+    <input type="checkbox" name="sports">sports</input><br />      
+    <input type="checkbox" name="religious">religious</input><br />      
+    <input type="checkbox" name="scholarly">scholarly</input><br />            
+    <input type="checkbox" name="scientist">scientist</input><br />      
+    <input type="submit" id="groupAdd" value="add groups" 
+	   onkeypress="{if (event.keyCode==13)addURL()}" 
+	   onClick="addGroupsSubmit()" />      
+  </div>
+  -->
+</div>
+
+<div id="templates">
+  <div class="recentpage">
+    <a href="" class="title"></a>
+    <div class="time"></div>
+    <div class="user"></div>
+  </div>
+  <div class="filterquery">
+    <a class="name"></a>
+  </div>
+</div>
+{% endblock %}

@@ -50,10 +50,13 @@ h1 {
 }
 
 h2 {
-    font-size: 1.8em;
+    font-weight:bold;
+    border-bottom:3px solid black;
+    font-size:18px;
+    font-weight:bold;
     padding: 8px;
     padding-left: 0px;
-    border-bottom: 1px double darkgrey;
+/*    border-bottom: 1px double darkgrey; */
 }
 
 h3 {
@@ -211,11 +214,13 @@ ul.messages {
     padding-bottom:0px;
 }
 
-#leftpanel {
-    width:250px;
-    border-right: 8px solid #eeeeee;
+#toppanel {
+    width:100%;
+/*    border-right: 8px solid #eeeeee;
     border-bottom:3px solid #EEEEEE;
+*/
     margin-top:12px;
+    margin-bottom:12px;
     display:inline-block;
 }
 
@@ -228,18 +233,21 @@ ul.messages {
 }
 
 a.add {
-    float:right;
-    padding-right:8px;
+    padding:4px;
 }
 
 .panel {
-    padding:8px;
-    border-top:3px solid #eeeeee;
+    padding:12px;
+    /*width:408px;*/
+    display:inline-block;
 }
 
-.panel .subpanel {
-    max-height:200px;
-    overflow-y: auto;
+#groups .panel {
+    
+}
+
+#search {
+    display:block; /* none */
 }
 
 .item {
@@ -256,7 +264,7 @@ a.add {
     width:auto;
     padding:12px;
     padding-top:0px;
-    margin-top:-12px;
+    margin-top:12px;
 }
 
 #name {
@@ -266,9 +274,20 @@ a.add {
     font-weigh:bolder;
     display:inline-block;
 }
-#custom {
-/*    float:right; */
+
+#toppanel .name{
+    display:inline-block;
+    font-style:italic;
+    margin-right:6px;
+    text-align:right;
+    width:42px;
 }
+
+#custom {
+/*    float:left; */
+}
+
+#validateTips { background:lightyellow }
 
 .recentpage {
     background:lightyellow;
@@ -276,19 +295,21 @@ a.add {
     padding:6px;
     margin-bottom:5px;
     font-size:10px;
+    padding-left:12px;
 }
 
 .recentpage .title {
     font-weight:bolder;
     font-size:11px;
+    display:block;
 }
+
+.recentpage:hover { background:#eeeeee; }
 
 .recentpage .time { display:inline-block;}
 .recentpage .user { display:inline-block }
 
-#templates {
-    display:none;
-}
+#templates { display:none; }
 
 
 /* for the main panel */
@@ -328,28 +349,29 @@ a.add {
     font-weight:lighter;
 }
 
-#mainpanel #query {
+#query {
     background:lightyellow;
-    padding:6px;
-    font-size:17px;
+    padding:12px;
+    font-size:18px;
     margin-top:10px;
+    margin-bottom:10px;
     display:inline-block;
 }
 
-#mainpanel #query .filterquery {
+#query .filterquery {
     display:inline-block;
     margin-right:8px;
 }
 
-/* top right panel */
+/* latest panel */
 
-#notifications {
-    position:absolute;
+#latest {
+    float:right;
     top:44px;
     right:20px;
 }
 
-#notifications .sign {
+#latest .sign {
     float:right;
     text-align:right;
     background:lightpink;
@@ -357,7 +379,7 @@ a.add {
     margin-top:-10px;
 }
 
-#notifications .sign:hover {
+#latest .sign:hover {
     background:pink;
 }
 #signin_button .clicked {
