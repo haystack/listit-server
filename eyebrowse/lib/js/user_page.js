@@ -44,10 +44,10 @@ var WatchmeVisualisation = {
     },
     drawProfile: function(data){
 	var newData = data;	
-	jQuery("#totalTime").html("<b>total time spent: </b> " +
+	jQuery("#totalTime").html("<i>total time spent: </i> " +
 				  timeCounterLongAbv(newData.totalTime));
-	jQuery("#num").html("<b>total visits: </b>" + newData.number);
-	jQuery("#avgTime").html("<b>average time spent: </b>"+ 
+	jQuery("#num").html("<i>total visits: </i>" + newData.number);
+	jQuery("#avgTime").html("<i>average time spent: </i>"+ 
 		timeCounterLongAbv(newData.average));					
     },
     drawTopPages: function(data){
@@ -57,19 +57,19 @@ var WatchmeVisualisation = {
         for (var i = 0; i < newData.length; i++) {
             var trigger = true;
             html += "<li>";
-            html += "<h6><b><a href=\"http://" + newData[i][0] + "\">" + newData[i][0] + "</a></b></h6>";                
+            html += "<h6><i><a href=\"http://" + newData[i][0] + "\">" + newData[i][0] + "</a></i></h6>";                
             if (newData[i][2] < 0) {
                 trigger = false;
                 html += "<div class=\"imgbox\">";
                 html += "<img src=\"/lib/img/arrow_full_down_16.png\" />";
-                html += "<b>" + newData[i][2] + "</b>";
+                html += "<i>" + newData[i][2] + "</i>";
                 html += "</div>";
             }
             if (newData[i][2] > 0) {
                 trigger = false;
                 html += "<div class=\"imgbox\">";	
 		html += "<img src=\"/lib/img/arrow_full_up_16.png\" />";                         	   
-		html += "<b>" + newData[i][2] + "</b>";
+		html += "<i>" + newData[i][2] + "</i>";
 		html += "</div>";
             }
             if (trigger) {
@@ -122,12 +122,12 @@ var WatchmeVisualisation = {
         for (var i = 0; i < num; i++) {
             html += "<li id=\"url" + i +  "\">";
 	    if (newData[i].title){
-		html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6>";
+		html += "<h6><i><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></i></h6>";
 	    }
 	    else{
-		html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].url + "</a></b></h6>";
+		html += "<h6><i><a href=\"" + newData[i].url + "\">" + newData[i].url + "</a></i></h6>";
 	    }				
-            html += "<h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " <b>ago</b></h7>";
+            html += "<h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " <i>ago</i></h7>";
             html += "</li>";
 	}
         html += "</ul>";

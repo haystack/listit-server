@@ -30,24 +30,17 @@
     #lifestream{
 	border-top:none;
     }
-    .profile_edit h2 {
-	border-bottom:3px solid black;
-	font-weight:bold;
-	font-size:18px;	
-    }
     </style>
     <script>      
       jQuery(document).ready(function(){
       jQuery('#header').width(window.innerWidth - 15);
-      jQuery('#nav').height(jQuery(document).height())
       });
     </script>
     {% endblock %}
     {% block content %}    
-    <div id="report" style="width:880px">      
-      <div class="profile_edit" id="nav" style="width:auto; margin-right:50px; margin-top:50px; float:none" >
-	<h2>
-	  <div class="bold">About Eyebrowse</div>
+    <div id="settings">      
+      <div id="nav">
+	<h2>About Eyebrowse</div>
 	</h2>
 	
 	<div class="profile_edit" id="add_sites" style="border:none; float:right; margin-right:23px; margin-top:29px;">

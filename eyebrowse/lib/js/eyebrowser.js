@@ -56,22 +56,25 @@ var Eyebrowser = {
     },
     refreshQueryResults: function(){	
 	// need to do real filtering/display stuff here
-    },
+    },    
     refreshQueryInterface: function(query, div){
 	let this_ = this;
 	this.refreshQueryResults(query);
+	this.displayQuery(query, div);
+    },
+    displayQuery: function(query, div) {
 	jQuery(div).html("webpages viewed by " +
-				    "<b>" + query['friends'] + "</b>" +
-				    " of the <b>" + query['sex'] + "</b> sex(s) " +
-				    " age <b>" + query['age'] + "</b>" +
-				    " in <b>" + query['country'] + "</b> country" +
-				    " and <b>" + query['group'] + "</b> group");
+			 "<b>" + query['friends'] + "</b>" +
+			 " of the <b>" + query['sex'] + "</b> sex(s) " +
+			 " age <b>" + query['age'] + "</b>" +
+			 " in <b>" + query['country'] + "</b> country" +
+			 " and <b>" + query['group'] + "</b> group");
     },
     getRecentPages: function(divid, num, type){
         let this_ = this;
 	jQuery("#loadimg").show();
 
-	// should get the current query
+	// should get latest for the current query
 	jQuery.get("/get_latest_views", {
 		       id: this_.lastPageID,
 		       type: type,

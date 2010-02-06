@@ -1,5 +1,10 @@
 {% extends "base.html" %}
-{% block title %}{{ username }}{% endblock %}
+{% block title %}{{ username }}'s profile{% endblock %}
+
+{% if user.username %}
+{% block name %}your profile{% endblock %}
+{% endif %}
+
 {% block imports %}
     <style>
     .viewboxprofile {
@@ -24,9 +29,6 @@
 	margin-left:auto;
 	margin-right:auto;
     }
-    h2 {
-	text-align:left;
-    }
     ul {
 	list-style-type:none;
 	margin-left:auto;
@@ -37,9 +39,8 @@
     }
     #rightcolumn {
 	float:right;
-	margin-right:3%;
-	width:28%;
-	margin-top:14px;
+	width:200px;
+    margin-top:-106px;
     }
     </style>
     <script src="/lib/js/jquery.corner.js"></script>
@@ -71,22 +72,23 @@ jQuery(document).ready(
 {% endblock %}
 {% block content %}
 	<div class="loader" id="loadimg"></div>
-	<div id="report" style="width:98%">
+	<div id="report">
 	  <img src="/lib/img/ajax-loader.gif" class="loader" />
 	  <div id="loading" class="loader"></div>
 	  <div id="profile" style="margin-top:32px">
 	  </div>
-	  <div id="profile_content" style="width: 98%;">
-	    <div style="width: 98%; border-bottom:3px solid black; display:inline-block; padding-bottom:11px;">
+	  <div id="profile_content" style="width:99.9%">
+	    <div style="display:inline-block; padding-bottom:11px;">
 	      {% if photo %}
-	      <div class="imgborder" id="profbrdr" style="height:110px; display:inline-block;">
+	      <br /><br /><br />
+	      <div class="imgborder" id="profbrdr" style="height:110px; display:block;">
 		<img src="/profiles/{{ id }}.jpg" class="profileimage" id="profimg"/>
 	      </div>
+	      <br /><br /><br />
 	      {% endif %}
 	      <div class="userhead">
 		<h1><a href="/profile/{{ username }}/">{{ username }}</a></h1>
-		<br />
-		
+		<br />		
 		{% if user.username %}
 		{% if is_friend %}
 		{% else %}
@@ -97,43 +99,41 @@ jQuery(document).ready(
 		{% endif %}
 		
 		<div style="display:inline-block; ">
-		  <!--
-		  {% if birthdate %}<b>Age:</b>
+		  {% if birthdate %}<i>Age:</i>
 		  {{ birthdate }} 
 		  <br/>
 		  {% endif %}
-		  -->
-		  {% if location %}<b>Location:</b>
+		  {% if location %}<i>Location:</i>
 		  {{ location }} 
 		  <br/>
 		  {% endif %}
 		  
 		  {% if tags %}
-		  <b>Groups:</b>
+		  <i>Groups:</i>
 		  {{ tags }}
 		  <br />
 		  {% endif %}
 		  
-		  {% if homepage %}<b>Website:</b>
+		  {% if homepage %}<i>Website:</i>
 		  <a href="{{ homepage }}">{{ homepage }}</a> 
 		  {% endif %}
 		</div>
 		<div style="display:inline-block; vertical-align:top; margin-left:40px;">
 		  <div id="num" style="margin-top:10px; ">
-		    <b>total visits:</b>
+		    <i>total visits:</i>
 		  </div>
 		  <div id="totalTime" >
-		    <b>total time spent: </b>
+		    <i>total time spent: </i>
 		  </div>
 		  <div id="avgTime" >
-		    <b>average time spent:</b>
+		    <i>average time spent:</i>
 		  </div>
 		</div>
               </div>
             </div>
 
-	  <div id="rightcolumn">
-            <h2>Followers</h2>
+	  <div id="rightcolumn" class="profile_edit" >
+            <h2 style="border-bottom:1px dotted darkgrey;">followers</h2>
             {% if followers %}
             <ul class="friends" style="margin-top:10px">
 	      {% for friend in followers %}
@@ -151,7 +151,7 @@ jQuery(document).ready(
             </p>
             {% endif %}
 	    
-            <h2>Following</h2>
+            <h2 style="border-bottom:1px dotted darkgrey;">following</h2>
             {% if following %}
             <ul class="friends" style="margin-top:10px;">
               {% for friend in following %}

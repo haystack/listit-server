@@ -2,171 +2,184 @@
 {% block title %}Settings{% endblock %}
 {% block name %}settings{% endblock %}
 {% block imports %}
-    <style>
-    ul {
-	border:0px;	
-    }
-    #popularsites li {
-	border:0px;	
-	padding-left:6px;
-	font-size:11px;
-	width:200px;
-    }
-    #home {
-	margin-top:-64px;
-	margin-right:38px;
-	float:none;	  
-    }
-    #groups{
-	width:400px;
-	margin-left:30px;
-	margin-top:19px;
-	vertical-align:top;
-    }
-    input[type = checkbox] {
-	margin:4.5px;
-	margin-right:8px;
-    }
-    #urladdul img{
-    float:right;
-    }
-    </style>
-    <script src="/lib/js/urllist.js"></script>
-    <script src="/lib/js/settings.js"></script>
+<script src="/lib/js/settings.js"></script>
+{% endblock %}
+{% block content %}
+<div id="settings">
+  
+  <h2 id="nav">
+    <a onclick="swaptab(this)" class="selected">Share Websites</a>&nbsp; &#124; &nbsp;
+    <a onclick="swaptab(this)" >Friends and Followers</a>&nbsp; &#124; &nbsp;
+    <a onclick="swaptab(this)">Edit Your Profile</a>
+    <!--&nbsp; &#124; &nbsp;<a onclick="swaptab(this)">Firefox Plugin</a>-->
+  </h2>
+  
+  <div id="profleeditform" class="leftcolumn">
+    <div id="groups">
+      <h1>Filter your data</h1>
+      <br/>
+      <div class="bodytext">
+	Adding yourself to groups will help us recommend
+	sites to you. <br /><br />Soon you will be able to also filter
+	sites by location and time viewed. You will
+	be able to make searches like: 'hey eyebrowse, what
+	are designers in Sweden looking at after 1am on
+	weekdays?'
+      </div>
+      <br />
+      custom: <input type="text" name="misc" id="groupstextinput" style="display:inline-block; width:217px; margin:4px;" value="nytimes.com" onkeypress="{if (event.keyCode==13)addURL()}"/>
+      <br />
+      <input type="checkbox" name="hacker">hacker</input>
+      <br />
+      <input type="checkbox" name="web2">web2</input>
+      <br />
+      <input type="checkbox" name="designer">designer</input>
+      <br />
+      <input type="checkbox" name="cinemaniac">cinemaniac</input>
+      <br />
+      <input type="checkbox" name="artist">artist</input>
+      <br />
+      <input type="checkbox" name="gamer">gamer</input>
+      <br />
+      <input type="checkbox" name="pollitics">politics</input>
+      <br />
+      <input type="checkbox" name="healthy_hippie">hippie</input>
+      <br />
+      <input type="checkbox" name="crafty_craftsman">craftsman</input>
+      <br />
+      <input type="checkbox" name="money">business</input>
+      <br />
+      <input type="checkbox" name="music_junkie">music-junkie</input>
+      <br />
+      <input type="checkbox" name="sports">sports</input>
+      <br />
+      <input type="checkbox" name="religious">religious</input>
+      <br />
+      <input type="checkbox" name="scholarly">scholarly</input>
+      <br />
+      <input type="checkbox" name="mad scientist">mad-scientist</input>
+      <br />
+      <input type="submit" id="groupAdd" value="add groups" onkeypress="{if (event.keyCode==13)addURL()}" onClick="addGroups()" style="width:auto;" />
+
+    </div>
+    <div class="profile_edit" style="float:right; margin-top:-560px">
+      <h2 style="width:200px; float:right; vertical-align:top;">your profile</h2>	    
+      {% include 'profile_save_form.html' %}
+    </div>
+  </div>
+  
+  <div class="profile_edit" id="add_sites" style="border:none; float:right; margin-right:23px; margin-top:29px;">
+    <br />
+    <h2>add popular sites</h2>
+    <br />
+    <ul id="popularsites">
+      <li>
+	<a>most shared sites + </a> 
+	<ul id="top_logged">
+	</ul>
+      </li>
+      <li>
+	<a>news + </a> 
+	<ul id="news">
+	</ul>
+      </li>
+      <li>
+	<a>blogs +</a>
+	<ul id="blogs">
+	</ul>
+      </li>
+      <li>
+	<a>media + </a>
+	<ul id="media">
+	</ul>
+      </li>
+      <li>
+	<a>shopping + </a>
+	<ul id="shopping">
+	</ul>
+      </li>
+      <li>
+	<a>social + </a>
+	<ul id="social">
+	</ul>
+      </li>
+      <li>
+	<a>reference + </a> 
+	<ul id="reference">
+	</ul>
+      </li>
+    </ul>
+  </div>
+  
+  <div id="friends" style="display:none; margin-top:52px; height:575px;">
+    <div id="groups">
+      <h1>See who your friends are</h1>
+      <br/>
+      <div class="bodytext">
+	By following other users you can control what sites get
+	recommended to you. In the 'eyebrowser' you can filter sites
+	for users who you 'follow.'<br /><br />Your followers are
+	simply people who find your browsing activity interesting to
+	them.
+      </div>
+      <br />
+      <br />
+      <h3>following</h3>
+      <div class="viewboxprofile">
+	{% if following %}
+	<ul class="friends">
+	  {% for friend in following %}
+	  <li><a href="/profile/{{ friend.username }}/">
+	      {{ friend.username }}</a>
+	    <h7><a href="/friend/unfollow/{{ username }}/?friend={{ friend.username }}"><img src="/lib/img/cancel_16.png" /></a></h7>
+	  </li>
+	  {% endfor %}
+	</ul>
+	{% else %}
+	<p>are not following anyone :(</p>
+	{% endif %}
+      </div>
+      <br />
+      <h3>followers</h3>
+      <div class="viewboxprofile">
+	{% if followers %}
+	<ul class="friends">
+	  {% for friend in followers %}
+	  <li><a href="/profile/{{ friend.username }}/">
+	      {{ friend.username }}</a></li>
+	  {% endfor %}
+	</ul>
+	{% else %}
+	<p>you have no followers :(</p> 
+	{% endif %}
+      </div>
+    </div>
+  </div>
+  
+  <div id="whitelist"  class="leftcolumn">
+    <div id="groups">
+      <h1>Raise your eyebrowse</h1>
+      <br/>
+      <div class="bodytext">
+	Only the websites you add to this list will be
+	logged. At any time you can
+	use <b><a href="http://support.mozilla.com/en-US/kb/Private+Browsing">private
+	    browsing</a></b> in Firefox to temporarily turn off
+	logging.  <br /><br /> For your own safety, please do
+	not log sites such as google.com, facebook.com, bank
+	webpages or your emails
+      </div>
+      <div id="listlist" style="border:none; padding-left:0px">
+	<label for="list">
+	  Add URL:
+	</label>
+	<input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:317px;" value="nytimes.com" onkeypress="{if (event.keyCode==13)addURL()}"/>
+	<input type="submit" id="urladd" value="add" onkeypress="{if (event.keyCode==13)addURL()}" onClick="addURL()" style="width:auto;" />
+	<ul id="urladdul" style="padding-left:7px;">
+	</ul>
+      </div>
+    </div>
+  </div>
+</div>
     {% endblock %}
-    {% block content %}
-    <div id="report" style="width:880px">
-
-	  <div class="profile_edit" id="nav" style="width:auto; margin-right:50px; margin-top:50px; float:none" >
-            <h2>
-	      <a onclick="swaptab(this)" class="bold">Share Websites</a>&nbsp; &#124; &nbsp;
-	      <a onclick="swaptab(this)">Edit Your Profile</a>
-	      <!--&nbsp; &#124; &nbsp;<a onclick="swaptab(this)">Firefox Plugin</a>-->
-	    </h2>
-	    
-	    <div id="profleeditform" style="display:none; margin-top:52px; height:575px">
-	      <div id="groups">
-		<h1>Filter your data</h1>
-		<br/>
-		<div class="bodytext">
-		  Adding yourself to groups will help us recommend
-		  sites to you. <br /><br />Soon you will be able to also filter
-		  sites by location and time viewed. You will
-		  be able to make searches like: 'hey eyebrowse, what
-		  are designers in Sweden looking at after 1am on
-		  weekdays?'
-		</div>
-		<br />
-		custom: <input type="text" name="misc" id="groupstextinput" style="display:inline-block; width:217px;margin:4px;" value="nytimes.com" onkeypress="{if (event.keyCode==13)addURL()}"/>
-		<br />
-		<input type="checkbox" name="hacker">hacker</input>
-		<br />
-		<input type="checkbox" name="web2">web2</input>
-		<br />
-		<input type="checkbox" name="designer">designer</input>
-		<br />
-		<input type="checkbox" name="cinemaniac">cinemaniac</input>
-		<br />
-		<input type="checkbox" name="artist">artist</input>
-		<br />
-		<input type="checkbox" name="gamer">gamer</input>
-		<br />
-		<input type="checkbox" name="pollitics">politics</input>
-		<br />
-		<input type="checkbox" name="healthy_hippie">hippie</input>
-		<br />
-		<input type="checkbox" name="crafty_craftsman">craftsman</input>
-		<br />
-		<input type="checkbox" name="money">business</input>
-		<br />
-		<input type="checkbox" name="music_junkie">music-junkie</input>
-		<br />
-		<input type="checkbox" name="sports">sports</input>
-		<br />
-		<input type="checkbox" name="religious">religious</input>
-		<br />
-		<input type="checkbox" name="scholarly">scholarly</input>
-		<br />
-		<input type="checkbox" name="mad scientist">mad-scientist</input>
-		<br />
-		<input type="submit" id="groupAdd" value="add groups" onkeypress="{if (event.keyCode==13)addURL()}" onClick="addGroups()" style="width:auto;" />
-
-	      </div>
-	      <div style="float:right; margin-top:-430px">
-	      <h2 style="width:200px; float:right; margin-right:32px; margin-top:-109px; vertical-align:top;">your profile</h2>	    
-              {% include 'profile_save_form.html' %}
-	      </div>
-	    </div>
-	    
-	    <div id="newtab" style="display:none;">
-	      baa
-	    </div>
-
-	    <div class="profile_edit" id="add_sites" style="border:none; float:right; margin-right:23px; margin-top:29px;">
-	      <br />
-		<h2>add popular sites</h2>
-		<br />
-		<ul id="popularsites">
-		  <li>
-			<a>most shared sites + </a> 
-			<ul id="top_logged">
-			</ul>
-		  </li>
-		  <li>
-			<a>news + </a> 
-			<ul id="news">
-			</ul>
-		  </li>
-		  <li>
-			<a>blogs +</a>
-			<ul id="blogs">
-			</ul>
-		  </li>
-		  <li>
-			<a>media + </a>
-			<ul id="media">
-			</ul>
-		  </li>
-		  <li>
-			<a>shopping + </a>
-			<ul id="shopping">
-			</ul>
-		  </li>
-		  <li>
-			<a>social + </a>
-			<ul id="social">
-			</ul>
-		  </li>
-		  <li>
-		    <a>reference + </a> 
-		    <ul id="reference">
-		    </ul>
-		  </li>
-		</ul>
-	    </div>
-	    <div id="faq" style="width:400px; display:inline-block; vertical-align:top; margin-left:30px;">
-              <h1>Raise your eyebrowse</h1>
-              <br/>
-              <div class="bodytext">
-		Only the websites you add to this list will be
-		logged. At any time you can
-		use <b><a href="http://support.mozilla.com/en-US/kb/Private+Browsing">private
-		browsing</a></b> in Firefox to temporarily turn off
-		logging.  <br /><br /> For your own safety, please do
-		not log sites such as google.com, facebook.com, bank
-		webpages or your emails
-              </div>
-	      <div id="listlist" style="border:none; padding-left:0px">
-		<label for="list">
-		  Add URL:
-		</label>
-		<input type="text" name="list" id="urladdtextinput" style="display:inline-block; width:317px;" value="nytimes.com" onkeypress="{if (event.keyCode==13)addURL()}"/>
-		<input type="submit" id="urladd" value="add" onkeypress="{if (event.keyCode==13)addURL()}" onClick="addURL()" style="width:auto;" />
-		<ul id="urladdul" style="padding-left:7px;">
-		</ul>
-	      </div>
-	    </div>
-	  </div>
-	</div>
-	{% endblock %}
-	  
+    

@@ -25,12 +25,6 @@ from django.utils.simplejson import JSONEncoder, JSONDecoder
 from django.contrib.auth import authenticate, login
 from jv3.utils import json_response
 
-# zamiang browser
-#def zamiang_browser(request):
-#    t = loader.get_template("zamiang.html")
-#    c = Context({ 'username': request.user.username, 'id': request.user.id, 'request_user': request.user.username })
-#    return HttpResponse(t.render(c))
-
 
 def _create_enduser_for_user(user, request):
     enduser = EndUser()
@@ -116,8 +110,10 @@ def privacy_settings_page(request):
         return render_to_response('settings.html', variables)
                
     variables = RequestContext(request, {
-        'form': form,
-        'request_user': request.user
+            'form': form,
+            'request_user': request.user,
+            'following': [friendship.to_friend for friendship in user.friend_set.all()],
+            'followers': [friendship.from_friend for friendship in user.to_friend_set.all()]
         })
 
     return render_to_response('settings.html', variables )
@@ -277,7 +273,6 @@ def page_profile(request):
         })
     return render_to_response('page_stats.html', variables)
 
-## OLD
 def friends(request, username):
     user = get_object_or_404(User, username=username)
     enduser = get_enduser_for_user(user)
@@ -521,10 +516,11 @@ def profile_save_page(request):
                 'gender': gender,
                 'photo': photo
                 })
+
     variables = RequestContext(request, {
         'friends': friends_results,
         'form': form,
-        'request_user': request.user
+        'request_user': request.user,
         })
     return render_to_response('profile_save.html', variables)
 

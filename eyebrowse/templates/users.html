@@ -3,161 +3,159 @@
 {% block name %}users{% endblock %}
 {% block imports %}
     <style>
-        #list h1 {
-		font-size:22px;
-		margin:0px;
-		padding:0px;
-		}
-		.userhead{
-		margin:0px;
-		margin-top:4px;
-		padding:0px;
-		width:85%;
-		margin-left:-4px;
-		}
+    #list h1 {
+	font-size:22px;
+	margin:0px;
+	padding:0px;
+    }
+    .userhead{
+	margin:0px;
+	margin-top:4px;
+	padding:0px;
+	width:85%;
+	margin-left:-4px;
+    }
 
-		#list h1 {
-		margin:0px;
-		}
-		
-        #list h2 {
-		font-size:18px;
-		margin:0px;
-		padding:0px;
-		border:none;
-		float:right;
-		}
-		
-        #list img {
-		height:69px;
-		width:69px;
-		display:inline-block
-		}
+    #list h1 {
+	margin:0px;
+    }
+    
+    #list h2 {
+	font-size:18px;
+	margin:0px;
+	padding:0px;
+	border:none;
+	float:right;
+    }
+    
+    #list img {
+	height:69px;
+	width:69px;
+	display:inline-block
+    }
 
-		.viewboxlarge li{
-		width:600px;
-		}
+    .viewboxlarge li{
+	width:600px;
+    }
 
-		.viewboxlarge b{
-		padding:0px;
-		padding-top:0px;
-		}
+    .viewboxlarge b{
+	padding:0px;
+	padding-top:0px;
+    }
 
-		.viewboxlarge a{
-		font-size:11px;
-		}
+    .viewboxlarge a{
+	font-size:11px;
+    }
 
-		.underuser {
-		padding:0px;
-		margin:0px;
-		margin-top:-8px;
-		display:block;
-		}
-		#profile {
-		margin-top:28px;
-		}
-		#letters {
+    .underuser {
+	padding:0px;
+	margin:0px;
+	margin-top:-8px;
+	display:block;
+    }
+    #letters {
 	font-size:21.3px;
 	margin:12px 0 7px;
 	text-align:center;
-		}
-		#letters a{
-		text-decoration:none;
-		}
-	#profile_content {
-	margin-top:85px;
-	}
-	#letters a:hover {
-	text-decoration:underline;
-	color:magenta;
-	}
+    }
 	</style>
 	<script src="/lib/js/jquery.corner.js">
 	</script>
 	<script src="/lib/js/users.js">
 	</script>
-
 	{% endblock %}
 	{% block content %}
 	<div class="loader" id="loadimg"></div>
-	<div id="report" style="width:850px">
-      <div id="profile">
-		<br />
-        <div id="num" style="margin-top:7px;">
-          <b>total visits:</b>
-        </div>
-        <div id="totalTime">
-          <b>total time spent: </b>
-        </div>
-        <div id="avgTime">
-          <b>average time spent:</b>
-        </div>
-        <h2>Top Users</h2>
-	<div class="viewboxhome" id="topusers" style="width:auto">
-        </div>
+	<div id="settings" style="width:900px">
+	  <div class="profile_edit" id="add_sites" style="border:none; float:right; margin-right:23px; margin-top:29px;">
+	    <br />
+	    <br />
+	    <input type="text" id="groupstextinput" style="display:inline-block; width:63% " onkeypress="{if (event.keyCode==13)addURL()}"/>	    
+	    <input type="submit" id="groupAdd" value="search" onkeypress="{if (event.keyCode==13)addURL()}" onClick="addGroups()" style="display:inline-block; width:63px; vertical-align:top; padding:4px; margin:0px; font-size:12px" />
+	    
+	    <br />
+            <div id="num" style="margin-top:7px;">
+              <b>total visits:</b>
+            </div>
+            <div id="totalTime">
+              <b>total time spent: </b>
+            </div>
+            <div id="avgTime">
+              <b>average time spent:</b>
+            </div>
+	    <br />
+	    {% if user.username %}
+            <h2>Similar Users</h2>
+	    <div class="viewboxhome" id="similarusers" style="width:auto">
+	    </div>
+	    {% endif %}
+
+            <h2>Top Users</h2>
+	    <div class="viewboxhome" id="topusers" style="width:auto">
+	    </div>
 	  </div>
-      <div id="profile_content" style="width:600px">
-		<h1 style="font-weight:normal">Users</h1>
-	<div class="bodytext" id="letters"></div>
-        <div class="viewboxlarge" id="list">
-		  <ul>
-			{% for user in users %}
-			{% ifequal letter user.letter %}
-			<li>
-			  <div style="display:inline-block;width:87px;">
-				{% if user.photo %}
-				<div class="imgborder">
-				  <img src="/profiles/{{ user.id }}.jpg" class="profileimage" />			
-				</div>
-				{% endif %}
-				{% if request_user %}
-				{% if not user.is_friend %}
-				{% ifnotequal request_user user.username %}
-				<br />
-				<a href="/friend/add?username={{ user.username }}" style="margin-left:9px;">follow <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a>
-				{% endifnotequal %}
-				{% endif %}
-				{% endif %}
-			  </div>
-			  <div class="userhead">
-				<a href="/profile/{{ user.username }}"><h1>{{ user.username }}</h1></a>
-				<h2>{{ user.number }}</h2>			  
-				
-				<div class="underuser">
-				  <br />				  
-				  {% if user.followed_by %}
-				  {{ user.username }} is following you
-				  <br />
-				  {% endif %}				 
+	  <div style="width:625px">
+	    <h1>Users</h2>
+	    <h2 id="letters"></h2>
+            <div class="viewboxlarge" id="list">
+	      <ul>
+		{% for user in users %}
+		{% ifequal letter user.letter %}
+		<li>
+		  <div style="display:inline-block;width:87px;">
+		    {% if user.photo %}
+		    <div class="imgborder">
+		      <img src="/profiles/{{ user.id }}.jpg" class="profileimage" />			
+		    </div>
+		    {% endif %}
+		    {% if request_user %}
+		    {% if not user.is_friend %}
+		    {% ifnotequal request_user user.username %}
+		    <br />
+		    <a href="/friend/add?username={{ user.username }}" style="margin-left:9px;">follow <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a>
+		    {% endifnotequal %}
+		    {% endif %}
+		    {% endif %}
+		  </div>
+		  <div class="userhead">
+		    <a href="/profile/{{ user.username }}"><h1>{{ user.username }}</h1></a>
+		    <h2>{{ user.number }}</h2>			  
+		    
+		    <div class="underuser">
+		      <br />				  
+		      {% if user.followed_by %}
+		      {{ user.username }} is following you
+		      <br />
+		      {% endif %}				 
 
-				  {% if user.location %}
-				  <b>location: </b>{{ user.location }}
-				  <br />
-				  {% endif %}
-				  
-				  {% if user.tags %}
-				  <b>tags: </b>{{ user.tags }}
-				  <br />
-				  {% endif %}
-				  
-				  {% if user.website %}
-				  <b>website: </b><a href="{{ user.website }}">{{ user.website }}</a>
-				  <br />
-				  {% endif %}				  
+		      {% if user.location %}
+		      <b>location: </b>{{ user.location }}
+		      <br />
+		      {% endif %}
+		      
+		      {% if user.tags %}
+		      <b>tags: </b>{{ user.tags }}
+		      <br />
+		      {% endif %}
+		      
+		      {% if user.website %}
+		      <b>website: </b><a href="{{ user.website }}">{{ user.website }}</a>
+		      <br />
+		      {% endif %}				  
 
-				  {% if user.latest_view %}
-				  {% for page in user.latest_view %}
-				  <b>latest: </b><a href="{{ page.url}}">{{ page.title }}</a>    
-				  {% endfor %}
-				  {% endif %}
-				</div>
-			  </div>
-			</li>
-			{% endifequal %}
-			{% endfor %}
-		  </ul>
-        </div>
-      </div>
-    </div>
+		      {% if user.latest_view %}
+		      {% for page in user.latest_view %}
+		      <b>latest: </b><a href="{{ page.url}}">{{ page.title }}</a>    
+		      {% endfor %}
+		      {% endif %}
+		    </div>
+		  </div>
+		</li>
+		{% endifequal %}
+		{% endfor %}
+	      </ul>
+            </div>
+	  </div>
+	</div>
 	{% endblock %}
 
