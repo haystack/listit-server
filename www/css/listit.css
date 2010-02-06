@@ -6,11 +6,10 @@ body {
 }
 
 a { color:#fca11f; } 
-a:visited {color: #fgfgfg }
+a:visited {color: #ffffff }
 a:active  {color: white }
 a:hover{color: #fcd11f }
 
-//p { margin-top: 20px; }
 h2 { font-size: 16pt; font-weight: bold; color: white; margin: 0pt;}
 h2 { font-size: 14pt; font-weight: bold; color: white; margin: 0pt;} 
 
@@ -85,7 +84,13 @@ img.logo { width: 40px; height: 40px; margin: 0 4px 10px 0;}
 .useremail { font-size:90%; display:inline-block; width:120px; margin-right: 5px; text-align:right; margin-top:5px; margin-bottom:5px;}
 /*.useremail {  }*/
 
-#submit { cursor-style:pointer; color:white: background:black; border-style:solid; border-width:1px;}
+#submit {
+    cursor:pointer;
+    color:white;
+    background:black;
+    border-style:solid;
+    border-width:1px;
+}
 
 #msg { text-align: center; margin: 6px; }
 #downloadlink { text-align: center; }

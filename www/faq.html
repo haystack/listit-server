@@ -1,5 +1,6 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-  <head><title>list.it - a place to stash your information</title>
+  <head>
+    <title>list.it - a place to stash your information</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta http-equiv="content-language" content="en" />
     
@@ -12,401 +13,579 @@
 
     <!-- WARNING: this is a DJANGO template -->
 
-<script type="text/javascript">
+    <script type="text/javascript">
 
-$(document).ready(function(){
-    $(".faq-list").accordion({
-	header: "div.faq-title",
-	autoheight:false,
-	alwaysOpen: false,
-        active:	""
-    });
-});
-
-
-var BASE_URL = "/listit/jv3";
-
-var resetbackground = function() {
-    $('#back').attr('width',$(window).width());
-}
-//$(window).resize(resetbackground);
-//$(document).resize(resetbackground);
-$(document).ready(resetbackground);
-
-var setmsg = function(msg) {
-    if (msg && msg.length > 0) {
-        $("#msg").html(msg);
-    } else {
-       $("#msg").html("&nbsp;");
-    }
-};
-var setok = function(ok) {
-    $("#bug_submit").attr("disabled",!ok);
-};
-var validate = function() {
-    if (plumutil.str_trim($("#bug_email").val()).length > 0 && plumutil.str_trim($("#bug_description").val()).length > 0) {
-	setok(true);
-	setmsg();
-    }	 else {
-	setok(false);
-	setmsg("please provide a message and your e-mail addr");
-    }
-};
-$(document).ready(function() {
-    $("#bug_description").keyup(function() {
-	validate();
-    });
-    $("#bug_email").keyup(function() {
-	validate();
-    });
-    $("#bug_submit").click(function() {
-	sendBugReport();
-    });
-});
-$(document).ready(function() {
-		          $("#changepassword_email").keyup(function() {
-			      $("#changepassword_button").attr("disabled",$("#changepassword_email").val().length == 0);
-			  });
-			   $("#changepassword_button").click(function() {
-			       var email = $("#changepassword_email").val();
-			       var url = BASE_URL + "/changepasswordrequest?username="+email;
-			       window.location = url;
-			   });
-		       });
-
-var sendBugReport = function() {
-    var emailval = $("#bug_email").val();
-    var desc = $("#bug_description").val();
-    var cont = function(success, info) {
-	if (success) {
-	    $("#bug_description").attr("disabled",true);
-	    $("#bug_submit").attr("disabled",true);
-	    $("#bug_email").attr("disabled",true);
-	}
-	else {
-	    setmsg(info);
-	}
-    };
-    return jQuery.ajax({ type:"POST",
-			 url: BASE_URL + "/reportabug/",
-			 data:({ username: emailval, description: desc }),
-			 success: function(data,success) {
-			     //success means that there exists already such an email adddr
-			     cont(true);
-			 },
-			 cache:false,
-			 error: function(data,status) {
-			     cont(false,data.responseText);
-			 }
-		       });
-}
+      $(document).ready(function(){
+      $(".faq-list").accordion({
+	  header: "div.faq-title",
+	  autoheight:false,
+	  alwaysOpen: false,
+      active:	""
+      });
+      });
 
 
-</script>	
-</head>
+      var BASE_URL = "/listit/jv3";
+
+      var resetbackground = function() {
+      $('#back').attr('width',$(window).width());
+      }
+      //$(window).resize(resetbackground);
+      //$(document).resize(resetbackground);
+      $(document).ready(resetbackground);
+
+      var setmsg = function(msg) {
+      if (msg && msg.length > 0) {
+      $("#msg").html(msg);
+      } else {
+      $("#msg").html("&nbsp;");
+      }
+      };
+      var setok = function(ok) {
+      $("#bug_submit").attr("disabled",!ok);
+      };
+      var validate = function() {
+      if (plumutil.str_trim($("#bug_email").val()).length > 0 && plumutil.str_trim($("#bug_description").val()).length > 0) {
+	  setok(true);
+	  setmsg();
+      }	 else {
+	  setok(false);
+	  setmsg("please provide a message and your e-mail addr");
+      }
+      };
+      $(document).ready(function() {
+      $("#bug_description").keyup(function() {
+	  validate();
+      });
+      $("#bug_email").keyup(function() {
+	  validate();
+      });
+      $("#bug_submit").click(function() {
+	  sendBugReport();
+      });
+      });
+      $(document).ready(function() {
+	  $("#changepassword_email").keyup(function() {
+	  $("#changepassword_button").attr("disabled",$("#changepassword_email").val().length == 0);
+	  });
+	  $("#changepassword_button").click(function() {
+	  var email = $("#changepassword_email").val();
+	  var url = BASE_URL + "/changepasswordrequest?username="+email;
+	  window.location = url;
+	  });
+	  });
+
+      var sendBugReport = function() {
+      var emailval = $("#bug_email").val();
+      var desc = $("#bug_description").val();
+      var cont = function(success, info) {
+	  if (success) {
+	  $("#bug_description").attr("disabled",true);
+	  $("#bug_submit").attr("disabled",true);
+	  $("#bug_email").attr("disabled",true);
+	  }
+	  else {
+	  setmsg(info);
+	  }
+      };
+      return jQuery.ajax({ type:"POST",
+	  url: BASE_URL + "/reportabug/",
+	  data:({ username: emailval, description: desc }),
+	  success: function(data,success) {
+	  //success means that there exists already such an email adddr
+	  cont(true);
+	  },
+	  cache:false,
+	  error: function(data,status) {
+	  cont(false,data.responseText);
+	  }
+	  });
+      }
+    </script>	
+  </head>
 
   <body style="margin: 0;">
     <div id="topbar" class="topbar">
       <center>
         <table width="720" class="normal" cellpadding="0" cellspacing="0">
           <tr valign="bottom">
-
             <td style="padding-top:0px; font-weight: bold; margin: 5px">
-	      <a href="index.html"><div class="topbartitle"><span style="font-size: 72px;">list<span style="font-size:36px;"><span style="color:#fca11f">.</span>it</span></span></div></a>
+	          <a href="index.html">
+                <div id="topbartitle">
+                  <span style="font-size: 72px;">list<span style="font-size:36px;"><span style="color:#fca11f">.</span>it</span></span>
+                </div>
+              </a>
             </td>
 
-	    <td align="right">
-	      <a href="http://haystack.csail.mit.edu">Haystack Home</a>
-	      | list.it
-	      | <a href="http://plum.csail.mit.edu/">jourknow</a> 
-	      | <a href="http://plum.csail.mit.edu/">PLUM</a> 
-	      | <a href="http://simile.mit.edu/exhibit/">Exhibit</a> 
-	      | <a href="http://relo.csail.mit.edu/">Relo</a> 
-              | <a href="http://groups.csail.mit.edu/haystack/">haystack</a> 
-
+	        <td align="right">
+	          <a href="http://haystack.csail.mit.edu">Haystack Home</a>
+	          | list.it
+	          | <a href="http://plum.csail.mit.edu/">jourknow</a> 
+	          | <a href="http://plum.csail.mit.edu/">PLUM</a> 
+	          | <a href="http://simile.mit.edu/exhibit/">Exhibit</a> 
             </td>
           </tr>
         </table>
-    </center>
-    </div>
-   <img id="back" src="imgs/postits-sm.jpg" style="z-index:-1; position:absolute; left:0px; top:1in; right:0px; bottom:0px;" alt="post-its"/>
-    <center>
-    <table width="700px" cellpadding="5px" cellspacing="0" border="0" id="main">
-	<tr valign="top">
-	  <td colspan="2">
-	  <h2>list.it frequently asked questions</h2>
-	  <ul id="faqs" class="faq-list">	      
-	      <li>
-		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>using it:</b> how do I get started? </div>
-		  <div class="faq-description">
-		    <P>
-		    We've designed <b>list<span style="color:#fca11f">.</span>it</b> to be simple to use.  First, follow the
-		    instructions on <a href="index.html">the main page</a> to install it.  Then, you can use list.it in two ways.
-		    </P>
-		    <P>
-		    <OL>
-		      <LI>
-			<p><b>Pulling up your list:</b> First, pull up  <b>list<span style="color:#fca11f">.</span>it</b> by selecting
-			the View -&gt; Sidebar menu in Firefox.</p>
-			<p>This will pull up <b>list<span style="color:#fca11f">.</span>it</b> in your sidebar.  The
-			various parts are illustrated below:</p>
-			<center><img src="imgs/faq-fullscreen.png" width="400"/></center>
-		      </li>		      
-		      <LI>
-		      <P><B>Writing stuff down:</b> To create a new note, type it in the note box at the top and hit <shift><enter> or click Save. </p>
-		      </li>
-		      <li>
-		      <p><B>Writing stuff down (another way):</b>If you're in the middle of something and don't want to shift your attention to your sidebar,
-		      use the hot input box.  Press Cmd-Shift-I (on a Mac) Ctrl-Shift-I (on Windows or Linux) to summon the input box, type your thoughts and hit enter
-		      to send them safely to your list: </p>
-		      
-		      <center><img src="imgs/faq-inputbox.png" width="400"/></center>
-		      </li>
-		      <LI><B>Finding stuff:</b> To search your notes type in your search terms in the top.  The view will filter your notes to those
-		      that contain your search term.  To go back to your full list of notes, hit the x button in the search box or manually
-		      clear your terms.
-		      <center><img src="imgs/faq-search.png" width="300"/></center>
-		      </li>
-		      <li><b>Changing stuff:</b>If you want to change the hotkeys work, the font size, or the way <b>list<span style="color:#fca11f">.</span>it</b> looks,
-		      see the "change it: hotkeys", "change it: background" and "change it: font size" sections in the FAQ below.
-		    </ol>
-		    </p>
-		  </div>
-  	      </li>
-	      <li>
-		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>backing it up</b>: setting up synchronization/backup </div>
-		  <div class="faq-description">
-		    <P>
-		    list.it stores your list in a database inside your Firefox profile.  If you delete your firefox profile, then you will lose these notes -- you
-		    probably don't want this to happen.  We provide a free service to allow you to back up your notes on our servers ; your notes will be kept
-		    secure and backed up on a daily basis.  If something then happens to your profile, just re-install list.it, connect to our servers, and voila --
-		    you will get your notes back.
-		    </p>
-		    <p>If you have more than one computer that you use regularly (e.g., your work computer, your laptop, and your desktop at home), and want your
-		    notes available on all of them, this very same synchronization capability will keep all your notes identical by copying them to our server,
-		    and bringing down updates whenever you make them.
-		    </p>
-		    <p>
-		    With respect to the security of your notes, we have tried to make every best practical precaution to keep bad guys (e.g., not you) from being able to
-		    see or mess with your notes.  However, we provide no warranty (bad guys are getting increasingly clever these days) -- so please do not use
-		    our servers to store matters of national, corporate, or extremely personal security if you plan to use our backup service.
-		    Just to remind you, our terms of service (which you must agree to to use list.it) relieve us of all liability for data that gets accidentally
-		    lost or stolen by bad guys -- so please please make efforts to keep backups of your data.  
-		    </p>
-		    <p>
-		    With respect to data handling policies,  we use strong-grade SSL (AES-256) to encrypt all client server communications (HTTP traffic)
-		    and have signed our server with a certificate.  Firefox will warn you if someone is trying to spoof our server; if you get one of these,
-		    <B>do not</B> connect to the server.
-		    </p>
-		    <p>
-		    <h3>setting it up</h3>
-		    <ol>
-		      <li>Make sure you're connected to the internet
-		      <li>Make sure you <a href="index.html">signed up</a> for a list.it account (step #2).
-		      <li>Pull up list.it in your sidebar and click "Options".
-		      <li>In the option window that comes up, click "Support synchronization".  Then, fill in your e-mail address and password that you signed up with.  Then, click "Accept".
-		      <li>list.it will imediately try to log into the server and fully synchronize your notes. If it wasn't able to talk to the server (e.g., if your email or password was wrong), it will ask you to try again.
-		    </ol>
-		    </p>
-		    <center>
-		    <!-- <img src="imgs/faq-sync.png" width="400"/> -->
-		    </center>
-		    </div>
- 	      </li>
-	      <li>
-		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>comparing it</b>: how does list.it compare with (stikkit/google notebook...) </div>
-		  <div class="faq-description">
-		    <P>You might be thinking -- <em>I already use (<a href="http://www.stikkit.com">Stikkit</a>,
-		    Google Reader, Yojimbo, <a href="http://www.evernote.com">Evernote</a>...)..
-		    why <u>another</u> note taking tool for the browser?</em></p>
-		    
-		    <p>We're glad you asked.  We built list.it for a couple of reasons:
-		    <ol>
-		    <li><i>List.it is open source</i> - Very few note taking tools are open source, making it difficult for
-		    developers outside the particular company to extend/modify/improve them.  We believe that community-developed
-		    software <i>leads to better software</i>, both in terms of quality and usability.
-		    <li><i>Back to basics</i> - Our studies suggested that people need very few, simple, solid features in note taking tools.
-		    So we wanted to start from scratch from the ground up.
-		    <li><i>A base platform for adding stuff</i> - We have a number of exciting extensions for list.it planned coming
-		    up soon!  There was no existing suitable note taking platform that would let us freely extend it to play with
-		    new interfaces in the way we needed.
-		    </ol>
 
-		    <p>So, we wrote a new one.   We want to know what you think.  In particular, if there was feature X in
-		    a particular note taking tool that you particularly love and miss in list.it, let us know?  Our goal,
-		    beyond making a cool tool is to do PIM research after all, and so we'd would love to hear about it.
-		    </div>
- 	      </li>
-		      <li>
-		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>changing it</b>: I forgot my list.it password  </div>
-		  <div class="faq-description">
-		  <p>
-		       No worries. Do the following:
-		       <ol>
-		       <li> <div>
-                       Type the email address that you used to register for list.it and hit the "Let me change my password" button.:
-		       <script type="text/css">
-		       
-		       </script>
-		           <div>
-			       your e-mail:<input id="changepassword_email" type="text"
-			       style="width:200px;"></input>  <input id="changepassword_button" type="button" value="change my password:" disabled="true"></input>
-			  </div>
-	             </div>
-		     </li>
-		     <li>Check your email. You should have received an email from our server.  Click the link contained in the e-mail, and follow the instructions to set your new passowrd.
-		       </ol>		       
-		    </div>
- 	      </li>
- 	      <li>
-		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>verify it</b>: What is this "noklab.com" domain?  </div>
-		  <div class="faq-description">
-		  <p>If you noticed that list.it is connecting to "listit.nrcc.noklab.com", this is our CSAIL server machine at
-		  NRCC, the Nokia Research Center Cambridge.   Don't worry, the data you store in list.it will <u>not</u> be shared
-		  with Nokia, MIT, or anyone.  We <I>will</I>  derive anonymous usage statistics of the client from your use
-		  of it, though, and if you sign up for the  <a href="couhes.html">user study</a>  we will analyze your notes for research purposes.
-		  In either case, no identifying information will ever be revealed.</p>
-		  <p>If you get e-mails from listit asking you to connect to some server other than listit.nrcc.noklab.com,
-		  it may be a phishing attempt - so don't click on it!  Be careful, email us
-		  at <a href="mailto:listit@csail.mit.edu">listit at csail dot mit dot edu</a> to make sure.
-		  </p>
-		  </div>
- 	      </li>
-	      <li>
-	      <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>changing it:</b> remapping the hotkeys</div>
-		  <div class="faq-description">
-		    
-		    <p>Being able to quickly find and input notes is a core design goal of list-it -- so to avoid
-		    making you have to remove your hands from the keyboard, list.it provides hotkeys for opening up the sidebar,
-		    the input box, and jump to search.</p>
-		    
-		    <p>Depending on what other Firefox extensions you have installed though, these hot keys might conflict
-		    with other extension hotkeys.  Or with system specific global hotkeys (such as locking your screensaver!).
-		    Therefore list.it lets you re-map its keys to others, and here's how:</p>
-		    <p>
-		    <b>setting new hotkeys</b><br>
-		    <ol>
-		      <li>Bring up list.it in the firefox sidebar.
-		      <li>Click on Options
-		      <li>Click on the text area next to the hotkey you want to change, and press the new hot key you want assigned.
-		      <li>Hit accept.
-		      <li><b>Restart firefox</b> - your new key assignments will take effect when firefox restarts!
-		    </ol>
-		    </p>
-		    
-		    <center>
-		    <img src="imgs/faq-hotkey.png" width="400" style="margin-left:auto;margin-right:auto;"/>
-		    </center>
-		  </div>
-  	      </li>
-	      <li>
-	      <div class="faq-title"><img class="listdot"
-	      src="imgs/orangedot.png" alt="dot"/><b>changing it:</b> setting the font size </div>
-		  <div class="faq-description">
-		    <P>
-		    Your <b>list<span style="color:#fca11f">.</span>it</b> is set to the default font and size of
-		    your firefox's preference pane.  If you want it bigger or smaller, go to your browser's preferences
-		    (Firefox menu -&gt; Preferences on the Mac; Tools -&gt;Options on Windows; Edit -&gt; Preferences on Linux),
-		    and set your desired font and size under Appearances.  On the mac it looks like this:
-		    </P>
-		    <center><img src="imgs/faq-fontsize.png" alt="screen shot" width="400"/></center>
-		  </div>
-  	      </li>
-	      <li>
-	      <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>protecting it</b>: are my information scraps secure? </div>
-		  <div class="faq-description">
-		    <p> When you use list.it's sync service, we use strong grade encryption (256-bit AES) SSL to
-		    encrypt all communications between your client and our server.  We also rely on Firefox's
-		    certificate verification mechanism to have the client verify that our server is really who
-		    it claims to be, so that any sort of DNS exploits (which you may have heard of recently)
-		    can't be used against you.  Our server is professionally managed and hosted at an MIT facility
-		    -- and is completely under our control.
-		    </p>
-		    <p>So we have made reasonable practical efforts to protect your notes that you back up on our
-		    service.  However, this does not mean that we can make any guarantees that the bad guys won't
-		    outwit us.  Keeping web sites and services secure is a difficult art -- so please do not put information
-		    of national security into your notebook --! When you download list.it, our terms and conditions say
-		    that we cannot be held liable for data loss or theft.
-		    </p>
-		    <p>If, at any time you wish us to delete some/all traces of you from our servers OR need to
-		    recover data you've accidentally deleted, email us at <a href="mailto:listit@csail.mit.edu">listit at csail dot mit dot edu</a>. 
-		    </p>
-		    <p>Questions or comments? Email us at <a href="mailto:listit@csail.mit.edu">listit at csail dot mit dot edu</a>.
-		    </p>
-		  </div>		    
-	      </div>
-	      </li>
-	      <li>
-	      <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>changing it</b>: setting up a custom background </div>
-		  <div class="faq-description">
-		    <p>
-		    Since personal information tools should be truly personal, list.it provides you a way to personalise
-		    its look.  You can set the background image list.it uses behind its glass skin to any image that you like.
-		    Here's how:
-		    </p>
-		    <p>
-		    <b>Changing the background image:</b>
-		    <ol>
-		      <li>Open list.it in Firefox's sidebar
-		      <li>Click Options
-		      <li>Under "General", Background Image, click "Choose".
-		      <li>Select an image of your choice. It should be a <a href="http://en.wikipedia.org/wiki/Portable_Network_Graphics">png</a>, <a href="http://en.wikipedia.org/wiki/JPEG">jpeg</a> or gif.
-		      <li>If you want the image resized to take up the whole vertical space,, click on "Center background image".  Otherwise it will scroll and tile the image
-		    </ol>
-		    </p>
-		    <center><img src="imgs/faq-background.png" alt="screen shot" width="400"/></center>
-		  </div>
-  	      </li>
-	      <li>
-		  <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>fixing it</b>: It's broken! (or something weird happened...)</div>
-		  <div class="faq-description">
-		    <P>Uh oh. Sorry about that -- and good job finding our bug!  Please tell us about your problem.  You can also
-		    try following the below troubleshooting procedure if you\'d like.</P>
-		    
-		    <ul>
-		      <li>Send us email at listit at csail dot mit dot edu
-		      <li><b>OR</b> Fill out this form:
-		      <div style="padding:10px;">
-    			<textarea rows="5" id="bug_description" style="width:100%;">I was trying to list it when...</textarea><br>
-			your email: <input type="text" style="width:200px;" id="bug_email"></input> <input id="bug_submit" type="button" value="Send a bug report" disabled="true"></input>
-    <div id="msg" style="color:#ff0000"/>
-		      </div>
-		    </ul>
-		    </p>
-		    
-		    <P><b>troubleshooting procedure</b></p>
-		    <OL>
-		      <li>
-		      <p><b>Check that Javascript is enabled</b>: Open Options/Preferences (Firefox menu -&gt; Preferences on the Mac;
-		      Tools -&gt;Options on Windows; Edit -&gt; Preferences on Linux), select the <b>content</b> tab, and make sure
-		      Enabled Javascript is clicked.</p>
-		      <center><img src="imgs/faq-jsenabled.png" width="400"></center>
-		      </li>
-		      <li><b>Try opening and closing the sidebar</b> - If the error occurred once, try opening an closing the sidebar. Did it happen again?
-		      </li>
-		      <li><p><b>IF YOU ARE BRAVE ONLY</b>: follow these instructions to get details about why list.it was acting
-		      funny; if you send these to us, we will get back to you with how to fix it.</p>
-		      <p>
-		      <b>Enable javascript logging</b>: Type about:config in your Go: URL bar (tell it you will be careful)</p>
-		      <center><img src="imgs/faq-aboutconfig.png" width="200"/></center>
-		      <p>Set javascript showInConsole property to true</p>
-		      <center><img src="imgs/faq-showinconsole.png" width="400"/></center>		      
-		      <p>Then, open your error console (Tools->Error console) and look for error messages.</p>
-		      <center><img src="imgs/faq-errorconsole.png" width="400"/></center>
-		      <p>Click on any error messages that seem to be caused by list.it, hit Copy (Command+C on Mac, Ctrl+C on Windows and Linux) and paste it into the bug reporting dialog box below.  We will double plus love you!</p>
-		    </ol>
-		  </div>
-  	      </li>
-              <li>
-    <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/><b>it's not here!</B> unanswered questions, complaints,
-suggestions, and stuff </div>
-		  <div class="faq-description">
-                     <p> Please email us at <A href="mailto:listit@csail.mit.edu">listit at csail.mit.edu</a>.  We'd love to hear from you.</p>
-		  </div>
- 	     </li>	      
-	  </ul>
-        </td></tr>
-      </table>
       </center>
+    </div>
+    <img id="back" src="imgs/postits-sm.jpg" style="z-index:-1; position:absolute; left:0px; top:1in; right:0px; bottom:0px;" alt="post-its"/>
+    <center>
+      <table width="700px" cellpadding="5px" cellspacing="0" border="0" id="main">
+	    <tr valign="top">
+	      <td colspan="2">
+	        <h2>list.it frequently asked questions</h2>
+	        <ul id="faqs" class="faq-list">	      
+	          <li>
+		        <div class="faq-title" id="register_it">
+                  <img class="listdot" src="imgs/orangedot.png" alt="dot"/>
+                  <b>register it:</b> how do I sign up?
+                </div>
+		        <div class="faq-description">
+		          <p>
+		            There was a bug in the most recent release that removed the sign up box from the about page. This problem
+		            has been fixed, but if you downloaded list.it before we fixed the bug, then we can still get you registered.
+		            Just follow these quick instructions.
+		          </p>
+		          <ol>
+		            <li>
+			          <em>Find the orange triangle:</em> If you open up the sidebar, you will see a toolbar with six icons lined up
+			          vertically on the right side of the new note box. Click on the orange triangle with the exclamation point in it.
+			          <center><img src="imgs/faq-bang.png" width="400"/></center>
+		            </li>
+		            <li>
+			          <em>Proceed with registration:</em> You should now see a registration page in the sidebar. Follow the instructions
+			          on this page to register and click the x in the top right corner when you finish.
+			          <center><img src="imgs/faq-login.png" width="400"/></center>
+			          Congratulations! You should now be registered and ready to go!
+		            </li>
+                  </ol>
+		        </div>
+	          </li>
+	          <li>
+		        <div class="faq-title">
+                  <img class="listdot" src="imgs/orangedot.png" alt="dot"/>
+                  <b>using it:</b> how do I get started?
+                </div>
+		        <div class="faq-description">
+		          <p>
+		            We've designed <b>list<span style="color:#fca11f">.</span>it</b> to be simple to use.  First, follow the
+		            instructions on <a href="index.html">the main page</a> to install it.  Then, you can use list.it in two ways.
+		          </p>
+		          <p>
+		            <ol>
+		              <li>
+			            <p><b>Pulling up your list:</b> First, pull up  <b>list<span style="color:#fca11f">.</span>it</b> by selecting
+			              the View -&gt; Sidebar menu in Firefox.</p>
+			            <p>This will pull up <b>list<span style="color:#fca11f">.</span>it</b> in your sidebar.  The
+			              various parts are illustrated below:</p>
+			            <center><img src="imgs/faq-fullscreen.png" width="400"/></center>
+		              </li>		      
+		              <li>
+		                <p>
+                          <b>Writing stuff down:</b>
+                          To create a new note, type it in the note box at the top and hit
+                          shift+enter or click Save.
+                        </p>
+		              </li>
+		              <li>
+		                <p>
+                          <b>Writing stuff down (another way):</b>
+                          If you're in the middle of something and don't want to shift your attention to your sidebar,
+		                  use the hot input box.  Press Cmd-Shift-I (on a Mac) Ctrl-Shift-I (on Windows or Linux) to
+                          summon the input box, type your thoughts and hit enter to send them safely to your list:
+                        </p>
+		                <center><img src="imgs/faq-inputbox.png" width="400"/></center>
+		              </li>
+		              <li><b>Finding stuff:</b>
+                        To search your notes type in your search terms in the top. The view will filter your notes to
+                        those that contain your search term.  To go back to your full list of notes, hit the x button
+                        in the search box or manually clear your terms.
+		                <center><img src="imgs/faq-search.png" width="300"/></center>
+		              </li>
+		              <li><b>Changing stuff:</b>If you want to change the hotkeys work, the font size, or the way
+                        <b>list<span style="color:#fca11f">.</span>it</b> looks, see the "change it: hotkeys",
+                        "change it: background" and "change it: font size" sections in the FAQ below.
+                      </li>
+		            </ol>
+		          </p>
+		        </div>
+  	          </li>
+	          <li>
+		        <div class="faq-title">
+                  <img class="listdot" src="imgs/orangedot.png" alt="dot"/>
+                  <b>backing it up</b>: setting up synchronization/backup
+                </div>
+		        <div class="faq-description">
+		          <p>
+		            list.it stores your list in a database inside your Firefox profile.  If you delete your
+		            firefox profile, then you will lose these notes -- you probably don't want this to happen.
+		            We provide a free service to allow you to back up your notes on our servers ; your notes will
+		            be kept secure and backed up on a daily basis.  If something then happens to your profile,
+		            just re-install list.it, connect to our servers, and voila -- you will get your notes back.
+		          </p>
+		          <p>
+                    If you have more than one computer that you use regularly (e.g., your work computer, your
+                    laptop, and your desktop at home), and want your notes available on all of them, this very
+                    same synchronization capability will keep all your notes identical by copying them to our server,
+		            and bringing down updates whenever you make them.
+		          </p>
+		          <p>
+		            With respect to the security of your notes, we have tried to make every best practical precaution
+                    to keep bad guys (e.g., not you) from being able to see or mess with your notes.  However, we
+                    provide no warranty (bad guys are getting increasingly clever these days) -- so please do not use
+		            our servers to store matters of national, corporate, or extremely personal security if you plan
+                    to use our backup service. Just to remind you, our terms of service (which you must agree to to
+                    use list.it) relieve us of all liability for data that gets accidentally lost or stolen by bad
+                    guys -- so please please make efforts to keep backups of your data.  
+		          </p>
+		          <p>
+		            With respect to data handling policies, we use strong-grade SSL (AES-256) to encrypt all client
+                    server communications (HTTP traffic) and have signed our server with a certificate.  Firefox
+                    will warn you if someone is trying to spoof our server; if you get one of these, <B>do not</B>
+                    connect to the server.
+		          </p>
+		          <p>
+		            <h3>setting it up</h3>
+		            <ol>
+			          <li>
+                        Make sure you're connected to the internet
+                      </li>
+			          <li>
+                        Pull up list.it in your sidebar and click the question mark to open the "About" page.
+                      </li>
+                      <li>
+                        If you haven't logged in before, there should be a box at the top of the page called
+                        "Back up your notes". Enter your email into the textbox and follow the instructions to
+                        create a new account or login to an existing account.
+		                <center>
+		                  <img src="imgs/faq-sync.png" width="400"/>
+		                </center>
+                      </li>
+			          <li>
+                        list.it will imediately try to log into the server and fully synchronize your notes.
+                        If it wasn't able to talk to the server (e.g., if your email or password was wrong),
+                        it will ask you to try again.
+                      </li>
+		            </ol>
+		          </p>
+		        </div>
+ 	          </li>
+	          <li>
+		        <div class="faq-title">
+                  <img class="listdot" src="imgs/orangedot.png" alt="dot"/>
+                  <b>changing it</b>: how do I change my email?
+                </div>
+		        <div class="faq-description">
+                  <p>
+                    If you entered the wrong email, or just want to change email addresses, follow these steps:
+                  </p>
+                  <ol>
+                    <li>
+                      Go to the Security tab of your Firefox preferences. And click "Saved Passwords..."
+                      <center>
+		                <img src="imgs/faq-security.png" width="400"/>
+                      </center>
+                    </li>
+                    <li>
+                      Find the entry called "chrome://listit (list.it sync)" and remove that entry. Then restart Firefox.
+                    </li>
+                    <li>
+                      When Firefox restarts, try to synchronize, then open the about page and sign up for a new account
+                      just like you did when you created the first account.
+                    </li>
+                  </ol>
+                  <p>
+                    <strong>note:</strong> This process won't delete your old account, it will just create a new account and
+                    load all of your old notes into this new account. If you want to delete your old account, send
+                    an email to <a href="mailto:listit@csail.mit.edu">listit at csail dot mit dot edu</a>.
+                  </p>
+                </div>
+              </li>
+	          <li>
+		        <div class="faq-title">
+                  <img class="listdot" src="imgs/orangedot.png" alt="dot"/>
+                  <b>comparing it</b>: how does list.it compare with (stikkit/google notebook...)
+                </div>
+		        <div class="faq-description">
+		          <p>You might be thinking -- <em>I already use (<a href="http://www.stikkit.com">Stikkit</a>,
+		              Google Reader, Yojimbo, <a href="http://www.evernote.com">Evernote</a>...)..
+		              why <u>another</u> note taking tool for the browser?</em></p>
+		          
+		          <p>We're glad you asked.  We built list.it for a couple of reasons:
+		            <ol>
+		              <li><i>List.it is open source</i> - Very few note taking tools are open source, making it difficult for
+		                developers outside the particular company to extend/modify/improve them.  We believe that community-developed
+		                software <i>leads to better software</i>, both in terms of quality and usability.</li>
+		              <li><i>Back to basics</i> - Our studies suggested that people need very few, simple, solid features in note taking tools.
+		                So we wanted to start from scratch from the ground up.</li>
+		              <li><i>A base platform for adding stuff</i> - We have a number of exciting extensions for list.it planned coming
+		                up soon!  There was no existing suitable note taking platform that would let us freely extend it to play with
+		                new interfaces in the way we needed.</li>
+		            </ol>
+                  </p>
+
+		          <p>
+                    So, we wrote a new one.  We want to know what you think. In particular, if there was feature X in
+		            a particular note taking tool that you particularly love and miss in list.it, let us know? Our goal,
+		            beyond making a cool tool is to do PIM research after all, and so we'd would love to hear about it.
+                  </p>
+		        </div>
+ 	          </li>
+		      <li>
+		        <div class="faq-title">
+                  <img class="listdot" src="imgs/orangedot.png" alt="dot"/>
+                  <b>changing it</b>: I forgot my list.it password  
+                </div>
+		        <div class="faq-description">
+		          <p>
+		            No worries. Do the following:
+		            <ol>
+		              <li>
+                        <div>
+                          Type the email address that you used to register for list.it and hit the "Let me change my password" button.:
+		                  <div>
+			                your e-mail:<input id="changepassword_email" type="text" style="width:200px;" />
+                            <input id="changepassword_button" type="button" value="change my password:" disabled="true" />
+			              </div>
+	                    </div>
+		              </li>
+		              <li>
+                        <p>
+                          Check your email. You should have received an email from our server.  Click the link
+                          contained in the e-mail, and follow the instructions to set your new password.
+                        </p>
+                      </li>
+		            </ol>
+		        </div>
+ 	          </li>
+ 	          <li>
+		        <div class="faq-title"><img class="listdot" src="imgs/orangedot.png" alt="dot"/>
+                  <b>verify it</b>: What is this "noklab.com" domain?
+                </div>
+		        <div class="faq-description">
+		          <p>
+                    If you noticed that list.it is connecting to "listit.nrcc.noklab.com", this is our CSAIL server
+                    machine at NRCC, the Nokia Research Center Cambridge.   Don't worry, the data you store in list.it
+                    will <u>not</u> be shared with Nokia, MIT, or anyone.  We <I>will</I>  derive anonymous usage
+                    statistics of the client from your use of it, though, and if you sign up for the
+                    <a href="couhes.html">user study</a>  we will analyze your notes for research purposes.
+		            In either case, no identifying information will ever be revealed.
+                  </p>
+		          <p>
+                    If you get e-mails from listit asking you to connect to some server other than listit.nrcc.noklab.com,
+		            it may be a phishing attempt - so don't click on it!  Be careful, email us
+		            at <a href="mailto:listit@csail.mit.edu">listit at csail dot mit dot edu</a> to make sure.
+		          </p>
+		        </div>
+ 	          </li>
+	          <li>
+	            <div class="faq-title">
+                  <img class="listdot" src="imgs/orangedot.png" alt="dot"/>
+                  <b>changing it:</b> remapping the hotkeys
+                </div>
+		        <div class="faq-description">
+		          <p>
+                    Being able to quickly find and input notes is a core design goal of list-it -- so to avoid
+		            making you have to remove your hands from the keyboard, list.it provides hotkeys for opening up the sidebar,
+		            the input box, and jump to search.
+                  </p>
+
+		          <p>
+                    Depending on what other Firefox extensions you have installed though, these hot keys might conflict
+		            with other extension hotkeys.  Or with system specific global hotkeys (such as locking your screensaver!).
+		            Therefore list.it lets you re-map its keys to others, and here's how:
+                  </p>
+		          <p>
+		            <b>setting new hotkeys</b>
+                    <br />
+		            <ol>
+		              <li>Bring up list.it in the firefox sidebar.</li>
+		              <li>Click on Options</li>
+		              <li>Click on the text area next to the hotkey you want to change, and press the new hot key you want assigned.</li>
+		              <li>Hit accept.</li>
+		              <li><b>Restart firefox</b> - your new key assignments will take effect when firefox restarts!</li>
+		            </ol>
+		          </p>
+
+		          <center>
+		            <img src="imgs/faq-hotkey.png" width="400" style="margin-left:auto;margin-right:auto;"/>
+		          </center>
+		        </div>
+  	          </li>
+	          <li>
+	            <div class="faq-title">
+                  <img class="listdot" src="imgs/orangedot.png" alt="dot"/>
+                  <b>changing it:</b> setting the font size
+                </div>
+		        <div class="faq-description">
+		          <p>
+		            Your <b>list<span style="color:#fca11f">.</span>it</b> is set to the default font and size of
+		            your firefox's preference pane.  If you want it bigger or smaller, go to your browser's preferences
+		            (Firefox menu -&gt; Preferences on the Mac; Tools -&gt;Options on Windows; Edit -&gt; Preferences on Linux),
+		            and set your desired font and size under Appearances.  On the mac it looks like this:
+		          </p>
+		          <center>
+                    <img src="imgs/faq-fontsize.png" alt="screen shot" width="400"/>
+                  </center>
+		        </div>
+  	          </li>
+	          <li>
+	            <div class="faq-title">
+                  <img class="listdot" src="imgs/orangedot.png" alt="dot"/>
+                  <b>protecting it</b>: are my information scraps secure?
+                </div>
+		        <div class="faq-description">
+		          <p>
+                    When you use list.it's sync service, we use strong grade encryption (256-bit AES) SSL to
+		            encrypt all communications between your client and our server.  We also rely on Firefox's
+		            certificate verification mechanism to have the client verify that our server is really who
+		            it claims to be, so that any sort of DNS exploits (which you may have heard of recently)
+		            can't be used against you.  Our server is professionally managed and hosted at an MIT facility
+		            -- and is completely under our control.
+		          </p>
+		          <p>
+                    So we have made reasonable practical efforts to protect your notes that you back up on our
+		            service.  However, this does not mean that we can make any guarantees that the bad guys won't
+		            outwit us.  Keeping web sites and services secure is a difficult art -- so please do not put information
+		            of national security into your notebook --! When you download list.it, our terms and conditions say
+		            that we cannot be held liable for data loss or theft.
+		          </p>
+		          <p>
+                    If, at any time you wish us to delete some/all traces of you from our servers OR need to
+		            recover data you've accidentally deleted, email us at
+                    <a href="mailto:listit@csail.mit.edu">listit at csail dot mit dot edu</a>.
+		          </p>
+		          <p>
+                    Questions or comments? Email us at <a href="mailto:listit@csail.mit.edu">listit at csail dot mit dot edu</a>.
+		          </p>
+		        </div>
+              </li>
+	          <li>
+	            <div class="faq-title">
+                  <img class="listdot" src="imgs/orangedot.png" alt="dot"/>
+                  <b>changing it</b>: setting up a custom background
+                </div>
+		        <div class="faq-description">
+		          <p>
+		            Since personal information tools should be truly personal, list.it provides you a way to personalise
+		            its look.  You can set the background image list.it uses behind its glass skin to any image that you like.
+		            Here's how:
+		          </p>
+		          <p>
+		            <b>Changing the background image:</b>
+		            <ol>
+		              <li>
+                        Open list.it in Firefox's sidebar
+                      </li>
+		              <li>
+                        Click Options
+                      </li>
+		              <li>
+                        Under "General", Background Image, click "Choose".
+                      </li>
+		              <li>
+                        Select an image of your choice. It should be a
+                        <a href="http://en.wikipedia.org/wiki/Portable_Network_Graphics">png</a>,
+                        <a href="http://en.wikipedia.org/wiki/JPEG">jpeg</a> or gif.
+                      </li>
+		              <li>
+                        If you want the image resized to take up the whole vertical space,
+                        click on "Center background image".  Otherwise it will scroll and tile the image
+                      </li>
+		            </ol>
+		          </p>
+		          <center>
+                    <img src="imgs/faq-background.png" alt="screen shot" width="400"/>
+                  </center>
+		        </div>
+  	          </li>
+	          <li>
+		        <div class="faq-title">
+                  <img class="listdot" src="imgs/orangedot.png" alt="dot"/>
+                  <b>fixing it</b>: It's broken! (or something weird happened...)
+                </div>
+		        <div class="faq-description">
+		          <p>
+                    Uh oh. Sorry about that -- and good job finding our bug!  Please tell us about your problem.  You can also
+		            try following the below troubleshooting procedure if you\'d like.
+                  </p>
+		          <ul>
+		            <li>
+                      Send us email at listit at csail dot mit dot edu
+                    </li>
+		            <li>
+                      <b>OR</b> Fill out this form:
+		              <div style="padding:10px;">
+    			        <textarea rows="5" id="bug_description" style="width:100%;">I was trying to list it when...</textarea>
+                        <br/>
+			            your email: <input type="text" style="width:200px;" id="bug_email" />
+                        <input id="bug_submit" type="button" value="Send a bug report" disabled="true" />
+                        <div id="msg" style="color:#ff0000"/>
+		              </div>
+                    </li>
+		          </ul>
+		    
+		          <p>
+                    <b>troubleshooting procedure</b>
+                  </p>
+		          <ol>
+		            <li>
+		              <p>
+                        <b>Check that Javascript is enabled</b>: Open Options/Preferences (Firefox menu -&gt;
+                        Preferences on the Mac; Tools -&gt;Options on Windows; Edit -&gt; Preferences on Linux),
+                        select the <b>content</b> tab, and make sure Enabled Javascript is clicked.
+                      </p>
+		              <center>
+                        <img src="imgs/faq-jsenabled.png" width="400">
+                      </center>
+		            </li>
+		            <li>
+                      <b>Try opening and closing the sidebar</b> - If the error occurred once, try opening an
+                      closing the sidebar. Did it happen again?
+		            </li>
+		            <li>
+                      <p>
+                        <b>IF YOU ARE BRAVE ONLY</b>: follow these instructions to get details about why
+                        list.it was acting funny; if you send these to us, we will get back to you with
+                        how to fix it.
+                      </p>
+		              <p>
+		                <b>Enable javascript logging</b>: Type about:config in your Go: URL bar
+                        (tell it you will be careful)</p>
+		              <center>
+                        <img src="imgs/faq-aboutconfig.png" width="200"/>
+                      </center>
+		              <p>Set javascript showInConsole property to true</p>
+		              <center>
+                        <img src="imgs/faq-showinconsole.png" width="400"/>
+                      </center>
+		              <p>Then, open your error console (Tools->Error console) and look for error messages.</p>
+		              <center>
+                        <img src="imgs/faq-errorconsole.png" width="400"/>
+                      </center>
+		              <p>
+                        Click on any error messages that seem to be caused by list.it, hit Copy (Command+C on
+                        Mac, Ctrl+C on Windows and Linux) and paste it into the bug reporting dialog box below.
+                        We will double plus love you!</p>
+		          </ol>
+                </div>
+              </li>
+              <li>
+                <div class="faq-title">
+                  <img class="listdot" src="imgs/orangedot.png" alt="dot"/>
+                  <b>it's not here!</b> unanswered questions, complaints,
+                  suggestions, and stuff
+                </div>
+		        <div class="faq-description">
+                  <p> Please email us at <a href="mailto:listit@csail.mit.edu">listit at csail.mit.edu</a>.
+                    We'd love to hear from you.</p>
+		        </div>
+ 	          </li>
+            </ul>
+          </td>
+        </tr>
+      </table>
+    </center>
   </body>
 </html>

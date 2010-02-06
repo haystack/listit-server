@@ -19,27 +19,33 @@ var init_accordion = function() {
     $("#showtroubleshooting").click(function() {  $("#troubleshooting").fadeIn(); })    
 };
 
-$(document).ready( function() {
-		       // checks navigator version and stuff.    
-		       try {
-			   var browser=navigator.appName;
-			   var b_version=navigator.appVersion;
-			   var version=parseFloat(b_version);
-			   if (browser=="Netscape" && version >= 5 && 
-			       navigator.userAgent.match("rv:1\.9")) {
-			       $("#main-content").fadeIn();
-			       init_accordion();	
-			       return;
-			   }
-			   $("#browser-version-problem").fadeIn();
-			   $("#main-content").hide();
-			   $("#ff3-continue").click(function() {
-							$("#browser-version-problem").slideUp();
-							$("#main-content").slideDown();
-							return false;
-						    });
-		       } catch(e) { }
-		   });
+$(document).ready(
+		  function() {
+		      // checks navigator version and stuff.
+		      var showmain = function() {
+			  $("#browser-version-problem").slideUp();
+			  $("#main-content").slideDown();
+			  return false;
+		      };
+		      /*
+		      try {
+			  var browser=navigator.appName;
+			  var b_version=navigator.appVersion;
+			  var version=parseFloat(b_version);
+			  if (browser=="Netscape" && version >= 5 && 
+			      navigator.userAgent.match("rv:1\.9")) {
+			      $("#main-content").fadeIn();
+			      init_accordion();	
+			      return;
+			  }
+			  $("#browser-version-problem").fadeIn();
+			  $("#main-content").hide();
+			  $("#ff3-continue").click(function() { showmain(); });
+			  } catch(e) { }
+              */
+		      showmain();
+              init_accordion();
+		  });
 /*
 var BASE_URL = "/listit/jv3";
 
