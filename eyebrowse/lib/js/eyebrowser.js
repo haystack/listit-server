@@ -17,11 +17,34 @@ var Eyebrowser = {
 	    group: "any", //[],
 	    country: "any", //[],
 	    friends: "everyone",
-	    sex: "all",
+	    gender: "all",
 	    age: "all"
 	};
 	this.baseQuery = clone(this.blankQuery);
 	this.initQueryInterface(this.baseQuery, mainPanelDiv);
+	this.getRecs();
+    },
+    getRecs: function() {
+	let this_ = this;
+	
+	jQuery("#loadimg").show();
+	jQuery.get("/get_recommended_sites", {
+		       groups: jQuery('#group').val(),
+		       country: jQuery('#country').val(),
+		       friends: jQuery('#friends .selected').text(),
+		       gender: jQuery('#gender .selected').attr('data-val'),
+		       age: jQuery('#age .selected').attr('data-val'),
+		       time: jQuery('#friends .selected').text()
+		   }, function(data){
+		       jQuery("#loadimg").hide();
+		       if (data.code == 200) {
+			   console.log(data.results);			   
+
+		       }
+		       else {
+			   // console.log("yaaaa!!!H!H!H!" + data.code + " ");
+		       }
+		   }, "json");
     },
     initQueryInterface: function(query, div) {	
 	let this_ = this;
@@ -65,7 +88,7 @@ var Eyebrowser = {
     displayQuery: function(query, div) {
 	jQuery(div).html("webpages viewed by " +
 			 "<b>" + query['friends'] + "</b>" +
-			 " of the <b>" + query['sex'] + "</b> sex(s) " +
+			 " of the <b>" + query['gender'] + "</b> gender(s) " +
 			 " age <b>" + query['age'] + "</b>" +
 			 " in <b>" + query['country'] + "</b> country" +
 			 " and <b>" + query['group'] + "</b> group");

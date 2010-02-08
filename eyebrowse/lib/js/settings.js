@@ -320,7 +320,7 @@ function addAllPrivacyURLS(urls){
 // this code is so bad sorry
 jQuery(document).ready(
     function(){
-	jQuery('#header').width(window.innerWidth - 15);
+	//jQuery('#header').width(window.innerWidth - 15);
 
 	jQuery('#whitelist').show();
 	initMenu();

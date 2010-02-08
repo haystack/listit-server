@@ -9,7 +9,7 @@
 <div id="loadimg"></div>
 <div id="report">
 <div class="logo" style="padding-bottom:0px">
-<!--  <img src="lib/img/eyebrowser.png" /> -->
+ <img src="lib/img/eyebrowser.png" />
 <br /><br /><br />
 </div>
 
@@ -34,7 +34,7 @@
 	{% if groups %}
 	<div class="item">
 	  <div class="name">groups</div>
-	  <select name="group">
+	  <select id="group" name="group">
 	    <option value="any">any</option>
 	    {% for group in groups %}
 	    <option value="{{ group }}">{{ group }}</option>
@@ -46,7 +46,7 @@
 	{% if countries %}
 	<div class="item">
 	  <div class="name">country</div>
-	  <select name="country">
+	  <select id="country" name="country">
 	    <option value="any">any</option>
 	    {% for country in countries %}
 	    <option value="{{ country.name }}">{{ country.printable_name }}</option>
@@ -55,36 +55,39 @@
 	  <!--<a class="add">add</a>-->
 	</div>
 	{% endif %}	
-	<div class="item">
+	<div class="item" id="friends">
 	  <div class="name">friends</div>
 	  <a class="add">my friends</a>
 	  <a class="add">everyone</a>
 	</div>
-	<div class="item">
-	  <div class="name">sex</div>
-	  <a class="add">male</a>
-	  <a class="add">female</a>
-	  <a class="add">robot</a>
-	  <a class="add">all</a>
+	<div class="item" id="gender">
+	  <div class="name">gender</div>
+	  <a class="add" data-val="M">male</a>
+	  <a class="add" data-val="F">female</a>
+	  <a class="add" data-val="R">robot</a>
+	  <a class="add" data-val="all">all</a>
 	</div>
-	<div class="item">
+	<div class="item" id="age">
 	  <div class="name">age</div>
-	  <a class="add">under 15</a>
-	  <a class="add">15-17</a>
-	  <a class="add">18-21</a>
-	  <a class="add">22-34</a>
-	  <a class="add">35-44</a>
-	  <a class="add">45-54</a>
-	  <a class="add">55-64</a>
-	  <a class="add">65+</a>
-	  <a class="add">all</a>
+	  <a class="add" data-val="[22, 24]">under 15</a>
+	  <a class="add" data-val="[22, 24]">15-17</a>
+	  <a class="add" data-val="[22, 24]">18-21</a>
+	  <a class="add" data-val="[22, 24]">22-34</a>
+	  <a class="add" data-val="[22, 24]">35-44</a>
+	  <a class="add" data-val="[22, 24]">45-54</a>
+	  <a class="add" data-val="[55, 64]">55-64</a>
+	  <a class="add" data-val="[65, 110]">65+</a>
+	  <a class="add" data-val="all">all</a>
 	</div>
       </div>  
     </div>    
   </div>
 </div>
 
+
 <div id="query"></div>  
+
+<div id="search" onclick="viz.getRecs()">search!</div>
 
 <div id="latest">  
 </div>
@@ -98,8 +101,9 @@
 <div id="mainpanel" style="border-left:solid 1px #eee">  
   <div id="recs">
     <div id="items">
+      <!-- each item should look like this -->
+      <!--	   
       <div class="item">
-	<!-- each item should look like this -->
 	<img src="/lib/img/listit.png" />
 	<cite>Cory Doctorow / <a HREF="http://www.boingboing.net/">Boing Boing</a>:</cite>
 	<h3>
@@ -118,46 +122,7 @@
 	  <a>TOC Combined Feed</A>
 	</div>
       </div>	  
-      <div class="item">
-	<!-- each item should look like this -->
-	<img src="/lib/img/listit.png" />
-	<cite>Cory Doctorow / <a HREF="http://www.boingboing.net/">Boing Boing</a>:</cite>
-	<h3>
-	  <a href="http://www.boingboing.net/2010/01/22/oreilly-drops-ebook.html">
-	    O'Reilly drops ebook DRM, sees 104% increase in sales
-	  </a>
-	</h3>
-	It's been 18 months since O'Reilly, the world's largest
-	publisher of tech books, stopped using DRM on its ebooks.&nbsp;
-	In the intervening time, O'Reilly's ebook sales have increased
-	by 104 percent.&nbsp; Now, when you talk about ebooks and DRM
-	&hellip;
-	<div class="footer">
-	  <a>+</a>
-	  <span class="discuss">Discussion:</span>
-	  <a>TOC Combined Feed</A>
-	</div>
-      </div>	  
-      <div class="item">
-	<!-- each item should look like this -->
-	<img src="/lib/img/listit.png" />
-	<cite>Cory Doctorow / <a HREF="http://www.boingboing.net/">Boing Boing</a>:</cite>
-	<h3>
-	  <a href="http://www.boingboing.net/2010/01/22/oreilly-drops-ebook.html">
-	    O'Reilly drops ebook DRM, sees 104% increase in sales
-	  </a>
-	</h3>
-	It's been 18 months since O'Reilly, the world's largest
-	publisher of tech books, stopped using DRM on its ebooks.&nbsp;
-	In the intervening time, O'Reilly's ebook sales have increased
-	by 104 percent.&nbsp; Now, when you talk about ebooks and DRM
-	&hellip;
-	<div class="footer">
-	  <a>+</a>
-	  <span class="discuss">Discussion:</span>
-	  <a>TOC Combined Feed</A>
-	</div>
-      </div>	  
+      -->
     </div>
   </div>
   

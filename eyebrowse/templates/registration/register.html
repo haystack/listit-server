@@ -1,33 +1,30 @@
 {% extends "base.html" %}
 {% block title %}register{% endblock %}
 {% block imports %}
-        <script src="/lib/js/jquery-1.3.2.min.js">
-        </script>
-        <script src="/lib/js/jquery-ui-1.7.2.dialog.min.js">
-        </script>
-        <script src="/lib/js/watchhome.js">
-        </script>
-		<style>
-input {
-width: 350px;
-}
+<script src="/lib/js/watchhome.js">
+</script>
+<style>
+  input {
+  width: 350px;
+  }
 </style>
 {% endblock %}
 {% block content %}
-		<div id="home" style="width:351px; margin-left:auto; margin-right:auto;">
-		  <h1 style="font-size:4.5em;">get started</h1>
-		  <div class="bodytext" style="margin-top:12px;text-align:center;font-size:1em;">
-			please register an account to begin using eyebrowse
-<p>
-		  if you would like more information, please check our <a href="http://eyebrowse.csail.mit.edu/help" target="_blank">help page</a><p>
-		  </div>
-		  <br />
-		  <p id="validateTips"></p>
-		  <form method="post" action=".">
-		    {{ form.as_p }}
-		    <input type="submit" value="register"/>
-		  </form>
-		    <br />
-		    by registering you agree to the <a href="/terms/" style="font-size:1em">terms and conditions and data use policies</a>
-		</div>
+<div id="home" style="width:351px; margin-left:auto; margin-right:auto;">
+  <h1 style="font-size:4.5em;">get started</h1><br />
+  <div class="bodytext" style="margin-top:12px;text-align:center;font-size:1em;">
+    please register an account to begin using eyebrowse
+    <p>
+      if you would like more information, please check
+      our <a href="/help" target="_blank">help page</a><p>
+  </div>
+  <br />
+  <p id="validateTips"></p>
+  <form method="post" action=".">
+	    {{ form.as_p }}
+	    <input type="submit" value="register"/>
+  </form>
+  <br />
+  by registering you agree to the <a href="/terms/" style="font-size:1em">terms and conditions and data use policies</a>
+</div>
 {% endblock %}

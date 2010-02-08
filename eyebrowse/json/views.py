@@ -140,7 +140,7 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
         
     uniq_urls  = set( grouped_by.access(mine_events) )
     times_per_url = {}
-    for url in uniq_urls:
+    for url in uniq_urls: #might be faster to annotate rather than do this
         # might be faster to define a variable here rather than doing filter 2x for the if and the reduce
         grouped_by_filtered = grouped_by.filter_queryset(mine_events,url).values_list('startTime','endTime')
         # to make sure not to reduce an empty item 
@@ -149,6 +149,13 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
         else:
             pass
     return times_per_url
+
+def _get_visits_per_pageview(pageviews):        
+    visits_per_view = {}
+    for view in pageviews:
+        visits_per_view[view.url] = visits_per_view.get(view.url,0) + 1
+    return visits_per_view
+
 
 def sort_by_counts(count_dict):
     l = count_dict.items()
@@ -177,6 +184,7 @@ def defang_pageview_values(pview):
         "id":pview["id"],
         "user": User.objects.filter(id=pview["user_id"])[0].username, 
         "hue": _h_generator(pview["host"]) } 
+
 
 ## emax added this to be fancy
 def uniq(lst,key=lambda x: x,n=None):
@@ -1100,21 +1108,68 @@ def get_recommended_sites_matrix(request):
 
     return json_response({ "code":200, "results": return_results })
 
-# this function will take a user's selection from a collaborative filtering matrix(x,y) (yet-to-be-built) and return recommended sites
-def get_recommended_sites_from_matrix(request, n, x, y):
-    n = int(n)
+# this will take a user's selection from a collaborative filtering matrix(x,y) (yet-to-be-built) and return recommended sites
+def get_recommended_sites(request):
+    n = 20
+    query = "EndUser.objects.filter("
+
+    group = request.GET['groups']  # string that corresponds to a tag
+    country = request.GET['country'] #**string that corresponds to a country value
+    friends = request.GET['friends'] #a string "friends" or "everyone"
+    gender = request.GET['gender'] # a string "male"
+    age = request.GET['age'] # a tuple with 2 ages [20,24]
+    time = request.GET['time']  # either recently or over all time
     
+    if gender != "all":
+        query += " gender=gender,"
+        
+    if country != "any":
+        query += " location=country,"
+        
+    if group != "any":
+        query += " tags__name__contains=group,"
+            
+    if time == "recently":
+        query +- " startTime__gt=int(time.time() * 1000) - 86400000, "
+
+    query.strip(',')  ## remove the comma at the end
+        
+    ## if there is no query just skip all the nasty bits
+    if query == "EndUser.objects.filter(":
+        pageviews = PageView.objects.all()
+    else: 
+        endusers = eval(query + ").values_list('user_id')")  ## , flat=True) < not necissary
+        
+        if friends is "my friends":
+            user = User.objects.filter(username=request.user.username)
+            friends = [friendship.to_friend for friendship in user.friend_set.all()] 
+            endusers = [friend.id for friend in friends if endusers.index(friend.id) ] 
+            # is there a more effecient way of finding overlap between 2 arrays?
+
+        pageviews = PageView.objects.filter(user__in=User.objects.filter(id__in=endusers))
 
     # filter out sites seen by user 
-    # maybe shoud do this on the client
-    if request.user.username:
-        user = get_object_or_404(User, username=request.user.username)
-
-        user_uniq = uniq(PageView.objects.filter(user=user).values(),lambda x:x["url"],None)
-        recs = [site for site in recs if not user_uniq[site["url"]]] # not tested  -- maybe user_uniq[site] ??
-    
+    # if request.user.username:
+    #     user = User.objects.filter(username=request.user.username)
         
-    return json_response({ "code":200, "results": [ defang_pageview_values(evt) for evt in recs[n] ]})
+    #     user_uniq = uniq(PageView.objects.filter(user=user).values(),lambda x:x["url"],None)
+    #     pageviews = [site for site in recs if not user_uniq[site["url"]]] # not tested  -- maybe user_uniq[site] ??
+
+
+    ## rank the pageviews
+    visits_per_pageview = _get_visits_per_pageview(pageviews) 
+
+    ordered_visits = [h for h in visits_per_pageview.iteritems()]
+    ordered_visits.sort(lambda u1,u2: int(u2[1] - u1[1]))
+    
+    recs = [PageView.objects.filter(url=visit[0])[0] for visit in ordered_visits[:20]] 
+    print recs
+    results = [ defang_pageview(pview) for pview in recs if pview["startTime"]]
+    print results
+    ## this might be pretty bad
+    return json_response({ 
+            "code":200, 
+            "results": results})
 
 
 def get_to_from_url_plugin(request, n):

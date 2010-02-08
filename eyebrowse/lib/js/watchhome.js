@@ -1,5 +1,4 @@
 jQuery(document).ready(function(){
-			   jQuery('#header').width(window.innerWidth - 15);
 			   var name = jQuery("#id_username"), email = jQuery("#id_email"), password1 = jQuery("#id_password1"), password2 = jQuery("#id_password2"), allFields = jQuery([]).add(name).add(email).add(password1).add(password2), tips = jQuery("#validateTips");
 			   
 			   function updateTips(t){

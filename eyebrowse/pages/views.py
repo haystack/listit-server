@@ -153,10 +153,10 @@ def index(request):
     form = RegistrationForm()
     variables = RequestContext(request, {'form': form, 'request_user': request.user.username })
  
-    if request.user.username:
-        t = loader.get_template("pulse.html")
-        c = Context({ 'username': request.user.username, 'id': request.user.id, 'request_user': request.user.username })
-        return HttpResponse(t.render(c))
+    # if request.user.username:
+    #     t = loader.get_template("pulse.html")
+    #     c = Context({ 'username': request.user.username, 'id': request.user.id, 'request_user': request.user.username })
+    #     return HttpResponse(t.render(c))
     return render_to_response('index.html', variables)
 
 def faq(request):

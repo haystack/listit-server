@@ -4,6 +4,12 @@
 <script src="/lib/js/watchMeGraph.js"></script>
 <script src="/lib/js/watchhome.js"></script>
 <script src="/lib/js/signup.js"></script>
+<style>
+#profile_content a{
+    font-weight:bolder;
+    text-decoration:underline;
+}
+</style>
 {% endblock %}
 
 {% block name %}home{% endblock %}
@@ -20,42 +26,39 @@
   </div><h1 style="font-size:35px; margin-left:10px;">track, visualize and share your web trails</h1>
   
   <h4 style="vertical-align:top;">
-    <b>eyebrowse</b> is an add-on
-    for <a href="http://mozilla.com/firefox">firefox</a> that lets you
+    <b>Eyebrowse</b> is an add-on
+    for <a href="http://mozilla.com/firefox">firefox</a> that records your web browsing activity to
+    your private computer so you can check out how your activity
+    changes over time. Selectivly share your activities to find out
+    find out what's hot and who's reading what.
+
+      <!-- lets you
     easily track, visualize, and share your trails through the web in
-    real-time. Eyebrowse records your web browsing activity to your
-    private computer so you can check out how your activity changes
-    over time
+    real-time.</b> Eyebrowse -->
+    <!--Plus, contribute your
+    web trails to science! Check out the out
+    some <a href="/help"><b>examples</b></a> or watch our short video
+    introduction below.-->
   </h4>
-  <h4 style="vertical-align:top;margin-left:43px;">Selectivly share
-    your activities to find out find out what's hot and who's reading
-    what. Plus, contribute your web trails to science! Check out the
-    out some <a href="/help"><b>examples</b></a> or watch our short
-    video introduction below.
-  </h4>
+
   <div id="indexwhyid" class="indexwhy">    
-    <object width="681" height="383"><param name="allowfullscreen"
-    value="true" /><param name="allowscriptaccess" value="always"
-    /><param name="movie"
-    value="http://vimeo.com/moogaloop.swf?clip_id=6839047&amp;server=vimeo.com&amp;show_title=1&amp;show_byline=0&amp;show_portrait=0&amp;color=ff0095&amp;fullscreen=1"
-    /><embed src="http://vimeo.com/moogaloop.swf?clip_id=6839047&amp;server=vimeo.com&amp;show_title=1&amp;show_byline=0&amp;show_portrait=0&amp;color=ff0095&amp;fullscreen=1"
-    type="application/x-shockwave-flash" allowfullscreen="true"
-    allowscriptaccess="always" width="681"
-    height="383"></embed></object> <br />
     <h4 style="margin-left:43;margin-top:14px">
       Check out the
-      eyebrowse <a href="http://eyebrowse.csail.mit.edu/pulse/">pulse</a>
+      <a href="/eyebrowser">eyebrowser</a>
       and some
-      <a href="http://eyebrowse.csail.mit.edu/profile/karger/">profiles</a> or click below to get started.		
+      <a href="/profile/karger/">profiles</a> or click below to get started.		
     </h4>
   </div>
+<br />
+  <canvas id="main" style="padding:0px;margin:0px;">
+  </canvas>
+<br />
   <a href="/register/">
-    <div id="signUpLink" style="width:99px">
+    <div id="signUpLink">
       Get Started
     </div>
   </a>
-  <canvas id="main" style="padding:0px;margin:0px;">
-  </canvas>
+<br />
   <div class="leftcolumn" style="width:420px;">
     <h2>now</h2>
     <div class="viewboxhome" id="latestviews">

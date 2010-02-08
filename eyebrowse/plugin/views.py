@@ -95,7 +95,7 @@ def save_entry(item, request_user):
 
 def post_events(request):
     ## lets the user post new activity in a giant single array of activity log elements
-    print time.time()
+    #print time.time()
 
     request_user = authenticate_user(request);
     if not request_user:
@@ -103,7 +103,7 @@ def post_events(request):
     
     committed = len([save_entry(entry, request_user) for entry in JSONDecoder().decode(request.raw_post_data)])
 
-    print time.time()
+    #print time.time()
     return json_response({"committed":committed}, 200)
 
 
