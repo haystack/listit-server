@@ -283,6 +283,30 @@ a.add {
     padding:4px;
 }
 
+
+.recpage .colorbox {
+    -moz-border-radius:10px 10px 10px 10px;
+    display:inline-block;
+    height:20px;
+    vertical-align:text-bottom;
+    width:20px;
+}
+
+.recpage .title {
+    display:inline-block;
+    font-size:22px;
+    font-weight:bold;
+    margin-top:15px;
+    padding-left:6px;
+}
+
+.recpage .url {
+    margin-left:25px;
+    color:#333333;
+    margin-left:33px;
+    display:inline-block;
+}
+
 .panel {
     padding:12px;
     /*width:408px;*/
@@ -303,7 +327,6 @@ a.add {
     margin-top: 50px;
     margin-bottom:40px;
     margin-left:39px;
-    width:330px;
 }
 
 #comparetitle {
@@ -315,9 +338,11 @@ a.add {
 
 #search {
     display:block; /* none */
+    /*
     border-bottom:4px solid;
     border-left:4px solid;
     border-right:4px solid;
+    */
     display:block;
     margin-top:-12px;
 }
@@ -363,18 +388,26 @@ a.add {
 #validateTips { background:lightyellow }
 
 .recentpage {
-    background:lightyellow;
+/*    background:lightyellow; */
     width:260px;
     padding:6px;
-    margin-bottom:5px;
-    font-size:10px;
-    padding-left:12px;
+    margin-bottom:1px;
+    font-size:11px;
+    padding-left:14px;
+    color:#666666;
 }
 
 .recentpage .title {
-    font-weight:bolder;
-    font-size:11px;
+    font-weight:bolder; 
+    font-size:12px;
     display:block;
+    color:#333333;
+    margin-left:-6px;
+}
+
+#latest h2 { 
+    padding-left:0px;
+    border-bottom: 1px dotted darkgrey; 
 }
 
 .recentpage:hover { background:#eeeeee; }
@@ -421,11 +454,20 @@ a.add {
 }
 
 #query {
-    background:lightyellow;
-    padding:12px;
+    background:none repeat scroll 0 0 lightyellow;
     font-size:18px;
+    line-height:20px;
     margin-bottom:10px;
+    padding:12px;
     text-align:center;
+}
+
+#refresh {
+    float:right;
+}
+
+#refresh .val {
+    color: magenta;
 }
 
 #query .filterquery {
@@ -811,9 +853,11 @@ a.add {
     font-size: 20px;
     cursor: pointer;
     font-weight:bolder;
-    text-decoration:underline;
     text-align:center;
-    border-bottom: 8px dotted lightYellow;
+    display:inline-block;
+    text-decoration:none;
+    width:300px;
+   /* border-bottom: 8px dotted lightYellow; */
     color:navy;
 }
 
@@ -959,7 +1003,6 @@ a.add {
     font-size:18px;
 } #profile_content h4 {
     display:inline-block; 
-    margin-bottom:20px; 
     margin-left:10px; 
     margin-top:5px;
     font-size:14px;
@@ -1098,10 +1141,10 @@ a.add {
 } #rightmenu {
     float: right;
     width: 340px;
-} .loader {   	
+} #loadimg {   	
     position:fixed;
-    top:40px;
-    left:15px;
+    top:70px;
+    left:30px;
     z-index: 5000;	
     display:none;
     width:66px;

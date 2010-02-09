@@ -9,25 +9,30 @@
 <div id="loadimg"></div>
 <div id="report">
 <div class="logo" style="padding-bottom:0px">
- <img src="lib/img/eyebrowser.png" />
-<br /><br /><br />
+ <img src="lib/img/eyebrowser.png" /> 
+ <h1 style="font-size: 35px; margin-left: 85px;">find new sites through the people that view them</h1>
+
 </div>
 
-<a style="float:right" onclick="jQuery('#topnav, #toppanel').slideToggle('300')">show / hide</a>
+<a style="float:right" onclick="jQuery('#topnav, #toppanel').slideToggle('300')">show / hide search</a>
 <br />
 <div id="topnav">
-  <a onclick="viz.makeSearch()" class="selected">search</a>
-  <a onclick="viz.makeCompare()">compare</a>
+  <a onclick="viz.makeSearch()" class="selected">find sites</a>
+ <!-- <a onclick="viz.makeCompare()">compare</a> -->
+  <a onclick="viz.makePeople()">find people</a>
 </div>
 
 
 <div id="toppanel">
   <div id="search">
-    <div id="searchinfo">
+    <!--
+    <div id="searchinfo">      
       <a class="add" onclick="editprofile()">+ save current search</a>
       <a class="add" onclick="editprofile()">+ view saved searches</a>
     </div>
+
     <br />
+    -->
     <div class="panel">
       <div id="comparetitle">vs</div>
       <div class="subpanel">
@@ -69,34 +74,46 @@
 	</div>
 	<div class="item" id="age">
 	  <div class="name">age</div>
-	  <a class="add" data-val="[22, 24]">under 15</a>
-	  <a class="add" data-val="[22, 24]">15-17</a>
-	  <a class="add" data-val="[22, 24]">18-21</a>
-	  <a class="add" data-val="[22, 24]">22-34</a>
-	  <a class="add" data-val="[22, 24]">35-44</a>
-	  <a class="add" data-val="[22, 24]">45-54</a>
+	  <a class="add" data-val="[0, 15]">under 15</a>
+	  <a class="add" data-val="[15, 17]">15-17</a>
+	  <a class="add" data-val="[18, 21]">18-21</a>
+	  <a class="add" data-val="[22, 34]">22-34</a>
+	  <a class="add" data-val="[35, 44]">35-44</a>
+	  <a class="add" data-val="[45, 54]">45-54</a>
 	  <a class="add" data-val="[55, 64]">55-64</a>
 	  <a class="add" data-val="[65, 110]">65+</a>
 	  <a class="add" data-val="all">all</a>
+	</div>
+	<div class="item" id="time">
+	  <div class="name">time</div>
+	  <a class="add">recently</a>
+	  <a class="add">overall</a>
 	</div>
       </div>  
     </div>    
   </div>
 </div>
 
+<div id="query" onclick="viz.getRecs()"></div>  
+<input type="submit" value="recommend me some sites!"
+onclick="viz.getRecs()" style="margin-top:-14px;
+width:100%;display:block;"></input>
+<br />
+<br />
+<h3><b>recommended sites:</b></h3>
 
-<div id="query"></div>  
-
-<div id="search" onclick="viz.getRecs()">search!</div>
-
+<div id="refresh">refresh in <span class="val">30s</span></div>
+<br />
 <div id="latest">  
 </div>
 
+<!--
 <div id="custom">
   show:
   <a onclick="collapse()" class="selected">collapsed</a>
   <a onclick="expand()">expanded</a>
 </div>
+-->
 
 <div id="mainpanel" style="border-left:solid 1px #eee">  
   <div id="recs">
@@ -168,6 +185,12 @@
     <a href="" class="title"></a>
     <div class="time"></div>
     <div class="user"></div>
+  </div>
+  <div class="recpage">
+    <div class="colorbox"></div>
+    <a href="" class="title"></a><br />
+    <a href="" class="url"></a><b>&nbsp;|&nbsp;</b>
+    <a class="stats"><b>show stats</b></a>
   </div>
   <div class="filterquery">
     <a class="name"></a>

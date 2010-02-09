@@ -1,4 +1,5 @@
-import re,sys,time,operator,os,math, datetime, random
+import re,sys,time,operator,os,math,datetime,random
+from datetime import date
 from django.http import Http404
 from django.shortcuts import get_object_or_404, get_list_or_404
 from django.conf.urls.defaults import *
@@ -150,12 +151,27 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
             pass
     return times_per_url
 
-def _get_visits_per_pageview(pageviews):        
-    visits_per_view = {}
+def _get_visits_per_pageview(pageviews):            
+    ## this function takes FOREVER
+    visits_per_view = {} 
     for view in pageviews:
         visits_per_view[view.url] = visits_per_view.get(view.url,0) + 1
-    return visits_per_view
+    return visits_per_view        
 
+# attempts at making this faster
+  #  results =  dict((v.url, results.get(view.url,0) + 1) for v in pageviews)
+  #  return [(visits_per_view.get(view.url,0) + 1) for view in pageviews]
+
+
+def _get_pageviews_ordered_by_count(pageviews, n):
+    visits_per_pageview = _get_visits_per_pageview(pageviews) 
+    
+    ordered_visits = [h for h in visits_per_pageview.iteritems()]
+    ordered_visits.sort(lambda u1,u2: int(u2[1] - u1[1]))
+    
+    results = [PageView.objects.filter(url=visit[0]).values()[0] for visit in ordered_visits[0:n]]
+    ## Page.objects.filter(url__in=[visit[0] for visit in ordered_visits[:20]]).values()
+    return results
 
 def sort_by_counts(count_dict):
     l = count_dict.items()
@@ -839,8 +855,9 @@ def get_homepage(request):
     @cache.region('ticker')
     def fetch_data(baaa):
         top_users = get_top_users(int(int(to_msec) - int(from_msec)), 10, request_type)    
-        views_user = get_views_user(from_msec, to_msec, top_users[0]['user'])    
-        return [top_users, views_user]
+## TODO FIGURE OUT A BETTER WAY to get top user   
+        views_user = get_views_user(from_msec, to_msec, top_users[0]['user']) 
+        return ["", views_user]
 
     results = fetch_data("get_homepage")
     return json_response({ "code":200, "results": results });
@@ -1129,8 +1146,11 @@ def get_recommended_sites(request):
     if group != "any":
         query += " tags__name__contains=group,"
             
-    if time == "recently":
-        query +- " startTime__gt=int(time.time() * 1000) - 86400000, "
+    if age != "all":
+        current = [ date.today().year, date.today().month, date.today().day ]  ## year month day
+        start_date = datetime.date(current[0] - eval(age)[1], current[1], current[2])
+        end_date = datetime.date(current[0] - eval(age)[0], current[1], current[2])
+        query += " birthdate__range=(start_date, end_date), "
 
     query.strip(',')  ## remove the comma at the end
         
@@ -1146,7 +1166,11 @@ def get_recommended_sites(request):
             endusers = [friend.id for friend in friends if endusers.index(friend.id) ] 
             # is there a more effecient way of finding overlap between 2 arrays?
 
-        pageviews = PageView.objects.filter(user__in=User.objects.filter(id__in=endusers))
+        if time == "recently":
+            pageviews = PageView.objects.filter(
+                user__in=User.objects.filter(id__in=endusers), startTime__gt=int(time.time() * 1000) - 86400000)
+        else:
+            pageviews = PageView.objects.filter(user__in=User.objects.filter(id__in=endusers))
 
     # filter out sites seen by user 
     # if request.user.username:
@@ -1157,19 +1181,11 @@ def get_recommended_sites(request):
 
 
     ## rank the pageviews
-    visits_per_pageview = _get_visits_per_pageview(pageviews) 
+    ordered_pageviews = _get_pageviews_ordered_by_count(pageviews, 20)
 
-    ordered_visits = [h for h in visits_per_pageview.iteritems()]
-    ordered_visits.sort(lambda u1,u2: int(u2[1] - u1[1]))
-    
-    recs = [PageView.objects.filter(url=visit[0])[0] for visit in ordered_visits[:20]] 
-    print recs
-    results = [ defang_pageview(pview) for pview in recs if pview["startTime"]]
-    print results
-    ## this might be pretty bad
     return json_response({ 
             "code":200, 
-            "results": results})
+            "results": [defang_pageview(pview) for pview in ordered_pageviews]})
 
 
 def get_to_from_url_plugin(request, n):

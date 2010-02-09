@@ -12,17 +12,18 @@ var Eyebrowser = {
 	this.lastPageID = 0;
 	this.type = 'global';
 	this.mainPanel = mainPanelDiv;
-	this.getRecentPages("#latest", 30, this.type, jQuery("#latest .sign"));
 	this.blankQuery = {
 	    group: "any", //[],
 	    country: "any", //[],
 	    friends: "everyone",
 	    gender: "all",
-	    age: "all"
+	    age: "all",
+	    time: "recently"
 	};
 	this.baseQuery = clone(this.blankQuery);
 	this.initQueryInterface(this.baseQuery, mainPanelDiv);
 	this.getRecs();
+	this.getRecentPages("#latest", 30, this.type, jQuery("#latest .sign"));
     },
     getRecs: function() {
 	let this_ = this;
@@ -34,17 +35,48 @@ var Eyebrowser = {
 		       friends: jQuery('#friends .selected').text(),
 		       gender: jQuery('#gender .selected').attr('data-val'),
 		       age: jQuery('#age .selected').attr('data-val'),
-		       time: jQuery('#friends .selected').text()
+		       time: jQuery('#recently .selected').text()
 		   }, function(data){
 		       jQuery("#loadimg").hide();
 		       if (data.code == 200) {
-			   console.log(data.results);			   
-
+			   this_.addQueryRecs(data.results);
 		       }
 		       else {
 			   // console.log("yaaaa!!!H!H!H!" + data.code + " ");
 		       }
 		   }, "json");
+    },
+    addQueryRecs: function(sites){
+	jQuery('#mainpanel').html('');		      
+	sites.map(function(site){
+		      if (site.title && site.url){			  
+			  let np = jQuery('#templates>.recpage').clone();
+			  
+			  np.find('.colorbox').css({'background-color': 'hsl(' + site.hue + ',100%, 50%)'});
+			  
+			  let title = np.find('.title')
+			      .text(site.title)
+			      .attr({'href':site.url});
+
+			  let link = np.find('.url')
+			      .text(site.url)
+			      .attr({'href':site.url});
+
+			  np.find('.stats').click(
+			      function(){
+				  jQuery(this).text('loading...');
+
+				  
+
+
+				  jQuery(this).text('hide stats');
+			      });
+			  
+			  
+			  jQuery('#mainpanel').prepend(np);		      
+		      }
+		  });
+
     },
     initQueryInterface: function(query, div) {	
 	let this_ = this;
@@ -86,7 +118,9 @@ var Eyebrowser = {
 	this.displayQuery(query, div);
     },
     displayQuery: function(query, div) {
-	jQuery(div).html("webpages viewed by " +
+	console.log(query);
+	jQuery(div).html("recommend me websites viewed " +
+			 "<b>" + query['time'] + "</b> by " +
 			 "<b>" + query['friends'] + "</b>" +
 			 " of the <b>" + query['gender'] + "</b> gender(s) " +
 			 " age <b>" + query['age'] + "</b>" +
@@ -107,7 +141,7 @@ var Eyebrowser = {
 		       jQuery("#loadimg").hide();
 		       if (data.code == 200) {
 			   let now = new Date().valueOf();
-			   jQuery(divid).html('<h2>latest sites</h2><br />');
+			   jQuery(divid).html('<h2>latest sites</h2>');
 			   data.results.map(function(item) { this_.addRecentPage(divid, item, now); });
 			   this_.lastPageID = data.results[0].id;
 		       }
@@ -152,6 +186,17 @@ var Eyebrowser = {
 	this.deleteCompare();
     },
     makeCompare: function(){
+	if (this.mode == "compare"){ return;}
+	this.mode = "compare";
+	
+	jQuery('#topnav a:eq(0)').removeClass('selected');	
+	jQuery('#topnav a:eq(1)').addClass('selected');	
+
+	jQuery('#mainpanel, #latest').hide();
+	jQuery('#comparetitle').show();
+	this.initCompareQueryInterface(clone(this.blankQuery), this.baseQuery);	
+    },
+    makePeople: function(){
 	if (this.mode == "compare"){ return;}
 	this.mode = "compare";
 	

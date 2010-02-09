@@ -14,8 +14,8 @@ var WatchmeVisualisation = {
 	this.recentID = 0;
 	this.windowHeight = height;
 	this.windowWidth = width;
-        this.getTopUsers(this.startTime, this.endTime);
-        this.getRecentPages(25, 3600000);
+        this.getHomepage(this.startTime, this.endTime);
+        this.getRecentPages(15, 3600000);
     },
     getRecentPages: function(num){
         var this_ = this;
@@ -31,60 +31,66 @@ var WatchmeVisualisation = {
 		   }, function(data){
 		       jQuery("#loadimg").hide();
 		       if (data.code == 200) {
-			   var newData = data.results;
-			   var html = "";
-			   for (var i = newData.length -1; i >= 0; i--) {
-			       if (newData[i].end > this_.newDataEnd){
-				   html = "<li id=\"" + this_.endTimeRecent + i +  "\">";
-				   if (newData[i].title){
-				       html += "<h6><b><a href=\"" + newData[i].url + "\">" + newData[i].title + "</a></b></h6";
-				   }
-				   else{
-				       html += "<h6><b><a href=\"" + newData[i].url + "\">" + trim(newData[i].url, 43) + "</a></b></h6>";
-				   }
-				   html += "<a href=\"/search/?url=" + newData[i].url + "\"><img src=\"/lib/img/smallbird.jpg\" style=\"margin-left:6px;display:inline-block;margin-top:-5px;\"/></a>";
-				   html += "<br /><h7>" + timeCounterLong((this_.now - newData[i].end)/1000) + " ago";
-				   if (newData[i].user.length > 0) {
-				       html += " by <a href=\"/profile/" + newData[i].user + "\" style=\"font-weight:bold\">" + newData[i].user + "</a>";
-				   }
-				   //if (newData[i].location.length > 0) {
-				   //	   html += " in " + newData[i].location;
-				   //  }
-				   html += "</h7></li>";
-				   jQuery("#latestviews ul").prepend(html);
-				   jQuery("#" + this_.endTimeRecent + i).slideDown("slow");
-			       }
-			   }
-			   this_.recentID = newData[0].id;
+			   var now = new Date().valueOf();
+			   data.results.map(function(site) {
+			      this_.addRecentPage('#latest', site, now); 
+			   });
 		       }
 		       else {
 			   return;
-			   //console.log("yaaaa!!!h!h!h!" + data.code + " ");
 		       }
 		   }, "json");
     },
-    getTopUsers: function(startTime, endTime){
+    addRecentPage: function(divid, page, now) {
+	var name = page.title?page.title.substring(0,30):cleanupURL(page.url);
+
+	/*  keep track of times displayed and hide old ones
+	this_.recentTimesArray.unshift(newData[i].end);
+	if (this_.recentTimesArray.length > num){
+	    jQuery("#" + this_.recentTimesArray[num + 1]).hide();
+	    this_.recentTimesArray.pop();   
+	}  */
+
+	var np = jQuery('#templates>.recentpage').clone();
+	np.id = page.id;
+	
+	var title = np.find('.title')
+	    .text(name)
+	    .attr({'href':page.url});
+
+	var time = np.find('.time')
+	    .html(timeCounterClock((now - page.end)/1000) + " ago");	
+
+	if (page.user.length > 0){
+	    var user = np.find('.user')
+		.html(" by <a href=\"/profile/" + page.user + 
+		      "\ style=\"float:right\">" + page.user + "</a>"); 
+	}
+	jQuery(divid).append(np);
+    },
+    getHomepage: function(startTime, endTime){
         var this_ = this;
 	jQuery("#loadimg").show();
 	jQuery.get("/get_homepage", {
 		       from: this_.startTime,
-		       to: this_.endTime,
+		       to: this_.endTime
 		   }, function(data){
 		       jQuery("#loadimg").hide();
-		       if (data.code == 200) {
-			   var newData = data.results[0];
-			   this_.drawMiniGraph(data.results[1]);								   
-			   for (var i = 0; i < newData.length; i++) {
-			       if (newData[i].number > 0){
-				   var html = "";
-				   html += "<li>";
-				   html += "<h6><b><a href=\"/profile/" + newData[i].user +  "/\">" + newData[i].user + "</a></b></h6>";
-				   html += "<br /><h7>" + newData[i].number + " webpages today</h7>";
-				   html += "</li>";
-				   jQuery("#topusers").append(html);
-				   jQuery(".listItemSmall:first").slideDown("slow");									   
-			       }
-			   }
+		       if (data.code == 200) {			   this_.drawMiniGraph(data.results[1]);								   
+			   /*
+			    for (var i = 0; i < newData.length; i++) {
+			    if (newData[i].number > 0){
+			    var html = "";
+			    html += "<li>";
+			    html += "<h6><b><a href=\"/profile/" + newData[i].user +  "/\">" + newData[i].user + "</a></b></h6>";
+			    html += "<br /><h7>" + newData[i].number + " webpages today</h7>";
+			    html += "</li>";
+			    jQuery("#topusers").append(html);jQuery(".listItemSmall:first").slideDown("slow");									   
+			    
+			    }
+			    
+			    }
+			    */
 		       }
 		       else {
 			   return;
@@ -243,8 +249,6 @@ var WatchmeVisualisation = {
     }
 };
 jQuery(document).ready(function(){
-			   jQuery('#header').width(window.innerWidth - 15);
-
 			   var myWidth = 840;
 			   var myHeight = 80;
 			   document.getElementById("main").setAttribute("width", myWidth);
