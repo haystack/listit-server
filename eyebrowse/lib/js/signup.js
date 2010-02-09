@@ -32,6 +32,7 @@ var WatchmeVisualisation = {
 		       jQuery("#loadimg").hide();
 		       if (data.code == 200) {
 			   var now = new Date().valueOf();
+			   data.results.length = 5;
 			   data.results.map(function(site) {
 			      this_.addRecentPage('#latest', site, now); 
 			   });

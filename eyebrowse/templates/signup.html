@@ -14,18 +14,29 @@ border:none;
 width:auto;
 }
 .homepageimg  {
-margin-left:22px;
-margin-top:20px;
+margin-left:19px;
+margin-right:8px;
+margin-top:21px;
 }
 #profile_content .recentpage a {text-decoration:none;}
 #profile_content h2 {border-bottom:1px dotted darkgrey;
 padding-left:0;}
-.recentpage {width:auto;}
+.recentpage {width:230px;}
 
 .rightcolumn  {
 display:inline-block;
 padding-left:19px;
 padding-right:11px;
+vertical-align:top;
+}
+#profile_content h2 {margin-top:0px; font-size:16.8px;}
+#profile_content h4 {margin-top:2px}
+.bullet li{
+font-size:12px;
+list-style-type:disc;
+margin-left:20px;
+margin-top:8px;
+padding-left:5px;
 }
 </style>
 {% endblock %}
@@ -90,19 +101,25 @@ padding-right:11px;
     <img src="/lib/img/homepage_2.jpg" class="homepageimg"/>
     <img src="/lib/img/homepage_3.jpg" class="homepageimg"/>
     <div class="rightcolumn" style="width:250px; ">
-      <h2>track your web activities</h2>
-      <ul >
+      <h2>discover new websites</h2>
+      <ul class="bullet">
+	<li>find out what designers look at in Sweden at 4am</li>
+	<li>compare different social groups</li>
+	<li>find websites from people like you around the world</li>
       </ul>
     </div>
     
     <div class="rightcolumn" style="width:250px; ">
-      <h2>visualize stats in the newtab</h2>
-      <ul>
+      <h2>visualize your web activities</h2>
+      <ul class="bullet">
+	<li>see how much time you spend on webpages</li>
+	<li>easily access your most viewed sites</li>
+	<li>see what websites you view the most</li>
       </ul>
     </div>
     
     <div class="rightcolumn" style="width:250px;">
-      <h2>share webtrails with friends</h2>
+      <h2>share web trails with friends</h2>
       <ul id="latest">
       </ul>
     </div>
