@@ -113,6 +113,21 @@ def _get_graph_points_for_results(results, to_msec, from_msec, n):
 
 
 
+def index_of(what, where):
+    try:
+        return [ h[0] for h in where ].index(what)
+    except:
+        pass
+    return None
+
+def index_of_url(what, where):
+    try:
+        return [ h['url'] for h in where ].index(what)
+    except:
+        pass
+    return None
+
+
 def get_title_from_evt(evt):
     foo =  JSONDecoder().decode(JSONDecoder().decode(evt.entitydata)[0]['data'])
     if foo.has_key('title'):
@@ -163,13 +178,13 @@ def _get_visits_per_pageview(pageviews):
   #  return [(visits_per_view.get(view.url,0) + 1) for view in pageviews]
 
 
-def _get_pageviews_ordered_by_count(pageviews, n):
+def _get_pageviews_ordered_by_count(pageviews):
     visits_per_pageview = _get_visits_per_pageview(pageviews) 
     
     ordered_visits = [h for h in visits_per_pageview.iteritems()]
     ordered_visits.sort(lambda u1,u2: int(u2[1] - u1[1]))
     
-    results = [PageView.objects.filter(url=visit[0]).values()[0] for visit in ordered_visits[0:n]]
+    results = [PageView.objects.filter(url=visit[0]).values()[0] for visit in ordered_visits]
     ## Page.objects.filter(url__in=[visit[0] for visit in ordered_visits[:20]]).values()
     return results
 
@@ -374,14 +389,6 @@ def get_top_hosts_compare(end_time, interp, n, req_type):
         times_per_url_first = _get_top_hosts_n(users,first_start,first_end) # can pass multiple or single users
         times_per_url_second = _get_top_hosts_n(users,second_start,second_end)
         
-        def index_of(what, where):
-            try:
-                return [ h[0] for h in where ].index(what)
-            except:
-                #print sys.exc_info()
-                pass
-            return None
-
         results = []
 
         # if the first list is longer than the second list
@@ -407,14 +414,6 @@ def top_and_trending_pages(users, req_type, first_start, first_end, second_start
         times_per_url_first = _get_top_pages_n(users,first_start,first_end)
         times_per_url_second = _get_top_pages_n(users,second_start,second_end)
         
-        def index_of(what, where):
-            try:
-                return [ h[0] for h in where ].index(what)
-            except:
-                # print sys.exc_info()
-                pass
-            return None
-
         results = []
 
         for i in range(len(times_per_url_second)): ## iterate over the more recent dudes
@@ -1120,14 +1119,7 @@ def get_top_friend_and_number_friends_for_url(request, username):
 
 
 # EYEBROWSER
-def get_recommended_sites_matrix(request):
-
-
-    return json_response({ "code":200, "results": return_results })
-
-# this will take a user's selection from a collaborative filtering matrix(x,y) (yet-to-be-built) and return recommended sites
-def get_recommended_sites(request):
-    n = 20
+def _get_query_for_request(request):
     query = "EndUser.objects.filter("
 
     group = request.GET['groups']  # string that corresponds to a tag
@@ -1153,39 +1145,141 @@ def get_recommended_sites(request):
         query += " birthdate__range=(start_date, end_date), "
 
     query.strip(',')  ## remove the comma at the end
-        
-    ## if there is no query just skip all the nasty bits
-    if query == "EndUser.objects.filter(":
-        pageviews = PageView.objects.all()
-    else: 
-        endusers = eval(query + ").values_list('user_id')")  ## , flat=True) < not necissary
-        
-        if friends is "my friends":
-            user = User.objects.filter(username=request.user.username)
-            friends = [friendship.to_friend for friendship in user.friend_set.all()] 
-            endusers = [friend.id for friend in friends if endusers.index(friend.id) ] 
-            # is there a more effecient way of finding overlap between 2 arrays?
+    return query
 
-        if time == "recently":
-            pageviews = PageView.objects.filter(
-                user__in=User.objects.filter(id__in=endusers), startTime__gt=int(time.time() * 1000) - 86400000)
+
+def get_latest_sites_for_filter(request):
+    n = 20
+    query = _get_query_for_request(request)
+    friends = request.GET['friends'] # a string "friends" or "everyone"
+    seen = request.GET['seen'] # 0 for all 1 for has seen
+
+    endusers = eval(query + ").values_list('user_id')") 
+    
+    if friends is "my friends":
+        user = User.objects.filter(username=request.user.username)
+        friends = [friendship.to_friend for friendship in user.friend_set.all()] 
+        endusers = [friend.id for friend in friends if endusers.index(friend.id) ] 
+        # is there a more effecient way of finding overlap between 2 arrays?
+
+    # always recently
+    phits = PageView.objects.filter(user__in=User.objects.filter(id__in=endusers), startTime__gt=int(time.time() * 1000) - 86400000).order_by("-startTime")[0:n].values() 
+                
+    uphit = uniq(phits,lambda x:x["url"],n)
+    results = [ defang_pageview_values(evt) for evt in uphit ]
+
+    # filter out seen sites
+    if request.user.username and seen == "sites not seen":
+        user = User.objects.filter(username=request.user.username)
+
+        user_uniq = uniq(PageView.objects.filter(user=user).values(),lambda x:x["url"],None)
+        results = [site for site in results if not user_uniq[site["url"]]] # not tested  -- maybe user_uniq[site] ??
+
+    if request.GET.has_key('id'):
+        urlID = int(request.GET['id'])
+        filter_results = [site for site in results if int(site['id']) > urlID]
+        if len(filter_results) > 0:
+            return json_response({ "code":200, "results": filter_results })
         else:
-            pageviews = PageView.objects.filter(user__in=User.objects.filter(id__in=endusers))
+            return json_response({ "code":204 })
 
-    # filter out sites seen by user 
-    # if request.user.username:
-    #     user = User.objects.filter(username=request.user.username)
-        
-    #     user_uniq = uniq(PageView.objects.filter(user=user).values(),lambda x:x["url"],None)
-    #     pageviews = [site for site in recs if not user_uniq[site["url"]]] # not tested  -- maybe user_uniq[site] ??
+    return json_response({ "code":200, "results": results })
 
 
-    ## rank the pageviews
-    ordered_pageviews = _get_pageviews_ordered_by_count(pageviews, 20)
 
-    return json_response({ 
-            "code":200, 
-            "results": [defang_pageview(pview) for pview in ordered_pageviews]})
+def get_users_for_filter(request):
+    n = 20
+    query = _get_query_for_request(request)
+    friends = request.GET['friends'] # a string "friends" or "everyone"
+    seen = request.GET['seen'] # 0 for all 1 for has seen
+
+    @cache.region('long_term')
+    def fetch_data(qry, user, bar):
+        if qry == "EndUser.objects.filter(":
+            ## if there is no qry 
+            endusers = EndUser.objects.all()
+        else: 
+            endusers = eval(qry + ").values_list('user_id')") 
+ 
+            if friends is "my friends":
+                user = User.objects.filter(username=request.user.username)
+                friends = [friendship.to_friend for friendship in user.friend_set.all()] 
+                endusers = [friend.id for friend in friends if endusers.index(friend.id) ] 
+        return endusers[:n]
+
+
+     ## forgot the shorter way of doing this
+    if friends is "my friends":
+        usr = request.user.username
+    else:
+        usr = "all"
+
+    results = fetch_data(query, usr, "users")
+    return json_response({"code":200, "results": results})
+
+
+def get_trending_sites(request):
+    n = 20
+    query = _get_query_for_request(request)
+    friends = request.GET['friends'] # a string "friends" or "everyone"
+    seen = request.GET['seen']
+
+    @cache.region('long_term')
+    def fetch_data(qry, user, foo, seen):
+        if qry == "EndUser.objects.filter(":
+            ## if there is no qry 
+            new_pageviews = PageView.objects.filter(startTime__gt=int(time.time() * 1000) - 86400000)
+            old_pageviews = PageView.objects.filter(startTime__range=(int(time.time() * 1000) - (86400000 *2), int(time.time() * 1000) - 86400000))
+
+        else: 
+            endusers = eval(qry + ").values_list('user_id')") 
+ 
+            if friends is "my friends":
+                user = User.objects.filter(username=request.user.username)
+                friends = [friendship.to_friend for friendship in user.friend_set.all()] 
+                endusers = [friend.id for friend in friends if endusers.index(friend.id) ] 
+                # is there a more effecient way of finding overlap between 2 arrays?
+
+            # always recently
+            new_pageviews = PageView.objects.filter(user__in=User.objects.filter(id__in=endusers), startTime__gt=int(time.time() * 1000) - 86400000)
+            old_pageviews = PageView.objects.filter(user__in=User.objects.filter(id__in=endusers), startTime__range=(int(time.time() * 1000) - (86400000 *2), int(time.time() * 1000) - 86400000))
+                
+
+            # filter out sites seen by user 
+            if request.user.username and seen == "sites not seen":
+                user = User.objects.filter(username=request.user.username)
+                
+                user_uniq = uniq(PageView.objects.filter(user=user).values(),lambda x:x["url"],None)
+                new_pageviews = [site for site in new_pageviews if not user_uniq[site["url"]]] # not tested  -- maybe1 user_uniq[site] ??
+                old_pageviews = [site for site in old_pageviews if not user_uniq[site["url"]]] # not tested  -- maybe1 user_uniq[site] ??
+
+        results = []
+
+        ## rank the pageviews
+        ordered_new_pageviews = _get_pageviews_ordered_by_count(new_pageviews)
+        ordered_old_pageviews = _get_pageviews_ordered_by_count(old_pageviews)
+
+        for i in range(len(ordered_new_pageviews)): ## iterate over the more recent dudes
+            old_rank = index_of_url(ordered_new_pageviews[i]['url'],ordered_old_pageviews)
+            if old_rank is not None:
+                diff = - (i - old_rank)  # we want the gain not the difference
+                results.append([ordered_new_pageviews[i], diff] )
+            else:
+                pass
+                    
+        results.sort(key=lambda x: -x[1])        
+        return [defang_pageview(pview[0]) for pview in results[:n]]
+
+     ## forgot the shorter way of doing this
+    if friends is "my friends":
+        usr = request.user.username
+    else:
+        usr = "all"
+
+    results = fetch_data(query, usr, "trending", seen)
+    return json_response({"code":200, "results": results})
+
+
 
 
 def get_to_from_url_plugin(request, n):

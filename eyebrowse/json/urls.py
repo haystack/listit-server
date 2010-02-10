@@ -20,7 +20,9 @@ urlpatterns = patterns('',
                        (r'^get_pulse$', get_pulse),                       
                        (r'^get_plugin_stats$', get_plugin_stats),                       
 
-                       (r'^get_recommended_sites$', get_recommended_sites),                       
+                       (r'^get_trending_sites$', get_trending_sites),                       
+                       (r'^get_latest_sites_for_filter$', get_latest_sites_for_filter),                       
+                       (r'^get_users_for_filter$', get_users_for_filter),                       
 
                        (r'^get_latest_views$', get_latest_views), # graphs
                        (r'^get_to_from_url/(\d+)/$', get_to_from_url_plugin), #for plugin                     

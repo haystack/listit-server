@@ -14,6 +14,7 @@ var Eyebrowser = {
 	this.mainPanel = mainPanelDiv;
 	this.blankQuery = {
 	    group: "any", //[],
+	    seen: "all sites", //[],
 	    country: "any", //[],
 	    friends: "everyone",
 	    gender: "all",
@@ -22,37 +23,36 @@ var Eyebrowser = {
 	};
 	this.baseQuery = clone(this.blankQuery);
 	this.initQueryInterface(this.baseQuery, mainPanelDiv);
-	this.getRecs();
-	this.getRecentPages("#latest", 30, this.type, jQuery("#latest .sign"));
+	this.getRecentPages("#mainpanel", 60, this.type, jQuery("#latest .sign"));
+	this.getRecs('#latest');
     },
-    getRecs: function() {
+    getRecs: function(divid) {
 	let this_ = this;
 	
 	jQuery("#loadimg").show();
-	jQuery.get("/get_recommended_sites", {
+	jQuery.get("/get_trending_sites", {
 		       groups: jQuery('#group').val(),
 		       country: jQuery('#country').val(),
 		       friends: jQuery('#friends .selected').text(),
 		       gender: jQuery('#gender .selected').attr('data-val'),
 		       age: jQuery('#age .selected').attr('data-val'),
-		       time: jQuery('#recently .selected').text()
+		       time: jQuery('#recently .selected').text(),
+		       seen: jQuery('#hasseen .selected').text()
 		   }, function(data){
 		       jQuery("#loadimg").hide();
 		       if (data.code == 200) {
-			   this_.addQueryRecs(data.results);
+			   this_.addQueryRecs(data.results, divid);
 		       }
 		       else {
 			   // console.log("yaaaa!!!H!H!H!" + data.code + " ");
 		       }
 		   }, "json");
     },
-    addQueryRecs: function(sites){
-	jQuery('#mainpanel').html('');		      
+    addQueryRecs: function(sites, divid){
+	jQuery(divid).html('<h2>trending sites</h2>');
 	sites.map(function(site){
 		      if (site.title && site.url){			  
-			  let np = jQuery('#templates>.recpage').clone();
-			  
-			  np.find('.colorbox').css({'background-color': 'hsl(' + site.hue + ',100%, 50%)'});
+			  let np = jQuery('#templates>.recpage').clone();			 
 			  
 			  let title = np.find('.title')
 			      .text(site.title)
@@ -66,17 +66,13 @@ var Eyebrowser = {
 			      function(){
 				  jQuery(this).text('loading...');
 
-				  
-
 
 				  jQuery(this).text('hide stats');
 			      });
-			  
-			  
-			  jQuery('#mainpanel').prepend(np);		      
+			  			  
+			  jQuery(divid).append(np);		      
 		      }
 		  });
-
     },
     initQueryInterface: function(query, div) {	
 	let this_ = this;
@@ -109,18 +105,16 @@ var Eyebrowser = {
 	jQuery('#report').append(jQuery('#latest').clone().addClass('compare').show().css({'float':'left'}));
 	jQuery('#report').append(jQuery('#latest').clone().addClass('compare').show());
     },
-    refreshQueryResults: function(){	
-	// need to do real filtering/display stuff here
-    },    
     refreshQueryInterface: function(query, div){
 	let this_ = this;
-	this.refreshQueryResults(query);
+	//this.refreshQueryResults(query);
 	this.displayQuery(query, div);
     },
     displayQuery: function(query, div) {
-	console.log(query);
-	jQuery(div).html("recommend me websites viewed " +
-			 "<b>" + query['time'] + "</b> by " +
+	// TODO
+
+	jQuery(div).html("showing websites viewed " +
+			// "<b>" + query['time'] + "</b> by " +
 			 "<b>" + query['friends'] + "</b>" +
 			 " of the <b>" + query['gender'] + "</b> gender(s) " +
 			 " age <b>" + query['age'] + "</b>" +
@@ -132,16 +126,41 @@ var Eyebrowser = {
 	jQuery("#loadimg").show();
 
 	// should get latest for the current query
-	jQuery.get("/get_latest_views", {
+	jQuery.get("/get_latest_sites_for_filter", {
 		       id: this_.lastPageID,
-		       type: type,
-		       num: num,
-		       username: 'zamiang'
+		       groups: jQuery('#group').val(),
+		       country: jQuery('#country').val(),
+		       friends: jQuery('#friends .selected').text(),
+		       gender: jQuery('#gender .selected').attr('data-val'),
+		       age: jQuery('#age .selected').attr('data-val'),
+		       time: jQuery('#recently .selected').text(),
+		       seen: jQuery('#hasseen .selected').text()
 		   }, function(data){
 		       jQuery("#loadimg").hide();
 		       if (data.code == 200) {
 			   let now = new Date().valueOf();
-			   jQuery(divid).html('<h2>latest sites</h2>');
+			   data.results.map(function(item) { this_.addRecentPage(divid, item, now); });
+			   this_.lastPageID = data.results[0].id;
+		       }
+		   }, "json");
+    },
+    getUsers: function(divid, num, type){
+        let this_ = this;
+	jQuery("#loadimg").show();
+
+	// should get latest for the current query
+	jQuery.get("/get_users_for_filter", {
+		       groups: jQuery('#group').val(),
+		       country: jQuery('#country').val(),
+		       friends: jQuery('#friends .selected').text(),
+		       gender: jQuery('#gender .selected').attr('data-val'),
+		       age: jQuery('#age .selected').attr('data-val'),
+		       time: jQuery('#recently .selected').text(),
+		       seen: jQuery('#hasseen .selected').text()
+		   }, function(data){
+		       jQuery("#loadimg").hide();
+		       if (data.code == 200) {
+			   let now = new Date().valueOf();
 			   data.results.map(function(item) { this_.addRecentPage(divid, item, now); });
 			   this_.lastPageID = data.results[0].id;
 		       }
@@ -160,6 +179,10 @@ var Eyebrowser = {
 	let np = jQuery('#templates>.recentpage').clone();
 	np.id = page.id;
 	
+	np.find('.colorbox').css({'background-color': 'hsl(' + page.hue + ',100%, 50%)'});
+
+	//console.log(page.hue);
+
 	let title = np.find('.title')
 	    .text(name)
 	    .attr({'href':page.url});
@@ -172,6 +195,15 @@ var Eyebrowser = {
 		.html(" by <a href=\"/profile/" + page.user + 
 		      "\ style=\"float:right\">" + page.user + "</a>"); 
 	}
+	
+	np.find('.stats').click(
+	    function(){
+		jQuery(this).text('loading...');
+		
+		
+		jQuery(this).text('hide stats');
+	    });
+
 	jQuery(divid).append(np);
     },
     makeSearch: function(){
@@ -205,7 +237,7 @@ var Eyebrowser = {
 
 	jQuery('#mainpanel, #latest').hide();
 	jQuery('#comparetitle').show();
-	this.initCompareQueryInterface(clone(this.blankQuery), this.baseQuery);	
+	//this.initCompareQueryInterface(clone(this.blankQuery), this.baseQuery);	
     },
     deleteCompare: function() {
 	jQuery('.subpanel:eq(1)').remove(); // TODO delete everything past 0 

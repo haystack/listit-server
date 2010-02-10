@@ -7,193 +7,219 @@
 
 {% block content %}
 <div id="loadimg"></div>
-<div id="report">
-<div class="logo" style="padding-bottom:0px">
- <img src="lib/img/eyebrowser.png" /> 
- <h1 style="font-size: 35px; margin-left: 85px;">find new sites through the people that view them</h1>
-
-</div>
-
-<a style="float:right" onclick="jQuery('#topnav, #toppanel').slideToggle('300')">show / hide search</a>
-<br />
-<div id="topnav">
-  <a onclick="viz.makeSearch()" class="selected">find sites</a>
- <!-- <a onclick="viz.makeCompare()">compare</a> -->
-  <a onclick="viz.makePeople()">find people</a>
-</div>
-
-
-<div id="toppanel">
-  <div id="search">
-    <!--
-    <div id="searchinfo">      
-      <a class="add" onclick="editprofile()">+ save current search</a>
-      <a class="add" onclick="editprofile()">+ view saved searches</a>
-    </div>
-
-    <br />
-    -->
-    <div class="panel">
-      <div id="comparetitle">vs</div>
-      <div class="subpanel">
-	{% if groups %}
-	<div class="item">
-	  <div class="name">groups</div>
-	  <select id="group" name="group">
-	    <option value="any">any</option>
-	    {% for group in groups %}
-	    <option value="{{ group }}">{{ group }}</option>
-	    {% endfor %}
-	  </select>
-	  <!--<a class="add">add</a>-->
-	</div>
-	{% endif %}	
-	{% if countries %}
-	<div class="item">
-	  <div class="name">country</div>
-	  <select id="country" name="country">
-	    <option value="any">any</option>
-	    {% for country in countries %}
-	    <option value="{{ country.name }}">{{ country.printable_name }}</option>
-	    {% endfor %}
-	  </select>
-	  <!--<a class="add">add</a>-->
-	</div>
-	{% endif %}	
-	<div class="item" id="friends">
-	  <div class="name">friends</div>
-	  <a class="add">my friends</a>
-	  <a class="add">everyone</a>
-	</div>
-	<div class="item" id="gender">
-	  <div class="name">gender</div>
-	  <a class="add" data-val="M">male</a>
-	  <a class="add" data-val="F">female</a>
-	  <a class="add" data-val="R">robot</a>
-	  <a class="add" data-val="all">all</a>
-	</div>
-	<div class="item" id="age">
-	  <div class="name">age</div>
-	  <a class="add" data-val="[0, 15]">under 15</a>
-	  <a class="add" data-val="[15, 17]">15-17</a>
-	  <a class="add" data-val="[18, 21]">18-21</a>
-	  <a class="add" data-val="[22, 34]">22-34</a>
-	  <a class="add" data-val="[35, 44]">35-44</a>
-	  <a class="add" data-val="[45, 54]">45-54</a>
-	  <a class="add" data-val="[55, 64]">55-64</a>
-	  <a class="add" data-val="[65, 110]">65+</a>
-	  <a class="add" data-val="all">all</a>
-	</div>
-	<div class="item" id="time">
-	  <div class="name">time</div>
-	  <a class="add">recently</a>
-	  <a class="add">overall</a>
-	</div>
-      </div>  
-    </div>    
+<div id="report" style="width:100%">
+  <div class="logo" style="padding-bottom:0px">
+    <img src="lib/img/eyebrowser.png" /> 
+    <h1 style="font-size: 35px; margin-left: 85px;">find new sites through the people that view them</h1>    
   </div>
-</div>
 
-<div id="query" onclick="viz.getRecs()"></div>  
-<input type="submit" value="recommend me some sites!"
-onclick="viz.getRecs()" style="margin-top:-14px;
-width:100%;display:block;"></input>
-<br />
-<br />
-<h3><b>recommended sites:</b></h3>
+  <div id="topnav">
+    <a onclick="viz.makeSearch()" class="selected">find sites</a>
+    <!-- <a onclick="viz.makeCompare()">compare</a> -->
+    <a onclick="viz.makePeople()">find people</a>
+  </div>
 
-<div id="refresh">refresh in <span class="val">30s</span></div>
-<br />
-<div id="latest">  
-</div>
+  <div id="toppanel">
+    <h2>filter</h2>
+    <div id="search">
+      <div class="panel">
+	<div class="subpanel">
+	  <div class="item" id="hasseen">
+	    <div class="name" style="display:none">seen</div>
+	    <a class="add">all sites</a>
+	    <a class="add">sites not seen</a>
+	  </div>
 
-<!--
-<div id="custom">
-  show:
-  <a onclick="collapse()" class="selected">collapsed</a>
-  <a onclick="expand()">expanded</a>
-</div>
--->
+	  <div class="item" id="friends">
+	    <div class="name">friends</div>
+	    <br />
+	    <a class="add">my friends</a>
+	    <a class="add">everyone</a>
+	  </div>
+	  <div class="item" id="gender">
+	    <div class="name">gender</div>
+	    <br />
+	    <a class="add" data-val="M">male</a>
+	    <a class="add" data-val="F">female</a>
+	    <a class="add" data-val="R">robot</a>
+	    <a class="add" data-val="all">all</a>
+	  </div>
+	  
+	  <div class="item" id="age">
+	    <div class="name">age</div>
+	    <br />
+	    <a class="add" data-val="[0, 15]">under 15</a>
+	    <a class="add" data-val="[15, 17]">15-17</a>
+	    <a class="add" data-val="[18, 21]">18-21</a>
+	    <a class="add" data-val="[22, 34]">22-34</a>
+	    <a class="add" data-val="[35, 44]">35-44</a>
+	    <a class="add" data-val="[45, 54]">45-54</a>
+	    <a class="add" data-val="[55, 64]">55-64</a>
+	    <a class="add" data-val="[65, 110]">65+</a>
+	    <a class="add" data-val="all">all</a>
+	  </div>
+	  {% if groups %}
+	  <div class="item">
+	    <div class="name">groups</div>
+	    <select id="group" name="group">
+	      <option value="any">any</option>
+	      {% for group in groups %}
+	      <option value="{{ group }}">{{ group }}</option>
+	      {% endfor %}
+	    </select>
+	    <!--<a class="add">add</a>-->
+	  </div>
+	  {% endif %}	
+	  {% if countries %}
+	  <div class="item">
+	    <div class="name">country</div>
+	    <select id="country" name="country">
+	      <option value="any">any</option>
+	      {% for country in countries %}
+	      <option value="{{ country.name }}">{{ country.printable_name }}</option>
+	      {% endfor %}
+	    </select>
+	    <!--<a class="add">add</a>-->
+	  </div>
+	  {% endif %}	
+	  <!--
+	     <div class="item" id="time">
+	       <div class="name">time</div>
+	       <br />
+	       <a class="add">recently</a>
+	       <a class="add">overall</a>
+	     </div>
+	     -->
+	</div>  
+      </div>    
+    </div>
+  </div>
 
-<div id="mainpanel" style="border-left:solid 1px #eee">  
-  <div id="recs">
-    <div id="items">
-      <!-- each item should look like this -->
-      <!--	   
-      <div class="item">
-	<img src="/lib/img/listit.png" />
-	<cite>Cory Doctorow / <a HREF="http://www.boingboing.net/">Boing Boing</a>:</cite>
-	<h3>
-	  <a href="http://www.boingboing.net/2010/01/22/oreilly-drops-ebook.html">
-	    O'Reilly drops ebook DRM, sees 104% increase in sales
-	  </a>
-	</h3>
-	It's been 18 months since O'Reilly, the world's largest
-	publisher of tech books, stopped using DRM on its ebooks.&nbsp;
-	In the intervening time, O'Reilly's ebook sales have increased
-	by 104 percent.&nbsp; Now, when you talk about ebooks and DRM
-	&hellip;
-	<div class="footer">
-	  <a>+</a>
-	  <span class="discuss">Discussion:</span>
-	  <a>TOC Combined Feed</A>
-	</div>
-      </div>	  
-      -->
+  <a style="text-align:left; margin:12px;" onclick="jQuery('#toppanel').slideToggle('300')">show / hide filter</a>
+  <br />
+  <div id="query" onclick="viz.getRecs()"></div>  
+  <br />
+  <!--
+     <input type="submit" value="recommend me some sites!"
+	    onclick="viz.getRecs()" style="margin-top:-14px;
+					   width:100%;display:block;"></input>
+     <br />
+     <br />
+     <h3><b>recommended sites:</b></h3>
+
+     <div id="refresh">refresh in <span class="val">30s</span></div>
+     <br />
+     -->
+  <div id="latest">  
+  </div>
+
+  <div id="mainpanel">  
+    <div id="recs">
+      <div id="items">
+      </div>
     </div>
   </div>
   
-  <!--
-  <div id="addGroups">
-    <a onclick="addGroups()"><< back home</a>
-    <h1>Add Groups</h1>
-    <div class="bodytext">
-      Adding yourself to groups will help us recommend
-      sites to you. Soon you will be able to also filter
-      sites by location and time viewed. You will
-      be able to make searches like: 'hey eyebrowse, what
-      are designers in Sweden looking at after 1am on
-      weekdays?'
+  <div id="templates">
+    <div class="recentpage">
+      <div class="colorbox"></div>
+      <a href="" class="title"></a><br />
+      <div class="time"></div>
+      <div class="user"></div><b>&nbsp;|&nbsp;</b>
+      <a class="stats"><b>show stats</b></a>
     </div>
-    <br />
-    custom: <input type="text" name="misc" id="groupstextinput" style="display:inline-block; width:217px;margin:4px;" value="nytimes.com" onkeypress="{if (event.keyCode==13)addURL()}"/>
-    <br />    
-    <input type="checkbox" name="hacker">hacker</input><br />      
-    <input type="checkbox" name="web2">web2</input><br />      
-    <input type="checkbox" name="designer">designer</input><br />      
-    <input type="checkbox" name="cinemaniac">cinemaniac</input><br />            
-    <input type="checkbox" name="artist">artist</input><br />      
-    <input type="checkbox" name="gamer">gamer</input><br />      
-    <input type="checkbox" name="pollitics">politics</input><br />            
-    <input type="checkbox" name="healthy_hippie">hippie</input><br />      
-    <input type="checkbox" name="crafty_craftsman">craftsman</input><br />      
-    <input type="checkbox" name="money">business</input><br />      
-    <input type="checkbox" name="music_junkie">music-junkie</input><br />            
-    <input type="checkbox" name="sports">sports</input><br />      
-    <input type="checkbox" name="religious">religious</input><br />      
-    <input type="checkbox" name="scholarly">scholarly</input><br />            
-    <input type="checkbox" name="scientist">scientist</input><br />      
-    <input type="submit" id="groupAdd" value="add groups" 
-	   onkeypress="{if (event.keyCode==13)addURL()}" 
-	   onClick="addGroupsSubmit()" />      
+    <div class="user">
+      <div class="img"></div>
+      <a href="" class="title"></a><br />
+      <div class="time"></div>
+      <div class="user"></div><b>&nbsp;|&nbsp;</b>
+    </div>
+    <div class="recpage">
+      <a href="" class="title"></a><br />
+      <!-- <a href="" class="url"></a>-->
+    </div>
+    <div class="filterquery">
+      <a class="name"></a>
+    </div>
   </div>
-  -->
-</div>
+  {% endblock %}
 
-<div id="templates">
-  <div class="recentpage">
-    <a href="" class="title"></a>
-    <div class="time"></div>
-    <div class="user"></div>
-  </div>
-  <div class="recpage">
-    <div class="colorbox"></div>
-    <a href="" class="title"></a><br />
-    <a href="" class="url"></a><b>&nbsp;|&nbsp;</b>
-    <a class="stats"><b>show stats</b></a>
-  </div>
-  <div class="filterquery">
-    <a class="name"></a>
-  </div>
-</div>
-{% endblock %}
+
+  <!--
+     <div id="custom">
+       show:
+       <a onclick="collapse()" class="selected">collapsed</a>
+       <a onclick="expand()">expanded</a>
+     </div>
+     -->
+
+  <!--
+     <div id="searchinfo">      
+       <a class="add" onclick="editprofile()">+ save current search</a>
+       <a class="add" onclick="editprofile()">+ view saved searches</a>
+     </div>
+     
+     <br />
+     -->
+
+
+
+  <!--
+     <div id="addGroups">
+       <a onclick="addGroups()"><< back home</a>
+				   <h1>Add Groups</h1>
+				   <div class="bodytext">
+				     Adding yourself to groups will help us recommend
+				     sites to you. Soon you will be able to also filter
+				     sites by location and time viewed. You will
+				     be able to make searches like: 'hey eyebrowse, what
+				     are designers in Sweden looking at after 1am on
+				     weekdays?'
+				   </div>
+				   <br />
+				   custom: <input type="text" name="misc" id="groupstextinput" style="display:inline-block; width:217px;margin:4px;" value="nytimes.com" onkeypress="{if (event.keyCode==13)addURL()}"/>
+				   <br />    
+				   <input type="checkbox" name="hacker">hacker</input><br />      
+				   <input type="checkbox" name="web2">web2</input><br />      
+				   <input type="checkbox" name="designer">designer</input><br />      
+				   <input type="checkbox" name="cinemaniac">cinemaniac</input><br />            
+				   <input type="checkbox" name="artist">artist</input><br />      
+				   <input type="checkbox" name="gamer">gamer</input><br />      
+				   <input type="checkbox" name="pollitics">politics</input><br />            
+				   <input type="checkbox" name="healthy_hippie">hippie</input><br />      
+				   <input type="checkbox" name="crafty_craftsman">craftsman</input><br />      
+				   <input type="checkbox" name="money">business</input><br />      
+				   <input type="checkbox" name="music_junkie">music-junkie</input><br />            
+				   <input type="checkbox" name="sports">sports</input><br />      
+				   <input type="checkbox" name="religious">religious</input><br />      
+				   <input type="checkbox" name="scholarly">scholarly</input><br />            
+				   <input type="checkbox" name="scientist">scientist</input><br />      
+				   <input type="submit" id="groupAdd" value="add groups" 
+					  onkeypress="{if (event.keyCode==13)addURL()}" 
+					  onClick="addGroupsSubmit()" />      
+     </div>
+     -->
+
+
+				   <!-- each item should look like this -->
+				   <!--	   
+				      <div class="item">
+					<img src="/lib/img/listit.png" />
+					<cite>Cory Doctorow / <a HREF="http://www.boingboing.net/">Boing Boing</a>:</cite>
+					<h3>
+					  <a href="http://www.boingboing.net/2010/01/22/oreilly-drops-ebook.html">
+					    O'Reilly drops ebook DRM, sees 104% increase in sales
+					  </a>
+					</h3>
+					It's been 18 months since O'Reilly, the world's largest
+					publisher of tech books, stopped using DRM on its ebooks.&nbsp;
+					In the intervening time, O'Reilly's ebook sales have increased
+					by 104 percent.&nbsp; Now, when you talk about ebooks and DRM
+					&hellip;
+					<div class="footer">
+					  <a>+</a>
+					  <span class="discuss">Discussion:</span>
+					  <a>TOC Combined Feed</A>
+					</div>
+				      </div>	  
+				      -->
