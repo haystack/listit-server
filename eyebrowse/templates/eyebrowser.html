@@ -6,7 +6,8 @@
 {% block name %}eyebrowser{% endblock %}
 
 {% block content %}
-<div id="loadimg"></div>
+<div id="trendingloading" class="loadimg"></div>
+<div id="mainloading" class="loadimg"></div>
 <div id="report" style="width:100%">
   <div class="logo" style="padding-bottom:0px">
     <img src="lib/img/eyebrowser.png" /> 
@@ -110,7 +111,8 @@
      <div id="refresh">refresh in <span class="val">30s</span></div>
      <br />
      -->
-  <div id="latest">  
+  <div id="trending">  
+    <h2>trending sites</h2>
   </div>
 
   <div id="mainpanel">  
@@ -129,10 +131,22 @@
       <a class="stats"><b>show stats</b></a>
     </div>
     <div class="user">
-      <div class="img"></div>
-      <a href="" class="title"></a><br />
-      <div class="time"></div>
-      <div class="user"></div><b>&nbsp;|&nbsp;</b>
+      <img src="" class="profileimage" />			
+      <div class="userhead">
+	<a href="" class="title"></a>
+	<a class="follow" href="">follow 
+	  <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/>
+	</a>	
+	<span class="isfollowing"></span> 
+	</a>	
+	<br />
+	<div class="number"></div>
+	<div class="age"><span class="italicsname">age:</span>&nbsp;</div>
+	<div class="location"><span class="italicsname">location:</span>&nbsp;</div>
+	<div class="tags"><span class="italicsname">tags:</span>&nbsp;</div>
+	<div class="website"><span class="italicsname">website:</span>&nbsp;</div>
+	<div class="latest"><span class="italicsname">latest:</span>&nbsp;</div>
+      </div>
     </div>
     <div class="recpage">
       <a href="" class="title"></a><br />

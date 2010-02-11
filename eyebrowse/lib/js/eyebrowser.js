@@ -8,9 +8,9 @@ function clone(obj){ // TODO: is there something like this in plumutil??
 }
 
 var Eyebrowser = {
-    initialize: function(mainPanelDiv) {
-	this.lastPageID = 0;
-	this.type = 'global';
+    initialize: function(mainPanelDiv, type) {
+	this.lastPageID = 0;	
+	this.type = type;
 	this.mainPanel = mainPanelDiv;
 	this.blankQuery = {
 	    group: "any", //[],
@@ -23,13 +23,71 @@ var Eyebrowser = {
 	};
 	this.baseQuery = clone(this.blankQuery);
 	this.initQueryInterface(this.baseQuery, mainPanelDiv);
-	this.getRecentPages("#mainpanel", 60, this.type, jQuery("#latest .sign"));
-	this.getRecs('#latest');
+    },
+    initQueryInterface: function(query, div) {	
+	let this_ = this;
+	jQuery("#search .subpanel a.add").each(
+	    function(i, item) {
+		let type = jQuery(item).parent().find('.name').text();
+		if (query[type] == jQuery(item).text()){ jQuery(item).addClass('selected');}
+		jQuery(item).click(
+		    function() {
+			jQuery(this).parent().find('a.add').each(function(i, item){ jQuery(item).removeClass('selected');});
+			jQuery(this).addClass('selected');
+			query[type] = jQuery(this).text();
+			this_.refreshQueryInterface(query, div);
+			this_.runQuery(this_.type);
+		    });
+	    });	
+
+	jQuery("#search select").each(
+	    function(i, item) {
+		jQuery(item).change(
+		    function(){
+			query[jQuery(this).attr('name')] = jQuery(this).val();
+			this_.refreshQueryInterface(query, div);
+			this_.runQuery(this_.type);
+		    });
+	    });
+	
+	this.refreshQueryInterface(query, div);
+	this.runQuery(this.type);
+    },
+    runQuery: function(type){
+	if (type == "pages") {	   
+	    jQuery('#trending').show();
+	    this.getRecentPages("#mainpanel", 60);	
+	    this.getRecs('#trending');
+	} else if (type == "users") {
+	    jQuery('#trending').hide();
+	    this.getUsers("#mainpanel", 40);
+	}
+    },
+    initCompareQueryInterface: function(blankQuery, baseQuery){	  
+	jQuery('.panel').append(jQuery('.subpanel').clone().addClass('compare'));
+	
+	jQuery('#report').append(jQuery('#trending').clone().addClass('compare').show().css({'float':'left'}));
+	jQuery('#report').append(jQuery('#trending').clone().addClass('compare').show());
+    },
+    refreshQueryInterface: function(query, div){
+	let this_ = this;
+	this.displayQuery(query, div, " websites viewed ");
+    },
+    displayQuery: function(query, div, type) {
+	// TODO
+
+	jQuery(div).html("showing " + type +
+			// "<b>" + query['time'] + "</b> by " +
+			 "<b>" + query['friends'] + "</b>" +
+			 " of the <b>" + query['gender'] + "</b> gender(s) " +
+			 " age <b>" + query['age'] + "</b>" +
+			 " in <b>" + query['country'] + "</b> country" +
+			 " and <b>" + query['group'] + "</b> group");
     },
     getRecs: function(divid) {
 	let this_ = this;
 	
-	jQuery("#loadimg").show();
+	this.trendingLoading(true);
 	jQuery.get("/get_trending_sites", {
 		       groups: jQuery('#group').val(),
 		       country: jQuery('#country').val(),
@@ -41,7 +99,9 @@ var Eyebrowser = {
 		   }, function(data){
 		       jQuery("#loadimg").hide();
 		       if (data.code == 200) {
+			   jQuery(divid).html("");
 			   this_.addQueryRecs(data.results, divid);
+			   this_.trendingLoading(false);
 		       }
 		       else {
 			   // console.log("yaaaa!!!H!H!H!" + data.code + " ");
@@ -74,58 +134,63 @@ var Eyebrowser = {
 		      }
 		  });
     },
-    initQueryInterface: function(query, div) {	
+    getUsers: function(divid, num){
+	// should get trending for the current query
 	let this_ = this;
-	jQuery("#search .subpanel a.add").each(
-	    function(i, item) {
-		let type = jQuery(item).parent().find('.name').text();
-		if (query[type] == jQuery(item).text()){ jQuery(item).addClass('selected');}
-		jQuery(item).click(
-		    function() {
-			jQuery(this).parent().find('a.add').each(function(i, item){ jQuery(item).removeClass('selected');});
-			jQuery(this).addClass('selected');
-			query[type] = jQuery(this).text();
-			this_.refreshQueryInterface(query, div);
-		    });
-	    });	
-
-	jQuery("#search select").each(
-	    function(i, item) {
-		jQuery(item).click(
-		    function(){
-			query[jQuery(this).attr('name')] = jQuery(this).val();
-			this_.refreshQueryInterface(query, div);
-		    });
-	    });
-	this.refreshQueryInterface(query, div);
+	this.mainLoading(true);
+	jQuery.get("/get_top_users_for_filter", {
+		       id: this_.lastPageID,
+		       groups: jQuery('#group').val(),
+		       country: jQuery('#country').val(),
+		       friends: jQuery('#friends .selected').text(),
+		       gender: jQuery('#gender .selected').attr('data-val'),
+		       age: jQuery('#age .selected').attr('data-val'),
+		       time: jQuery('#recently .selected').text(),
+		       seen: jQuery('#hasseen .selected').text()
+		   }, function(data){
+		       jQuery("#loadimg").hide();
+		       if (data.code == 200) {
+			   jQuery(divid).html("");
+			   data.results.map(function(item) { this_.addUser(divid, item[0], item[1]); });
+			   this_.mainLoading(false);
+		       }
+		   }, "json");
     },
-    initCompareQueryInterface: function(blankQuery, baseQuery){	  
-	jQuery('.panel').append(jQuery('.subpanel').clone().addClass('compare'));
+    addUser: function(divid, user, number){
+	let np = jQuery('#templates>.user').clone();			 
 	
-	jQuery('#report').append(jQuery('#latest').clone().addClass('compare').show().css({'float':'left'}));
-	jQuery('#report').append(jQuery('#latest').clone().addClass('compare').show());
-    },
-    refreshQueryInterface: function(query, div){
-	let this_ = this;
-	//this.refreshQueryResults(query);
-	this.displayQuery(query, div);
-    },
-    displayQuery: function(query, div) {
-	// TODO
+	let title = np.find('.title')
+	    .text(user.username)
+	    .attr({'href':"/profile/" + user.username});
 
-	jQuery(div).html("showing websites viewed " +
-			// "<b>" + query['time'] + "</b> by " +
-			 "<b>" + query['friends'] + "</b>" +
-			 " of the <b>" + query['gender'] + "</b> gender(s) " +
-			 " age <b>" + query['age'] + "</b>" +
-			 " in <b>" + query['country'] + "</b> country" +
-			 " and <b>" + query['group'] + "</b> group");
+	let img = np.find('img.profileimage')
+	    .attr({'src':"/profiles/" + user.id + ".jpg"});
+
+	let number = np.find('.number').append("<b>" + number + "</b>");		
+
+	if (user.is_friend == 0) { 
+	    np.find('a.follow').attr({'href':"/friend/add?username=" + user.username});
+	} else { np.find('a.follow').html('');}
+
+	if (user.is_followed_by == 1) { np.find('.isfollowing').text('is following you');}
+	if (user.age){np.find('.age').append(user.age[0]);} else  { np.find('.age').html("");};	
+	if (user.location){ np.find('.location').append(user.location); } else { np.find('.location').html("");};		
+	if (user.tags) {np.find('.tags').append(user.tags); } else { np.find('.tags').html(''); };	
+	if (user.website) { 
+	    np.find('.website')
+		.html("<span class=\"italicsname\">website:</span>&nbsp;<a href=" + user.website + ">" + user.website + "</a>");}
+	else {  np.find('.website').html("");};		
+
+	if (user.latest_view[0]) { np.find('.latest').html("<span class=\"italicsname\">last viewed:</span>&nbsp;<a href=" + user.latest_view[0].url + ">" + user.latest_view[0].url + "</a>"); }
+	else { np.find('.latest').html(""); }
+		
+	jQuery(divid).append(np);		      
     },
-    getRecentPages: function(divid, num, type){
+    getRecentPages: function(divid, num){
         let this_ = this;
-	jQuery("#loadimg").show();
-
+	this.mainLoading(true);
 	// should get latest for the current query
+
 	jQuery.get("/get_latest_sites_for_filter", {
 		       id: this_.lastPageID,
 		       groups: jQuery('#group').val(),
@@ -141,28 +206,7 @@ var Eyebrowser = {
 			   let now = new Date().valueOf();
 			   data.results.map(function(item) { this_.addRecentPage(divid, item, now); });
 			   this_.lastPageID = data.results[0].id;
-		       }
-		   }, "json");
-    },
-    getUsers: function(divid, num, type){
-        let this_ = this;
-	jQuery("#loadimg").show();
-
-	// should get latest for the current query
-	jQuery.get("/get_users_for_filter", {
-		       groups: jQuery('#group').val(),
-		       country: jQuery('#country').val(),
-		       friends: jQuery('#friends .selected').text(),
-		       gender: jQuery('#gender .selected').attr('data-val'),
-		       age: jQuery('#age .selected').attr('data-val'),
-		       time: jQuery('#recently .selected').text(),
-		       seen: jQuery('#hasseen .selected').text()
-		   }, function(data){
-		       jQuery("#loadimg").hide();
-		       if (data.code == 200) {
-			   let now = new Date().valueOf();
-			   data.results.map(function(item) { this_.addRecentPage(divid, item, now); });
-			   this_.lastPageID = data.results[0].id;
+			   this_.mainLoading(false);
 		       }
 		   }, "json");
     },
@@ -180,8 +224,6 @@ var Eyebrowser = {
 	np.id = page.id;
 	
 	np.find('.colorbox').css({'background-color': 'hsl(' + page.hue + ',100%, 50%)'});
-
-	//console.log(page.hue);
 
 	let title = np.find('.title')
 	    .text(name)
@@ -207,47 +249,70 @@ var Eyebrowser = {
 	jQuery(divid).append(np);
     },
     makeSearch: function(){
-	if (this.mode == "search"){ return;}
-	this.mode = "search";
+	if (this.type == "pages"){ return;}
+	this.type = "pages";
 
 	jQuery('#topnav a:eq(1)').removeClass('selected');	
 	jQuery('#topnav a:eq(0)').addClass('selected');	
 
-	jQuery('#mainpanel, #latest').show();
-	jQuery('#comparetitle, .compare').hide();
-	this.deleteCompare();
+	jQuery('#mainpanel, #trending').show();
+	jQuery('#mainpanel').css({width:'44%'}).html('');
+	this.lastPageID = 0;
+	this.runQuery(this.type);
     },
     makeCompare: function(){
-	if (this.mode == "compare"){ return;}
-	this.mode = "compare";
+	if (this.type == "compare"){ return;}
+	this.type = "compare";
 	
 	jQuery('#topnav a:eq(0)').removeClass('selected');	
 	jQuery('#topnav a:eq(1)').addClass('selected');	
 
-	jQuery('#mainpanel, #latest').hide();
-	jQuery('#comparetitle').show();
+	jQuery('#trending').hide();
+	jQuery('#comparetitle').show();	this.runQuery(this.type);
 	this.initCompareQueryInterface(clone(this.blankQuery), this.baseQuery);	
     },
     makePeople: function(){
-	if (this.mode == "compare"){ return;}
-	this.mode = "compare";
+	if (this.type == "users"){ return;}
+	this.type = "users";
 	
 	jQuery('#topnav a:eq(0)').removeClass('selected');	
 	jQuery('#topnav a:eq(1)').addClass('selected');	
 
-	jQuery('#mainpanel, #latest').hide();
-	jQuery('#comparetitle').show();
-	//this.initCompareQueryInterface(clone(this.blankQuery), this.baseQuery);	
+	jQuery('#trending, #trendingloading, #mainloading').hide();
+	jQuery('#mainpanel').css({width:'80%'});
+	this.runQuery(this.type);
     },
     deleteCompare: function() {
 	jQuery('.subpanel:eq(1)').remove(); // TODO delete everything past 0 
+    },
+    mainLoading: function(isloading) {
+	if (isloading) {
+	    jQuery('#mainpanel').css({opacity:0.4});
+	    jQuery('#mainloading')
+		.show()
+		.css({top:'400px', left: jQuery('#query').position().left*2 });
+	} else {
+	    jQuery('#mainpanel').css({opacity:1});
+	    jQuery('#mainloading').hide();	    
+	}
+    },
+    trendingLoading: function(isloading) {
+	if (isloading) {
+	    jQuery('#trending').css({opacity:0.4});
+	    jQuery('#trendingloading')
+		.show()
+		.css({top:'400px', left: jQuery('#trending').position().left + (jQuery('#trending').width()/2)  });
+	} else {
+	    jQuery('#trending').css({opacity:1});
+	    jQuery('#trendingloading').hide();	    
+	}
     }
+
 };
 
 jQuery(document).ready(
     function(){	
-	var currentDate = new Date();				   
-	self.viz = newify(Eyebrowser, '#query');
+	self.viz = newify(Eyebrowser, '#query', 'pages');
     });
 
 

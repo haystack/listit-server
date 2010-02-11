@@ -17,6 +17,7 @@ from jv3.utils import json_response
 import urlparse
 # beaker
 from eyebrowse.beakercache import cache
+from datetime import timedelta
 
 class EVENT_SELECTORS:
     class Page:
@@ -1153,6 +1154,7 @@ def get_latest_sites_for_filter(request):
     query = _get_query_for_request(request)
     friends = request.GET['friends'] # a string "friends" or "everyone"
     seen = request.GET['seen'] # 0 for all 1 for has seen
+    group = request.GET['groups']  # string that corresponds to a tag
 
     endusers = eval(query + ").values_list('user_id')") 
     
@@ -1186,26 +1188,60 @@ def get_latest_sites_for_filter(request):
     return json_response({ "code":200, "results": results })
 
 
+def defang_enduser(enduser, user):
+    if user and user.username != enduser.user.username:
+        is_friend = user.to_friend_set.all().filter(from_friend=enduser.user).count()
+        is_followed_by = user.friend_set.all().filter(to_friend=enduser.user).count()
+    else: 
+        is_friend = None
+        is_followed_by = None
 
-def get_users_for_filter(request):
+    if enduser.birthdate is not None:
+        bday = int((int(time.time()) - int(time.mktime(time.strptime(str(enduser.birthdate), '%Y-%m-%d %H:%M:%S'))))/ 31556926),  # large number is seconds in a year
+    else:
+        bday = None
+
+    return {'username': enduser.user.username,
+            'location': enduser.location,
+            'tags': ' '.join(tag.name for tag in enduser.tags.all()),
+            'age': bday,
+            "latest_view": [defang_pageview(pageview) for pageview in PageView.objects.filter(user=enduser.user).order_by("-startTime").values()[:1]], ## VERY ANNOYING but seems safe
+            "is_friend": is_friend,
+            "is_followed_by": is_followed_by,
+            'website': enduser.homepage,
+            'id': enduser.user.id,
+            'gender': enduser.gender
+            }
+
+def get_top_users_for_filter(request):
     n = 20
     query = _get_query_for_request(request)
     friends = request.GET['friends'] # a string "friends" or "everyone"
     seen = request.GET['seen'] # 0 for all 1 for has seen
+    group = request.GET['groups']  # string that corresponds to a tag
+
+    if request.user.username:
+        request_user = get_object_or_404(User, username=request.user.username)
+    else:
+        requset_user = False
 
     @cache.region('long_term')
     def fetch_data(qry, user, bar):
         if qry == "EndUser.objects.filter(":
-            ## if there is no qry 
-            endusers = EndUser.objects.all()
+            endusers = EndUser.objects.all();
         else: 
             endusers = eval(qry + ").values_list('user_id')") 
  
             if friends is "my friends":
                 user = User.objects.filter(username=request.user.username)
                 friends = [friendship.to_friend for friendship in user.friend_set.all()] 
-                endusers = [friend.id for friend in friends if endusers.index(friend.id) ] 
-        return endusers[:n]
+                endusers = [friend for friend in friends if endusers.index(friend.id) ]  ## friend.user
+
+        ## rank the users
+        results = [[enduser, PageView.objects.filter(user=enduser.user).count()] for enduser in endusers]
+        results.sort(key=lambda x:-x[1])
+
+        return results[:n]
 
 
      ## forgot the shorter way of doing this
@@ -1215,7 +1251,8 @@ def get_users_for_filter(request):
         usr = "all"
 
     results = fetch_data(query, usr, "users")
-    return json_response({"code":200, "results": results})
+    
+    return json_response({"code":200, "results": [[defang_enduser(item[0], request_user), item[1]] for item in results] })
 
 
 def get_trending_sites(request):
@@ -1223,6 +1260,7 @@ def get_trending_sites(request):
     query = _get_query_for_request(request)
     friends = request.GET['friends'] # a string "friends" or "everyone"
     seen = request.GET['seen']
+    group = request.GET['groups']  # string that corresponds to a tag
 
     @cache.region('long_term')
     def fetch_data(qry, user, foo, seen):
