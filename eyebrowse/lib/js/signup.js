@@ -15,12 +15,10 @@ var WatchmeVisualisation = {
 	this.windowHeight = height;
 	this.windowWidth = width;
         this.getHomepage(this.startTime, this.endTime);
-        this.getRecentPages(15, 3600000);
+        //this.getRecentPages(15, 3600000);
     },
     getRecentPages: function(num){
         var this_ = this;
-	this_.startTimeRecent = this_.endTimeRecent;
-        this_.endTimeRecent = new Date().valueOf();
         this_.now = new Date().valueOf();
 	jQuery("#loadimg").show();
 	jQuery.get("/get_latest_views", {
@@ -34,27 +32,21 @@ var WatchmeVisualisation = {
 			   var now = new Date().valueOf();
 			   data.results.length = 5;
 			   data.results.map(function(site) {
-			      this_.addRecentPage('#latest', site, now); 
-			   });
+						this_.addRecentPage("#mainpanel", site, now); 
+					    });
 		       }
 		       else {
 			   return;
 		       }
 		   }, "json");
     },
-    addRecentPage: function(divid, page, now) {
-	var name = page.title?page.title.substring(0,30):cleanupURL(page.url);
-
-	/*  keep track of times displayed and hide old ones
-	this_.recentTimesArray.unshift(newData[i].end);
-	if (this_.recentTimesArray.length > num){
-	    jQuery("#" + this_.recentTimesArray[num + 1]).hide();
-	    this_.recentTimesArray.pop();   
-	}  */
-
+    addRecentPage: function(divid, page, now){
+	var name = page.title?page.title.substring(0,30):cleanupURL(page.url);	
 	var np = jQuery('#templates>.recentpage').clone();
 	np.id = page.id;
 	
+	np.find('.colorbox').css({'background-color': 'hsl(' + page.hue + ',100%, 50%)'});
+
 	var title = np.find('.title')
 	    .text(name)
 	    .attr({'href':page.url});
@@ -67,6 +59,7 @@ var WatchmeVisualisation = {
 		.html(" by <a href=\"/profile/" + page.user + 
 		      "\ style=\"float:right\">" + page.user + "</a>"); 
 	}
+	
 	jQuery(divid).append(np);
     },
     getHomepage: function(startTime, endTime){

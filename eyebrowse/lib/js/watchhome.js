@@ -1,8 +1,16 @@
 jQuery(document).ready(function(){
+			   jQuery('#id_tags')
+			       .parent()
+			       .prepend(""
+					+ "</br><h3>please tell us about yourself to help us recommend you sites</h3>"
+					+ " *not required*<br/><br/>");		
+
+			   jQuery('select').prepend('<option value="none">none</option>');
+			   jQuery('select').removeAttr("selectedIndex");
 			   var name = jQuery("#id_username"), email = jQuery("#id_email"), password1 = jQuery("#id_password1"), password2 = jQuery("#id_password2"), allFields = jQuery([]).add(name).add(email).add(password1).add(password2), tips = jQuery("#validateTips");
 			   
 			   function updateTips(t){
-			       tips.text(t).effect("highlight", {}, 1500);
+			       tips.text(t); //.effect("highlight", {}, 1500);
 			   }
 			   
 			   function checkLength(o, n, min, max){
@@ -44,15 +52,16 @@ jQuery(document).ready(function(){
 							  //bValid = bValid && checkRegexp(email, /^((([a-z]|\d|[!#\jQuery%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\jQuery%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?jQuery/i, "eg. ui@jquery.com");
 							  //bValid = bValid && checkRegexp(password1, /^([0-9a-zA-Z])+jQuery/, "Password field only allow : a-z 0-9");
 							  //bValid = bValid && checkRegexp(password2, /^([0-9a-zA-Z])+jQuery/, "Password field only allow : a-z 0-9");
-							  
+							  /*
 							  if (bValid) {
 							      //   jQuery("form:first").click(function(){
 							      if ("#registerSubmit".click()){
-								  jQuery("form:first").submit();
+								  //jQuery("form:first").submit();
 							      }
 							      jQuery("#messageSent").show("slow");
 							  }
 							  return false;
+							   */
 						      });
 			   jQuery("#signUpLink").click(function(){
 							   if (jQuery("#signUpForm").is(":hidden")) {

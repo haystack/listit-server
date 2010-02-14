@@ -25,11 +25,29 @@ from django.utils.simplejson import JSONEncoder, JSONDecoder
 from django.contrib.auth import authenticate, login
 from jv3.utils import json_response
 
-
 def _create_enduser_for_user(user, request):
     enduser = EndUser()
     enduser.user = user
+    
+    #form = RegistrationForm(request.POST)
+    #form.cleaned_data doesnt work for some reason??
+
+    enduser.location = request.POST['country']
+    enduser.gender = request.POST['gender']
+
+    try:
+        enduser.birthdate = datetime.datetime(*time.strptime(request.POST['birthdate'], "%d/%m/%y")[0:5])
+    except:
+        pass
+
+    tag_names = request.POST['tags'].split()
+    for tag_name in tag_names:
+        if re.search(r'^(/w|/W|[^<>+?$%{}&])+$', tag_name):
+            tag, dummy = UserTag.objects.get_or_create(name=tag_name)
+            enduser.tags.add(tag) 
+
     enduser.save()
+
     privacysettings = PrivacySettings()
     privacysettings.user = user
     privacysettings.save()
@@ -532,9 +550,9 @@ def _profile_save(request, form):
     enduser.user.email = form.cleaned_data['email']
     enduser.user.save()
 
-    enduser.location = ""
-    if re.search(r'^(/w|/W|[^<>+?$%{}&])+$', form.cleaned_data['location']):        
-        enduser.location = form.cleaned_data['location']
+    enduser.location = form.cleaned_data['location']
+    #if re.search(r'^(/w|/W|[^<>+?$%{}&])+$', form.cleaned_data['location']):        
+    #    enduser.location = form.cleaned_data['location']
 
     enduser.birthdate = form.cleaned_data['birthdate']
     enduser.homepage = form.cleaned_data['homepage']

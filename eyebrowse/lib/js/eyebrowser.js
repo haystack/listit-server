@@ -255,7 +255,7 @@ var Eyebrowser = {
 	jQuery('#topnav a:eq(1)').removeClass('selected');	
 	jQuery('#topnav a:eq(0)').addClass('selected');	
 
-	jQuery('#mainpanel, #trending').show();
+	jQuery('#mainpanel, #trending, #hasseen').show();
 	jQuery('#mainpanel').css({width:'44%'}).html('');
 	this.lastPageID = 0;
 	this.runQuery(this.type);
@@ -278,7 +278,7 @@ var Eyebrowser = {
 	jQuery('#topnav a:eq(0)').removeClass('selected');	
 	jQuery('#topnav a:eq(1)').addClass('selected');	
 
-	jQuery('#trending, #trendingloading, #mainloading').hide();
+	jQuery('#trending, #trendingloading, #mainloading, #hasseen').hide();
 	jQuery('#mainpanel').css({width:'80%'});
 	this.runQuery(this.type);
     },

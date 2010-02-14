@@ -6,8 +6,8 @@
 <script src="/lib/js/signup.js"></script>
 <style>
 #profile_content a{
-    font-weight:bolder;
-    text-decoration:underline;
+font-weight:bolder;
+text-decoration:underline;
 }
 #latest li {
 border:none;
@@ -21,8 +21,6 @@ margin-top:21px;
 #profile_content .recentpage a {text-decoration:none;}
 #profile_content h2 {border-bottom:1px dotted darkgrey;
 padding-left:0;}
-.recentpage {width:230px;}
-
 .rightcolumn  {
 display:inline-block;
 padding-left:19px;
@@ -32,11 +30,17 @@ vertical-align:top;
 #profile_content h2 {margin-top:0px; font-size:16.8px;}
 #profile_content h4 {margin-top:2px}
 .bullet li{
-font-size:12px;
+font-size:13px;
 list-style-type:disc;
 margin-left:20px;
 margin-top:8px;
 padding-left:5px;
+}
+#mainpanel {
+width:80%;
+margin-left:auto;
+margin-right:auto;
+display:block;
 }
 </style>
 {% endblock %}
@@ -71,21 +75,25 @@ padding-left:5px;
   <canvas id="main" style="padding:0px;margin:0px; display:none">
   </canvas>
 
-<!--
-  <div id="indexwhyid" class="indexwhy">    
+
+  <div id="indexwhyid" class="indexwhy"> 
+    <!--
     <a href="/help" style="text-decoration:none">
-      <div id="signUpLink">
-	Get More Info
+      <div id="signUpLink">   
+	<div class="colorbox"></div>
+	watch our video 
       </div>
     </a>
-    
+    -->
     <a href="/register/" style="text-decoration:none">
       <div id="signUpLink">
-	Get Started
+	<div class="colorbox"></div>
+	install eyebrowse for firefox
+	<div class="colorbox"></div>
       </div>
     </a>
   </div>
--->
+
     <!-- THESE GO IN THE ABOVE DIV
        <h4 style="margin-left:43;margin-top:14px">
 	 Check out the
@@ -120,39 +128,25 @@ padding-left:5px;
     
     <div class="rightcolumn" style="width:250px;">
       <h2>share web trails with friends</h2>
-      <ul id="latest">
+      <ul class="bullet">
+	<li>easily keep up with what your friends are reading</li>
+	<li>share without having to share</li>
+	<li>bar bar</li>
       </ul>
     </div>
-    
-  <!--
-  <div class="rightcolumn" style="width:420px; vertical-align:top; margin-left:5px;">
-    <h2>top users</h2>
-    <div class="viewboxhome" id="topusers">
+
+    <div id="mainpanel">
     </div>
-  </div>
-  -->
 </div>
+
+
 <div id="templates">
-  <div class="recentpage">
-    <a href="" class="title"></a>
-    <div class="time"></div>
-    <div class="user"></div>
-  </div>
+    <div class="recentpage">
+      <div class="colorbox"></div>
+      <a href="" class="title"></a><br />
+      <div class="time"></div>
+      <div class="user"></div><b>&nbsp;|&nbsp;</b>
+    </div>
 </div>
-
-    <div id="footer">
-      <a href="/about">about</a>&nbsp; &#124; &nbsp;
-      <a href="http://code.google.com/p/list-it/">google code</a>&nbsp; &#124; 
-      <a href="/data/all_the_data.zip">download the data</a>&nbsp; &#124; &nbsp;
-      {% if request_user %}
-      <a href="my_eyebrowse_data.zip">download my data</a>&nbsp; &#124; &nbsp;
-      {% endif %}
-      <a href="/releases/eyebrowse.xpi"> download the plugin</a>
-      <div style="margin-top:4px; line-height:15px;">created by: 
-	<a href="http://www.zamiang.com/" style="text-decoration:none; font-size:1em;">Brennan Moore</a>, 
-	<a href="http://people.csail.mit.edu/emax" style="text-decoration:none; font-size:1em;">Max Van Kleek</a> & 
-	<a href="http://people.csail.mit.edu/karger/" style="text-decoration:none; font-size:1em;">David Karger</a><br />
-	at MIT CSAIL</div>
-
 
 {% endblock %}

@@ -3,6 +3,8 @@ import re
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 import eyebrowse.models
+from countries.models import Country
+import datetime
 
 
 class RegistrationForm(forms.Form):
@@ -17,6 +19,35 @@ class RegistrationForm(forms.Form):
         widget=forms.PasswordInput()
         )
     
+    tags = forms.CharField(label='A few words to describe yourself', max_length=100, required=False)
+
+    gender = forms.ChoiceField(
+        label="Gender", 
+        widget=forms.RadioSelect,
+        choices=(("M", 'Male'), ("F", 'Female'), ("R", 'Robot')),        
+        required=False
+        )
+
+    birthdate = forms.DateTimeField(
+        label='Birthdate ie: 10/25/86',
+        widget=forms.DateTimeInput(), 
+        required=False
+        )
+
+    country = forms.ChoiceField(
+        label='Country',
+        choices=[(country.name, country.printable_name) for country in Country.objects.all()],
+        required=False
+        )
+    
+    def clean_tags(self):
+        tags = self.cleaned_data['tags'].split()        
+        for tag in tags:
+            if not re.search(r'^(/w|/W|[^<>+?$%{}&])+$', tag):
+                raise forms.ValidationError('Tags can only contain alphanumeric characters and commas.')        
+        return self.cleaned_data['tags']
+
+
     def clean_password2(self):
         if 'password1' in self.cleaned_data:
             password1 = self.cleaned_data['password1']
@@ -59,9 +90,9 @@ class ProfileSaveForm(forms.Form):
         widget=forms.TextInput(attrs={'size': 250}), 
         required=False
         )
-    location = forms.CharField(
-        label='Location',
-        widget=forms.TextInput(attrs={'size': 250}), 
+    country = forms.ChoiceField(
+        label='Country',
+        choices=[(country.name, country.printable_name) for country in Country.objects.all()],
         required=False
         )
     tags = forms.CharField(
@@ -91,12 +122,6 @@ class ProfileSaveForm(forms.Form):
         choices=eyebrowse.models.GENDER_CHOICES, 
         required=False
         )
-
-    def clean_location(self):
-        location = self.cleaned_data['location']
-        if not re.search(r'^(/w|/W|[^<>+?$%{}&])+$', location):
-            raise forms.ValidationError('Location can only contain alphanumeric characters and commas.')
-        return location
 
     def clean_tags(self):
         tags = self.cleaned_data['tags'].split()        

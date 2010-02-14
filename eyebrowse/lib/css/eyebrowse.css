@@ -215,7 +215,7 @@ ul.messages {
 }
 
 #footer {
-    width: 545px;
+    width: 645px;
     border-top: 1px lightgrey solid;
     padding: 8px;
     margin-left: auto;
@@ -905,21 +905,32 @@ width:48%;
     margin-right: auto;
     margin-bottom:12px;
     margin-top:28px;
-    font-size: 20px;
+    font-size: 30px;
     cursor: pointer;
     font-weight:bolder;
     text-align:center;
     display:inline-block;
     text-decoration:none;
-    width:300px;
+    width:99%;
+ /*   width:400px; */
    /* border-bottom: 8px dotted lightYellow; */
-    color:navy;
+    color:#333;
+    background-color:#f3f3f3;
+}
+
+#signUpLink .colorbox {
+    -moz-border-radius:8px 8px 8px 8px
+    background-color:magenta;
+    display:inline-block;
+    height:16px;
+    vertical-align:text-top;
+    width:16px;
 }
 
 #signUpLink:hover {
-    background:lightyellow;
+    text-decoration:underline;
+    background-color:lightyellow;
 }
-
 
  #signIn {
     text-decoration: underline;
@@ -1427,7 +1438,7 @@ width:48%;
     vertical-align:middle;
 }
 .indexwhy {
-    margin-left:88px;
+/*    margin-left:88px; */
 }
 
 
