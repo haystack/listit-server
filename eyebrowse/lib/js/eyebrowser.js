@@ -11,6 +11,7 @@ var Eyebrowser = {
     initialize: function(mainPanelDiv, type) {
 	this.lastPageID = 0;	
 	this.type = type;
+	this.setQueryHeader(type);
 	this.mainPanel = mainPanelDiv;
 	this.blankQuery = {
 	    group: "any", //[],
@@ -23,6 +24,13 @@ var Eyebrowser = {
 	};
 	this.baseQuery = clone(this.blankQuery);
 	this.initQueryInterface(this.baseQuery, mainPanelDiv);
+    },
+    setQueryHeader: function(type) {
+	if (type == "pages") {
+	    this.queryHeader = " websites viewed ";	    
+	} else {
+	    this.queryHeader = " users ";	    
+	}
     },
     initQueryInterface: function(query, div) {	
 	let this_ = this;
@@ -71,18 +79,52 @@ var Eyebrowser = {
     },
     refreshQueryInterface: function(query, div){
 	let this_ = this;
-	this.displayQuery(query, div, " websites viewed ");
+	this.displayQuery(query, div, this.type);
     },
     displayQuery: function(query, div, type) {
-	// TODO
+	let stmnt = "showing " + type + " ";
+	if (type == "pages"){
+	    stmnt += "websites ";
+	}
 
-	jQuery(div).html("showing " + type +
-			// "<b>" + query['time'] + "</b> by " +
-			 "<b>" + query['friends'] + "</b>" +
-			 " of the <b>" + query['gender'] + "</b> gender(s) " +
-			 " age <b>" + query['age'] + "</b>" +
-			 " in <b>" + query['country'] + "</b> country" +
-			 " and <b>" + query['group'] + "</b> group");
+	if (type == "users"){
+	    stmnt += "who are ";
+	}
+
+	if (query['seen'] != "all sites"){
+	    stmnt += "<b>" + "i haven't visited</b>, visited by ";
+	} else if (type == "pages") {
+	    stmnt += "visited by ";
+	}
+
+	if (query['friends'] != "everyone"){
+	    stmnt += "<b>" + query['friends'] + "</b>";
+	}
+
+	if (query['gender'] != "all"){
+	    stmnt += " of the <b>" + query['gender'] + "</b> gender ";
+	}
+	if (query['age'] != 'all') {
+	    stmnt += " <b>" + query['age'] + "</b>";
+	}
+
+	if (query['country'] != 'any'){
+	    stmnt += " in <b>" + query['country'] + "</b> ";  
+	}
+
+	if (query['group'] != 'any'){
+	    stmnt += " and <b>" + query['group'] + "</b> group";   
+	}
+
+	if (stmnt == "showing pages websites visited by ") {
+	    stmnt = "";
+	}
+
+	if (stmnt == "showing users who are ") {
+	    stmnt = "";
+	}
+
+	jQuery(div).html(stmnt);
     },
     getRecs: function(divid) {
 	let this_ = this;
@@ -148,11 +190,10 @@ var Eyebrowser = {
 		       time: jQuery('#recently .selected').text(),
 		       seen: jQuery('#hasseen .selected').text()
 		   }, function(data){
-		       jQuery("#loadimg").hide();
+		       this_.mainLoading(false);
 		       if (data.code == 200) {
 			   jQuery(divid).html("");
 			   data.results.map(function(item) { this_.addUser(divid, item[0], item[1]); });
-			   this_.mainLoading(false);
 		       }
 		   }, "json");
     },
@@ -190,7 +231,6 @@ var Eyebrowser = {
         let this_ = this;
 	this.mainLoading(true);
 	// should get latest for the current query
-
 	jQuery.get("/get_latest_sites_for_filter", {
 		       id: this_.lastPageID,
 		       groups: jQuery('#group').val(),
@@ -201,12 +241,11 @@ var Eyebrowser = {
 		       time: jQuery('#recently .selected').text(),
 		       seen: jQuery('#hasseen .selected').text()
 		   }, function(data){
-		       jQuery("#loadimg").hide();
+		       this_.mainLoading(false);
 		       if (data.code == 200) {
 			   let now = new Date().valueOf();
 			   data.results.map(function(item) { this_.addRecentPage(divid, item, now); });
 			   this_.lastPageID = data.results[0].id;
-			   this_.mainLoading(false);
 		       }
 		   }, "json");
     },
@@ -258,6 +297,8 @@ var Eyebrowser = {
 	jQuery('#mainpanel, #trending, #hasseen').show();
 	jQuery('#mainpanel').css({width:'44%'}).html('');
 	this.lastPageID = 0;
+	this.setQueryHeader(this.type);
+	this.refreshQueryInterface(this.baseQuery, this.mainPanel);
 	this.runQuery(this.type);
     },
     makeCompare: function(){
@@ -280,6 +321,8 @@ var Eyebrowser = {
 
 	jQuery('#trending, #trendingloading, #mainloading, #hasseen').hide();
 	jQuery('#mainpanel').css({width:'80%'});
+	this.setQueryHeader(this.type);
+	this.refreshQueryInterface(this.baseQuery, this.mainPanel);
 	this.runQuery(this.type);
     },
     deleteCompare: function() {

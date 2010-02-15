@@ -1129,6 +1129,7 @@ def _get_query_for_request(request):
     gender = request.GET['gender'] # a string "male"
     age = request.GET['age'] # a tuple with 2 ages [20,24]
     time = request.GET['time']  # either recently or over all time
+    seen = request.GET['seen']
     
     if gender != "all":
         query += " gender=gender,"
@@ -1152,9 +1153,17 @@ def _get_query_for_request(request):
 def get_latest_sites_for_filter(request):
     n = 20
     query = _get_query_for_request(request)
-    friends = request.GET['friends'] # a string "friends" or "everyone"
-    seen = request.GET['seen'] # 0 for all 1 for has seen
     group = request.GET['groups']  # string that corresponds to a tag
+    country = request.GET['country'] #**string that corresponds to a country value
+    friends = request.GET['friends'] #a string "friends" or "everyone"
+    gender = request.GET['gender'] # a string "male"
+    age = request.GET['age'] # a tuple with 2 ages [20,24]
+    seen = request.GET['seen']
+
+    if age != "all":
+        current = [ date.today().year, date.today().month, date.today().day ]  ## year month day
+        start_date = datetime.date(current[0] - eval(age)[1], current[1], current[2])
+        end_date = datetime.date(current[0] - eval(age)[0], current[1], current[2])
 
     endusers = eval(query + ").values_list('user_id')") 
     
@@ -1217,8 +1226,10 @@ def get_top_users_for_filter(request):
     n = 20
     query = _get_query_for_request(request)
     friends = request.GET['friends'] # a string "friends" or "everyone"
-    seen = request.GET['seen'] # 0 for all 1 for has seen
     group = request.GET['groups']  # string that corresponds to a tag
+    age = request.GET['age'] # a tuple with 2 ages [20,24]
+    country = request.GET['country'] #**string that corresponds to a country value
+    gender = request.GET['gender'] # a string "male"
 
     if request.user.username:
         request_user = get_object_or_404(User, username=request.user.username)
@@ -1226,10 +1237,15 @@ def get_top_users_for_filter(request):
         requset_user = False
 
     @cache.region('long_term')
-    def fetch_data(qry, user, bar):
+    def fetch_data(qry, user, bar, friends, group, age, country, gender):
         if qry == "EndUser.objects.filter(":
             endusers = EndUser.objects.all();
         else: 
+            if age != "all":
+                current = [ date.today().year, date.today().month, date.today().day ]  ## year month day
+                start_date = datetime.date(current[0] - eval(age)[1], current[1], current[2])
+                end_date = datetime.date(current[0] - eval(age)[0], current[1], current[2])
+
             endusers = eval(qry + ").values_list('user_id')") 
  
             if friends is "my friends":
@@ -1243,33 +1259,40 @@ def get_top_users_for_filter(request):
 
         return results[:n]
 
-
-     ## forgot the shorter way of doing this
+    ## forgot the shorter way of doing this
     if friends is "my friends":
         usr = request.user.username
     else:
         usr = "all"
 
-    results = fetch_data(query, usr, "users")
-    
+    results = fetch_data(query, usr, "users", friends, group, age, country, gender)    
     return json_response({"code":200, "results": [[defang_enduser(item[0], request_user), item[1]] for item in results] })
 
 
 def get_trending_sites(request):
     n = 20
     query = _get_query_for_request(request)
-    friends = request.GET['friends'] # a string "friends" or "everyone"
-    seen = request.GET['seen']
     group = request.GET['groups']  # string that corresponds to a tag
+    country = request.GET['country'] #**string that corresponds to a country value
+    friends = request.GET['friends'] #a string "friends" or "everyone"
+    gender = request.GET['gender'] # a string "male"
+    age = request.GET['age'] # a tuple with 2 ages [20,24]
+    seen = request.GET['seen']
 
     @cache.region('long_term')
-    def fetch_data(qry, user, foo, seen):
+    def fetch_data(qry, user, foo, group, country, friends, gender, age, seen):
+        print country
         if qry == "EndUser.objects.filter(":
             ## if there is no qry 
             new_pageviews = PageView.objects.filter(startTime__gt=int(time.time() * 1000) - 86400000)
             old_pageviews = PageView.objects.filter(startTime__range=(int(time.time() * 1000) - (86400000 *2), int(time.time() * 1000) - 86400000))
 
-        else: 
+        else:
+            if age != "all":
+                current = [ date.today().year, date.today().month, date.today().day ]  ## year month day
+                start_date = datetime.date(current[0] - eval(age)[1], current[1], current[2])
+                end_date = datetime.date(current[0] - eval(age)[0], current[1], current[2])
+
             endusers = eval(qry + ").values_list('user_id')") 
  
             if friends is "my friends":
@@ -1314,7 +1337,7 @@ def get_trending_sites(request):
     else:
         usr = "all"
 
-    results = fetch_data(query, usr, "trending", seen)
+    results = fetch_data(query, usr, "trending", group, country, friends, gender, age, seen)
     return json_response({"code":200, "results": results})
 
 

@@ -2,7 +2,7 @@ jQuery(document).ready(function(){
 			   jQuery('#id_tags')
 			       .parent()
 			       .prepend(""
-					+ "</br><h3>please tell us about yourself to help us recommend you sites</h3>"
+					+ "</br><h3>please tell us about yourself to help us recommend sites to you</h3>"
 					+ " *not required*<br/><br/>");		
 
 			   jQuery('select').prepend('<option value="none">none</option>');

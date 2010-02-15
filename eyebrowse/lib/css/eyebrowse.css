@@ -635,7 +635,42 @@ width:48%;
     margin-top:8px;	 
 }
 
+/* HOMEPAGE */
 
+.biglink {
+    padding: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom:12px;
+    margin-top:28px;
+    font-size: 30px;
+    cursor: pointer;
+    font-weight:bolder;
+    text-align:center;
+    display:inline-block;
+    text-decoration:none;
+    width:99%;
+    color:#333;
+    background-color:#f3f3f3;
+}
+
+.biglink:hover {
+    background-color:lightyellow;
+}
+
+.biglink .colorbox {
+    -moz-border-radius:8px 8px 8px 8px
+    background-color:magenta;
+    display:inline-block;
+    height:16px;
+    vertical-align:text-top;
+    width:16px;
+}
+
+#signUpLink:hover {
+    text-decoration:underline;
+    background-color:lightyellow;
+}
 
 
 /* BELOW THIS LINE THERE BE DEAMONS */
@@ -899,37 +934,6 @@ width:48%;
 } #signUpValidateTips {
     margin-top: 20px;
     margin-bottom: -20px;
-} #signUpLink {
-    padding: 10px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom:12px;
-    margin-top:28px;
-    font-size: 30px;
-    cursor: pointer;
-    font-weight:bolder;
-    text-align:center;
-    display:inline-block;
-    text-decoration:none;
-    width:99%;
- /*   width:400px; */
-   /* border-bottom: 8px dotted lightYellow; */
-    color:#333;
-    background-color:#f3f3f3;
-}
-
-#signUpLink .colorbox {
-    -moz-border-radius:8px 8px 8px 8px
-    background-color:magenta;
-    display:inline-block;
-    height:16px;
-    vertical-align:text-top;
-    width:16px;
-}
-
-#signUpLink:hover {
-    text-decoration:underline;
-    background-color:lightyellow;
 }
 
  #signIn {
