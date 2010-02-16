@@ -1174,10 +1174,12 @@ def get_latest_sites_for_filter(request):
     results = [ defang_pageview_values(evt) for evt in uniq(phits,lambda x:x["url"],n) ]
 
     # filter out seen sites
-    if request.user.username and seen == "sites not seen":
-        user = User.objects.filter(username=request.user.username)
-        user_uniq = (site['url'] for site in uniq(PageView.objects.filter(user=user).values(),lambda x:x["url"],None))                
-        results = [site for site in results if not site['url'] in user_uniq] # not tested  -- maybe user_uniq[site] ??
+    if seen == "sites not seen":
+        user = User.objects.filter(username=request.user.username)[0]
+        # this fails for some reason ;(
+        #user_uniq = (site['url'] for site in uniq(PageView.objects.filter(user=user).values(),lambda x:x["url"],None))                           
+        user_uniq = PageView.objects.filter(user=user).values_list('url', flat=True)
+        results = [site for site in results if not site['url'] in user_uniq] 
 
     if request.GET.has_key('id'):
         urlID = int(request.GET['id'])
@@ -1299,8 +1301,8 @@ def get_trending_sites(request):
             # filter out sites seen by user 
             if request.user.username and seen == "sites not seen":
                 user = User.objects.filter(username=request.user.username)
-                
-                user_uniq = (site["url"] for site in uniq(PageView.objects.filter(user=user).values(),lambda x:x["url"],None))                
+                user_uniq = PageView.objects.filter(user=user).values_list('url', flat=True)                
+                #user_uniq = (site["url"] for site in uniq(PageView.objects.filter(user=user).values(),lambda x:x["url"],None))                
                 new_pageviews = [site for site in new_pageviews if not site["url"] in user_uniq]
                 old_pageviews = [site for site in old_pageviews if not site["url"] in user_uniq]
 
