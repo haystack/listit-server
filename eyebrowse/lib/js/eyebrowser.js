@@ -24,6 +24,7 @@ var Eyebrowser = {
 	};
 	this.baseQuery = clone(this.blankQuery);
 	this.initQueryInterface(this.baseQuery, mainPanelDiv);
+	this.resetQuery();
     },
     setQueryHeader: function(type) {
 	if (type == "pages") {
@@ -35,29 +36,29 @@ var Eyebrowser = {
     initQueryInterface: function(query, div) {	
 	let this_ = this;
 	jQuery("#search .subpanel a.add").each(
-	    function(i, item) {
-		let type = jQuery(item).parent().find('.name').text();
-		if (query[type] == jQuery(item).text()){ jQuery(item).addClass('selected');}
-		jQuery(item).click(
-		    function() {
-			jQuery(this).parent().find('a.add').each(function(i, item){ jQuery(item).removeClass('selected');});
-			jQuery(this).addClass('selected');
-			query[type] = jQuery(this).text();
-			this_.refreshQueryInterface(query, div);
-			this_.runQuery(this_.type);
-		    });
-	    });	
+					       function(i, item) {
+						   let type = jQuery(item).parent().find('.name').text();
+						   if (query[type] == jQuery(item).text()){ jQuery(item).addClass('selected');}
+						   jQuery(item).click(
+								      function() {
+									  jQuery(this).parent().find('a.add').each(function(i, item){ jQuery(item).removeClass('selected');});
+									  jQuery(this).addClass('selected');
+									  this_.baseQuery[type] = jQuery(this).text();
+									  this_.refreshQueryInterface(div);
+									  this_.runQuery(this_.type);
+								      });
+					       });
 
 	jQuery("#search select").each(
-	    function(i, item) {
-		jQuery(item).change(
-		    function(){
-			query[jQuery(this).attr('name')] = jQuery(this).val();
-			this_.refreshQueryInterface(query, div);
-			this_.runQuery(this_.type);
-		    });
-	    });
-	
+				      function(i, item) {
+					  jQuery(item).change(
+							      function(){
+								  this_.baseQuery[jQuery(this).attr('name')] = jQuery(this).val();
+								  this_.refreshQueryInterface(div);
+								  this_.runQuery(this_.type);
+							      });
+				      });
+
 	this.refreshQueryInterface(query, div);
 	this.runQuery(this.type);
     },
@@ -73,18 +74,27 @@ var Eyebrowser = {
     },
     initCompareQueryInterface: function(blankQuery, baseQuery){	  
 	jQuery('.panel').append(jQuery('.subpanel').clone().addClass('compare'));
-	
 	jQuery('#report').append(jQuery('#trending').clone().addClass('compare').show().css({'float':'left'}));
 	jQuery('#report').append(jQuery('#trending').clone().addClass('compare').show());
     },
-    refreshQueryInterface: function(query, div){
+    refreshQueryInterface: function(div){
+	// this runs evertime an item is clicked
 	let this_ = this;
-	this.displayQuery(query, div, this.type);
+	this.lastPageID = 0;
+	jQuery('#mainpanel').html('')
+	jQuery("#search .subpanel a.add").each(
+					       function(i, item) {
+						   let type = jQuery(item).parent().find('.name').text();
+						   if (this_.baseQuery[type] == jQuery(item).text()){ jQuery(item).addClass('selected');}
+						   else { jQuery(item).removeClass('selected');}
+					       });
+
+	this.displayQuery(this_.baseQuery, div, this.type);
     },
     displayQuery: function(query, div, type) {
 	let stmnt = "showing " + type + " ";
 	if (type == "pages"){
-	    stmnt += "websites ";
+	    stmnt = "showing websites "; // REASSIGNMENT
 	}
 
 	if (type == "users"){
@@ -97,15 +107,14 @@ var Eyebrowser = {
 	    stmnt += "visited by ";
 	}
 
-	if (query['friends'] != "everyone"){
-	    stmnt += "<b>" + query['friends'] + "</b>";
-	}
+	stmnt += "<b>" + query['friends'] + "</b>";
+       
 
 	if (query['gender'] != "all"){
 	    stmnt += " of the <b>" + query['gender'] + "</b> gender ";
 	}
 	if (query['age'] != 'all') {
-	    stmnt += " <b>" + query['age'] + "</b>";
+	    stmnt += " ages <b>" + query['age'] + "</b>";
 	}
 
 	if (query['country'] != 'any'){
@@ -113,7 +122,7 @@ var Eyebrowser = {
 	}
 
 	if (query['group'] != 'any'){
-	    stmnt += " and <b>" + query['group'] + "</b> group";   
+	    stmnt += " in the <b>" + query['group'] + "</b> group";   
 	}
 
 	if (stmnt == "showing pages websites visited by ") {
@@ -274,7 +283,7 @@ var Eyebrowser = {
 	if (page.user.length > 0){
 	    let user = np.find('.user')
 		.html(" by <a href=\"/profile/" + page.user + 
-		      "\ style=\"float:right\">" + page.user + "</a>"); 
+		      "\">" + page.user + "</a>"); 
 	}
 	
 	np.find('.stats').click(
@@ -287,20 +296,6 @@ var Eyebrowser = {
 
 	jQuery(divid).append(np);
     },
-    makeSearch: function(){
-	if (this.type == "pages"){ return;}
-	this.type = "pages";
-
-	jQuery('#topnav a:eq(1)').removeClass('selected');	
-	jQuery('#topnav a:eq(0)').addClass('selected');	
-
-	jQuery('#mainpanel, #trending, #hasseen').show();
-	jQuery('#mainpanel').css({width:'44%'}).html('');
-	this.lastPageID = 0;
-	this.setQueryHeader(this.type);
-	this.refreshQueryInterface(this.baseQuery, this.mainPanel);
-	this.runQuery(this.type);
-    },
     makeCompare: function(){
 	if (this.type == "compare"){ return;}
 	this.type = "compare";
@@ -312,6 +307,21 @@ var Eyebrowser = {
 	jQuery('#comparetitle').show();	this.runQuery(this.type);
 	this.initCompareQueryInterface(clone(this.blankQuery), this.baseQuery);	
     },
+    makeSearch: function(){
+	if (this.type == "pages"){ return;}
+	this.type = "pages";
+
+	jQuery('#topnav a:eq(1)').removeClass('selected');	
+	jQuery('#topnav a:eq(0)').addClass('selected');	
+
+	jQuery('#mainpanel, #trending, #hasseen').show();
+	jQuery('#mainpanel').css({width:'44%'}).html('');
+	this.lastPageID = 0;
+	this.setQueryHeader(this.type);
+	this.resetQuery();
+	this.refreshQueryInterface(this.mainPanel);
+	this.runQuery(this.type);
+    },
     makePeople: function(){
 	if (this.type == "users"){ return;}
 	this.type = "users";
@@ -322,11 +332,9 @@ var Eyebrowser = {
 	jQuery('#trending, #trendingloading, #mainloading, #hasseen').hide();
 	jQuery('#mainpanel').css({width:'80%'});
 	this.setQueryHeader(this.type);
-	this.refreshQueryInterface(this.baseQuery, this.mainPanel);
+	this.resetQuery();
+	this.refreshQueryInterface(this.mainPanel);
 	this.runQuery(this.type);
-    },
-    deleteCompare: function() {
-	jQuery('.subpanel:eq(1)').remove(); // TODO delete everything past 0 
     },
     mainLoading: function(isloading) {
 	if (isloading) {
@@ -349,8 +357,11 @@ var Eyebrowser = {
 	    jQuery('#trending').css({opacity:1});
 	    jQuery('#trendingloading').hide();	    
 	}
+    },   
+    resetQuery: function(){
+	jQuery('select').removeAttr("selectedIndex");
+	this.baseQuery = clone(this.blankQuery);
     }
-
 };
 
 jQuery(document).ready(

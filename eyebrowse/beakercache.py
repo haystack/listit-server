@@ -14,8 +14,10 @@ cache_opts = {
 
     #'cache.data_dir': '/Users/brennanmoore/listit-server/server/cache/data',
     #'cache.lock_dir': '/Users/brennanmoore/listit-server/server/cache/lock',
-    'cache.data_dir': '/biggie/eyebrowse/workspace/trunk/server/eyebrowse/cache/data',
-    'cache.lock_dir': '/biggie/eyebrowse/workspace/trunk/server/eyebrowse/cache/lock',
+   # 'cache.data_dir': '/biggie/eyebrowse/workspace/trunk/server/eyebrowse/cache/data',
+    'cache.data_dir': '/tiny/beaker/cache/data',
+    #'cache.lock_dir': '/biggie/eyebrowse/workspace/trunk/server/eyebrowse/cache/lock',
+    'cache.lock_dir': '/tiny/beaker/cache/lock',
     
     'cache.regions': 'ticker, short_term, long_term, very_long_term',
     'cache.ticker.type': 'memory',
@@ -25,7 +27,8 @@ cache_opts = {
     #'cache.short_term.type': 'ext:memcached', 
     #'cache.short_term.url': '127.0.0.1.1121', 
     'cache.short_term.expire': CACHE_EXPIRY_ST,
-    'cache.long_term.type': 'file',
+    'cache.long_term.type': 'memory',
+    #'cache.long_term.type': 'file',
     'cache.long_term.expire': CACHE_EXPIRY_LT,
     'cache.very_long_term.type': 'file',
     'cache.very_long_term.expire': CACHE_EXPIRY_VLT,

@@ -256,16 +256,29 @@ def addfeeds(request):
     c = Context({ 'username': request.user.username, 'id': request.user.id, 'request_user': request.user.username })
     return HttpResponse(t.render(c))
 
+## emax added this to be fancy
+def uniq(lst,key=lambda x: x,n=None):
+    result = []
+    keys = []
+    for ii in range(len(lst)):
+        xi = lst[ii]
+        ki = key(xi)
+        if ki not in keys:
+            keys.append(ki)
+            result.append(xi)
+        if n is not None and len(result) >= n:
+            return result    
+    return result        
+
 def eyebrowser(request):
     groups = [];
     friends = [];
     countries = [];
 
-    groups = [tag for tag in UserTag.objects.values_list('name', flat=True) if len(tag) > 1]
+    groups = uniq([tag.strip(',').lower() for tag in UserTag.objects.values_list('name', flat=True) if len(tag) > 1], lambda x:x, None)
 
-    usedcountries = [loc for loc in EndUser.objects.values_list('location', flat=True)] 
-    countries = [country for country in Country.objects.all()]  # if usedcountries[country.printable_name]
-    # todo filter countries for ones actually used
+    countries = uniq([loc for loc in EndUser.objects.values_list('location', flat=True) if loc is not None and len(loc) > 0], lambda x:x.lower(), None) 
+    #countries = [country for country in Country.objects.all()]  # if usedcountries[country.printable_name]
 
     t = loader.get_template("eyebrowser.html")
     c = Context({ 
@@ -408,7 +421,7 @@ def user_page(request, username):
 
     variables = RequestContext(request, {
          'username': username,
-         'show_edit': username == request.user.username,
+         'show_edit': True if username == request.user.username else False,
          'following': following,
          'followers': followers,
          'is_friend': is_friend,
@@ -419,7 +432,7 @@ def user_page(request, username):
          'tags' : tags,
          'gender': enduser.gender,
          'id':enduser.user.id,
-        'request_user': request.user.username
+         'request_user': request.user.username         
         })
     return render_to_response('user_page.html', variables)
 
@@ -678,9 +691,7 @@ def friend_add(request): # this sends a friend request to the user
             request.user.message_set.create(
                 message='you are now following %s.' % friend.username
                 )
-        return HttpResponseRedirect(
-            '/friends/manage/%s/' % request.user.username
-            )
+        return HttpResponseRedirect('/settings')
     else:
         raise Http404('boo.')
 

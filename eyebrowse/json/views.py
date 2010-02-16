@@ -113,7 +113,6 @@ def _get_graph_points_for_results(results, to_msec, from_msec, n):
     return { "avgTime": avgData, "totalTime": ttData }
 
 
-
 def index_of(what, where):
     try:
         return [ h[0] for h in where ].index(what)
@@ -170,14 +169,12 @@ def _get_time_per_page(user,from_msec,to_msec,grouped_by=EVENT_SELECTORS.Page):
 def _get_visits_per_pageview(pageviews):            
     ## this function takes FOREVER
     visits_per_view = {} 
-    for view in pageviews:
-        visits_per_view[view.url] = visits_per_view.get(view.url,0) + 1
-    return visits_per_view        
-
-# attempts at making this faster
-  #  results =  dict((v.url, results.get(view.url,0) + 1) for v in pageviews)
-  #  return [(visits_per_view.get(view.url,0) + 1) for view in pageviews]
-
+    for pv in pageviews:
+        visits_per_view[pv['url']] = visits_per_view.get(pv['url'],0) + 1
+    return visits_per_view            
+    # attempts at making this faster
+    #  results =  dict((v.url, results.get(view.url,0) + 1) for v in pageviews)
+    #  return [(visits_per_view.get(view.url,0) + 1) for view in pageviews]
 
 def _get_pageviews_ordered_by_count(pageviews):
     visits_per_pageview = _get_visits_per_pageview(pageviews) 
@@ -185,9 +182,7 @@ def _get_pageviews_ordered_by_count(pageviews):
     ordered_visits = [h for h in visits_per_pageview.iteritems()]
     ordered_visits.sort(lambda u1,u2: int(u2[1] - u1[1]))
     
-    results = [PageView.objects.filter(url=visit[0]).values()[0] for visit in ordered_visits]
-    ## Page.objects.filter(url__in=[visit[0] for visit in ordered_visits[:20]]).values()
-    return results
+    return [PageView.objects.filter(url=visit[0]).values()[0] for visit in ordered_visits]
 
 def sort_by_counts(count_dict):
     l = count_dict.items()
@@ -350,19 +345,14 @@ def get_page_profile_queries(url, req_type):
 def get_most_shared_hosts(request, n):
     n = int(n)
 
-    @cache.region('very_long_term')
+    @cache.region('long_term')
     def fetch_data(n, fetch_type):
         results = {}
-        users = User.objects.all()
-        for user in users:
-            try:
-                for url in PrivacySettings.objects.filter(user=user)[0].whitelist.split():
-                    if url in results:
-                        results[url] += 1
-                    else:
-                        results[url] = 1
-            except:
-                pass
+        for wl in PrivacySettings.objects.values_list('whitelist', flat=True):
+            if wl is not None:
+                for url in wl.split():
+                    results[url] = results.get(url,0) + 1
+
         return sorted(results.items(), key=lambda (k,v): (-v,k))[0:n]
 
     results = fetch_data(n, "shared_urls")
@@ -1135,23 +1125,31 @@ def _get_query_for_request(request):
         query += " gender=gender,"
         
     if country != "any":
-        query += " location=country,"
+        query += " location=country," ## this is a problem -- need to standardaise locations
         
     if group != "any":
         query += " tags__name__contains=group,"
             
     if age != "all":
-        current = [ date.today().year, date.today().month, date.today().day ]  ## year month day
-        start_date = datetime.date(current[0] - eval(age)[1], current[1], current[2])
-        end_date = datetime.date(current[0] - eval(age)[0], current[1], current[2])
-        query += " birthdate__range=(start_date, end_date), "
+        query += " birthdate__range=(start_date, end_date),"
 
     query.strip(',')  ## remove the comma at the end
     return query
 
 
+def _filter_userids_for_friends(username, userIDs):
+    user = User.objects.filter(username=username)[0]
+    user_friends = [friendship.to_friend for friendship in user.friend_set.all()] 
+    return [friend.id for friend in user_friends if friend.id in userIDs] 
+
+def _filter_users_for_friends(username, userIDs):
+    user = User.objects.filter(username=username)[0]
+    user_friends = [friendship.to_friend for friendship in user.friend_set.all()] 
+    return [friend for friend in user_friends if friend.id in userIDs] 
+
+
 def get_latest_sites_for_filter(request):
-    n = 20
+    n = 50
     query = _get_query_for_request(request)
     group = request.GET['groups']  # string that corresponds to a tag
     country = request.GET['country'] #**string that corresponds to a country value
@@ -1165,26 +1163,21 @@ def get_latest_sites_for_filter(request):
         start_date = datetime.date(current[0] - eval(age)[1], current[1], current[2])
         end_date = datetime.date(current[0] - eval(age)[0], current[1], current[2])
 
-    endusers = eval(query + ").values_list('user_id')") 
+    endusers = eval(query + ").values_list('user_id', flat=True)") 
     
-    if friends is "my friends":
-        user = User.objects.filter(username=request.user.username)
-        friends = [friendship.to_friend for friendship in user.friend_set.all()] 
-        endusers = [friend.id for friend in friends if endusers.index(friend.id) ] 
-        # is there a more effecient way of finding overlap between 2 arrays?
+    if friends == "my friends":
+        if request.user.username:
+            endusers = _filter_userids_for_friends(request.user.username, endusers)
 
     # always recently
     phits = PageView.objects.filter(user__in=User.objects.filter(id__in=endusers), startTime__gt=int(time.time() * 1000) - 86400000).order_by("-startTime")[0:n].values() 
-                
-    uphit = uniq(phits,lambda x:x["url"],n)
-    results = [ defang_pageview_values(evt) for evt in uphit ]
+    results = [ defang_pageview_values(evt) for evt in uniq(phits,lambda x:x["url"],n) ]
 
     # filter out seen sites
     if request.user.username and seen == "sites not seen":
         user = User.objects.filter(username=request.user.username)
-
-        user_uniq = uniq(PageView.objects.filter(user=user).values(),lambda x:x["url"],None)
-        results = [site for site in results if not user_uniq[site["url"]]] # not tested  -- maybe user_uniq[site] ??
+        user_uniq = (site['url'] for site in uniq(PageView.objects.filter(user=user).values(),lambda x:x["url"],None))                
+        results = [site for site in results if not site['url'] in user_uniq] # not tested  -- maybe user_uniq[site] ??
 
     if request.GET.has_key('id'):
         urlID = int(request.GET['id'])
@@ -1238,29 +1231,29 @@ def get_top_users_for_filter(request):
 
     @cache.region('long_term')
     def fetch_data(qry, user, bar, friends, group, age, country, gender):
-        if qry == "EndUser.objects.filter(":
-            endusers = EndUser.objects.all();
+        if qry == "EndUser.objects.filter(" and friends != "my friends":
+            results = [[enduser, PageView.objects.filter(user=enduser.user).count()] for enduser in EndUser.objects.all()]
         else: 
             if age != "all":
                 current = [ date.today().year, date.today().month, date.today().day ]  ## year month day
                 start_date = datetime.date(current[0] - eval(age)[1], current[1], current[2])
                 end_date = datetime.date(current[0] - eval(age)[0], current[1], current[2])
 
-            endusers = eval(qry + ").values_list('user_id')") 
+            endusers = eval(qry + ")") ## .values_list('user_id', flat=True)") 
  
-            if friends is "my friends":
-                user = User.objects.filter(username=request.user.username)
-                friends = [friendship.to_friend for friendship in user.friend_set.all()] 
-                endusers = [friend for friend in friends if endusers.index(friend.id) ]  ## friend.user
+            if friends == "my friends":
+                if request.user.username:
+                    users = _filter_users_for_friends(request.user.username, (enduser.user.id for enduser in endusers))
+                    endusers = [EndUser.objects.filter(user=user)[0] for user in users]
+            
+            results = [[enduser, PageView.objects.filter(user=enduser.user).count()] for enduser in endusers]
 
         ## rank the users
-        results = [[enduser, PageView.objects.filter(user=enduser.user).count()] for enduser in endusers]
         results.sort(key=lambda x:-x[1])
-
         return results[:n]
 
     ## forgot the shorter way of doing this
-    if friends is "my friends":
+    if friends == "my friends":
         usr = request.user.username
     else:
         usr = "all"
@@ -1282,10 +1275,10 @@ def get_trending_sites(request):
     @cache.region('long_term')
     def fetch_data(qry, user, foo, group, country, friends, gender, age, seen):
         print country
-        if qry == "EndUser.objects.filter(":
+        if qry == "EndUser.objects.filter(" and friends != "my friends":
             ## if there is no qry 
-            new_pageviews = PageView.objects.filter(startTime__gt=int(time.time() * 1000) - 86400000)
-            old_pageviews = PageView.objects.filter(startTime__range=(int(time.time() * 1000) - (86400000 *2), int(time.time() * 1000) - 86400000))
+            new_pageviews = PageView.objects.filter(startTime__gt=int(time.time() * 1000) - 86400000).values()
+            old_pageviews = PageView.objects.filter(startTime__range=(int(time.time() * 1000) - (86400000 *2), int(time.time() * 1000) - 86400000)).values()
 
         else:
             if age != "all":
@@ -1293,26 +1286,23 @@ def get_trending_sites(request):
                 start_date = datetime.date(current[0] - eval(age)[1], current[1], current[2])
                 end_date = datetime.date(current[0] - eval(age)[0], current[1], current[2])
 
-            endusers = eval(qry + ").values_list('user_id')") 
+            endusers = eval(qry + ").values_list('user_id', flat=True)") 
  
-            if friends is "my friends":
-                user = User.objects.filter(username=request.user.username)
-                friends = [friendship.to_friend for friendship in user.friend_set.all()] 
-                endusers = [friend.id for friend in friends if endusers.index(friend.id) ] 
-                # is there a more effecient way of finding overlap between 2 arrays?
+            if friends == "my friends":
+                if request.user.username:
+                    endusers = _filter_userids_for_friends(request.user.username, endusers)
 
             # always recently
-            new_pageviews = PageView.objects.filter(user__in=User.objects.filter(id__in=endusers), startTime__gt=int(time.time() * 1000) - 86400000)
-            old_pageviews = PageView.objects.filter(user__in=User.objects.filter(id__in=endusers), startTime__range=(int(time.time() * 1000) - (86400000 *2), int(time.time() * 1000) - 86400000))
-                
+            new_pageviews = PageView.objects.filter(user__in=User.objects.filter(id__in=endusers), startTime__gt=int(time.time() * 1000) - (86400000*2)).values()
+            old_pageviews = PageView.objects.filter(user__in=User.objects.filter(id__in=endusers), startTime__range=(int(time.time() * 1000) - (86400000 *4), int(time.time() * 1000) - (86400000*2))).values()
 
             # filter out sites seen by user 
             if request.user.username and seen == "sites not seen":
                 user = User.objects.filter(username=request.user.username)
                 
-                user_uniq = uniq(PageView.objects.filter(user=user).values(),lambda x:x["url"],None)
-                new_pageviews = [site for site in new_pageviews if not user_uniq[site["url"]]] # not tested  -- maybe1 user_uniq[site] ??
-                old_pageviews = [site for site in old_pageviews if not user_uniq[site["url"]]] # not tested  -- maybe1 user_uniq[site] ??
+                user_uniq = (site["url"] for site in uniq(PageView.objects.filter(user=user).values(),lambda x:x["url"],None))                
+                new_pageviews = [site for site in new_pageviews if not site["url"] in user_uniq]
+                old_pageviews = [site for site in old_pageviews if not site["url"] in user_uniq]
 
         results = []
 
@@ -1332,7 +1322,7 @@ def get_trending_sites(request):
         return [defang_pageview(pview[0]) for pview in results[:n]]
 
      ## forgot the shorter way of doing this
-    if friends is "my friends":
+    if friends == "my friends":
         usr = request.user.username
     else:
         usr = "all"

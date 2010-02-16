@@ -9,9 +9,9 @@
 <div id="trendingloading" class="loadimg"></div>
 <div id="mainloading" class="loadimg"></div>
 <div id="report" style="width:100%">
-  <div class="logo" style="padding-bottom:0px">
-    <img src="lib/img/eyebrowser.png" /> 
-    <h1 style="font-size: 35px; margin-left: 85px;">find new sites through the people that view them</h1>    
+  <div class="logo" style="padding-bottom:0px; margin-top:37px">
+    <img height=61 src="lib/img/eyebrowser.png" /> 
+    <h1 style="font-size:14px;margin-left:66px;margin-top:-10px;">find new sites through the people that view them</h1>    
   </div>
 
   <div id="topnav">
@@ -77,7 +77,7 @@
 	    <select id="country" name="country">
 	      <option value="any">any</option>
 	      {% for country in countries %}
-	      <option value="{{ country.name }}">{{ country.printable_name }}</option>
+	      <option value="{{ country }}">{{ country }}</option>
 	      {% endfor %}
 	    </select>
 	    <!--<a class="add">add</a>-->
@@ -134,7 +134,6 @@
 	  <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/>
 	</a>	
 	<span class="isfollowing"></span> 
-	</a>	
 	<br />
 	<div class="number"></div>
 	<div class="age"><span class="italicsname">age:</span>&nbsp;</div>
@@ -152,6 +151,22 @@
       <a class="name"></a>
     </div>
   </div>
+
+    <div id="footer">
+      <a href="/about">about</a>&nbsp; &#124; &nbsp;
+      <a href="http://code.google.com/p/list-it/">google code</a>&nbsp; &#124; 
+      <a href="/data/all_the_data.zip">download the data</a>&nbsp; &#124; &nbsp;
+      {% if request_user %}
+      <a href="my_eyebrowse_data.zip">download my data</a>&nbsp; &#124; &nbsp;
+      {% endif %}
+      <a href="/releases/eyebrowse.xpi"> download the plugin</a>
+      <div style="margin-top:4px; line-height:15px;">created by: 
+	<a href="http://www.zamiang.com/" style="text-decoration:none; font-size:1em;">Brennan Moore</a>, 
+	<a href="http://people.csail.mit.edu/emax" style="text-decoration:none; font-size:1em;">Max Van Kleek</a> & 
+	<a href="http://people.csail.mit.edu/karger/" style="text-decoration:none; font-size:1em;">David Karger</a>
+	at MIT CSAIL</div>
+    </div>
+
   {% endblock %}
 
 

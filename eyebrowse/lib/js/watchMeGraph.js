@@ -363,7 +363,7 @@ var lineGraphFactoryLite = ({
 
 				    // need to get it to start at the 0x and baseline y
 				    
-				    if (this_.xPoints[0]){
+				    if (this_.xPoints[0] && this_.yPoints[0]){
 					ctx.moveTo(this_.xPoints[0], this_.yPoints[0]);
 					if (this_.fillGraph){
 					    ctx.moveTo(this_.xPoints[0], this_.padding);

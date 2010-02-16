@@ -1,10 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{{ username }}'s profile{% endblock %}
-
-{% if user.username %}
-{% block name %}your profile{% endblock %}
-{% endif %}
-
+{% block name %}{% if show_edit %}your profile{% endif %}{% endblock %}
 {% block imports %}
     <style>
     .viewboxprofile {
@@ -42,6 +38,10 @@
 	width:200px;
     margin-top:160px;
     }
+    #profile_content h1 {
+    margin-top:30px;
+    display:block;
+    }
     </style>
     <script src="/lib/js/jquery.corner.js"></script>
     <script src="/lib/js/watchMeGraph.js"></script>
@@ -77,6 +77,16 @@ jQuery(document).ready(
 	  </div>
 	  <div id="profile_content" style="width:99.9%">
 	    <div style="display:inline-block; padding-bottom:11px;">
+	      <br />
+ 		{% if user.username %}
+		{% if is_friend %}
+		{% else %}
+		{% ifequal user.username username %}
+		{% else %}<a href="/friend/add?username={{ username }}">follow {{ username }} <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a>
+		{% endifequal %}
+		{% endif %}
+		{% endif %}
+	      <br />
 	      {% if photo %}
 	      <br /><br /><br />
 	      <div class="imgborder" id="profbrdr" style="height:110px; display:block;">
@@ -87,16 +97,7 @@ jQuery(document).ready(
 	      <div class="userhead">
 		<h1><a href="/profile/{{ username }}/">{{ username }}</a></h1>
 		<br />		
-		{% if user.username %}
-		{% if is_friend %}
-		{% else %}
-		{% ifequal user.username username %}
-		{% else %}<a href="/friend/add?username={{ username }}">follow {{ username }} <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a>
-		{% endifequal %}
-		{% endif %}
-		{% endif %}
-		
-		<div style="display:inline-block; ">
+		<div style="display:inline-block;vertical-align:top; margin-left:0px; margin-top:10px">
 		  {% if birthdate %}<i>Age:</i>
 		  {{ birthdate }} 
 		  <br/>
@@ -140,7 +141,7 @@ jQuery(document).ready(
 	      </li>
 	      {% endfor %}
             </ul>
-            {% ifequal user.username username %}<div class="footer"><a href="/friends/manage/{{ username }}/">view all of your followers</a></div>
+            {% ifequal user.username username %}<div class="footer"><a href="/settings">view all of your followers</a></div>
             {% else %}
             {% endifequal %}
             {% else %}

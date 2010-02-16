@@ -364,9 +364,9 @@ a.add {
 }
 
 #mainpanel .userhead{
-    margin:16px 0 0 47px;
+    margin:16px 0 0 30px;
     padding:0;
-    vertical-align:top;
+    vertical-align:sub;
     width:59%;
 }
 
@@ -382,7 +382,9 @@ a.add {
 }
 
 #mainpanel .user .profileimage {
-    float:right;
+    padding-right:4px;
+    width:80px;
+    height:auto;
 }
 
 
