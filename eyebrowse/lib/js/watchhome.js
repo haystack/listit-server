@@ -3,7 +3,7 @@ jQuery(document).ready(function(){
 			       .parent()
 			       .prepend(""
 					+ "</br><h3>please tell us about yourself to help us recommend sites to you</h3>"
-					+ " *not required*<br/><br/>");		
+					+ "<br/>");		
 
 			   jQuery('select').prepend('<option value="none">none</option>');
 			   jQuery('select').removeAttr("selectedIndex");

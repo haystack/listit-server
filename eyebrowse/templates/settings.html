@@ -3,6 +3,13 @@
 {% block name %}settings{% endblock %}
 {% block imports %}
 <script src="/lib/js/settings.js"></script>
+<script>
+jQuery(document).ready(function(){
+jQuery('select').val('{{ location }}');
+console.log('{{ location }}');
+});
+
+</script>
 {% endblock %}
 {% block content %}
 <div id="settings">
@@ -180,5 +187,5 @@
     </div>
   </div>
 </div>
-    {% endblock %}
-    
+{% endblock %}
+

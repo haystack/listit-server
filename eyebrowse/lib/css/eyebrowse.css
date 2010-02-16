@@ -132,14 +132,15 @@ textarea {
 }
 
 input[type = text] {
-    display: block;
-    border: solid 1px lightgrey;
-    padding-top: 4px;
-    padding-left: 3px;
-    font-size: 1.2em;
-    width: 99%;
-    margin-bottom: 10px;
-    height: 20px;
+    border:1px solid lightgrey;
+    display:block;
+    font-size:1.2em;
+    height:20px;
+    margin-bottom:10px;
+    padding-bottom:2px;
+    padding-left:3px;
+    padding-top:3px;
+    width:99%;
 }
 
 input[type = password] {
@@ -149,6 +150,7 @@ input[type = password] {
     margin-bottom: 10px;
     height: 24px;
     font-size:2em;
+    padding-top:2px;
 }
 
 input[type = submit] {

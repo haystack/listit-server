@@ -1229,7 +1229,7 @@ def get_top_users_for_filter(request):
     if request.user.username:
         request_user = get_object_or_404(User, username=request.user.username)
     else:
-        requset_user = False
+        request_user = None
 
     @cache.region('long_term')
     def fetch_data(qry, user, bar, friends, group, age, country, gender):
@@ -1276,7 +1276,6 @@ def get_trending_sites(request):
 
     @cache.region('long_term')
     def fetch_data(qry, user, foo, group, country, friends, gender, age, seen):
-        print country
         if qry == "EndUser.objects.filter(" and friends != "my friends":
             ## if there is no qry 
             new_pageviews = PageView.objects.filter(startTime__gt=int(time.time() * 1000) - 86400000).values()

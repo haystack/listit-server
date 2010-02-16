@@ -24,23 +24,21 @@ from jv3.models import Event ## from listit, ya.
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 from django.contrib.auth import authenticate, login
 from jv3.utils import json_response
+from countries.models import Country
 
-def _create_enduser_for_user(user, request):
+def _create_enduser_for_user(user, request, form):
     enduser = EndUser()
     enduser.user = user
-    
-    #form = RegistrationForm(request.POST)
-    #form.cleaned_data doesnt work for some reason??
 
-    enduser.location = request.POST['country']
-    enduser.gender = request.POST['gender']
+    print request.POST['country']
+    if len(request.POST['country']) != 'none':
+        enduser.location = Country.objects.filter(name=request.POST['country'])[0].printable_name
 
-    try:
-        enduser.birthdate = datetime.datetime(*time.strptime(request.POST['birthdate'], "%d/%m/%y")[0:5])
-    except:
-        pass
+    enduser.gender = form.cleaned_data['gender']
+    enduser.birthdate = form.cleaned_data['birthdate']
+    #enduser.birthdate = datetime.datetime(*time.strptime(form.cleaned_data['birthdate'], "%d/%m/%y")[0:5])
 
-    tag_names = request.POST['tags'].split()
+    tag_names = form.cleaned_data['tags'].split()
     for tag_name in tag_names:
         if re.search(r'^(/w|/W|[^<>+?$%{}&])+$', tag_name):
             tag, dummy = UserTag.objects.get_or_create(name=tag_name)
@@ -95,14 +93,12 @@ def privacy_settings_page(request):
         first_name = enduser.user.first_name
         last_name = enduser.user.last_name
         email = enduser.user.email
-        location = enduser.location
+        location = str(Country.objects.filter(printable_name=enduser.location)[0].name)
         homepage = enduser.homepage
         birthdate = enduser.birthdate
         photo = enduser.photo
         gender = enduser.gender
-        tags = ' '.join(
-            tag.name for tag in enduser.tags.all()
-            )
+        tags = ' '.join(tag.name for tag in enduser.tags.all())
     except:
         print sys.exc_info()
 
@@ -131,7 +127,9 @@ def privacy_settings_page(request):
             'form': form,
             'request_user': request.user,
             'following': [friendship.to_friend for friendship in user.friend_set.all()],
-            'followers': [friendship.from_friend for friendship in user.to_friend_set.all()]
+            'followers': [friendship.from_friend for friendship in user.to_friend_set.all()],
+            'location':location
+            
         })
 
     return render_to_response('settings.html', variables )
@@ -163,7 +161,7 @@ def index(request):
                 password=form.cleaned_data['password1'],
                 email=form.cleaned_data['email']
                 )
-            _create_enduser_for_user(user, request)
+            _create_enduser_for_user(user, request, form)
             return HttpResponseRedirect('/register/success/')
         variables = RequestContext(request, {'form': form, 'error': True})
         return render_to_response('index.html', variables)
@@ -468,7 +466,7 @@ def register_page(request):
                 password=pw,
                 email=form.cleaned_data['email']
                 )
-            _create_enduser_for_user(user, request)
+            _create_enduser_for_user(user, request, form)
             return HttpResponseRedirect('/register/success/')            
     else:
         form = RegistrationForm()
@@ -563,7 +561,9 @@ def _profile_save(request, form):
     enduser.user.email = form.cleaned_data['email']
     enduser.user.save()
 
-    enduser.location = form.cleaned_data['location']
+    if len(request.POST['country']) > 1:
+        enduser.location = Country.objects.filter(name=request.POST['country'])[0].printable_name
+        #enduser.location = form.cleaned_data['location']
     #if re.search(r'^(/w|/W|[^<>+?$%{}&])+$', form.cleaned_data['location']):        
     #    enduser.location = form.cleaned_data['location']
 
