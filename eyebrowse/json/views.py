@@ -529,34 +529,52 @@ def get_JSON_eyebrowse_social_page(request):
     return json_response({ "code":200, "results": results });
 
 
-def get_profile_graphs(endTime, interp, username):    
+def get_profile_graphs(username):    
+    n = 20 
     user = get_object_or_404(User, username=username)
 
     @cache.region('long_term')
     def fetch_data(user, baaa):
-        from_msec = round_time_to_half_day(endTime - interp)
-        to_msec = round_time_to_half_day(endTime)        
+        to_msec = int(time.time()*1000)
+        from_msec = to_msec - (18122400000) # past three weeks
 
-        views = PageView.objects.filter(user=user,startTime__gte=from_msec,endTime__lte=to_msec)
-        data = {}
+        views = PageView.objects.filter(user=user, startTime__gte=from_msec,endTime__lte=to_msec)
 
-        weekPts = [0]*7
-        hrPts = [0]*24
+        hrPts = dict([ (i, {}) for i in range(0,24) ])
+        weekPts = dict([ (i, {}) for i in range(0,7) ])
 
         for view in views:
             weekday = datetime.datetime.fromtimestamp(view.startTime/1000).weekday()
-            # returns the day of the week as an integer, where Monday is 0 and Sunday is 6. 
-            weekPts[weekday] += 1
-
             hour = datetime.datetime.fromtimestamp(view.startTime/1000).hour
-            hrPts[hour] += 1
+            
+            if view.url in hrPts[hour]:
+                hrPts[hour][view.url]['val'] += 1
+            else:
+                hrPts[hour][view.url] = {}
+                hrPts[hour][view.url]['val'] = 1
+                hrPts[hour][view.url]['hue'] = _h_generator(view.host) 
 
-        data.update(_get_graph_points_for_results(views, to_msec, from_msec, 28))
+            if view.url in weekPts[weekday]:
+                weekPts[weekday][view.url]['val'] += 1
+            else:
+                weekPts[weekday][view.url] = {}
+                weekPts[weekday][view.url]['val'] = 1
+                weekPts[weekday][view.url]['hue'] = _h_generator(view.host) 
 
-        data['dayWeek'] = weekPts
-        data['timeDay'] = hrPts
-        return data
+        lResult = []
 
+        for x in range(7):
+            phlat = weekPts[x].items()
+            phlat.sort(key=lambda(k,v2):-v2['val'])
+            lResult.append((x,phlat[:n]))
+
+        rResult = []
+        for x in range(24):
+            phlat = hrPts[x].items()
+            phlat.sort(key=lambda(k,v2):-v2['val'])
+            rResult.append((x,phlat[:n]))
+
+        return [lResult,rResult]
     results = fetch_data(user, "profile_graphs") 
     return results
 
@@ -899,21 +917,17 @@ def get_users_page(request):
 
 ## PROFILE PAGE
 def get_profile(request):
-    if not 'type' in request.GET:
-        return json_response({ "code":404, "error": "get has no 'type' key" }) 
+    if not 'username' in request.GET:
+        return json_response({ "code":404, "error": "get has no 'username' key" }) 
 
     request_type = {}
-    request_type['user'] = request.GET['type'].strip()
+    request_type['user'] = request.GET['username'].strip()
 
     @cache.region('long_term')
     def fetch_data(request_type, bozz):
-        now = int(time.time()*1000)
-        interp = 604800000
-
-        top_hosts = get_top_hosts_compare(now, interp, 10, request_type)
+        graphs = get_profile_graphs(request_type['user'])
         profile_queries = get_profile_queries(request_type)
-        graphs = get_profile_graphs(now, interp, request_type['user'])
-        return [graphs, top_hosts, profile_queries]
+        return [graphs, profile_queries]
 
     results = fetch_data(request_type, "profile_page")
 
@@ -1230,7 +1244,6 @@ def get_top_users_for_filter(request):
         request_user = get_object_or_404(User, username=request.user.username)
     else:
         request_user = None
-
     @cache.region('long_term')
     def fetch_data(qry, user, bar, friends, group, age, country, gender):
         if qry == "EndUser.objects.filter(" and friends != "my friends":

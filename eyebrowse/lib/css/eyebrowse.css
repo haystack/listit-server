@@ -964,7 +964,7 @@ width:48%;
     position: absolute;
     background: white;
     color: #333;
-    padding: 6px;
+    padding: 4px;
     width: auto;
     text-decoration: none;
     -moz-border-radius: 5px;
@@ -974,26 +974,14 @@ width:48%;
     display:none;
     line-height:15px
 } #hoverTxt a {
-    text-decoration: none;
-    font-size: 1em;
-    background: #000000;
-    padding: 3px;
-    color: #ffffff;
+    color: #333;
 } #hoverTxt a:visited {
-    text-decoration: none;
-    font-size: 1em;
-    padding: 3px;
-    background: #000000;
-    color: #ffffff;
+    color: #666;
 } #hoverTxt A:active {
-    text-decoration: none;
-    font-size: 1em;
-    padding: 3px;
-    background: #000000;
     color: #ffffff;
 } #hoverTxt a:hover {
     text-decoration: underline;
-    color: #ffffff;
+    color: magenta;
 } .centerlabel {
     display: inline-block;
     width: 120px;
