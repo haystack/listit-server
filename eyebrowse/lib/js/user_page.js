@@ -106,7 +106,7 @@ var stackBarGraph = ({
 			     }
 
 			     for (var i = 0; i < this.labelRight.length; i++){
-				 ctx.fillText("" + this.labelRight[i], this.labelRightXpos[i] + this.textPadding + (this.labelRightWidth - ctx.measureText(this.labelRight[i]).width)/2 - 3, this.windowHeight - this.bottomPadding + 12);
+				 ctx.fillText("" + this.labelRight[i], this.labelRightXpos[i] + this.textPadding + (this.labelRightWidth - ctx.measureText(this.labelRight[i]).width)/2 , this.windowHeight - this.bottomPadding + 12);
 			     }
 			     
 			     ctx.fillStyle = "#333333";
@@ -215,7 +215,7 @@ var stackBarGraph = ({
 				     tmp.url = rightData[i][1][k][0];
 				     tmp.fillStyle = "hsl("+ rightData[i][1][k][1].hue + ",100%,50%)";
 				     tmp.height = -(this_.windowHeight - this_.bottomPadding) * (rightData[i][1][k][1].val / this_.dataMax);
-				     tmp.xPos = (this_.windowWidth/2 - this_.midPad) + (((this_.windowWidth/2 - this_.midPad)/rightData.length)*i) + this_.barPadding + (this_.padding + leftData.length)/leftData.length + this_.midPad*2;
+				     tmp.xPos = (this_.windowWidth/2 - this_.midPad) + (((this_.windowWidth/2 - this_.midPad)/rightData.length)*i) + this_.barPadding + (this_.padding + leftData.length)/leftData.length + this_.midPad*2 - 5;
  				     tmp.yPos = function(){
 					 var yPos = this_.windowHeight - this_.bottomPadding;
 					 // -sum all heights in height array including this one
