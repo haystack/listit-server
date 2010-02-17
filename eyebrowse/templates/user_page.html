@@ -90,15 +90,14 @@ document.getElementById("main").setAttribute("height", height);
     <div id="mainloading" class="loadimg"></div>
     <div id="hoverTxt" style="z-index: 10000;"></div>
     <div id="report" style="width:950px">
-      <div id="profile" style="margin-top:32px">
-      </div>
       <div id="profile_content" style="width:99.9%">
 	<div style="display:inline-block; padding-bottom:11px;">
+	  <br />	  <br />	  <br />
  	  {% if user.username %}
 	  {% if is_friend %}
 	  {% else %}
 	  {% ifequal user.username username %}
-	  {% else %}<a href="/friend/add?username={{ username }}">follow {{ username }} <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a>
+	  {% else %}<a href="/friend/add?username={{ username }}">follow {{ username }} <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a><br />
 	  {% endifequal %}
 	  {% endif %}
 	  {% endif %}
