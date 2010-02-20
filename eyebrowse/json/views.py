@@ -1139,10 +1139,10 @@ def _get_query_for_request(request):
         query += " gender=gender,"
         
     if country != "any":
-        query += " location=country," ## this is a problem -- need to standardaise locations
+        query += " location__icontains=country.split(' ')[0].strip(',')," 
         
     if group != "any":
-        query += " tags__name__contains=group,"
+        query += " tags__name__icontains=group.split(' ')[0].strip(','),"
             
     if age != "all":
         query += " birthdate__range=(start_date, end_date),"
@@ -1189,11 +1189,12 @@ def get_latest_sites_for_filter(request):
 
     # filter out seen sites
     if seen == "sites not seen":
-        user = User.objects.filter(username=request.user.username)[0]
-        # this fails for some reason ;(
-        #user_uniq = (site['url'] for site in uniq(PageView.objects.filter(user=user).values(),lambda x:x["url"],None))                           
-        user_uniq = PageView.objects.filter(user=user).values_list('url', flat=True)
-        results = [site for site in results if not site['url'] in user_uniq] 
+        if request.user.username:
+            user = User.objects.filter(username=request.user.username)[0]
+            # this fails for some reason ;(
+            # user_uniq = (site['url'] for site in uniq(PageView.objects.filter(user=user).values(),lambda x:x["url"],None))                           
+            user_uniq = PageView.objects.filter(user=user).values_list('url', flat=True)
+            results = [site for site in results if not site['url'] in user_uniq] 
 
     if request.GET.has_key('id'):
         urlID = int(request.GET['id'])
