@@ -59,7 +59,7 @@ h2 {
     border-bottom:3px solid black;
     font-size:18px;
     font-weight:bold;
-    padding:12px;
+    padding:12px 12px 12px 4px;
 }
 
 h3 {
