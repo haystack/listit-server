@@ -15,6 +15,8 @@ urlpatterns = patterns('',
                        # user privacy
                        (r'^add_privacy_url/$', add_privacy_url),
                        (r'^get_privacy_urls/$', get_privacy_urls),
+                       (r'^get_user_friends/$', get_user_following),                       
+                       (r'^get_user_profile/$', get_user_profile),                       
                        (r'^delete_privacy_url/$', delete_privacy_url),
                        (r'^delete_url_entry/$', delete_url_entry),                       
                        (r'^add_delete_from_whitelist/$', add_delete_from_whitelist),                       

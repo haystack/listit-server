@@ -18,9 +18,19 @@ import time
 import sys
 import urlparse    
 from eyebrowse.models import PageView
+from eyebrowse.models import *
+from countries.models import Country
 ##
 ## this set of views are used by the plugin to post new events
 ##
+
+def get_enduser_for_user(user):
+    if EndUser.objects.filter(user=user).count() > 0:
+        enduser = EndUser.objects.filter(user=user)[0]
+    else:
+        raise Http404('Internal error. Call brennan or emax. Something is wrong. Houston.')    
+    return enduser
+
 
 def authenticate_user(request):
     # this authentication mechanism works for BOTH plugin-style authentication (headers)
@@ -125,6 +135,39 @@ def post_events_and_keep_alive(request):
 
 ## USER PRIVACY 
 
+def get_user_following(request):
+    user = authenticate_user(request)
+    following = [friendship.to_friend.username for friendship in user.friend_set.all()]
+    followers = [friendship.from_friend.username for friendship in user.to_friend_set.all()]
+    return json_response({ "code":200, "results": [following, followers] }) 
+
+def get_user_profile(request):
+    user = authenticate_user(request)
+    enduser = get_enduser_for_user(user)
+
+    first_name = enduser.user.first_name
+    last_name = enduser.user.last_name
+    email = enduser.user.email
+    location = str(Country.objects.filter(printable_name=enduser.location)[0].name)
+    homepage = enduser.homepage
+    birthdate = enduser.birthdate
+    #photo = enduser.photo
+    gender = enduser.gender
+    tags = ' '.join(tag.name for tag in enduser.tags.all())
+
+    response = {
+        'first_name': first_name,
+        'last_name': last_name,
+        'email': email,
+        'location': location,
+        'tags': tags,
+        'homepage': homepage,
+        'birthdate': birthdate.ctime(),
+        'gender': gender,
+        }
+
+    return json_response({ "code":200, "results": response }) 
+
 ## @login_required
 def get_privacy_urls(request):
     user = authenticate_user(request)
@@ -154,6 +197,7 @@ def delete_privacy_url(request):
 
     privacysettings.save()
     return HttpResponseRedirect('/settings/')
+    #return json_response({ "code":200, "results": 'success' }) 
 
 ## @login_required
 def add_privacy_url(request):
