@@ -25,16 +25,6 @@ var Settings = ({
 				     jQuery("#add_sites #" + item).html(html);				     
 				 });
 		    },		    
-		    setupNewTabPrefs:function(){
-			this.pref = JV3.prefs.getCharPref('which');			
-			if (this.pref == 'personal'){
-			    var mode = JV3.prefs.getCharPref('personalGraphType');
-			    jQuery('#' + mode).addClass('sel');
-			}
-			else {
-			    jQuery('#' + this.pref).addClass('sel');
-			}			
-		    },
 		    addWhitelist:function(div){
 			var this_ = this;
 			jQuery.get("/get_privacy_urls/", {}, function(data){
@@ -63,12 +53,12 @@ var Settings = ({
 		    drawSharedSite:function(domain){
 			return "<li>"
 			    + domain
-			    + "<a onclick=\"deleteSharedSite(\'" + domain + "\'); jQuery(this).parent().hide('slow');\"><img src=\"../../skin/cancel_16.png\"/></a>"
+			    + "<a onclick=\"deleteSharedSite(\'" + domain + "\'); jQuery(this).parent().hide('slow');\"><img src=\"/lib/img/cancel_16.png\"/></a>"
 			    + "</li>";
 		    },
 		    drawShareableSite: function(domain){
 			return "<li>"
-			    + "<a onclick=\"JV3.add_to_whitelist(\'" + domain + "\'); addPrivacyURL(\'" + domain + "\'); jQuery(this).parent().hide('slow');\"><b>share</b></a>&nbsp;&nbsp;&nbsp;"
+			    + "<a onclick=\"addPrivacyURL(\'" + domain + "\'); jQuery(this).parent().hide('slow');\"><b>share</b></a>&nbsp;&nbsp;&nbsp;"
 			    + domain
 			    +"</li>";			
 		    }

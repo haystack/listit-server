@@ -257,7 +257,7 @@ var addURL =  function(){
 		    data:{input:input},
 		    success:function(data){
 			if (data.host && data.host.length > 0) {
-			    jQuery("<li>" + data.host + "<a href=\"/delete_privacy_url/?input=" + data.host + "\"><img src=\"../../skin/cancel_16.png\"/></a>" + "</li>").prependTo('#urladdul');
+			    jQuery("<li>" + data.host + "<a href=\"/delete_privacy_url/?input=" + data.host + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").prependTo('#urladdul');
 			}
 		    },
 		    error:function() {}
@@ -300,17 +300,17 @@ function addGroups(){
 }
 
 function addPrivacyURL(url){
-    jQuery("<li>" + url + "<a href=\"http://eyebrowse.csail.mit.edu/delete_privacy_url/?input=" + url + "\"><img src=\"../../skin/cancel_16.png\"/></a>" + "</li>").prependTo('#urladdul');
+    jQuery("<li>" + url + "<a href=\"/delete_privacy_url/?input=" + url + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").prependTo('#urladdul');
     jQuery.get("http://eyebrowse.csail.mit.edu/add_privacy_url/", {input:url}); 
 };
 
 function addAllPrivacyURLS(urls){
     var urlsArray = urls.split(",");
     for (var i = 0; i < urlsArray.length; i++){
-	jQuery("<li>" + urlsArray[i] + "<a href=\"http://eyebrowse.csail.mit.edu/delete_privacy_url/?input=" + urlsArray[i] + "\"><img src=\"../../skin/cancel_16.png\"/></a>" + "</li>").prependTo('#urladdul');		
+	jQuery("<li>" + urlsArray[i] + "<a href=\"/delete_privacy_url/?input=" + urlsArray[i] + "\"><img src=\"/lib/img/cancel_16.png\"/></a>" + "</li>").prependTo('#urladdul');		
     }
     jQuery.get("http://eyebrowse.csail.mit.edu/add_privacy_url/", {input:urls}); 
 };
 
-var deleteSharedSite = function(url) { jQuery.get("http://eyebrowse.csail.mit.edu/delete_privacy_url/", {input:url}); };
-var unfollowUser = function(user){ jQuery.get("http://eyebrowse.csail.mit.edu/friend/unfollow/", {friend:user}); };
+var deleteSharedSite = function(url) { jQuery.get("/delete_privacy_url/", {input:url}); };
+var unfollowUser = function(user){ jQuery.get("/friend/unfollow/", {friend:user}); };
