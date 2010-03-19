@@ -95,11 +95,11 @@ class ProfileSaveForm(forms.Form):
         choices=[(country.name, country.printable_name) for country in Country.objects.all()],
         required=False
         )
-    tags = forms.CharField(
-        label='Groups',
-        widget=forms.TextInput(attrs={'size': 250}), 
-        required=False
-        )
+#     tags = forms.CharField(
+#         label='Groups',
+#         widget=forms.TextInput(attrs={'size': 250}), 
+#         required=False
+#         )
     homepage = forms.URLField(
         label='Homepage',
         widget=forms.TextInput(attrs={'size': 250}),

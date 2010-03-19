@@ -112,7 +112,7 @@ self.viz.initialize(document.getElementById("main"), width, height, '{{ username
 	  <div class="userhead">
 	    <h1><a href="/profile/{{ username }}/">{{ username }}</a></h1>
 	    <br />		
-	    <div style="display:inline-block;vertical-align:top; margin-left:0px; margin-top:10px">
+	    <div style="display:inline-block;vertical-align:top; margin-left:0px; margin-top:10px; margin-right:40px;">
 	      {% if birthdate %}<i>Age:</i>
 	      {{ birthdate }} 
 	      <br/>
@@ -126,7 +126,7 @@ self.viz.initialize(document.getElementById("main"), width, height, '{{ username
 	      <a href="{{ homepage }}">{{ homepage }}</a> 
 	      {% endif %}
 	    </div>
-	    <div style="display:inline-block; vertical-align:top; margin-left:40px;">
+	    <div style="display:inline-block; vertical-align:top;">
 	      <div id="num" style="margin-top:10px; ">
 		<i>total visits:</i>
 	      </div>
