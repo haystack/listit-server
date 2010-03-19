@@ -1,3 +1,10 @@
+var followUser = function(username, div) {
+    jQuery.post("/friend/add?username=" + username, {}, function(data){
+		    jQuery(div).html('you are now following ' + username).removeClass('follow');
+		});
+};
+
+
 var evtHandlers = ({
 		       mouse: {
 			   x: 0,
@@ -274,19 +281,21 @@ var UserPage = {
     drawGraph: function(data){
 	var this_ = this;
 	this.drawArray = [];
-	var stackGraph = newify(stackBarGraph, this, {
-				    windowWidth: this.windowWidth,
-				    windowHeight: this.windowHeight,
-				    bottomPadding:30,
-				    columnWidth:8,
-				    barPadding:0,
-				    textPadding:0,
-				    data: data,
-				    labelLeft: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', '  Friday', 'Saturday', 'Sunday'],
-				    labelRight: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
-				});
+	var stackGraph = stackBarGraph;
+	stackGraph.initialize(this, {
+				  windowWidth: this.windowWidth,
+				  windowHeight: this.windowHeight,
+				  bottomPadding:30,
+				  columnWidth:8,
+				  barPadding:0,
+				  textPadding:0,
+				  data: data,
+				  labelLeft: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', '  Friday', 'Saturday', 'Sunday'],
+				  labelRight: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+			      });
 	this.drawArray.push(stackGraph);	
-	this.mainEvtHandlers = newify(evtHandlers, this);	
+	this.mainEvtHandlers = evtHandlers;	
+	this.mainEvtHandlers = evtHandlers.initialize(this);	
 	this.draw();
     },
     draw: function(){

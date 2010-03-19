@@ -82,7 +82,10 @@ var width = 920;
 var height = 280;
 document.getElementById("main").setAttribute("width", width);
 document.getElementById("main").setAttribute("height", height);
-	self.viz = newify(UserPage, document.getElementById("main"), width, height, '{{ username }}');// 1 week
+//	self.viz = newify(UserPage, document.getElementById("main"), width, height, '{{ username }}');// 1 week
+self.viz = UserPage;
+self.viz.initialize(document.getElementById("main"), width, height, '{{ username }}');// 1 week
+
     });
 </script>
     {% endblock %}
@@ -97,7 +100,7 @@ document.getElementById("main").setAttribute("height", height);
 	  {% if is_friend %}
 	  {% else %}
 	  {% ifequal user.username username %}
-	  {% else %}<a href="/friend/add?username={{ username }}">follow {{ username }} <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a><br />
+	  {% else %}<a onclick="followUser('{{ username }}',this);">follow {{ username }} <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/></a><br />
 	  {% endifequal %}
 	  {% endif %}
 	  {% endif %}
@@ -117,12 +120,6 @@ document.getElementById("main").setAttribute("height", height);
 	      {% if location %}<i>Location:</i>
 	      {{ location }} 
 	      <br/>
-	      {% endif %}
-	      
-	      {% if tags %}
-	      <i>Groups:</i>
-	      {{ tags }}
-	      <br />
 	      {% endif %}
 	      
 	      {% if homepage %}<i>Website:</i>

@@ -691,9 +691,9 @@ def friend_add(request): # this sends a friend request to the user
             request.user.message_set.create(
                 message='you are now following %s.' % friend.username
                 )
-        return HttpResponseRedirect('/settings')
+        return json_response({"code":200 })
     else:
-        raise Http404('boo.')
+        return json_response({"code":404 })
 
 @login_required
 def friend_save(request):  # this saves the user as a friend in BOTH user's friends model

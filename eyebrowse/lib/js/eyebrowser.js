@@ -34,39 +34,43 @@ var Eyebrowser = {
 	}
     },
     initQueryInterface: function(query, div) {	
-	let this_ = this;
+	var this_ = this;
 	jQuery("#search .subpanel a.add").each(
-					       function(i, item) {
-						   let type = jQuery(item).parent().find('.name').text();
-						   if (query[type] == jQuery(item).text()){ jQuery(item).addClass('selected');}
-						   jQuery(item).click(
-								      function() {
-									  jQuery(this).parent().find('a.add').each(function(i, item){ jQuery(item).removeClass('selected');});
-									  jQuery(this).addClass('selected');
-									  this_.baseQuery[type] = jQuery(this).text();
-									  this_.refreshQueryInterface(div);
-									  this_.runQuery(this_.type);
-								      });
-					       });
-
+	    function(i, item) {
+		var type = jQuery(item).parent().find('.name').text();
+		if (query[type] == jQuery(item).text()){ jQuery(item).addClass('selected');}
+		jQuery(item).click(
+		    function() {
+			jQuery(this).parent().find('a.add').each(function(i, item){ jQuery(item).removeClass('selected');});
+			jQuery(this).addClass('selected');
+			this_.baseQuery[type] = jQuery(this).text();
+			this_.refreshQueryInterface(div);
+			this_.runQuery(this_.type);
+		    });
+	    });
+	
 	jQuery("#search select").each(
-				      function(i, item) {
-					  jQuery(item).change(
-							      function(){
-								  this_.baseQuery[jQuery(this).attr('name')] = jQuery(this).val();
-								  this_.refreshQueryInterface(div);
-								  this_.runQuery(this_.type);
-							      });
-				      });
-
+	    function(i, item) {
+		jQuery(item).change(
+		    function(){
+			this_.baseQuery[jQuery(this).attr('name')] = jQuery(this).val();
+			this_.refreshQueryInterface(div);
+			this_.runQuery(this_.type);
+		    });
+	    });
+	
 	this.refreshQueryInterface(query, div);
 	this.runQuery(this.type);
     },
     runQuery: function(type){
 	if (type == "pages") {	   
-	    jQuery('#trending').show();
-	    this.getRecentPages("#mainpanel", 60);	
-	    this.getRecs('#trending');
+	    try {		
+		jQuery('#trending').show();
+		this.getRecentPages("#mainpanel", 60);	
+		this.getRecs('#trending');
+	    } catch (x) {
+		console.log(x);
+	    }
 	} else if (type == "users") {
 	    jQuery('#trending').hide();
 	    this.getUsers("#mainpanel", 40);
@@ -79,20 +83,20 @@ var Eyebrowser = {
     },
     refreshQueryInterface: function(div){
 	// this runs evertime an item is clicked
-	let this_ = this;
+	var this_ = this;
 	this.lastPageID = 0;
-	jQuery('#mainpanel').html('')
+	jQuery('#mainpanel').html('');
 	jQuery("#search .subpanel a.add").each(
-					       function(i, item) {
-						   let type = jQuery(item).parent().find('.name').text();
-						   if (this_.baseQuery[type] == jQuery(item).text()){ jQuery(item).addClass('selected');}
-						   else { jQuery(item).removeClass('selected');}
-					       });
-
+	    function(i, item) {
+		var type = jQuery(item).parent().find('.name').text();
+		if (this_.baseQuery[type] == jQuery(item).text()){ jQuery(item).addClass('selected');}
+		else { jQuery(item).removeClass('selected');}
+	    });
+	
 	this.displayQuery(this_.baseQuery, div, this.type);
     },
     displayQuery: function(query, div, type) {
-	let stmnt = "showing " + type + " ";
+	var stmnt = "showing " + type + " ";
 	if (type == "pages"){
 	    stmnt = "showing websites "; // REASSIGNMENT
 	}
@@ -106,10 +110,8 @@ var Eyebrowser = {
 	} else if (type == "pages") {
 	    stmnt += "visited by ";
 	}
-
 	stmnt += "<b>" + query['friends'] + "</b>";
        
-
 	if (query['gender'] != "all"){
 	    stmnt += " of the <b>" + query['gender'] + "</b> gender ";
 	}
@@ -132,20 +134,19 @@ var Eyebrowser = {
 	if (stmnt == "showing users who are ") {
 	    stmnt = "";
 	}
-
 	jQuery(div).html(stmnt);
     },
     getRecs: function(divid) {
-	let this_ = this;
+	var this_ = this;
 	
 	this.trendingLoading(true);
-	jQuery.get("/get_trending_sites", {
+	jQuery.getJSON("/get_trending_sites", {
 		       groups: jQuery('#group').val(),
 		       country: jQuery('#country').val(),
 		       friends: jQuery('#friends .selected').text(),
 		       gender: jQuery('#gender .selected').attr('data-val'),
 		       age: jQuery('#age .selected').attr('data-val'),
-		       time: jQuery('#recently .selected').text(),
+		       time: 'recently',
 		       seen: jQuery('#hasseen .selected').text()
 		   }, function(data){
 		       jQuery("#loadimg").hide();
@@ -162,14 +163,15 @@ var Eyebrowser = {
     addQueryRecs: function(sites, divid){
 	jQuery(divid).html('<h2>trending sites</h2>');
 	sites.map(function(site){
-		      if (site.title && site.url){			  
-			  let np = jQuery('#templates>.recpage').clone();			 
+		      try {
+			  if (site.title && site.url){			  
+			  var np = jQuery('#templates>.recpage').clone();			 
 			  
-			  let title = np.find('.title')
+			  var title = np.find('.title')
 			      .text(site.title)
 			      .attr({'href':site.url});
 
-			  let link = np.find('.url')
+			  var link = np.find('.url')
 			      .text(site.url)
 			      .attr({'href':site.url});
 
@@ -182,14 +184,17 @@ var Eyebrowser = {
 			      });
 			  			  
 			  jQuery(divid).append(np);		      
-		      }
+			  }
+		      } catch (x) {
+			  
+		      }		      
 		  });
     },
     getUsers: function(divid, num){
 	// should get trending for the current query
-	let this_ = this;
+	var this_ = this;
 	this.mainLoading(true);
-	jQuery.get("/get_top_users_for_filter", {
+	jQuery.getJSON("/get_top_users_for_filter", {
 		       id: this_.lastPageID,
 		       groups: jQuery('#group').val(),
 		       country: jQuery('#country').val(),
@@ -207,25 +212,39 @@ var Eyebrowser = {
 		   }, "json");
     },
     addUser: function(divid, user, number){
-	let np = jQuery('#templates>.user').clone();			 
+	var this_ = this;
+	var np = jQuery('#templates>.user').clone();			 
 	
-	let title = np.find('.title')
+	var title = np.find('.title')
 	    .text(user.username)
 	    .attr({'href':"/profile/" + user.username});
 
-	let img = np.find('img.profileimage')
-	    .attr({'src':"/profiles/" + user.id + ".jpg"});
+	if (user.has_photo == true){
+	    np.find('img.profileimage')
+		.attr({'src':"/profiles/" + user.id + ".jpg"});	    
+	} else {
+	    np.find('img.profileimage')
+		.attr({'src':"/profiles/o.jpg"});	    	   
+	}
 
-	let number = np.find('.number').append("<b>" + number + "</b>");		
+	var number = np.find('.number').append("<b>" + number + "</b>");		
 
-	if (user.is_friend == 0) { 
-	    np.find('a.follow').attr({'href':"/friend/add?username=" + user.username});
-	} else { np.find('a.follow').html('');}
+	if (user.is_following == 0) { 
+	    np.find('a.follow').click(function(){ this_.followUser(user.username, np); });
+	    np.find('.isfollowing').hide();
+	} else if (user.is_following == -1) {
+	    np.find('.isfollowing').hide();
+	    np.find('a.follow').hide();
+	}
+	else {
+	    np.find('.isfollowing').html("<img src='/lib/img/go.png'></img> following");
+	    np.find('a.follow').hide();}
+	
+	if (user.is_followed_by == 1) { np.find('.isfollowedby').html(" is following you"); }
 
-	if (user.is_followed_by == 1) { np.find('.isfollowing').text('is following you');}
 	if (user.age){np.find('.age').append(user.age[0]);} else  { np.find('.age').html("");};	
 	if (user.location){ np.find('.location').append(user.location); } else { np.find('.location').html("");};		
-	if (user.tags) {np.find('.tags').append(user.tags); } else { np.find('.tags').html(''); };	
+	//if (user.tags) {np.find('.tags').append(user.tags); } else { np.find('.tags').html(''); };	
 	if (user.website) { 
 	    np.find('.website')
 		.html("<span class=\"italicsname\">website:</span>&nbsp;<a href=" + user.website + ">" + user.website + "</a>");}
@@ -236,31 +255,37 @@ var Eyebrowser = {
 		
 	jQuery(divid).append(np);		      
     },
+    followUser: function(username, div){
+	jQuery.post("/friend/add?username=" + username, {}, function(data){
+			jQuery(div).find('a.follow').html('you are now following ' + username).removeClass('follow');
+			});
+
+    },
     getRecentPages: function(divid, num){
-        let this_ = this;
+        var this_ = this;
 	this.mainLoading(true);
 	// should get latest for the current query
-	jQuery.get("/get_latest_sites_for_filter", {
-		       id: this_.lastPageID,
-		       groups: jQuery('#group').val(),
-		       country: jQuery('#country').val(),
-		       friends: jQuery('#friends .selected').text(),
-		       gender: jQuery('#gender .selected').attr('data-val'),
-		       age: jQuery('#age .selected').attr('data-val'),
-		       time: jQuery('#recently .selected').text(),
-		       seen: jQuery('#hasseen .selected').text()
-		   }, function(data){
-		       this_.mainLoading(false);
-		       if (data.code == 200) {
-			   let now = new Date().valueOf();
-			   data.results.map(function(item) { this_.addRecentPage(divid, item, now); });
-			   this_.lastPageID = data.results[0].id;
-		       }
-		   }, "json");
+	jQuery.getJSON("/get_latest_sites_for_filter", {
+			   id: this_.lastPageID,
+			   groups: jQuery('#group').val(),
+			   country: jQuery('#country').val(),
+			   friends: jQuery('#friends .selected').text(),
+			   gender: jQuery('#gender .selected').attr('data-val'),
+			   age: jQuery('#age .selected').attr('data-val'),
+			   time: jQuery('#recently .selected').text(),
+			   seen: jQuery('#hasseen .selected').text()
+		       }, function(data){
+			   this_.mainLoading(false);
+			   if (data.code == 200) {
+			       var now = new Date().valueOf();
+			       data.results.map(function(item) { this_.addRecentPage(divid, item, now); });
+			       this_.lastPageID = data.results[0].id;
+			   }
+		       }, "json");
     },
     addRecentPage: function(divid, page, now) {
-	let name = page.title?page.title.substring(0,30):cleanupURL(page.url);
-
+	var name = page.title?page.title.substring(0,30):cleanupURL(page.url);
+	
 	/*  keep track of times displayed and hide old ones
 	this_.recentTimesArray.unshift(newData[i].end);
 	if (this_.recentTimesArray.length > num){
@@ -268,20 +293,20 @@ var Eyebrowser = {
 	    this_.recentTimesArray.pop();   
 	}  */
 
-	let np = jQuery('#templates>.recentpage').clone();
+	var np = jQuery('#templates>.recentpage').clone();
 	np.id = page.id;
 	
 	np.find('.colorbox').css({'background-color': 'hsl(' + page.hue + ',100%, 50%)'});
 
-	let title = np.find('.title')
+	var title = np.find('.title')
 	    .text(name)
 	    .attr({'href':page.url});
 
-	let time = np.find('.time')
+	var time = np.find('.time')
 	    .html(timeCounterClock((now - page.end)/1000) + " ago");	
 
 	if (page.user.length > 0){
-	    let user = np.find('.user')
+	    var user = np.find('user')
 		.html(" by <a href=\"/profile/" + page.user + 
 		      "\">" + page.user + "</a>"); 
 	}
@@ -294,7 +319,7 @@ var Eyebrowser = {
 		jQuery(this).text('hide stats');
 	    });
 
-	jQuery(divid).append(np);
+	jQuery(divid).append(np);	    
     },
     makeCompare: function(){
 	if (this.type == "compare"){ return;}
@@ -363,43 +388,4 @@ var Eyebrowser = {
 	this.baseQuery = clone(this.blankQuery);
     }
 };
-
-jQuery(document).ready(
-    function(){	
-	self.viz = newify(Eyebrowser, '#query', 'pages');
-    });
-
-
-/*
- * CRUFT
-
-let toggleAdd = function(div) {     
-    // potential bug here with removing items via the list in main panel
-    (jQuery(div).text()=='show')?jQuery(div).addClass('selected').text('hide'):
-	jQuery(div).removeClass('selected').text('show'); 
-    viz.refreshMainPanelQuery(div);
-};
-
-
- // ui events
- 
-    showNotifications: function(div) { 
-	jQuery(div).text()=='show latest views'?
-	    jQuery(div).text('hide latest views')
-	    :jQuery(div).text('show latest views');    
-	self.viz.getRecentPages(jQuery(div).parent(), 30, self.viz.type, div);
-    },
-    addUser: function(div) { toggleAdd(div); }, //more later
-    addGroup: function(div) { toggleAdd(div); }, // more later
-    addGroups: function(div) {
-	// more verbose but safer
-	if (jQuery('#mainpanel #recs').is(':hidden')) {
-	    jQuery('#mainpanel #addGroups').hide();
-	    jQuery('#mainpanel #recs').show();	  
-	} else {
-	    jQuery('#mainpanel #addGroups').show();
-	    jQuery('#mainpanel #recs').hide();	
-	}
-    }
-
- */
+jQuery(document).ready(function(){ self.viz = Eyebrowser; self.viz.initialize('#query', 'pages'); });

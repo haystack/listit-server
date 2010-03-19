@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}eyebrowser{% endblock %}
 {% block imports %}
-<script  type="text/javascript;version=1.8" src="/lib/js/eyebrowser.js"></script>
+<script  type="text/javascript" src="/lib/js/eyebrowser.js"></script>
 {% endblock %}
 {% block name %}eyebrowser{% endblock %}
 
@@ -96,8 +96,7 @@
     </div>
   </div>
 
-  <a style="text-align:left; margin:12px;" onclick="jQuery('#toppanel').slideToggle('300')">show / hide filter</a>
-  <br />
+  <!--<a style="text-align:left; margin:12px;" onclick="jQuery('#toppanel').slideToggle('300')">show / hide filter</a>-->
   <div id="query" onclick="viz.getRecs()"></div>  
   <br />
   <!--
@@ -123,22 +122,23 @@
       <div class="colorbox"></div>
       <a href="" class="title"></a><br />
       <div class="time"></div>
-      <div class="user"></div><b> <!--&nbsp;|&nbsp;</b> -->
+      <user></user> <!--&nbsp;|&nbsp;</b> -->
       <!-- soon! <a class="stats"><b>show stats</b></a> -->
     </div>
     <div class="user">
       <img src="" class="profileimage" />			
       <div class="userhead">
 	<a href="" class="title"></a>
-	<a class="follow" href="">follow 
+	<span class="isfollowedby"></span>
+	<a class="follow" >
 	  <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/>
+	  follow 
 	</a>	
-	<span class="isfollowing"></span> 
+	<div class="isfollowing"></div> 
 	<br />
 	<div class="number"></div>
 	<div class="age"><span class="italicsname">age:</span>&nbsp;</div>
 	<div class="location"><span class="italicsname">location:</span>&nbsp;</div>
-	<div class="tags"><span class="italicsname">tags:</span>&nbsp;</div>
 	<div class="website"><span class="italicsname">website:</span>&nbsp;</div>
 	<div class="latest"><span class="italicsname">latest:</span>&nbsp;</div>
       </div>

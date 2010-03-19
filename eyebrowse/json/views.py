@@ -18,6 +18,8 @@ import urlparse
 # beaker
 from eyebrowse.beakercache import cache
 from datetime import timedelta
+from django.core.files.storage import default_storage
+
 
 class EVENT_SELECTORS:
     class Page:
@@ -1209,27 +1211,35 @@ def get_latest_sites_for_filter(request):
 
 def defang_enduser(enduser, user):
     if user and user.username != enduser.user.username:
-        is_friend = user.to_friend_set.all().filter(from_friend=enduser.user).count()
-        is_followed_by = user.friend_set.all().filter(to_friend=enduser.user).count()
+        is_following = user.friend_set.all().filter(to_friend=enduser.user).count()
+        is_followed_by = user.to_friend_set.all().filter(from_friend=enduser.user).count()
     else: 
-        is_friend = None
-        is_followed_by = None
+        is_following = -1
+        is_followed_by = -1
 
     if enduser.birthdate is not None:
         bday = int((int(time.time()) - int(time.mktime(time.strptime(str(enduser.birthdate), '%Y-%m-%d %H:%M:%S'))))/ 31556926),  # large number is seconds in a year
     else:
         bday = None
 
+    has_photo = False
+    try:
+        if default_storage.exists(enduser.photo.path):
+            has_photo = True
+    except:
+        print 'something happened with getting the size of a file'
+        
     return {'username': enduser.user.username,
             'location': enduser.location,
             'tags': ' '.join(tag.name for tag in enduser.tags.all()),
             'age': bday,
             "latest_view": [defang_pageview(pageview) for pageview in PageView.objects.filter(user=enduser.user).order_by("-startTime").values()[:1]], ## VERY ANNOYING but seems safe
-            "is_friend": is_friend,
+            "is_following": is_following,
             "is_followed_by": is_followed_by,
             'website': enduser.homepage,
             'id': enduser.user.id,
-            'gender': enduser.gender
+            'gender': enduser.gender,
+            'has_photo': has_photo
             }
 
 def get_top_users_for_filter(request):
