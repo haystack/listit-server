@@ -82,22 +82,23 @@ def _get_delicious_tags_for_user(user):
 
 
 def _get_top_tfidf_tags_for_enduser(enduser, n, tags_for_page, all_tags, number_of_pages):
-    tags = flatten([tags_for_page[url] for url in _get_recent_urls_for_user(enduser.user)])    
+    tags = flatten([tags_for_page[url] for url in _get_recent_urls_for_user(enduser.user) if url in tags_for_page and tags_for_page[url] is not None ])    
     enduser_tag_count = len(tags)    
+    if enduser_tag_count < 5:
+        return
 
     def freq_in_enduser_tags(tag):
         return tags.count(tag)
 
     def freq_in_all_pages(tag):
         #this will work as delicious will not return 2 of the same tags for one page
-        return corpus.count(tag) 
+        return all_tags.count(tag) 
     
-    def tfidf(word): 
-        tf = (freq_in_enduser_tags(word) / float(enduser_tag_count))
+    def tfidf(tag):         
+        tf = (freq_in_enduser_tags(tag) / float(enduser_tag_count))
         idf = math.log(number_of_pages / freq_in_all_pages(tag))
-        return tf * idf
 
-    tfidf_tags = dict([(tag, tfidf(tag)) for tag in tags])
+    tfidf_tags = dict([(tag, tfidf(tag)) for tag in uniq(tags, lambda x:x,None)])
     return sorted(tfidf_tags.items(), key=itemgetter(1), reverse=True)[:n]
 
 
@@ -107,16 +108,16 @@ def tag_the_users():
     number_of_pages = len(tags_for_page) #number of pages with tags
 
     for enduser in EndUser.objects.all():        
-        # remove old tas
-        [enduser.tags.remove(tag) for tag in enduser.tags.all()]
-        # enduser.save() #maybe?
-    
         tfidf_tags = _get_top_tfidf_tags_for_enduser(enduser, 10, tags_for_page, all_tags, number_of_pages)        
-        print tfidf_tags
-        for tag_name in tfidf_tags:
-            tag, dummy = UserTag.objects.get_or_create(name=tag_name)
-            enduser.tags.add(tag) 
-        enduser.save()
+        if (len(tfidf_tags) > 5):
+            # remove old tags
+            print 'saving tags for user'
+            print enduser.user.username
+            [enduser.tags.remove(tag) for tag in enduser.tags.all()]
+            for tag_name in tfidf_tags:
+                tag, dummy = UserTag.objects.get_or_create(name=str(tag_name[0]))
+                enduser.tags.add(tag) 
+            enduser.save()
             
 
 def get_delicious_corpus():
