@@ -55,7 +55,7 @@ def _get_recent_urls_for_user(user):
                  lambda x:x["url"],None)]
 
 def _get_delicious_tags_for_url(url):
-    time.sleep(5)
+    time.sleep(3)
     url_hash = hashlib.md5(url.encode('utf8')).hexdigest()
     url = 'http://feeds.delicious.com/v2/json/urlinfo/' + url_hash
     req = Request(url)
@@ -109,7 +109,7 @@ def tag_the_users():
 
     for enduser in EndUser.objects.all():        
         tfidf_tags = _get_top_tfidf_tags_for_enduser(enduser, 10, tags_for_page, all_tags, number_of_pages)        
-        if (len(tfidf_tags) > 5):
+        if tfidf_tags is not None:
             # remove old tags
             print 'saving tags for user'
             print enduser.user.username
@@ -119,6 +119,17 @@ def tag_the_users():
                 enduser.tags.add(tag) 
             enduser.save()
             
+
+
+def tag_the_users_page(request):
+    request_user = request.user.username
+
+    tag_the_users()
+    t = loader.get_template("newtab.html")
+    c = Context({ 'request_user': request_user })
+
+    return HttpResponse(t.render(c))
+
 
 def get_delicious_corpus():
     to_msec = int(time.time()*1000)

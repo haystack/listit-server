@@ -10,6 +10,7 @@ import eyebrowse.json.urls
 import eyebrowse.pages.urls
 import eyebrowse.plugin.urls
 import eyebrowse.blog.urls
+import eyebrowse.delicious.urls
 
 lib = os.path.join(
     os.path.dirname(__file__), 'lib'
@@ -23,6 +24,7 @@ urlpatterns = eyebrowse.json.urls.urlpatterns
 urlpatterns += eyebrowse.pages.urls.urlpatterns
 urlpatterns += eyebrowse.plugin.urls.urlpatterns
 urlpatterns += eyebrowse.blog.urls.urlpatterns
+urlpatterns += eyebrowse.delicious.urls.urlpatterns
 
 ## enable static serving for standalone server
 if settings.DEVELOPMENT:
