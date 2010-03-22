@@ -20,6 +20,7 @@ import urlparse
 from eyebrowse.models import PageView
 from eyebrowse.models import *
 from countries.models import Country
+from eyebrowse.json.views import uniq
 ##
 ## this set of views are used by the plugin to post new events
 ##
@@ -105,31 +106,26 @@ def save_entry(item, request_user):
 
 def post_events(request):
     ## lets the user post new activity in a giant single array of activity log elements
-    #print time.time()
-
     request_user = authenticate_user(request);
     if not request_user:
         return json_response({"error":"Incorrect user/password combination"}, 401)
     
-    committed = len([save_entry(entry, request_user) for entry in JSONDecoder().decode(request.raw_post_data)])
+    logs = JSONDecoder().decode(request.raw_post_data)
+    committed = [save_entry(entry, request_user) for entry in logs ]
+    hosts = uniq([log['entity']['host'] for log in logs], lambda x:x,None)
+    notifications = get_notifications_for_user(request_user,hosts) 
+    return json_response({"committed":len(committed), "notifications":notifications}, 200)
 
-    #print time.time()
-    return json_response({"committed":committed}, 200)
 
-
-def post_events_and_keep_alive(request):
-    ## lets the user post new activity in a giant single array of activity log elements
-
-    request_user = authenticate_user(request);
-    if not request_user:
-        return json_response({"error":"Incorrect user/password combination"}, 401)
-
-    committed = 0;
+def get_notifications_for_user(user,hosts):
+    #users = [EndUser.objects.all()[0].user] 
+    users = [friendship.to_friend for friendship in user.friend_set.all()]
+    recently = int(time.time()*1000 - (30*60*1000)) # 30 min ago
     
-    while connection:
-        committed += len(map, JSONDecoder().decode(request.raw_post_data))
-
-    return json_response({"committed":committed}, 200)
+    return uniq([dict((('username',page.user.username), ('url',page.url), ('title',page.title), ('host',page.host), ('id', page.url + page.user.username)))
+                 for page in PageView.objects.filter(user__in=users,host__in=hosts, endTime__gte=recently) ], lambda x:x['id'],None)
+    #except Exception, e:
+    #    print "get notifications exception", e 
 
 
 

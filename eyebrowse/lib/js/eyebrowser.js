@@ -284,7 +284,7 @@ var Eyebrowser = {
 		       }, "json");
     },
     addRecentPage: function(divid, page, now) {
-	var name = page.title?page.title.substring(0,30):cleanupURL(page.url);
+	var name = page.title?page.title:cleanupURL(page.url);
 	
 	/*  keep track of times displayed and hide old ones
 	this_.recentTimesArray.unshift(newData[i].end);

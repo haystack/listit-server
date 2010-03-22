@@ -289,12 +289,13 @@ a.add {
 }
 
 
+
 .recentpage .colorbox {
-    -moz-border-radius:9px;
-    -webkit-border-radius:9px;
+    -moz-border-radius:9px 9px 9px 9px;
     display:inline-block;
     height:18px;
-    vertical-align:bottom;
+    margin-top:-1px;
+    vertical-align:text-bottom;
     width:18px;
 }
 
@@ -501,6 +502,8 @@ text-align:right;
     font-size:14px;
     font-weight:bolder;
     margin-left:7px;
+    vertical-align:top;
+    width:91%;
 } .recentpage .title:hover {color: #0044CC;}
 
 #trending h2 { 

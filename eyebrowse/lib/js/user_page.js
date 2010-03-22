@@ -150,7 +150,7 @@ var stackBarGraph = ({
 			     this.trigger = true;
 
 			     
-			     var name = page.title?page.title.substring(0,30):cleanupURL(page.url);
+			     var name = page.title?page.title:cleanupURL(page.url);
 			     jQuery("#hoverTxt").html("<a href=\"" + page.url + "\">" +  name + "</a>");
 			     jQuery("#hoverTxt").css({"left" : mousePos.x + this.hoverLeftMargin - 5 + "px", "top" : mousePos.y + this.hoverTopMargin - 20 + "px" });				     
 			     jQuery("#hoverTxt").show();
@@ -318,7 +318,7 @@ var UserPage = {
 		   }, "json");
     },
     addLatestPage: function(divid, page, now) {	
-	var name = page.title?page.title.substring(0,30):cleanupURL(page.url);
+	var name = page.title?page.title:cleanupURL(page.url);
 	var np = jQuery('#templates>.recentpage').clone();
 
 	np.id = page.id;	

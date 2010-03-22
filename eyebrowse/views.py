@@ -12,6 +12,7 @@ from eyebrowse.models import *
 from django.db.models.signals import post_save
 from jv3.models import Event ## from listit, ya.
 from django.utils.simplejson import JSONEncoder, JSONDecoder
+import json
 
 def get_title_from_evt(evt):
     if evt.entitydata:
@@ -24,6 +25,10 @@ def get_title_from_evt(evt):
                     foo = JSONDecoder().decode(foo)
                     if foo.has_key('title'):
                         return foo['title']
+                    if foo.has_key('data'):
+                        foo = JSONDecoder().decode(foo['data'])
+                        if foo.has_key('title'):                    
+                            return foo['title']
     return 
 
 ## hook for creating relevant Page objects when new jv3.Event objects get created 
