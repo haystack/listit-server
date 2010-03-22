@@ -394,8 +394,8 @@ def user_page(request, username):
     else: 
         is_friend = False;
 
-    following = [friendship.to_friend for friendship in user.friend_set.all()]
-    followers = [friendship.from_friend for friendship in user.to_friend_set.all()]
+    following = [friendship.to_friend for friendship in user.friend_set.all().order_by('to_friend__username')]
+    followers = [friendship.from_friend for friendship in user.to_friend_set.all().order_by('from_friend__username')]
 
     privacysettings = enduser.user.privacysettings_set.all()[0] ## ?
     exposure = privacysettings.exposure

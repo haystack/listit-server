@@ -23,6 +23,7 @@ import hashlib
 from operator import itemgetter    
 import json
 from urllib2 import Request, urlopen, URLError
+#from django.utils.encoding import smart_str, smart_unicode
 
 def flatten(x):
     """flatten(sequence) -> list
@@ -115,7 +116,7 @@ def tag_the_users():
             print enduser.user.username
             [enduser.tags.remove(tag) for tag in enduser.tags.all()]
             for tag_name in tfidf_tags:
-                tag, dummy = UserTag.objects.get_or_create(name=str(tag_name[0]))
+                tag, dummy = UserTag.objects.get_or_create(name=str(tag_name[0].encode('utf8')))
                 enduser.tags.add(tag) 
             enduser.save()
             
