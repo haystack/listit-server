@@ -1142,8 +1142,8 @@ def _get_query_for_request(request):
         
     if country != "any":
         query += " location__icontains=country.split(' ')[0].strip(',')," 
-        
-    if group != "any":
+
+    if group != "any" and group != "":
         query += " tags__name__icontains=group.split(' ')[0].strip(','),"
             
     if age != "all":
@@ -1255,7 +1255,7 @@ def get_top_users_for_filter(request):
         request_user = get_object_or_404(User, username=request.user.username)
     else:
         request_user = None
-    @cache.region('long_term')
+    #@cache.region('long_term')
     def fetch_data(qry, user, bar, friends, group, age, country, gender):
         if qry == "EndUser.objects.filter(" and friends != "my friends":
             results = [[enduser, PageView.objects.filter(user=enduser.user).count()] for enduser in EndUser.objects.all()]
@@ -1271,8 +1271,8 @@ def get_top_users_for_filter(request):
                 if request.user.username:
                     users = _filter_users_for_friends(request.user.username, (enduser.user.id for enduser in endusers))
                     endusers = [EndUser.objects.filter(user=user)[0] for user in users]
-            
             results = [[enduser, PageView.objects.filter(user=enduser.user).count()] for enduser in endusers]
+
 
         ## rank the users
         results.sort(key=lambda x:-x[1])
