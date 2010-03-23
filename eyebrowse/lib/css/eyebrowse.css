@@ -131,7 +131,7 @@ textarea {
 }
 
 input[type = text] {
-    border:1px solid lightgrey;
+/*    border:1px solid lightgrey;*/
     display:block;
     font-size:1.2em;
     height:20px;
@@ -270,10 +270,8 @@ ul.messages {
 
 #toppanel {
     margin-top:12px;
-    margin-bottom:12px;
     display:inline-block;
-    width:17%;
-    float:left;
+    width:210px;
 }
 
 .label {
@@ -303,8 +301,7 @@ a.add {
     display:inline-block;
     font-size:12px;
     font-weight:bold;
-    margin-top:11px;
-    padding-left:10px;
+    margin-bottom:11px;
 }
 
 .recpage .url {
@@ -316,11 +313,14 @@ a.add {
 
 .panel {
     padding:12px;
+    padding-bottom:4px;
     display:block;
+    padding-top:0px;
 }
 
 .panel .subpanel {
     display:inline-block;
+    width:973px;
 }
 
 .panel .subpanel .compare {
@@ -342,9 +342,8 @@ a.add {
 }
 
 #search {
-    display:block; /* none */
-    border: 1px solid #eee;
     display:block;
+    width:990px;
 }
 
 #searchinfo {
@@ -353,8 +352,9 @@ a.add {
 }
 
 .item {
-    padding:1px;
-    padding-bottom:12px;
+    display:inline-block;
+    padding:15px 32px 11px;
+    vertical-align:top;
 }
 
 .item:hover {
@@ -365,7 +365,8 @@ a.add {
     display:inline-block;
     padding:0 14px;
     vertical-align:top;
-    width:44%;
+    width:66%;
+    margin-top:24px;
 }
 
 #mainpanel .userhead{
@@ -508,7 +509,11 @@ text-align:right;
 
 #trending h2 { 
     padding-left:0px;
-    border-bottom: 1px dotted darkgrey; 
+    border-bottom: none;
+    font-weight:normal;
+    color:#333333;
+    font-size:18px;
+    border-bottom:1px soid lightgrey;
 }
 
 .recentpage:hover { background:#eeeeee; }
@@ -555,13 +560,15 @@ text-align:right;
 }
 
 #query {
-display:inline-block;
-font-size:17px;
-line-height:20px;
-padding:28px;
-text-align:left;
-vertical-align:top;
-width:48%;
+    background:none repeat scroll 0 0 lightcyan;
+    display:inline-block;
+    font-size:14px;
+    line-height:21px;
+    padding:4px;
+    text-align:left;
+    vertical-align:top;
+    width:99.1%;
+    text-align:center;
 }
 
 #refresh {
@@ -580,9 +587,10 @@ width:48%;
 /* latest panel */
 
 #trending {
-    float:right;
-    margin-right:25px;
-    width:32%;
+border-left:1px solid lightcyan;
+float:right;
+padding:20px;
+width:23%;
 }
 
 #trending .sign {
@@ -601,7 +609,7 @@ width:48%;
 }
 
 #topnav {
-    border-bottom:4px solid #333;
+    border-bottom:3px solid #333;
     text-align:left;
     padding-right:8px;
     padding-left:8px;
@@ -611,16 +619,16 @@ width:48%;
     background:none repeat scroll 0 0 white;
     border-color:#ccc #ccc white;
     border-style:solid solid none;
-    border-width:4px 4px medium;
+    border-width:3px 3px medium;
     font-size:14px;
     padding:12px 12px 1px;
     margin-right:4px;
 }
 
 #topnav a.selected  {
-    border: 4px solid #333;
+    border: 3px solid #333;
     border-bottom: white;
-    padding:12px 12px 5px;
+    padding:12px 12px 4px;
 }
 
 
@@ -1235,18 +1243,34 @@ width:48%;
     color: #666666;
     margin-left: 130px;
 } #urladd {
-    background-color: #ffffff;
-    border: solid 1px #333333;
-    color: #333333;
-    margin-top: 8px;
-    font-size: 1.1em;
-    width: 22px;
-    padding: 3px;
-    padding-left: 4px;
-    margin-left: 8px;
-    display: inline-block;
-    cursor: pointer;
-} #urladdul li{
+    border:1px solid #333333;
+    color:#333333;
+    cursor:pointer;
+    display:inline-block;
+    font-size:18px;
+    margin-left:8px;
+    margin-top:8px;
+    padding:2px 6px 4px;
+    -moz-box-shadow:3px 3px 9px #666666;
+    -moz-border-radius:5px 5px 5px 5px;
+    -moz-box-shadow:0 1px 3px rgba(0, 0, 0, 0.5);
+    border-bottom:1px solid rgba(0, 0, 0, 0.25);
+    backround-color:#000;
+    color:#FFFFFF;
+    cursor:pointer;
+    display:inline-block;
+    padding:5px 10px 6px;
+    position:relative;
+    text-decoration:none;
+    background:black;
+    text-shadow:0 -1px 1px rgba(0, 0, 0, 0.25); 
+    -webkit-box-shadow:3px 3px 9px #666666;
+    -webkit-border-radius:5px 5px 5px 5px;
+    -webkit-box-shadow:0 1px 3px rgba(0, 0, 0, 0.5);
+}
+#urladd:hover { background-color:#333; }
+
+ #urladdul li{
     padding-bottom:10px;
 } #rightmenu {
     float: right;
@@ -1489,3 +1513,5 @@ width:48%;
 #latestlist h6 {
     width: 387px;
 }
+#moresearch {border-top:3px solid lightcyan;}
+#eyebrowser {-moz-box-shadow:3px 3px 9px #666666; padding-bottom:20px; min-height:500px;}

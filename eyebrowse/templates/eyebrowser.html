@@ -1,14 +1,21 @@
 {% extends "base.html" %}
 {% block title %}eyebrowser{% endblock %}
 {% block imports %}
-<script  type="text/javascript" src="/lib/js/eyebrowser.js"></script>
+<script type="text/javascript" src="/lib/js/eyebrowser.js"></script>
+    <script>
+jQuery(document).ready(function(){
+  if ("{{ username }}" === ""){
+  jQuery('#friends, #hasseen').hide();
+  }
+});
+</script>
 {% endblock %}
 {% block name %}eyebrowser{% endblock %}
 
 {% block content %}
 <div id="trendingloading" class="loadimg"></div>
 <div id="mainloading" class="loadimg"></div>
-<div id="report" style="width:100%">
+<div id="report" style="width:990px;">
   <div class="logo" style="padding-bottom:0px; margin-top:37px">
     <img height=61 src="lib/img/eyebrowser.png" /> 
     <h1 style="font-size:14px;margin-left:66px;margin-top:-10px;">find new sites through the people that view them</h1>    
@@ -19,18 +26,25 @@
     <!-- <a onclick="viz.makeCompare()">compare</a> -->
     <a onclick="viz.makePeople()">find people</a>
   </div>
+  <div id="eyebrowser">
+    <div id="toppanel">
+      <div id="search">
+	<div class="panel">
+	  <div class="subpanel">
+	    <input type="text" id="group" style="display:inline-block; width:auto;" size="41" value="" onkeypress="if (event.keyCode==13){ viz.runQuery('pages'); }" />
+	    <input type="submit" id="urladd" value="search" onkeypress="if (event.keyCode==13){ viz.search(); }" onClick="viz.search();" style="width:auto;" />
+	    <a style="float:right; margin-top:50px;" onclick="jQuery('#moresearch').slideToggle('300')">+ show advanced search</a>
+	    <br />
+	    <div class="item" id="hasseen" style="margin-left:73px;padding:0px;">
+	      <div class="name" style="display:none">seen</div>
+	      <a class="add">all sites</a>
+	      <a class="add">sites not seen</a>
+	    </div>
+	  </div>    
+	</div>
 
-  <div id="toppanel">
-    <h2>filter</h2>
-    <div id="search">
-      <div class="panel">
-	<div class="subpanel">
-	  <div class="item" id="hasseen">
-	    <div class="name" style="display:none">seen</div>
-	    <a class="add">all sites</a>
-	    <a class="add">sites not seen</a>
-	  </div>
 
+	<div id="moresearch" class="subpanel panel">
 	  <div class="item" id="friends">
 	    <div class="name">friends</div>
 	    <br />
@@ -46,7 +60,7 @@
 	    <a class="add" data-val="all">all</a>
 	  </div>
 	  
-	  <div class="item" id="age">
+	  <div class="item" id="age" style="width:200px">
 	    <div class="name">age</div>
 	    <br />
 	    <a class="add" data-val="[0, 15]">under 15</a>
@@ -59,18 +73,6 @@
 	    <a class="add" data-val="[65, 110]">65+</a>
 	    <a class="add" data-val="all">all</a>
 	  </div>
-	  {% if groups %}
-	  <div class="item">
-	    <div class="name">groups</div>
-	    <select id="group" name="group">
-	      <option value="any">any</option>
-	      {% for group in groups %}
-	      <option value="{{ group }}">{{ group }}</option>
-	      {% endfor %}
-	    </select>
-	    <!--<a class="add">add</a>-->
-	  </div>
-	  {% endif %}	
 	  {% if countries %}
 	  <div class="item">
 	    <div class="name">country</div>
@@ -83,89 +85,91 @@
 	    <!--<a class="add">add</a>-->
 	  </div>
 	  {% endif %}	
-	  <!--
-	     <div class="item" id="time">
-	       <div class="name">time</div>
-	       <br />
-	       <a class="add">recently</a>
-	       <a class="add">overall</a>
-	     </div>
-	     -->
-	</div>  
-      </div>    
+	</div>
+	<!--
+	   <div class="item" id="time">
+	     <div class="name">time</div>
+	     <br />
+	     <a class="add">recently</a>
+	     <a class="add">overall</a>
+	   </div>
+
+	   -->
+	<div id="query" onclick="viz.getRecs()"></div>  
+      </div>  
     </div>
-  </div>
 
-  <!--<a style="text-align:left; margin:12px;" onclick="jQuery('#toppanel').slideToggle('300')">show / hide filter</a>-->
-  <div id="query" onclick="viz.getRecs()"></div>  
-  <br />
-  <!--
-     <input type="submit" value="recommend me some sites!"
-	    onclick="viz.getRecs()" style="margin-top:-14px;
-					   width:100%;display:block;"></input>
-     <br />
-     <br />
-     <h3><b>recommended sites:</b></h3>
 
-     <div id="refresh">refresh in <span class="val">30s</span></div>
-     <br />
-     -->
-  <div id="trending">  
-    <h2>trending sites</h2>
-  </div>
 
-  <div id="mainpanel">  
-  </div>
-  
-  <div id="templates">
-    <div class="recentpage">
-      <div class="colorbox"></div>
-      <a href="" class="title"></a><br />
-      <div class="time"></div>
-      <user></user> <!--&nbsp;|&nbsp;</b> -->
-      <!-- soon! <a class="stats"><b>show stats</b></a> -->
-    </div>
-    <div class="user">
-      <img src="" class="profileimage" />			
-      <div class="userhead">
-	<a href="" class="title"></a>
-	<span class="isfollowedby"></span>
-	<a class="follow" >
-	  <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/>
-	  follow 
-	</a>	
-	<div class="isfollowing"></div> 
-	<br />
-	<div class="number"></div>
-	<div class="age"><span class="italicsname">age:</span>&nbsp;</div>
-	<div class="location"><span class="italicsname">location:</span>&nbsp;</div>
-	<div class="website"><span class="italicsname">website:</span>&nbsp;</div>
-	<div class="latest"><span class="italicsname">latest:</span>&nbsp;</div>
+    <!--
+       <input type="submit" value="recommend me some sites!"
+	      onclick="viz.getRecs()" style="margin-top:-14px;
+					     width:100%;display:block;"></input>
+       <br />
+       <br />
+       <h3><b>recommended sites:</b></h3>
+
+       <div id="refresh">refresh in <span class="val">30s</span></div>
+       <br />
+       -->
+    <div>
+      <div id="trending">  
+	<h2>trending sites</h2>
+      </div>
+
+      <div id="mainpanel">  
       </div>
     </div>
-    <div class="recpage">
-      <a href="" class="title"></a><br />
-      <!-- <a href="" class="url"></a>-->
-    </div>
-    <div class="filterquery">
-      <a class="name"></a>
+    <div id="templates">
+      <div class="recentpage">
+	<div class="colorbox"></div>
+	<a href="" class="title"></a><br />
+	<div class="time"></div>
+	<user></user> <!--&nbsp;|&nbsp;</b> -->
+	<!-- soon! <a class="stats"><b>show stats</b></a> -->
+      </div>
+      <div class="user">
+	<img src="" class="profileimage" />			
+	<div class="userhead">
+	  <a href="" class="title"></a>
+	  <span class="isfollowedby"></span>
+	  <a class="follow" >
+	    <img src="/lib/img/accept_16.png" style="width:11px;height:11px;vertical-align:middle"/>
+	    follow 
+	  </a>	
+	  <div class="isfollowing"></div> 
+	  <br />
+	  <div class="number"></div>
+	  <div class="age"><span class="italicsname">age:</span>&nbsp;</div>
+	  <div class="location"><span class="italicsname">location:</span>&nbsp;</div>
+	  <div class="website"><span class="italicsname">website:</span>&nbsp;</div>
+	  <div class="latest"><span class="italicsname">latest:</span>&nbsp;</div>
+	</div>
+      </div>
+      <div class="recpage">
+	<a href="" class="title"></a><br />
+	<!-- <a href="" class="url"></a>-->
+      </div>
+      <div class="filterquery">
+	<a class="name"></a>
+      </div>
     </div>
   </div>
 
-    <div id="footer">
-      <a href="/about">about</a>&nbsp; &#124; &nbsp;
-      <a href="http://code.google.com/p/list-it/">google code</a>&nbsp; &#124; 
-      <a href="/data/all_the_data.zip">download the data</a>&nbsp; &#124; &nbsp;
-      {% if request_user %}
-      <a href="my_eyebrowse_data.zip">download my data</a>&nbsp; &#124; &nbsp;
-      {% endif %}
-      <a href="/releases/eyebrowse.xpi"> download the plugin</a>
-      <div style="margin-top:4px; line-height:15px;">created by: 
-	<a href="http://www.zamiang.com/" style="text-decoration:none; font-size:1em;">Brennan Moore</a>, 
-	<a href="http://people.csail.mit.edu/emax" style="text-decoration:none; font-size:1em;">Max Van Kleek</a> & 
-	<a href="http://people.csail.mit.edu/karger/" style="text-decoration:none; font-size:1em;">David Karger</a>
-	at MIT CSAIL</div>
-    </div>
+  <div id="footer">
+    <a href="/about">about</a>&nbsp; &#124; &nbsp;
+    <a href="http://code.google.com/p/list-it/">google code</a>&nbsp; &#124; 
+    <a href="/data/all_the_data.zip">download the data</a>&nbsp; &#124; &nbsp;
+    {% if request_user %}
+    <a href="my_eyebrowse_data.zip">download my data</a>&nbsp; &#124; &nbsp;
+    {% endif %}
+    <a href="/releases/eyebrowse.xpi"> download the plugin</a>
+    <div style="margin-top:4px; line-height:15px;">created by: 
+      <a href="http://www.zamiang.com/" style="text-decoration:none; font-size:1em;">Brennan Moore</a>, 
+      <a href="http://people.csail.mit.edu/emax" style="text-decoration:none; font-size:1em;">Max Van Kleek</a> & 
+      <a href="http://people.csail.mit.edu/karger/" style="text-decoration:none; font-size:1em;">David Karger</a>
+      at MIT CSAIL</div>
+  </div>
 
   {% endblock %}
 

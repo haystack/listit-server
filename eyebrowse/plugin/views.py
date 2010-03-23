@@ -133,8 +133,8 @@ def get_notifications_for_user(user,hosts):
 
 def get_user_following(request):
     user = authenticate_user(request)
-    following = [friendship.to_friend for friendship in user.friend_set.all().order_by('to_friend__username')]
-    followers = [friendship.from_friend for friendship in user.to_friend_set.all().order_by('from_friend__username')]
+    following = [friendship.to_friend.username for friendship in user.friend_set.all().order_by('to_friend__username')]
+    followers = [friendship.from_friend.username for friendship in user.to_friend_set.all().order_by('from_friend__username')]
     return json_response({ "code":200, "results": [following, followers] }) 
 
 def get_user_profile(request):

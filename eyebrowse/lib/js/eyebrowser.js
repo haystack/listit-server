@@ -33,6 +33,10 @@ var Eyebrowser = {
 	    this.queryHeader = " users ";	    
 	}
     },
+    search: function(){
+	jQuery('#query').show();
+	this.refreshQueryInterface(this.mainPanel);
+    },
     initQueryInterface: function(query, div) {	
 	var this_ = this;
 	jQuery("#search .subpanel a.add").each(
