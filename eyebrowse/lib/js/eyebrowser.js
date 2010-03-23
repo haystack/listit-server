@@ -36,6 +36,7 @@ var Eyebrowser = {
     search: function(){
 	jQuery('#query').show();
 	this.refreshQueryInterface(this.mainPanel);
+	this.runQuery(this.type);
     },
     initQueryInterface: function(query, div) {	
 	var this_ = this;
@@ -280,11 +281,13 @@ var Eyebrowser = {
 			   seen: jQuery('#hasseen .selected').text()
 		       }, function(data){
 			   this_.mainLoading(false);
+			   jQuery('#help').html('');
 			   if (data.code == 200) {
 			       var now = new Date().valueOf();
 			       data.results.map(function(item) { this_.addRecentPage(divid, item, now); });
 			       this_.lastPageID = data.results[0].id;
 			   }
+			   else { jQuery('#mainpanel').html("<div id='help' class='recentpage'><div class='title'>sorry! no results ;(</div></div>"); } 
 		       }, "json");
     },
     addRecentPage: function(divid, page, now) {
@@ -370,7 +373,7 @@ var Eyebrowser = {
 	    jQuery('#mainpanel').css({opacity:0.4});
 	    jQuery('#mainloading')
 		.show()
-		.css({top:'400px', left: jQuery('#query').position().left*2 });
+		.css({top:'600px', left: jQuery('#query').position().left*2 });
 	} else {
 	    jQuery('#mainpanel').css({opacity:1});
 	    jQuery('#mainloading').hide();	    
@@ -381,7 +384,7 @@ var Eyebrowser = {
 	    jQuery('#trending').css({opacity:0.4});
 	    jQuery('#trendingloading')
 		.show()
-		.css({top:'400px', left: jQuery('#trending').position().left + (jQuery('#trending').width()/2)  });
+		.css({top:'600px', left: jQuery('#trending').position().left + (jQuery('#trending').width()/2)  });
 	} else {
 	    jQuery('#trending').css({opacity:1});
 	    jQuery('#trendingloading').hide();	    

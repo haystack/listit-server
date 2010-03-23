@@ -120,7 +120,7 @@ def post_events(request):
 def get_notifications_for_user(user,hosts):
     #users = [EndUser.objects.all()[0].user] 
     users = [friendship.to_friend for friendship in user.friend_set.all()]
-    recently = int(time.time()*1000 - (30*60*1000)) # 30 min ago
+    recently = int(time.time()*1000 - (12*60*60*1000))
     
     return uniq([dict((('username',page.user.username), ('url',page.url), ('title',page.title), ('host',page.host), ('id', page.url + page.user.username)))
                  for page in PageView.objects.filter(user__in=users,host__in=hosts, endTime__gte=recently) ], lambda x:x['id'],None)

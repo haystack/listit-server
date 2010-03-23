@@ -1285,7 +1285,7 @@ def get_top_users_for_filter(request):
         usr = "all"
 
     results = fetch_data(query, usr, "users", friends, group, age, country, gender)    
-    return json_response({"code":200, "results": [[defang_enduser(item[0], request_user), item[1]] for item in results] })
+    return json_response({"code":200, "results":  [[defang_enduser(item[0], request_user), item[1]] for item in results] })
 
 
 def get_trending_sites(request):

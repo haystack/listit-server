@@ -43,7 +43,6 @@ jQuery(document).ready(function(){
 	  </div>    
 	</div>
 
-
 	<div id="moresearch" class="subpanel panel">
 	  <div class="item" id="friends">
 	    <div class="name">friends</div>
@@ -74,8 +73,8 @@ jQuery(document).ready(function(){
 	    <a class="add" data-val="all">all</a>
 	  </div>
 	  {% if countries %}
-	  <div class="item">
-	    <div class="name">country</div>
+	  <div class="item" style="width:220px;">
+	    <div class="name">location</div>
 	    <select id="country" name="country">
 	      <option value="any">any</option>
 	      {% for country in countries %}

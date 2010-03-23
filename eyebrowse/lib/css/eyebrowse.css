@@ -289,7 +289,9 @@ a.add {
 
 
 .recentpage .colorbox {
-    -moz-border-radius:9px 9px 9px 9px;
+    -moz-border-radius:9px;
+    -webkit-border-radius:9px;
+    border-radius:9px;
     display:inline-block;
     height:18px;
     margin-top:-1px;
@@ -430,6 +432,7 @@ div.user:hover {background:#f3f3f3;}
 #mainpanel .user .follow {
     -moz-border-radius:8px;
     -webkit-border-radius:8px;
+    border-radius:8px;
     border:1px solid lightgrey;
     background: #f3f3f3;
     padding:3px;
@@ -717,6 +720,7 @@ width:23%;
 .biglink .colorbox {
     -moz-border-radius:8px;
     -webkit-border-radius:8px;
+    border-radius:8px;
     background-color:magenta;
     display:inline-block;
     height:16px;
@@ -1023,6 +1027,7 @@ width:23%;
     text-decoration: none;
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
+    border-radius:5px;
     border:1px solid lightgrey;
     opacity:0.95;
     display:none;
@@ -1514,4 +1519,10 @@ width:23%;
     width: 387px;
 }
 #moresearch {border-top:3px solid lightcyan;}
-#eyebrowser {-moz-box-shadow:3px 3px 9px #666666; padding-bottom:20px; min-height:500px;}
+#eyebrowser {
+    -moz-box-shadow:3px 3px 9px #666666; 
+    -webkit-box-shadow:3px 3px 9px #666666;
+    box-shadow:3px 3px 9px #666666;
+    padding-bottom:20px; 
+    min-height:500px;
+}

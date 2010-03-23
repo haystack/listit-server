@@ -273,18 +273,13 @@ def eyebrowser(request):
     friends = [];
     countries = [];
 
-    groups = uniq([tag.strip(',').lower() for tag in UserTag.objects.values_list('name', flat=True) if len(tag) > 1], lambda x:x, None)
-
-    countries = uniq([loc for loc in EndUser.objects.values_list('location', flat=True) if loc is not None and len(loc) > 0], lambda x:x.lower(), None) 
-    #countries = [country for country in Country.objects.all()]  # if usedcountries[country.printable_name]
+    countries = uniq([loc for loc in EndUser.objects.values_list('location', flat=True).order_by('location') if loc is not None and len(loc) > 0], lambda x:x.lower(), None) 
 
     t = loader.get_template("eyebrowser.html")
     c = Context({ 
             'username': request.user.username, 
             'id': request.user.id, 
             'request_user': request.user.username,
-            'groups': groups,
-            #'friends': friends,
             'countries': countries 
             })
     return HttpResponse(t.render(c))
