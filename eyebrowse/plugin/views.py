@@ -118,7 +118,7 @@ def post_events(request):
 
 
 def get_notifications_for_user(user,hosts):
-    #users = [EndUser.objects.all()[0].user] 
+    #users = [EndUser.objects.all()[1].user] 
     users = [friendship.to_friend for friendship in user.friend_set.all()]
     recently = int(time.time()*1000 - (12*60*60*1000))
     

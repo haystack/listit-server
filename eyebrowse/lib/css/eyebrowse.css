@@ -314,10 +314,7 @@ a.add {
 }
 
 .panel {
-    padding:12px;
-    padding-bottom:4px;
-    display:block;
-    padding-top:0px;
+    padding-left:12px;
 }
 
 .panel .subpanel {
@@ -357,6 +354,7 @@ a.add {
     display:inline-block;
     padding:15px 32px 11px;
     vertical-align:top;
+    height:54px;
 }
 
 .item:hover {
