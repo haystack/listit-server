@@ -700,7 +700,7 @@ def get_zen(request):
 
     deltaIndex = endIndex - startIndex
 
-    htmlblob = "\n".join([ "<div class='note'> <img class='deleteX' src='x.png' alt='Delete' onClick='zenNoteAjax.saveEditedNote(\"%(jid)s\",true)'/><textarea name='note' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onClick='zenNoteView.noteClicked(\"%(jid)s\")' cols='%(col)s' rows='%(row)s' hasFocus='false' hasSelect='false' onBlur='zenNoteView.noteBlur(\"%(jid)s\")' style='overflow:hidden'>%(noteText)s</textarea></div>" % n for n in ndicts ])
+    htmlblob = "\n".join([ "<div class='note'> <img class='deleteX' src='x.png' alt='Delete' onClick='zenNoteAjax.saveEditedNote(\"%(jid)s\",true)'/><textarea name='note' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onFocus='zenNoteView.noteClicked(\"%(jid)s\")' cols='%(col)s' rows='%(row)s' hasFocus='false' hasSelect='false' onBlur='zenNoteView.noteBlur(\"%(jid)s\")' style='overflow:hidden'>%(noteText)s</textarea></div>" % n for n in ndicts ])
     if iphone and additionalNotesWaiting:
         htmlblob += "\n <button id='requestMore' onClick='zeniPhone.requestMore()'>Get %s more notes</div>" % (deltaIndex)
     elif iphone:
