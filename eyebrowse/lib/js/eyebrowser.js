@@ -65,6 +65,7 @@ var Eyebrowser = {
 	    });
 	
 	this.refreshQueryInterface(query, div);
+	setInterval(function(){ if (viz.type == "pages"){ viz.runQuery(viz.type);} }, 10000);
 	this.runQuery(this.type);
     },
     runQuery: function(type){
