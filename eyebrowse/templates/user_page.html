@@ -114,6 +114,10 @@ self.viz.initialize(document.getElementById("main"), width, height, '{{ username
 	    <h1><a href="/profile/{{ username }}/">{{ username }}</a></h1>
 	    <br />		
 	    <div style="display:inline-block;vertical-align:top; margin-left:0px; margin-top:10px; margin-right:40px;">
+	      {% if tags %}<i>Tags:</i>
+	      {{ tags }} 
+	      <br />
+	      {% endif %}
 	      {% if birthdate %}<i>Age:</i>
 	      {{ birthdate }} 
 	      <br/>
@@ -160,7 +164,7 @@ self.viz.initialize(document.getElementById("main"), width, height, '{{ username
 	    </li>
 	    {% endfor %}
           </ul>
-          {% ifequal user.username username %}<div class="footer"><a href="/settings">view all of your followers</a></div>
+          {% ifequal user.username username %}<div class="footer"><a href="/friends/{{ username }}/">view all of your followers</a></div>
           {% else %}
           {% endifequal %}
           {% else %}

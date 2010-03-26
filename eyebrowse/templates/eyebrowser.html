@@ -13,8 +13,6 @@ jQuery(document).ready(function(){
 {% block name %}eyebrowser{% endblock %}
 
 {% block content %}
-<div id="trendingloading" class="loadimg"></div>
-<div id="mainloading" class="loadimg"></div>
 <div id="report" style="width:990px;">
   <div class="logo" style="padding-bottom:0px; margin-top:37px">
     <img height=61 src="/lib/img/eyebrowser.png" /> 
@@ -112,6 +110,9 @@ jQuery(document).ready(function(){
        <br />
        -->
     <div>
+      <div id="trendingloading" class="loadimg" style="position:absolute"></div>
+      <div id="mainloading" class="loadimg" style="position:absolute"></div>
+      
       <div id="trending">  
 	<h2>trending sites</h2>
       </div>

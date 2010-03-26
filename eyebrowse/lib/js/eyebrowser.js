@@ -374,7 +374,7 @@ var Eyebrowser = {
 	    jQuery('#mainpanel').css({opacity:0.4});
 	    jQuery('#mainloading')
 		.show()
-		.css({top:'600px', left: jQuery('#query').position().left*2 });
+		.css({top:'450px', left: jQuery('#eyebrowser').position().left + 50 });
 	} else {
 	    jQuery('#mainpanel').css({opacity:1});
 	    jQuery('#mainloading').hide();	    
@@ -385,7 +385,7 @@ var Eyebrowser = {
 	    jQuery('#trending').css({opacity:0.4});
 	    jQuery('#trendingloading')
 		.show()
-		.css({top:'600px', left: jQuery('#trending').position().left + (jQuery('#trending').width()/2)  });
+		.css({top:'500px', left: jQuery('#trending').position().left + 50 + "px"});
 	} else {
 	    jQuery('#trending').css({opacity:1});
 	    jQuery('#trendingloading').hide();	    
