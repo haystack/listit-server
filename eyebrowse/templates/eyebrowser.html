@@ -24,15 +24,13 @@ jQuery(document).ready(function(){
     <!-- <a onclick="viz.makeCompare()">compare</a> -->
     <a onclick="viz.makePeople()">find people</a>
   </div>
+    <a style="float:right; margin-top:-20px;" onclick="toggleSearch(this);">+ hide search</a>
   <div id="eyebrowser">
-    <div id="toppanel">
       <div id="search">
 	<div class="panel">
-	  <div class="subpanel">
+	  <div class="subpanel" style="margin-top:8px; width:500px;">
 	    <input type="text" id="group" style="display:inline-block; width:auto;" size="41" value="" onkeypress="if (event.keyCode==13){ viz.runQuery('pages'); }" />
 	    <input type="submit" id="urladd" value="search" onkeypress="if (event.keyCode==13){ viz.search(); }" onClick="viz.search();" style="width:auto;" />
-	    <a style="float:right; margin-top:50px;" onclick="jQuery('#moresearch').slideToggle('300')">+ show advanced search</a>
-	    <br />
 	    <div class="item" id="hasseen" style="margin-left:73px;padding:0px; height:auto;">
 	      <div class="name" style="display:none">seen</div>
 	      <a class="add">all sites</a>
@@ -94,7 +92,6 @@ jQuery(document).ready(function(){
 	   -->
 	<div id="query" onclick="viz.getRecs()"></div>  
       </div>  
-    </div>
 
 
 

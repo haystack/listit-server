@@ -1,3 +1,11 @@
+var toggleSearch = function(div){
+    if (jQuery('#search:hidden').length > 0){ jQuery(div).text('hide search');
+    } else { jQuery(div).text('show search'); }
+    jQuery('#search').slideToggle('300');
+}
+
+
+
 function clone(obj){ // TODO: is there something like this in plumutil??
     if(obj == null || typeof(obj) != 'object')
         return obj;
@@ -65,7 +73,11 @@ var Eyebrowser = {
 	    });
 	
 	this.refreshQueryInterface(query, div);
-	setInterval(function(){ if (viz.type == "pages"){ viz.runQuery(viz.type);} }, 10000);
+	/*
+	setInterval(function(){ if (viz.type == "pages"){ 
+		    viz.refreshQueryInterface(this.mainPanel);
+		    viz.runQuery(viz.type);} }, 10000);
+	*/
 	this.runQuery(this.type);
     },
     runQuery: function(type){
@@ -91,7 +103,7 @@ var Eyebrowser = {
 	// this runs evertime an item is clicked
 	var this_ = this;
 	this.lastPageID = 0;
-	jQuery('#mainpanel').html('');
+	//jQuery('#mainpanel').slideUp('300', function(){ jQuery('#mainpanel').html(''); });
 	jQuery("#search .subpanel a.add").each(
 	    function(i, item) {
 		var type = jQuery(item).parent().find('.name').text();
@@ -271,6 +283,7 @@ var Eyebrowser = {
         var this_ = this;
 	this.mainLoading(true);
 	// should get latest for the current query
+
 	jQuery.getJSON("/get_latest_sites_for_filter", {
 			   id: this_.lastPageID,
 			   groups: jQuery('#group').val(),
@@ -287,6 +300,7 @@ var Eyebrowser = {
 			       var now = new Date().valueOf();
 			       data.results.map(function(item) { this_.addRecentPage(divid, item, now); });
 			       this_.lastPageID = data.results[0].id;
+			       jQuery('#mainpanel').hide().slideDown(300);
 			   }
 			   else { jQuery('#mainpanel').html("<div id='help' class='recentpage'><div class='title'>sorry! no results ;(</div></div>"); } 
 		       }, "json");

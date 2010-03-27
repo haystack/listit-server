@@ -131,7 +131,6 @@ textarea {
 }
 
 input[type = text] {
-/*    border:1px solid lightgrey;*/
     display:block;
     font-size:1.2em;
     height:20px;
@@ -141,6 +140,11 @@ input[type = text] {
     padding-top:3px;
     width:99%;
 }
+
+#id_username {border:1px solid lightgrey; }
+#id_email {border:1px solid lightgrey; }
+#id_tags {border:1px solid lightgrey; }
+#id_birthdate {border:1px solid lightgrey; }
 
 input[type = password] {
     display: block;
@@ -266,12 +270,6 @@ ul.messages {
 .brandtitle {
     padding:12px;
     padding-bottom:0px;
-}
-
-#toppanel {
-    margin-top:12px;
-    display:inline-block;
-    width:210px;
 }
 
 .label {
@@ -471,7 +469,7 @@ div.user:hover {background:#f3f3f3;}
     display:inline-block;
 }
 
-#toppanel .name{
+#search .name{
 border-bottom:1px dotted lightBlue;
 display:inline-block;
 font-size:12px;

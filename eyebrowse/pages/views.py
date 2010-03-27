@@ -118,7 +118,7 @@ def privacy_settings_page(request):
         form = ProfileSaveForm(request.POST, request.FILES)
         if form.is_valid():
             user = _profile_save(request, form)  
-            return HttpResponseRedirect('/settings/') 
+            return HttpResponseRedirect('/profile/' + user.username)
 
         variables = RequestContext(request, {'form': form, 'error': True, 'request_user': request.user})
         return render_to_response('settings.html', variables)
@@ -565,13 +565,16 @@ def _profile_save(request, form):
     enduser.birthdate = form.cleaned_data['birthdate']
     enduser.homepage = form.cleaned_data['homepage']
     enduser.gender = form.cleaned_data['gender']
-    enduser.tags = ""
-
-    tag_names = form.cleaned_data['tags'].split()
-    for tag_name in tag_names:
-        if re.search(r'^(/w|/W|[^<>+?$%{}&])+$', tag_name):
-            tag, dummy = UserTag.objects.get_or_create(name=tag_name)
-            enduser.tags.add(tag) 
+    
+    #try:
+    #    tag_names = form.cleaned_data['tags'].split()
+    #    enduser.tags = ""
+    #    for tag_name in tag_names:
+    #        if re.search(r'^(/w|/W|[^<>+?$%{}&])+$', tag_name):
+    #            tag, dummy = UserTag.objects.get_or_create(name=tag_name)
+    #            enduser.tags.add(tag) 
+    #except e:
+    
 
     # save the image    
     if request.FILES:
