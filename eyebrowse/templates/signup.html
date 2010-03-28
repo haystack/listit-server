@@ -88,11 +88,18 @@ display:block;
       </div>
     </a>
     -->
-    <a href="/register/" style="text-decoration:none">
+    {% if request_user %}
+    <div class="biglink" id="signUpLink">
+      welcome, <a href="/profile/{{ request_user }}">{{ request_user }}</a>! check out <a href="/eyebrowser">eyebrowser</a>
+      {% else %}
+	
+
+	  <a href="/register/" style="text-decoration:none">
       <div class="biglink" id="signUpLink">
 	install eyebrowse for firefox
       </div>
     </a>
+    {% endif %}
   </div>
 
     <img src="/lib/img/homepage_1.jpg" class="homepageimg"/>
