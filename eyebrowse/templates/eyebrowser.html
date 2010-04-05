@@ -3,10 +3,11 @@
 {% block imports %}
 <script type="text/javascript" src="/lib/js/eyebrowser.js"></script>
     <script>
-jQuery(document).ready(function(){
-  if ("{{ username }}" === ""){
-  jQuery('#friends, #hasseen').hide();
-  }
+      USERNAME = "{{ username }}";
+      jQuery(document).ready(function(){
+      if ("{{ username }}" === ""){
+      jQuery('#friends, #hasseen').hide();
+      }
 });
 </script>
 {% endblock %}

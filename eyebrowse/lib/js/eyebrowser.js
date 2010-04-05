@@ -305,7 +305,8 @@ var Eyebrowser = {
 			   else { jQuery('#mainpanel').html("<div id='help' class='recentpage'><div class='title'>sorry! no results ;(</div></div>"); } 
 		       }, "json");
     },
-    addRecentPage: function(divid, page, now) {
+    addRecentPage: function(divid, page, now) {	
+	if (page.user == USERNAME) { return; };
 	var name = page.title?page.title:cleanupURL(page.url);
 	
 	/*  keep track of times displayed and hide old ones
