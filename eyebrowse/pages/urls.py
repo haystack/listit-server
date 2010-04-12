@@ -51,8 +51,8 @@ urlpatterns = patterns('',
 
                        # home
                        (r'^help/?$', help),
-                       #(r'^about/?$', about),
-                       (r'^about/?$', help),
+                       (r'^about/?$', about),
+                       #(r'^about/?$', help),
                        (r'^terms/?$', terms),
 
                        # account management
