@@ -710,7 +710,7 @@ width:23%;
 
 .biglink:hover {
     background-color:lightyellow;
-    color: #0044CC;
+/*    color: #0044CC;*/
 }
 
 .biglink .colorbox {
@@ -727,7 +727,7 @@ width:23%;
 #signUpLink:hover {
     text-decoration:underline;
     background-color:lightyellow;
-    color: #0044CC;
+/*    color: #0044CC;*/
 }
 
 

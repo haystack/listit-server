@@ -297,6 +297,7 @@ var Eyebrowser = {
 			   this_.mainLoading(false);
 			   jQuery('#help').html('');
 			   if (data.code == 200) {
+			       jQuery('#mainpanel').html('');
 			       var now = new Date().valueOf();
 			       data.results.map(function(item) { this_.addRecentPage(divid, item, now); });
 			       this_.lastPageID = data.results[0].id;
