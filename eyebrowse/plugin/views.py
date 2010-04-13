@@ -145,8 +145,12 @@ def get_user_profile(request):
     last_name = enduser.user.last_name
     email = enduser.user.email
     location = str(Country.objects.filter(printable_name=enduser.location)[0].name)
-    homepage = enduser.homepage
-    birthdate = enduser.birthdate
+    homepage = ""
+    if enduser.homepage:
+        homepage = enduser.homepage
+    birthdate = ""
+    if enduser.birthdate:
+        birthdate = enduser.birthdate
     #photo = enduser.photo
     gender = enduser.gender
     tags = ' '.join(tag.name for tag in enduser.tags.all())
