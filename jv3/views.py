@@ -201,7 +201,7 @@ def notes_post_multi(request):
 
             if (matching_notes[0].version > form.data['version']):
                 errormsg = "Versions for jid %d not compatible (local:%d, received: %d). Do you need to update? "  % (form.data["jid"],matching_notes[0].version,form.data["version"])
-                print "NOT UPDATED error -- server: %d, YOU %d " % (matching_notes[0].version,form.data['version'])
+                ##print "NOT UPDATED error -- server: %d, YOU %d " % (matching_notes[0].version,form.data['version'])
                 responses.append({"jid":form.data['jid'],"status":400})
                 continue            
             # If the data contains no errors, migrate the changes over to
@@ -222,7 +222,7 @@ def notes_post_multi(request):
                 logevent(request,'Note.create',400,form.errors)
                 pass
         pass
-    print responses
+    ##print responses
     response = HttpResponse(JSONEncoder().encode({'committed':responses}), "text/json")
     response.status_code = 200;
     return response
@@ -649,15 +649,15 @@ def extract_zen_notes_data(note):
 
 def get_zen(request):
     iphone = True
-    print 0
+    ##print 0
     request_user = basicauth_get_user_by_emailaddr(request)
-    print 1.5
+    ##print 1.5
     if not request_user:
         logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
         response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
         response.status_code = 401 ## removed semi-colon??
         return response
-    print 1
+    ##print 1
     ## we want to determine order using magic note
     if Note.objects.filter(owner=request_user,jid="-1").count() > 0:
         magic_note = Note.objects.filter(owner=request_user,jid="-1")[0]
@@ -675,12 +675,12 @@ def get_zen(request):
     else:
         # sort by creation date ?
         notes = Note.objects.filter(owner=request_user,deleted=False).order_by("-created").exclude(jid=-1)
-    print 2
+    ##print 2
     
     startIndex = int(request.GET.get("START_INDEX", 0))
-    print "Start Index: %s" % startIndex
+    ##print "Start Index: %s" % startIndex
     ##startIndex = urllib.unquote(startIndex)
-    print 3
+    ##print 3
     noteLength = len(notes)
     endIndex = int(request.GET.get("END_INDEX", -1))
     if endIndex == -1:
@@ -761,17 +761,17 @@ def put_zen(request):
                 responses.append({"jid":form.data['jid'],"status":201})
                 logevent(request,'Note.create',200,form.data['jid'])
                 continue
-            print "4b: website note form not valid"
+            ##print "4b: website note form not valid"
             ## something didn't pass form validation
             logevent(request,'Note.create',400,form.errors)
             responses.append({"jid":form.data['jid'],"status":400})
-            print "CREATE form errors %s " % repr(form.errors)
+            ##print "CREATE form errors %s " % repr(form.errors)
             continue
         else:
             ##print "4b: update old note"
             ## UPDATE an existing note
             ## check if the client version needs updating
-            if len(matching_notes) > 1:  print "# of Matching Notes : %d " % len(matching_notes)
+            ##  if len(matching_notes) > 1:  print "# of Matching Notes : %d " % len(matching_notes)
             
             if (matching_notes[0].version > form.data['version']):
                 ##print "5a: client ver needs updating, form.is_valid() is: %s" % (form.is_valid()) 
@@ -822,22 +822,22 @@ def put_zen(request):
                 pass
         pass
     ##print "7: almost done"
-    print responses
+    ##print responses
     response = HttpResponse(JSONEncoder().encode({'committed':responses, 'update':updateResponses}), "text/json")
     response.status_code = 200;
     ##print "8: returning!"
     return response
 
 def get_iphone(request):
-    print "get_iphone started"
+    ##print "get_iphone started"
     request_user = basicauth_get_user_by_emailaddr(request);
-    print 0
+    ##print 0
     if not request_user:
         logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
         response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
         response.status_code = 401 ## removed semi-colon??
         return response
-    print 1
+    ##print 1
     ## we want to determine order using magic note
     if Note.objects.filter(owner=request_user,jid="-1").count() > 0:
         magic_note = Note.objects.filter(owner=request_user,jid="-1")[0]
@@ -854,27 +854,27 @@ def get_iphone(request):
     else:
         # sort by creation date ?
         notes = Note.objects.filter(owner=request_user,deleted=False).order_by("-created").exclude(jid=-1)
-    print 2
+    ##print 2
     numNotes = len(notes)
     startIndex = int(request.GET.get("START_INDEX", 0))
     endIndex = int(request.GET.get("END_INDEX", None))
-    print 3
+    ##print 3
     if not endIndex:
         endIndex = numNotes
     notesLeft = numNotes - endIndex
-    print 4
+    ##print 4
     ## make magic happen
     ndicts = [ extract_zen_notes_data(note) for note in notes[startIndex:endIndex] ]
-    print 5
+    ##print 5
     deltaIndex = endIndex - startIndex
-    print 6
+    ##print 6
     htmlblob = "\n".join(["<li><div name='note' style='overflow:hidden;' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onClick='gid(\"%(jid)s\").blur(); zenNoteView.noteClicked(\"%(jid)s\")'><pre>%(noteText)s</pre></div></li>" % n for n in ndicts ]) # onBlur='zenNoteView.noteBlur(\"%(jid)s\")' 
     if notesLeft > 0:       ## height:25px was in style for new notes (=2 lines visible without pre tags)
         htmlblob += "<li><div id='reqMore'><button id='requestMore' onClick='zenAjax.requestMore()'>Get %s of %s more notes</button></div></li>" % (min(deltaIndex, notesLeft), notesLeft)
-    print 7
+    ##print 7
     response = HttpResponse(htmlblob, 'text/html');
     response.status_code = 200
-    print 8
+    ##print 8
     return response
 
 def post_usage_statistics(request):
