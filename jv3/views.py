@@ -691,12 +691,12 @@ def get_zen(request):
     if iphone and (endIndex >= noteLength):
         additionalNotesWaiting = False;
     ##endIndex = urllib.unquote(endIndex)
-    print "Almost!"
+    ##print "Almost!"
     
     ## make magic happen
     ndicts = [ extract_zen_notes_data(note) for note in notes[startIndex:endIndex] ]
 
-    print "Almost2"
+    ##print "Almost2"
 
     deltaIndex = endIndex - startIndex
 
@@ -706,9 +706,9 @@ def get_zen(request):
     elif iphone:
         htmlblob += "\n <button id='requestMore' style='display:none' onClick='zeniPhone.requestMore()'>Get %s more notes</div>" % (deltaIndex)
         
-    print "Almost3"
+    ##print "Almost3"
     response = HttpResponse(htmlblob, 'text/html');
-    print "Almost4"
+    ##print "Almost4"
     response.status_code = 200
     return response
 
@@ -723,7 +723,7 @@ def put_zen(request):
     ## call it with a list of notes { [ {id: 123981231, text:"i love you"..} ...  ] )
     ## returns a success with a list { committed: [{ success: <code>, jid: <id> }] ... } unless something really bad happened
 
-    print "0"
+    ##print "0"
 
     request_user = basicauth_get_user_by_emailaddr(request);
     if not request_user:
@@ -732,7 +732,7 @@ def put_zen(request):
         response.status_code = 401;
         return response
 
-    print "1"
+    ##print "1"
     
     responses = []
     updateResponses = []
@@ -742,7 +742,7 @@ def put_zen(request):
         response.status_code = 200;
         return response
 
-    print "2"
+    ##print "2"
         
     for datum in JSONDecoder().decode(request.raw_post_data):
         ## print "datum : %s "% repr(datum)
@@ -750,7 +750,7 @@ def put_zen(request):
         form = NoteForm(datum)
         form.data['owner'] = request_user.id;                 ## clobber this whole-sale from authenticating user
         matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)
-        print "3"
+        ##print "3"
         if len(matching_notes) == 0:
             print "4a: no matching notes, make new note"
             ## CREATE a new note
@@ -768,13 +768,13 @@ def put_zen(request):
             print "CREATE form errors %s " % repr(form.errors)
             continue
         else:
-            print "4b: update old note"
+            ##print "4b: update old note"
             ## UPDATE an existing note
             ## check if the client version needs updating
             if len(matching_notes) > 1:  print "# of Matching Notes : %d " % len(matching_notes)
             
             if (matching_notes[0].version > form.data['version']):
-                print "5a: client ver needs updating, form.is_valid() is: %s" % (form.is_valid()) 
+                ##print "5a: client ver needs updating, form.is_valid() is: %s" % (form.is_valid()) 
                 ## Change to return {jid,contents,created,deleted,edited}
                 if form.is_valid():
                     for key in Note.update_fields: ## key={contents,created,deleted,edited}
@@ -803,10 +803,10 @@ def put_zen(request):
             # the version of the note in the db, increment the version number
             # and announce success
             if form.is_valid() :
-                print "6a: update server note"
+                ##print "6a: update server note"
                 for key in Note.update_fields:
                     matching_notes[0].__setattr__(key,form.data[key])
-                    print "Key: %s, Data: %s" % (key, form.data[key])
+                    ##print "Key: %s, Data: %s" % (key, form.data[key])
 
                 # increment version number
                 matching_notes[0].version = form.data['version'] + 1 ## matching_notes[0].version + 1;
@@ -815,17 +815,17 @@ def put_zen(request):
                 matching_notes[0].save()
                 responses.append({"jid":form.data['jid'],"status":201})
             else:
-                print "6b: client note not valid"
+                ##print "6b: client note not valid"
                 # Otherwise return a 400 Bad Request error.
                 responses.append({"jid":form.data['jid'],"status":400})
                 logevent(request,'Note.create',400,form.errors)
                 pass
         pass
-    print "7: almost done"
+    ##print "7: almost done"
     print responses
     response = HttpResponse(JSONEncoder().encode({'committed':responses, 'update':updateResponses}), "text/json")
     response.status_code = 200;
-    print "8: returning!"
+    ##print "8: returning!"
     return response
 
 def get_iphone(request):
