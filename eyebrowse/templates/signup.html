@@ -6,44 +6,44 @@
 <script src="/lib/js/protocrock.js"></script>
 <script src="/lib/js/signup.js"></script>
 <style>
-#profile_content a{
-font-weight:bolder;
-text-decoration:underline;
-}
-#latest li {
-border:none;
-width:auto;
-}
-.homepageimg  {
-margin-left:19px;
-margin-right:8px;
-margin-top:21px;
-}
-#profile_content .recentpage a {text-decoration:none;}
-#profile_content h2 {border-bottom:1px dotted darkgrey;
-padding-left:0;}
-.rightcolumn  {
-display:inline-block;
-padding-left:19px;
-padding-right:11px;
-vertical-align:top;
-}
-#profile_content h2 {margin-top:0px; font-size:16.8px;}
-#profile_content h4 {margin-top:2px}
-.bullet li{
-font-size:13px;
-list-style-type:disc;
-margin-left:20px;
-margin-top:8px;
-padding-left:5px;
-}
-#mainpanel {
-width:80%;
-margin-left:auto;
-margin-right:auto;
-display:block;
-}
-div.blue:hover{ color:#0044CC; }
+  #profile_content a{
+  font-weight:bolder;
+  text-decoration:underline;
+  }
+  #latest li {
+  border:none;
+  width:auto;
+  }
+  .homepageimg  {
+  margin-left:19px;
+  margin-right:8px;
+  margin-top:21px;
+  }
+  #profile_content .recentpage a {text-decoration:none;}
+  #profile_content h2 {border-bottom:1px dotted darkgrey;
+  padding-left:0;}
+  .rightcolumn  {
+  display:inline-block;
+  padding-left:19px;
+  padding-right:11px;
+  vertical-align:top;
+  }
+  #profile_content h2 {margin-top:0px; font-size:16.8px;}
+  #profile_content h4 {margin-top:2px}
+  .bullet li{
+  font-size:13px;
+  list-style-type:disc;
+  margin-left:20px;
+  margin-top:8px;
+  padding-left:5px;
+  }
+  #mainpanel {
+  width:80%;
+  margin-left:auto;
+  margin-right:auto;
+  display:block;
+  }
+  div.blue:hover{ color:#0044CC; }
 </style>
 {% endblock %}
 
@@ -59,8 +59,6 @@ div.blue:hover{ color:#0044CC; }
   <div class="logo">
     <img src="lib/img/eyebrowse.png" />
   </div><h1 style="font-size:35px; margin-left:10px;">track, visualize and share your web trails</h1>
-
-
   
   <h4 style="vertical-align:top;">
     <b>Eyebrowse</b> is an add-on
@@ -68,114 +66,124 @@ div.blue:hover{ color:#0044CC; }
     your private computer so you can check out how your activity
     changes over time. Selectivly share your activities to find out
     find out what's hot and who's reading what.
-      <!-- lets you
-    easily track, visualize, and share your trails through the web in
-    real-time.</b> Eyebrowse -->
+    <!-- lets you
+	 easily track, visualize, and share your trails through the web in
+	 real-time.</b> Eyebrowse -->
     <!--Plus, contribute your
-    web trails to science! Check out the out
-    some <a href="/help"><b>examples</b></a> or watch our short video
-    introduction below.-->
+	      web trails to science! Check out the out
+	      some <a href="/help"><b>examples</b></a> or watch our short video
+	      introduction below.-->
   </h4>
   <canvas id="main" style="padding:0px;margin:0px; display:none">
   </canvas>
 
-<div style="">
-  <div id="indexwhyid" class="indexwhy"> 
-    <!--
-    <a href="/help" style="text-decoration:none">
-      <div id="signUpLink">   
-	<div class="colorbox"></div>
-	watch our video 
+  <div style="">
+    <div id="indexwhyid" class="indexwhy"> 
+      <!--
+	 <a href="/help" style="text-decoration:none">
+	   <div id="signUpLink">   
+	     <div class="colorbox"></div>
+	     watch our video 
+	   </div>
+	 </a>
+	 -->
+      <img src="/lib/img/homepage_1.jpg" class="homepageimg"/>
+      <img src="/lib/img/homepage_2.jpg" class="homepageimg"/>
+      <img src="/lib/img/homepage_3.jpg" class="homepageimg"/>
+      <div class="rightcolumn" style="width:250px; ">
+	<h2>discover new websites</h2>
+	<ul class="bullet">
+	  <li>find out what websites designers in Sweden look at</li>
+	  <li>compare different social groups by age, gender, interests and more!</li>
+	  <li>find websites from people like you around the world</li>
+	</ul>
       </div>
-    </a>
-    -->
-    {% if request_user %}
-    <div class="biglink" id="signUpLink">
-      welcome, <a href="/profile/{{ request_user }}">{{ request_user }}</a>! check out <a href="/eyebrowser">eyebrowser</a>
-      {% else %}
-	
-
-	  <a href="/register/" style="text-decoration:none">
-      <div class="biglink blue" id="signUpLink">
-	install eyebrowse for firefox
+      
+      <div class="rightcolumn" style="width:250px; ">
+	<h2>visualize your web activities</h2>
+	<ul class="bullet">
+	  <li>see how much time you spend on your favorite websites</li>
+	  <li>easily access your most viewed sites</li>
+	  <li>see what websites you view the most</li>
+	</ul>
       </div>
-    </a>
-    {% endif %}
-  </div>
+      
+      <div class="rightcolumn" style="width:250px;">
+	<h2>share web trails with friends</h2>
+	<ul class="bullet">
+	  <li>easily keep up with the news articles your friends are reading</li>
+	  <li>share without having to post a status update every time</li>
+	  <li>let your friends see your favorite websites in your eyebrowse profile </li>
+	</ul>
+      </div>
+      
+      <div id="mainpanel">
+      </div>
 
-    <img src="/lib/img/homepage_1.jpg" class="homepageimg"/>
-    <img src="/lib/img/homepage_2.jpg" class="homepageimg"/>
-    <img src="/lib/img/homepage_3.jpg" class="homepageimg"/>
-    <div class="rightcolumn" style="width:250px; ">
-      <h2>discover new websites</h2>
-      <ul class="bullet">
-	<li>find out what websites designers in Sweden look at</li>
-	<li>compare different social groups by age, gender, interests and more!</li>
-	<li>find websites from people like you around the world</li>
-      </ul>
-    </div>
-    
-    <div class="rightcolumn" style="width:250px; ">
-      <h2>visualize your web activities</h2>
-      <ul class="bullet">
-	<li>see how much time you spend on your favorite websites</li>
-	<li>easily access your most viewed sites</li>
-	<li>see what websites you view the most</li>
-      </ul>
-    </div>
-    
-    <div class="rightcolumn" style="width:250px;">
-      <h2>share web trails with friends</h2>
-      <ul class="bullet">
-	<li>easily keep up with the news articles your friends are reading</li>
-	<li>share without having to post a status update every time</li>
-	<li>let your friends see your favorite websites in your eyebrowse profile </li>
-      </ul>
-    </div>
-    
-    <div id="mainpanel">
-    </div>
+      <h4 style="text-align:center; width:99%; margin-top:14px">
+	Check out the
+	<a href="/eyebrowser">eyebrowser</a>
+	and some
+	<a href="/profile/karger/">profiles</a> or click below for more info.		
+      </h4>
 
-       <h4 style="text-align:center; width:99%; margin-top:14px">
-	 Check out the
-	 <a href="/eyebrowser">eyebrowser</a>
-	 and some
-	 <a href="/profile/karger/">profiles</a> or click below for more info.		
-       </h4>
-
-
-       <a href="/help">
-	 <div class="biglink blue">      
-	   <h3 style="font-weight:bold">more info</h3>
-	 </div>
-       </a>
-  </div>
-
-
-<div id="templates">
-    <div class="recentpage">
-      <div class="colorbox"></div>
-      <a href="" class="title"></a><br />
-      <div class="time"></div>
-      <div class="user"></div><b>&nbsp;|&nbsp;</b>
-    </div>
-</div>
-</div>
-
-    <div id="footer">
-      <a href="/about">about</a>&nbsp; &#124; &nbsp;
-      <a href="http://code.google.com/p/list-it/">google code</a>&nbsp; &#124; 
-      <a href="/data/all_the_data.zip">download the data</a>&nbsp; &#124; &nbsp;
       {% if request_user %}
-      <a href="my_eyebrowse_data.zip">download my data</a>&nbsp; &#124; &nbsp;
-      {% endif %}
-      <a href="/releases/eyebrowse.xpi"> download the plugin</a>
-      <div style="margin-top:4px; line-height:15px;">created by: 
-	<a href="http://www.zamiang.com/" style="text-decoration:none; font-size:1em;">Brennan Moore</a>, 
-	<a href="http://people.csail.mit.edu/emax" style="text-decoration:none; font-size:1em;">Max Van Kleek</a> & 
-	<a href="http://people.csail.mit.edu/karger/" style="text-decoration:none; font-size:1em;">David Karger</a>
-	at MIT CSAIL</div>
+      <div class="biglink" id="signUpLink">
+	welcome, <a href="/profile/{{ request_user }}">{{ request_user }}</a>! check out <a href="/eyebrowser">eyebrowser</a>
+	{% else %}
+	<a href="/register/" style="text-decoration:none">
+	  <div class="biglink blue" id="signUpLink">
+	    install eyebrowse for firefox
+	  </div>
+	</a>
+	{% endif %}
+      </div>
+
+      <object width="681" height="383" style="margin-left:auto;margin-right:auto;">
+	<param name="allowfullscreen" value="true" />
+	<param name="allowscriptaccess" value="always" />
+	<param name="movie" value="http://vimeo.com/moogaloop.swf?clip_id=6839047&amp;server=vimeo.com&amp;show_title=1&amp;show_byline=0&amp;show_portrait=0&amp;color=ff0095&amp;fullscreen=1" />
+	<embed src="http://vimeo.com/moogaloop.swf?clip_id=6839047&amp;server=vimeo.com&amp;show_title=1&amp;show_byline=0&amp;show_portrait=0&amp;color=ff0095&amp;fullscreen=1" type="application/x-shockwave-flash"
+	       allowfullscreen="true"
+	       allowscriptaccess="always"
+	       width="681"
+	       height="383"
+	       style="margin-left:95px; margin-bottom:-21px;">
+	</embed>
+      </object>      
+
+      <a href="/help">
+	<div class="biglink blue">
+	  <h3 style="font-weight:bold">more info</h3>
+	</div>
+      </a>
     </div>
 
 
-{% endblock %}
+    <div id="templates">
+      <div class="recentpage">
+	<div class="colorbox"></div>
+	<a href="" class="title"></a><br />
+	<div class="time"></div>
+	<div class="user"></div><b>&nbsp;|&nbsp;</b>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer">
+    <a href="/about">about</a>&nbsp; &#124; &nbsp;
+    <a href="http://code.google.com/p/list-it/">google code</a>&nbsp; &#124; 
+    <a href="/data/all_the_data.zip">download the data</a>&nbsp; &#124; &nbsp;
+    {% if request_user %}
+    <a href="my_eyebrowse_data.zip">download my data</a>&nbsp; &#124; &nbsp;
+    {% endif %}
+    <a href="/releases/eyebrowse.xpi"> download the plugin</a>
+    <div style="margin-top:4px; line-height:15px;">created by: 
+      <a href="http://www.zamiang.com/" style="text-decoration:none; font-size:1em;">Brennan Moore</a>, 
+      <a href="http://people.csail.mit.edu/emax" style="text-decoration:none; font-size:1em;">Max Van Kleek</a> & 
+      <a href="http://people.csail.mit.edu/karger/" style="text-decoration:none; font-size:1em;">David Karger</a>
+      at MIT CSAIL</div>
+  </div>
+
+
+  {% endblock %}
