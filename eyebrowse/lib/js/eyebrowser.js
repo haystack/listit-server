@@ -208,6 +208,17 @@ var Eyebrowser = {
 		      }		      
 		  });
     },
+    _addCommas: function(nStr) {
+	nStr += "";
+	var x = nStr.split(".");
+	var x1 = x[0];
+	var x2 = x.length > 1 ? "." + x[1] : "";
+	var rgx = /(\d+)(\d{3})/;
+	while (rgx.test(x1)) {
+	    x1 = x1.replace(rgx, "$1" + "," + "$2");
+	}
+	return x1 + x2;
+    },
     getUsers: function(divid, num){
 	// should get trending for the current query
 	var this_ = this;
@@ -225,7 +236,7 @@ var Eyebrowser = {
 		       this_.mainLoading(false);
 		       if (data.code == 200) {
 			   jQuery(divid).html("");
-			   jQuery('#mainpanel').html("<div id='help' class='recentpage'>the top " + data.results.length + ' of ' + data.count + ' users' +"</div>"); 
+			   jQuery('#mainpanel').html("<div id='help' style=\"color:#666; margin-left:13px; margin-bottom:3px\">top " + data.results.length + ' of ' + this_._addCommas(data.count) + ' users' +"</div>"); 
 			   data.results.map(function(item) { this_.addUser(divid, item[0], item[1]); });
 		       }
 		   }, "json");
@@ -300,7 +311,7 @@ var Eyebrowser = {
 			   if (data.code == 200) {
 			       jQuery('#mainpanel').html('');
 			       var now = new Date().valueOf();
-			       jQuery('#mainpanel').html("<div id='help' class='recentpage'>the latest " + data.results.length + ' of ' + data.count + ' web trails' +"</div>"); 
+			       jQuery('#mainpanel').html("<div id='help' style=\"color:#666; margin-left:13px; margin-bottom:3px\">latest " + data.results.length + ' of ' + this_._addCommas(data.count) + ' web trails' +"</div>"); 
 			       data.results.map(function(item) { this_.addRecentPage(divid, item, now); });
 			       this_.lastPageID = data.results[0].id;
 			       jQuery('#mainpanel').hide().slideDown(300);

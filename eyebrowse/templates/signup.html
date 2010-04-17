@@ -79,14 +79,13 @@
 
   <div style="">
     <div id="indexwhyid" class="indexwhy"> 
-      <!--
-	 <a href="/help" style="text-decoration:none">
-	   <div id="signUpLink">   
-	     <div class="colorbox"></div>
-	     watch our video 
-	   </div>
-	 </a>
-	 -->
+
+      {% if request_user %}
+      <div class="biglink" id="signUpLink">
+	welcome, <a href="/profile/{{ request_user }}">{{ request_user }}</a>! check out <a href="/eyebrowser">eyebrowser</a>
+      </div>
+      {% endif %}
+
       <img src="/lib/img/homepage_1.jpg" class="homepageimg"/>
       <img src="/lib/img/homepage_2.jpg" class="homepageimg"/>
       <img src="/lib/img/homepage_3.jpg" class="homepageimg"/>
@@ -127,19 +126,14 @@
 	<a href="/profile/karger/">profiles</a> or click below for more info.		
       </h4>
 
-      {% if request_user %}
-      <div class="biglink" id="signUpLink">
-	welcome, <a href="/profile/{{ request_user }}">{{ request_user }}</a>! check out <a href="/eyebrowser">eyebrowser</a>
-	{% else %}
-	<a href="/register/" style="text-decoration:none">
-	  <div class="biglink blue" id="signUpLink">
-	    install eyebrowse for firefox
-	  </div>
-	</a>
-	{% endif %}
+      <a href="/register/" style="text-decoration:none">
+	<div class="biglink blue" id="signUpLink">
+	  install eyebrowse for firefox
+	</div>
+      </a>
       </div>
 
-      <object width="681" height="383" style="margin-left:auto;margin-right:auto;">
+      <object width="681" height="383" style="margin-left:95px; margin-bottom:-21px;">
 	<param name="allowfullscreen" value="true" />
 	<param name="allowscriptaccess" value="always" />
 	<param name="movie" value="http://vimeo.com/moogaloop.swf?clip_id=6839047&amp;server=vimeo.com&amp;show_title=1&amp;show_byline=0&amp;show_portrait=0&amp;color=ff0095&amp;fullscreen=1" />

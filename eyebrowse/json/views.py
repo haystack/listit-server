@@ -1188,7 +1188,7 @@ def get_latest_sites_for_filter(request):
     # always recently
     @cache.region('ticker')
     def fetch_data(qry, group, country, friends, gender, age, seen, endusers, bar):
-        views = PageView.objects.filter(user__in=User.objects.filter(id__in=endusers), startTime__gt=int(time.time() * 1000) - 86400000).order_by("-startTime")
+        views = PageView.objects.filter(user__in=User.objects.filter(id__in=endusers)).order_by("-startTime") # , startTime__gt=int(time.time() * 1000) - 86400000
         count = views.count()
         phits = views[0:n].values() 
         return [[ defang_pageview_values(evt) for evt in uniq(phits,lambda x:x["url"],n) ], count]
@@ -1249,7 +1249,7 @@ def defang_enduser(enduser, user):
             }
 
 def get_top_users_for_filter(request):
-    n = 50
+    n = 20
     query = _get_query_for_request(request)
     friends = request.GET['friends'] # a string "friends" or "everyone"
     group = request.GET['groups']  # string that corresponds to a tag

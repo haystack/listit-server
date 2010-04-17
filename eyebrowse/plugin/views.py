@@ -158,7 +158,7 @@ def get_user_profile(request):
     tags = ""
     if enduser.tags:
         tags = ' '.join(tag.name for tag in enduser.tags.all())
-        
+
     response = {
         'id':enduser.user.id,
         'first_name': first_name,
