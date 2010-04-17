@@ -144,17 +144,21 @@ def get_user_profile(request):
     first_name = enduser.user.first_name
     last_name = enduser.user.last_name
     email = enduser.user.email
+    gender = enduser.gender
     location = str(Country.objects.filter(printable_name=enduser.location)[0].name)
     homepage = ""
     if enduser.homepage:
         homepage = enduser.homepage
+    
     birthdate = ""
     if enduser.birthdate:
         birthdate = enduser.birthdate
     #photo = enduser.photo
-    gender = enduser.gender
-    tags = ' '.join(tag.name for tag in enduser.tags.all())
 
+    tags = ""
+    if enduser.tags:
+        tags = ' '.join(tag.name for tag in enduser.tags.all())
+        
     response = {
         'id':enduser.user.id,
         'first_name': first_name,

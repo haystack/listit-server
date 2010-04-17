@@ -225,6 +225,7 @@ var Eyebrowser = {
 		       this_.mainLoading(false);
 		       if (data.code == 200) {
 			   jQuery(divid).html("");
+			   jQuery('#mainpanel').html("<div id='help' class='recentpage'>the top " + data.results.length + ' of ' + data.count + ' users' +"</div>"); 
 			   data.results.map(function(item) { this_.addUser(divid, item[0], item[1]); });
 		       }
 		   }, "json");
@@ -299,6 +300,7 @@ var Eyebrowser = {
 			   if (data.code == 200) {
 			       jQuery('#mainpanel').html('');
 			       var now = new Date().valueOf();
+			       jQuery('#mainpanel').html("<div id='help' class='recentpage'>the latest " + data.results.length + ' of ' + data.count + ' web trails' +"</div>"); 
 			       data.results.map(function(item) { this_.addRecentPage(divid, item, now); });
 			       this_.lastPageID = data.results[0].id;
 			       jQuery('#mainpanel').hide().slideDown(300);

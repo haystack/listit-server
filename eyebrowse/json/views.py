@@ -1165,7 +1165,7 @@ def _filter_users_for_friends(username, userIDs):
 
 
 def get_latest_sites_for_filter(request):
-    n = 50
+    n = 100
     query = _get_query_for_request(request)
     group = request.GET['groups']  # string that corresponds to a tag
     country = request.GET['country'] #**string that corresponds to a country value
@@ -1186,8 +1186,14 @@ def get_latest_sites_for_filter(request):
             endusers = _filter_userids_for_friends(request.user.username, endusers)
 
     # always recently
-    phits = PageView.objects.filter(user__in=User.objects.filter(id__in=endusers), startTime__gt=int(time.time() * 1000) - 86400000).order_by("-startTime")[0:n].values() 
-    results = [ defang_pageview_values(evt) for evt in uniq(phits,lambda x:x["url"],n) ]
+    @cache.region('ticker')
+    def fetch_data(qry, group, country, friends, gender, age, seen, endusers, bar):
+        views = PageView.objects.filter(user__in=User.objects.filter(id__in=endusers), startTime__gt=int(time.time() * 1000) - 86400000).order_by("-startTime")
+        count = views.count()
+        phits = views[0:n].values() 
+        return [[ defang_pageview_values(evt) for evt in uniq(phits,lambda x:x["url"],n) ], count]
+
+    results = fetch_data(query, group, country, friends, gender, age, seen, endusers, "latest_sites_for_filter")
 
     # filter out seen sites
     if seen == "sites not seen":
@@ -1196,17 +1202,17 @@ def get_latest_sites_for_filter(request):
             # this fails for some reason ;(
             # user_uniq = (site['url'] for site in uniq(PageView.objects.filter(user=user).values(),lambda x:x["url"],None))                           
             user_uniq = PageView.objects.filter(user=user).values_list('url', flat=True)
-            results = [site for site in results if not site['url'] in user_uniq] 
+            results = [site for site in results[0] if not site['url'] in user_uniq] 
 
     if request.GET.has_key('id'):
         urlID = int(request.GET['id'])
-        filter_results = [site for site in results if int(site['id']) > urlID]
+        filter_results = [site for site in results[0] if int(site['id']) > urlID]
         if len(filter_results) > 0:
-            return json_response({ "code":200, "results": filter_results })
+            return json_response({ "code":200, "results": filter_results, "count": results[1] })
         else:
             return json_response({ "code":204 })
 
-    return json_response({ "code":200, "results": results })
+    return json_response({ "code":200, "results": results[0], "count":results[1] })
 
 
 def defang_enduser(enduser, user):
@@ -1243,7 +1249,7 @@ def defang_enduser(enduser, user):
             }
 
 def get_top_users_for_filter(request):
-    n = 20
+    n = 50
     query = _get_query_for_request(request)
     friends = request.GET['friends'] # a string "friends" or "everyone"
     group = request.GET['groups']  # string that corresponds to a tag
@@ -1255,7 +1261,8 @@ def get_top_users_for_filter(request):
         request_user = get_object_or_404(User, username=request.user.username)
     else:
         request_user = None
-    #@cache.region('long_term')
+
+    @cache.region('long_term')
     def fetch_data(qry, user, bar, friends, group, age, country, gender):
         if qry == "EndUser.objects.filter(" and friends != "my friends":
             results = [[enduser, PageView.objects.filter(user=enduser.user).count()] for enduser in EndUser.objects.all()]
@@ -1276,7 +1283,7 @@ def get_top_users_for_filter(request):
 
         ## rank the users
         results.sort(key=lambda x:-x[1])
-        return results[:n]
+        return [results[:n], len(results)]
 
     ## forgot the shorter way of doing this
     if friends == "my friends":
@@ -1285,7 +1292,7 @@ def get_top_users_for_filter(request):
         usr = "all"
 
     results = fetch_data(query, usr, "users", friends, group, age, country, gender)    
-    return json_response({"code":200, "results":  [[defang_enduser(item[0], request_user), item[1]] for item in results] })
+    return json_response({"code":200, "results":  [[defang_enduser(item[0], request_user), item[1]] for item in results[0]], "count": results[1] })
 
 
 def get_trending_sites(request):
