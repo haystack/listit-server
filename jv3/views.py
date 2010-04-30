@@ -644,8 +644,21 @@ def extract_zen_notes_data(note):
             "row":1,
             "version":note.version,
             "deleted":"false",
-            "created":note.created};        
-            
+            "created":note.created};
+
+
+def extract_zen_notes_data_extras(note):
+    return {"noteText":note.contents,
+            "edited":note.edited,
+            "pk":note.id,
+            "jid":note.jid,
+            "col":80,
+            "row":1,
+            "version":note.version,
+            "deleted":"false",
+            "created":note.created,
+            "archiveState": 'archiveNote' if (note.contents[0:8] == '@archive') else 'regularNote',
+            "startVisibility": "none" if (note.contents[0:8] == '@archive') else ""};   
 
 def get_zen(request):
     iphone = True
@@ -694,13 +707,13 @@ def get_zen(request):
     ##print "Almost!"
     
     ## make magic happen
-    ndicts = [ extract_zen_notes_data(note) for note in notes[startIndex:endIndex] ]
+    ndicts = [ extract_zen_notes_data_extras(note) for note in notes[startIndex:endIndex] ]
 
     ##print "Almost2"
 
     deltaIndex = endIndex - startIndex
 
-    htmlblob = "\n".join([ "<div class='note'> <img class='deleteX' src='x.png' alt='Delete' onClick='zenNoteAjax.saveEditedNote(\"%(jid)s\",true)'/><textarea name='note' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onFocus='zenNoteView.noteClicked(\"%(jid)s\")' cols='%(col)s' rows='%(row)s' hasFocus='false' hasSelect='false' onBlur='zenNoteView.noteBlur(\"%(jid)s\")' style='overflow:hidden'>%(noteText)s</textarea></div>" % n for n in ndicts ])
+    htmlblob = "\n".join([ "<div class='note' name='%(archiveState)s' style='display:%(startVisibility)s'> <img class='deleteX' src='x.png' alt='Delete' onClick='zenNoteAjax.saveEditedNote(\"%(jid)s\",true)'/><textarea name='note' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onFocus='zenNoteView.noteClicked(\"%(jid)s\")' cols='%(col)s' rows='%(row)s' hasFocus='false' hasSelect='false' onBlur='zenNoteView.noteBlur(\"%(jid)s\")' style='overflow:hidden'>%(noteText)s</textarea></div>" % n for n in ndicts ])
     if iphone and additionalNotesWaiting:
         htmlblob += "\n <button id='requestMore' onClick='zeniPhone.requestMore()'>Get %s more notes</div>" % (deltaIndex)
     elif iphone:
@@ -900,6 +913,65 @@ def post_usage_statistics(request):
         response.status_code = 500
         return response
     
+    
+## Redaction Code
+
+def get_redact_notes(request):
+    print "get_redact_notes called"
+    allNotes = []
+
+    request_user = basicauth_get_user_by_emailaddr(request);
+    if not request_user:
+        logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
+        response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
+        response.status_code = 401;
+        print "Failed to find request user"
+        return response
+
+    print "User Valid"
+    
+    notes = Note.objects.filter(owner=request_user,deleted=False).order_by("-created").exclude(jid=-1)
+    ndicts = [ extract_zen_notes_data(note) for note in notes ]
+
+        
+#   responses.append({"jid":form.data['jid'],"status":400})
+
+    print "About to print contents"
+    print len(ndicts)
+    i = 0
+    for note in ndicts:
+        print i
+        i += 1
+        #print str()
+        #contents = JSONEncoder().encode( {text: note['noteText']} )
+        allNotes.append({"jid":note['jid'],"version":note['version'], "contents":note['noteText'], "deleted":note['deleted']})    #, "created":note['created'], "contents":note['noteText']})
+
+    print "ended at", i
+    print "Printed contents"
+    
+    # JSONEncoder().encode( { ndicts } )
+    response = HttpResponse(JSONEncoder().encode({'notes':allNotes } ), "text/json")
+    response.status_code = 200
+    ##print 8
+    return response
+
+
+    
+
+def post_redacted_note(request):
+    print "post_redacted_note called"
+
+    request_user = basicauth_get_user_by_emailaddr(request);
+    if not request_user:
+        logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
+        response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
+        response.status_code = 401;
+        print "Failed to find request user"
+        return response
+
+   
+     
+
     
     
         
