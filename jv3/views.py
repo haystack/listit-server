@@ -648,6 +648,13 @@ def extract_zen_notes_data(note):
 
 
 def extract_zen_notes_data_extras(note):
+    if (note.contents.find('@archive') != -1):
+        archiveState = 'archiveNote'
+        startVis = 'none'
+    else:
+        archiveState = 'regularNote'
+        startVis = ''
+        
     return {"noteText":note.contents,
             "edited":note.edited,
             "pk":note.id,
@@ -657,8 +664,8 @@ def extract_zen_notes_data_extras(note):
             "version":note.version,
             "deleted":"false",
             "created":note.created,
-            "archiveState": 'archiveNote' if (note.contents[0:8] == '@archive') else 'regularNote',
-            "startVisibility": "none" if (note.contents[0:8] == '@archive') else ""};   
+            "archiveState": archiveState,
+            "startVisibility": startVis};   
 
 def get_zen(request):
     iphone = True
