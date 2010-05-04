@@ -12,6 +12,7 @@ import django.contrib.auth.models as authmodels
 from django_restapi.resource import Resource
 from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note, NoteForm
+from jv3.models import RedactedNote
 import jv3.utils
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport, ServerLog
 from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username, get_user_by_email, is_consenting_study1, is_consenting_study2, json_response, set_consenting
@@ -154,6 +155,7 @@ class NoteCollection(Collection):
     
 
 def notes_post_multi(request):
+    print "Entering Notes_post_multi"
     ## mirrored from NoteCollections.create upstairs but updated to handle
     ## new batch sync protocol from listit 0.4.0 and newer.
     
@@ -174,20 +176,31 @@ def notes_post_multi(request):
         response = HttpResponse(JSONEncoder().encode({'committed':[]}), "text/json")
         response.status_code = 200;
         return response
-        
+
+    print "Starting datum iterator"
     for datum in JSONDecoder().decode(request.raw_post_data):
         ## print "datum : %s "% repr(datum)
         ## print datum
         form = NoteForm(datum)
         form.data['owner'] = request_user.id;                 ## clobber this whole-sale from authenticating user
-        matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)        
+        print 1
+        
+        matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)
+        print 2
         if len(matching_notes) == 0:
+            print 3
             ## CREATE a new note
             # If the data contains no errors, save the model,
             if form.is_valid() :
+                print 4
+                print datum
                 new_model = form.save()
+                print 5
                 responses.append({"jid":form.data['jid'],"status":201})
+                print 6
                 logevent(request,'Note.create',200,form.data['jid'])
+                print 7
+                
                 continue
             ## something didn't pass form validation
             logevent(request,'Note.create',400,form.errors)
@@ -195,10 +208,10 @@ def notes_post_multi(request):
             print "CREATE form errors %s " % repr(form.errors)
             continue
         else:
-            ## UPDATE an existing note
+            print "UPDATE an existing note"
             ## check if the client version needs updating
             if len(matching_notes) > 1:  print "# of Matching Notes : %d " % len(matching_notes)
-
+    
             if (matching_notes[0].version > form.data['version']):
                 errormsg = "Versions for jid %d not compatible (local:%d, received: %d). Do you need to update? "  % (form.data["jid"],matching_notes[0].version,form.data["version"])
                 ##print "NOT UPDATED error -- server: %d, YOU %d " % (matching_notes[0].version,form.data['version'])
@@ -451,6 +464,14 @@ def changepassword(request): ## POST view, parameters cookie and password
     return response;    
 
 ## utilities -- NOT views
+
+## If thing is new:
+## 
+
+## note = RedactedNote()
+## ... must check
+## note.save()
+
 
 
 
@@ -940,24 +961,11 @@ def get_redact_notes(request):
     notes = Note.objects.filter(owner=request_user,deleted=False).order_by("-created").exclude(jid=-1)
     ndicts = [ extract_zen_notes_data(note) for note in notes ]
 
-        
-#   responses.append({"jid":form.data['jid'],"status":400})
-
-    print "About to print contents"
-    print len(ndicts)
-    i = 0
     for note in ndicts:
-        print i
-        i += 1
-        #print str()
-        #contents = JSONEncoder().encode( {text: note['noteText']} )
-        allNotes.append({"jid":note['jid'],"version":note['version'], "contents":note['noteText'], "deleted":note['deleted']})    #, "created":note['created'], "contents":note['noteText']})
+        allNotes.append({"jid":note['jid'],"version":note['version'], "contents":note['noteText'], "deleted":note['deleted'], "created":str(note['created']), "edited":str(note['edited']) })    #, ", "contents":note['noteText']})  , "created":note['created']
 
-    print "ended at", i
-    print "Printed contents"
-    
-    # JSONEncoder().encode( { ndicts } )
     response = HttpResponse(JSONEncoder().encode({'notes':allNotes } ), "text/json")
+    print "response created"
     response.status_code = 200
     ##print 8
     return response
@@ -966,9 +974,12 @@ def get_redact_notes(request):
     
 
 def post_redacted_note(request):
-    print "post_redacted_note called"
+    print "post_redacted_note called: Purpose: save a redacted note"
 
     request_user = basicauth_get_user_by_emailaddr(request);
+
+    print "1"
+    
     if not request_user:
         logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
         response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
@@ -976,9 +987,33 @@ def post_redacted_note(request):
         print "Failed to find request user"
         return response
 
-   
-     
+    print "2"
+    
+    print "3"
+    for datum in JSONDecoder().decode(request.raw_post_data):
+        print "datum : %s "% repr(datum)
+        ## print datum
+        #form = RedactedNoteForm(datum) 
+        #form.data['owner'] = request_user.id;
+        #form.save()
+        print "SAVED"
 
     
     
+    response = HttpResponse("No Errors?", "text/json")
+    print "4"
+    response.status_code = 200
+    print "5"
+    return response
+
+##entry = ActivityLog();
+##entry.owner = request_user;
+##entry.when = item['id'];
+##entry.action = item['type'];
+##entry.noteid = item.get("noteid",None);
+##entry.noteText = item.get("noteText",None);
+##entry.search = item.get("search",None);
+##entry.client = item.get("client",None); ## added in new rev
+##entry.save();
+##
         
