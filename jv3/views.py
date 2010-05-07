@@ -13,6 +13,7 @@ from django_restapi.resource import Resource
 from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note, NoteForm
 from jv3.models import RedactedNote
+from jv3.models import WordMap, WordMeta
 import jv3.utils
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport, ServerLog
 from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username, get_user_by_email, is_consenting_study1, is_consenting_study2, json_response, set_consenting
@@ -913,7 +914,7 @@ def get_iphone(request):
     if notesLeft > 0:       ## height:25px was in style for new notes (=2 lines visible without pre tags)
         htmlblob += "<li><div id='reqMore'><button id='requestMore' onClick='zenAjax.requestMore()'>Get %s of %s more notes</button></div></li>" % (min(deltaIndex, notesLeft), notesLeft)
     ##print 7
-    response = HttpResponse(htmlblob, 'text/html');
+    response = HttpResponse(htmlblob, 'text/html')
     response.status_code = 200
     ##print 8
     return response
@@ -940,80 +941,192 @@ def post_usage_statistics(request):
         response = HttpResponse(repr(excinfo), 'text/html');
         response.status_code = 500
         return response
+
+
+######################
+##  Redaction Code  ##
+######################
     
+def getWordMap(request_user, rType, origWord):
+    print "getWordMap called"
+    match = WordMap.objects.filter(owner=request_user,wordType=rType, originalWord=origWord)
+    print "Match calculated"
+    if len(match) == 1:
+        print "Rep:", match[0].replacementWord
+        return (match[0], match[0].replacementWord)
+    elif len(match) == 0:
+        print "match not found"
+        return False
+    elif len(match) > 1:
+        print "ERROR in getWordMap: More than one match for user: %s, wType: %s, origWord: %s" % (
+            repr(request_user.username), rType, origWord)
+        assert False, "More than one match for user: %s, wType: %s, origWord: %s" % (
+            request_user, rType, origWord)
+
+
+## Adds word of given type to WordMap, returns created WordMapand the repWord chosen
+def createWordMap(request_user, rType, origWord):
+    print "createWordMap called"
+    repWord = rType + str(len(WordMap.objects.filter(owner=request_user, wordType=rType)))
     
-## Redaction Code
+    wMap = WordMap()
+    wMap.owner = request_user
+    wMap.wordType = rType
+    wMap.originalWord = origWord
+    wMap.replacementWord = repWord
+    wMap.save()
+    print "ID: %s, rWord: %s" % (wMap.id, repWord)
+    return (wMap, repWord)
+
 
 def get_redact_notes(request):
     print "get_redact_notes called"
-    allNotes = []
-
-    request_user = basicauth_get_user_by_emailaddr(request);
+    request_user = basicauth_get_user_by_emailaddr(request)
     if not request_user:
         logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
         response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
-        response.status_code = 401;
+        response.status_code = 401
         print "Failed to find request user"
         return response
 
-    print "User Valid"
+    ## Filter out notes that have already been redacted
+    notes = Note.objects.filter(owner=request_user).order_by("-created").exclude(jid=-1).exclude(contents="")
+    userRedactedNotes = RedactedNote.objects.filter(owner=request_user)
     
-    notes = Note.objects.filter(owner=request_user,deleted=False).order_by("-created").exclude(jid=-1)
+    points = 0
+    for rNote in userRedactedNotes:
+        points += rNote.points
+    
+    for redactedNote in userRedactedNotes:
+        print redactedNote.version, redactedNote.jid
+        notes = notes.exclude(version=redactedNote.version, jid=redactedNote.jid)
+
+    print "# Notes returned: ", len(notes)
     ndicts = [ extract_zen_notes_data(note) for note in notes ]
-
+    
+    allNotes = []
     for note in ndicts:
-        allNotes.append({"jid":note['jid'],"version":note['version'], "contents":note['noteText'], "deleted":note['deleted'], "created":str(note['created']), "edited":str(note['edited']) })    #, ", "contents":note['noteText']})  , "created":note['created']
+        allNotes.append(
+            {"jid":note['jid'],"version":note['version'], "contents":note['noteText'],
+             "deleted":note['deleted'], "created":str(note['created']),
+             "edited":str(note['edited']) })
 
-    response = HttpResponse(JSONEncoder().encode({'notes':allNotes } ), "text/json")
-    print "response created"
+    resultMap = {
+        'markAsRemoved' : {},
+        'markAsName'    : {},
+        'markAsPassword': {},
+        'markAsPhone'   : {}}
+
+    redactedWordArray = WordMap.objects.filter(owner=request_user)
+    for wMap in redactedWordArray:
+        if wMap.wordType in resultMap:
+            resultMap[wMap.wordType][wMap.originalWord] = True
+
+    pointsData = {'userPoints': str(points) }
+    
+    response = HttpResponse(JSONEncoder().encode({'notes':allNotes, 'wordMapIndices':resultMap, 'points':pointsData } ), "text/json")
     response.status_code = 200
-    ##print 8
     return response
 
-
-    
 
 def post_redacted_note(request):
     print "post_redacted_note called: Purpose: save a redacted note"
-
-    request_user = basicauth_get_user_by_emailaddr(request);
-
-    print "1"
-    
+    request_user = basicauth_get_user_by_emailaddr(request)
     if not request_user:
         logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
-        response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
-        response.status_code = 401;
+        response = HttpResponse(JSONEncoder().encode(
+            {'autherror':"Incorrect user/password combination"}), "text/json")
+        response.status_code = 401
         print "Failed to find request user"
         return response
-
-    print "2"
     
-    print "3"
     for datum in JSONDecoder().decode(request.raw_post_data):
-        print "datum : %s "% repr(datum)
-        ## print datum
-        #form = RedactedNoteForm(datum) 
-        #form.data['owner'] = request_user.id;
-        #form.save()
-        print "SAVED"
+        ver = datum['version']
+        noteID = datum['id']
 
-    
-    
-    response = HttpResponse("No Errors?", "text/json")
-    print "4"
-    response.status_code = 200
-    print "5"
-    return response
+        ## Don't save redacted note if we've already saved same (jid, ver) note.
+        matchingNotes = RedactedNote.objects.filter(jid=noteID, version=ver)
+        print "# of matching notes: ", len(matchingNotes)
+        if (len(matchingNotes) > 0):
+            print "Skipping note id:%s, ver:%s"% (noteID, ver)
+            continue  ## Skip saving this note because we've already saved it before!
 
-##entry = ActivityLog();
-##entry.owner = request_user;
-##entry.when = item['id'];
-##entry.action = item['type'];
-##entry.noteid = item.get("noteid",None);
-##entry.noteText = item.get("noteText",None);
-##entry.search = item.get("search",None);
-##entry.client = item.get("client",None); ## added in new rev
-##entry.save();
-##
+##      for data in datum:
+##          print "Data: %s, %s" % (repr(data), repr(datum[data]))
+
+        redNote = RedactedNote()
+        ##print 1.5, request_user.id
+        redNote.owner = request_user
+        ##print 2
+
+        ##print 2.5, type(Decimal(datum['origCreated']))
+        ##print "orig created", type(int(datum['origCreated'])), datum['origCreated']
+        redNote.origCreated = datum['origCreated']
+        ##print "orig edited", type(datum['origEdited']), datum['origEdited']
+        redNote.origEdited  = datum['origEdited']
+        ##print "orig deleted: ", type(bool(datum['origDeleted'])), bool(datum['origDeleted'])
+        redNote.origDeleted = datum['origDeleted']  
+
+        ##print "Created: ", type(datum['created']), datum['created']
+        redNote.created = datum['created']
+
+        ##print 3.1, type(datum['id']), datum['id'] 
+        redNote.jid = datum['id']
+        ##print 3.2, type(datum['version']), datum['version']
+        redNote.version = datum['version']
+
+        ##print 4, type(str(datum['noteType'])), datum['noteType']
+        redNote.noteType = datum['noteType']
         
+        noteText = str(datum['text'])
+        ##print "NoteText\n", noteText
+        noteTextWords = ' '.join(noteText.split('\n')).split(' ')
+        ##print "noteTextWords:\n", noteTextWords
+        
+        ## Stores [word index, WordMap(instance)] pairs
+        ## for making WordMeta instances after note is saved
+        wordMapIndicesStore = [] 
+
+        for rType in datum['redactedIndices']:
+            for index in datum['redactedIndices'][rType]:
+                ## rType ~ markAsName, etc
+                ## index ~ index of word in note text
+                origWord = noteTextWords[index]
+
+                #matchWordMap ~ (WordMap, replWord)
+                matchWordMap = getWordMap(request_user, rType, origWord)
+                if matchWordMap is False:
+                    ##print "no match found"
+                    ## Create a new WordMap
+                    wordMapIDRep = createWordMap(request_user, rType, origWord)
+                    ## Add map to store, replace word in noteText
+                    wordMapIndicesStore.append([index, wordMapIDRep[0]])
+                    noteTextWords[index] = wordMapIDRep[1]
+                else:
+                    ##print "match found"
+                    ## Add map to store, replace word in noteText
+                    wordMapIndicesStore.append([index, matchWordMap[0]])
+                    noteTextWords[index] = matchWordMap[1]
+
+        ##print "Exited rType loop"
+        redNote.contents = ' '.join(noteTextWords)
+        ##print "Added contents"
+        print "Points: ", datum['points']
+        redNote.points = datum['points']
+
+        print "Type: ", datum['noteType']
+
+        
+        redNote.save()
+        print "saved redacted note"
+
+        ## Create all the WordMeta using pairs from wordMapIndicesStore
+        for pair in wordMapIndicesStore:
+            ## pair[0] is index, pair[1] is WordMap instance
+            wMeta = WordMeta(redactedNote=redNote, wordIndex=pair[0], wordMap=pair[1])
+            wMeta.save()
+        ##print "END OF THIS DATUM"
+
+    response = HttpResponse("No Errors?", "text/json")
+    response.status_code = 200
+    return response

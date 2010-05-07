@@ -134,9 +134,13 @@ urlpatterns = patterns('server.jv3.views.',
     (r'^done_survey/$', done_survey), ## POST
     (r'^post_diagnostics/$', post_usage_statistics), ## POST                       
     (r'^set_consenting/$', set_consenting_view),
+                       
     (r'^get_zen$', get_zen),   # GET
     (r'^put_zen/$', put_zen),   # POST edited notes
     (r'^get_iphone$', get_iphone),
+                       
+    (r'^get_redact_notes$', get_redact_notes),      ## GET              
+    (r'^put_redact_notes/$', post_redacted_note)   ## POST redacted notes
     ##(r'^reconsent$', reconsent),                       
     #(r'^login$', 'django.contrib.auth.views.login', {'template_name': 'jv3/login.html', 'module_name':'jv3'}),
     #(r'^login$', login_view),                       
