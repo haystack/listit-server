@@ -21,7 +21,6 @@ from eyebrowse.models import PageView
 from eyebrowse.models import *
 from countries.models import Country
 from eyebrowse.json.views import uniq
-from django.contrib.auth import authenticate, login
 ##
 ## this set of views are used by the plugin to post new events
 ##
@@ -53,19 +52,20 @@ def _get_client(request):
         return request.META["HTTP_X_CLIENTID"]
     return None        
 
+def login(request):
+    user = authenticate_user(request);
+    if not user:
+        return json_response({"error":"Incorrect user/password combination"},401);
+    return json_response({},200)
+
 def plugin_login(request):
     user = authenticate_user(request)
     # user = authenticate(username=username, password=password)
     if user is not None:
-        if user.is_active:
-            login(request, user)
-            return json_response({},200)
+        #login(request, user)
+        return json_response({},200)
         
     return json_response({"error":"Incorrect user/password combination"},401);
-
-
-    
-    return json_response({},200)
 
 def get_most_recent_event_time(request):
     err = ''
