@@ -783,10 +783,10 @@ def put_zen(request):
                     for key in Note.update_fields: ## key={contents,created,deleted,edited}
                         if key == "contents":
                             newContent = "Two versions of this note:\nSubmitted Copy:\n%s\n\nServer Copy:\n%s" % (form.data[key], matching_notes[0].contents)
-                            print "Key: %s, Data: %s" % (key, newContent)
+                            ##print "Key: %s, Data: %s" % (key, newContent)
                             matching_notes[0].__setattr__(key, newContent)
                         else:
-                            print "Key: %s, Data: %s" % (key, form.data[key])
+                            ##print "Key: %s, Data: %s" % (key, form.data[key])
                             matching_notes[0].__setattr__(key, form.data[key])
                     newVersion = max(matching_notes[0].version, form.data['version']) + 1
                     matching_notes[0].version = newVersion ## Saved note is MOST-up-to-date, ie:(max(both versions)+1)
@@ -869,35 +869,25 @@ def convertWordToSymbols(word):
     transTable = string.maketrans(
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890',
         'XXXXXXXXXXXXXXXXXXXXXXXXXXxxxxxxxxxxxxxxxxxxxxxxxxxx9999999999')
-
-    print "Orig. Word: ", word
     tempWord = word.translate(transTable)
-    print "Temp. Word: ", tempWord
     word = ''
     for char in tempWord:
         if char == "X" or char == "x" or char == "9":
             word += char
 	    continue;
         word += "*"
-    print "Word converted to: ", word
     return word
 
 
 def getWordMap(request_user, rType, origWord):
-    print "getWordMap called"
     match = WordMap.objects.filter(owner=request_user,wordType=rType, originalWord=origWord)
-    print "Match calculated"
     if len(match) == 1:
-        print "Rep:", match[0].replacementWord
         return (match[0], match[0].replacementWord)
     elif len(match) == 0:
-        print "match not found"
         return False
     elif len(match) > 1:
-        print "ERROR in getWordMap: More than one match for user: %s, wType: %s, origWord: %s" % (
-            repr(request_user.username), rType, origWord)
-        assert False, "More than one match for user: %s, wType: %s, origWord: %s" % (
-            request_user, rType, origWord)
+        return (match[0], match[0].replacementWord)
+        ## This should never happen, but default to first WordMap
 
 
 ## Adds word of given type to WordMap, returns created WordMapand the repWord chosen
@@ -922,7 +912,6 @@ def get_redact_notes(request):
         logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
         response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
         response.status_code = 401
-        print "Failed to find request user"
         return response
 
     ## Filter out notes that have already been redacted
@@ -976,7 +965,6 @@ def post_redacted_note(request):
         response = HttpResponse(JSONEncoder().encode(
             {'autherror':"Incorrect user/password combination"}), "text/json")
         response.status_code = 401
-        print "Failed to find request user"
         return response
     
     for datum in JSONDecoder().decode(request.raw_post_data):
@@ -1043,7 +1031,6 @@ def post_skipped_redacted_note(request):
         response = HttpResponse(JSONEncoder().encode(
             {'autherror':"Incorrect user/password combination"}), "text/json")
         response.status_code = 401
-        print "Failed to find request user"
         return response
 
     for datum in JSONDecoder().decode(request.raw_post_data):
