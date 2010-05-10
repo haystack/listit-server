@@ -201,8 +201,8 @@ def delete_privacy_url(request):
     privacysettings.whitelist = ' '.join([ x for x in privacysettings.whitelist.split() if not x == inpt])
 
     privacysettings.save()
-    return HttpResponseRedirect('/settings/')
-    #return json_response({ "code":200, "results": 'success' }) 
+    #return HttpResponseRedirect('/settings/')
+    return json_response({ "code":200 }) 
 
 ## @login_required
 def add_privacy_url(request):
