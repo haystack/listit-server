@@ -271,6 +271,18 @@ WORD_TYPE = (
     ('phone#', 'phone#')
 )
 
+class RedactNoteSkip(models.Model):
+    # Keeps track of notes a user doesn't want to redact.
+    owner = models.ForeignKey(authmodels.User,related_name='skipped_redacted_note_owner',null=True)
+    jid = models.IntegerField(default=0)
+    version = models.IntegerField(default=0)
+
+try:
+    admin.site.register(RedactNoteSkip)
+except sites.AlreadyRegistered,r:
+    pass
+     
+
 class RedactedNote(models.Model):
     ## Original Note Data
     origCreated = models.DecimalField(max_digits=19,decimal_places=0)

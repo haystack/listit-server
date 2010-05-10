@@ -12,7 +12,7 @@ import django.contrib.auth.models as authmodels
 from django_restapi.resource import Resource
 from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note, NoteForm
-from jv3.models import RedactedNote
+from jv3.models import RedactedNote, RedactNoteSkip
 from jv3.models import WordMap, WordMeta
 import jv3.utils
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport, ServerLog
@@ -20,6 +20,7 @@ from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_
 import time
 from django.template.loader import get_template
 import sys
+import string
 
 # Create your views here.
 class SPOCollection(Resource):
@@ -184,24 +185,14 @@ def notes_post_multi(request):
         ## print datum
         form = NoteForm(datum)
         form.data['owner'] = request_user.id;                 ## clobber this whole-sale from authenticating user
-        print 1
-        
         matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)
-        print 2
         if len(matching_notes) == 0:
-            print 3
             ## CREATE a new note
             # If the data contains no errors, save the model,
             if form.is_valid() :
-                print 4
-                print datum
                 new_model = form.save()
-                print 5
                 responses.append({"jid":form.data['jid'],"status":201})
-                print 6
-                logevent(request,'Note.create',200,form.data['jid'])
-                print 7
-                
+                logevent(request,'Note.create',200,form.data['jid'])        
                 continue
             ## something didn't pass form validation
             logevent(request,'Note.create',400,form.errors)
@@ -687,21 +678,12 @@ def extract_zen_notes_data_extras(note):
             "deleted":"false",
             "created":note.created,
             "archiveState": archiveState,
-            "startVisibility": startVis};   
+            "startVisibility": startVis};
 
-def get_zen(request):
-    iphone = True
-    ##print 0
-    request_user = basicauth_get_user_by_emailaddr(request)
-    ##print 1.5
-    if not request_user:
-        logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
-        response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
-        response.status_code = 401 ## removed semi-colon??
-        return response
-    ##print 1
-    ## we want to determine order using magic note
+def sort_user_notes(request_user):
+    ## Sort and return user's notes
     if Note.objects.filter(owner=request_user,jid="-1").count() > 0:
+        ## we want to determine order using magic note
         magic_note = Note.objects.filter(owner=request_user,jid="-1")[0]
         note_order = JSONDecoder().decode(magic_note.contents)['noteorder']
         notes = [ n for n in Note.objects.filter(owner=request_user,deleted=False).exclude(jid=-1) ]
@@ -713,16 +695,24 @@ def get_zen(request):
             return result
         ## sort 'em
         notes.sort(sort_order)
-        
     else:
         # sort by creation date ?
         notes = Note.objects.filter(owner=request_user,deleted=False).order_by("-created").exclude(jid=-1)
-    ##print 2
+    return notes
+    
+
+def get_zen(request):
+    iphone = True
+    request_user = basicauth_get_user_by_emailaddr(request)
+    if not request_user:
+        logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
+        response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
+        response.status_code = 401 ## removed semi-colon??
+        return response
+    
+    notes = sort_user_notes(request_user)
     
     startIndex = int(request.GET.get("START_INDEX", 0))
-    ##print "Start Index: %s" % startIndex
-    ##startIndex = urllib.unquote(startIndex)
-    ##print 3
     noteLength = len(notes)
     endIndex = int(request.GET.get("END_INDEX", -1))
     if endIndex == -1:
@@ -732,14 +722,9 @@ def get_zen(request):
     additionalNotesWaiting = True
     if iphone and (endIndex >= noteLength):
         additionalNotesWaiting = False;
-    ##endIndex = urllib.unquote(endIndex)
-    ##print "Almost!"
     
     ## make magic happen
     ndicts = [ extract_zen_notes_data_extras(note) for note in notes[startIndex:endIndex] ]
-
-    ##print "Almost2"
-
     deltaIndex = endIndex - startIndex
 
     htmlblob = "\n".join([ "<div class='note' name='%(archiveState)s' style='display:%(startVisibility)s'><img class='deleteX' src='arrow-left.png' alt='Delete' onMouseOver='zenNoteView.dispNoteOptions(\"%(jid)s\", true)' onmouseout=\"zenNoteView.noteOptions.startTimer();\"/> <textarea name='note' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onFocus='zenNoteView.noteClicked(\"%(jid)s\")' cols='%(col)s' rows='%(row)s' hasFocus='false' hasSelect='false' onBlur='zenNoteView.noteBlur(\"%(jid)s\")' style='overflow:hidden'>%(noteText)s</textarea></div>" % n for n in ndicts ])
@@ -747,12 +732,10 @@ def get_zen(request):
         htmlblob += "\n <button id='requestMore' onClick='zeniPhone.requestMore()'>Get %s more notes</div>" % (deltaIndex)
     elif iphone:
         htmlblob += "\n <button id='requestMore' style='display:none' onClick='zeniPhone.requestMore()'>Get %s more notes</div>" % (deltaIndex)
-        
-    ##print "Almost3"
     response = HttpResponse(htmlblob, 'text/html');
-    ##print "Almost4"
     response.status_code = 200
     return response
+
 
 def put_zen(request):
     ## copied from notes_post_multi, altered for better edit posting
@@ -764,9 +747,7 @@ def put_zen(request):
     ## changes to protocol:
     ## call it with a list of notes { [ {id: 123981231, text:"i love you"..} ...  ] )
     ## returns a success with a list { committed: [{ success: <code>, jid: <id> }] ... } unless something really bad happened
-
-    ##print "0"
-
+    
     request_user = basicauth_get_user_by_emailaddr(request);
     if not request_user:
         logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
@@ -774,50 +755,30 @@ def put_zen(request):
         response.status_code = 401;
         return response
 
-    ##print "1"
-    
     responses = []
     updateResponses = []
-    ## print "raw post data: %s " % repr(request.raw_post_data)
     if not request.raw_post_data:
         response = HttpResponse(JSONEncoder().encode({'committed':[]}), "text/json")
         response.status_code = 200;
         return response
-
-    ##print "2"
-        
+    
     for datum in JSONDecoder().decode(request.raw_post_data):
-        ## print "datum : %s "% repr(datum)
-        ## print datum
         form = NoteForm(datum)
         form.data['owner'] = request_user.id;                 ## clobber this whole-sale from authenticating user
         matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)
-        ##print "3"
         if len(matching_notes) == 0:
-            print "4a: no matching notes, make new note"
-            ## CREATE a new note
-            # If the data contains no errors, save the model,
+            ## Save new note
             if form.is_valid() :
-                print "Creating new note with JID: %s" % (form.data[jid])
                 new_model = form.save()
                 responses.append({"jid":form.data['jid'],"status":201})
                 logevent(request,'Note.create',200,form.data['jid'])
                 continue
-            ##print "4b: website note form not valid"
-            ## something didn't pass form validation
             logevent(request,'Note.create',400,form.errors)
             responses.append({"jid":form.data['jid'],"status":400})
-            ##print "CREATE form errors %s " % repr(form.errors)
             continue
         else:
-            ##print "4b: update old note"
-            ## UPDATE an existing note
-            ## check if the client version needs updating
-            ##  if len(matching_notes) > 1:  print "# of Matching Notes : %d " % len(matching_notes)
-            
+            ## UPDATE an existing note: check if the client version needs updating
             if (matching_notes[0].version > form.data['version']):
-                ##print "5a: client ver needs updating, form.is_valid() is: %s" % (form.is_valid()) 
-                ## Change to return {jid,contents,created,deleted,edited}
                 if form.is_valid():
                     for key in Note.update_fields: ## key={contents,created,deleted,edited}
                         if key == "contents":
@@ -827,102 +788,59 @@ def put_zen(request):
                         else:
                             print "Key: %s, Data: %s" % (key, form.data[key])
                             matching_notes[0].__setattr__(key, form.data[key])
-                    ## Now return to user jid,created,deleted,edited and new contents of note!
-                    # increment version number
                     newVersion = max(matching_notes[0].version, form.data['version']) + 1
                     matching_notes[0].version = newVersion ## Saved note is MOST-up-to-date, ie:(max(both versions)+1)
-                    # save!
-                    # print "SAVING %s, is it deleted? %s " % (repr(matching_notes[0]),repr(matching_notes[0].deleted))
                     matching_notes[0].save()
                     updateResponses.append({"jid":form.data['jid'],"content": newContent, "version": newVersion,"status":201})
                     continue
-                ## Original Code Below
-                ##errormsg = "Versions for jid %d not compatible (local:%d, received: %d). Do you need to update? "  % (form.data["jid"],matching_notes[0].version,form.data["version"])
-                ##print "NOT UPDATED error -- server: %d, YOU %d " % (matching_notes[0].version,form.data['version'])
-                ##responses.append({"jid":form.data['jid'],"status":201}) ##was 400
                 continue            
-            # If the data contains no errors, migrate the changes over to
-            # the version of the note in the db, increment the version number
-            # and announce success
+            # If the data contains no errors, migrate the changes over to the version of the note in the db,
+            # increment the version number and announce success
             if form.is_valid() :
                 ##print "6a: update server note"
                 for key in Note.update_fields:
                     matching_notes[0].__setattr__(key,form.data[key])
-                    ##print "Key: %s, Data: %s" % (key, form.data[key])
-
-                # increment version number
-                matching_notes[0].version = form.data['version'] + 1 ## matching_notes[0].version + 1;
-                # save!
-                # print "SAVING %s, is it deleted? %s " % (repr(matching_notes[0]),repr(matching_notes[0].deleted))
+                matching_notes[0].version = form.data['version'] + 1 
                 matching_notes[0].save()
                 responses.append({"jid":form.data['jid'],"status":201})
             else:
-                ##print "6b: client note not valid"
-                # Otherwise return a 400 Bad Request error.
                 responses.append({"jid":form.data['jid'],"status":400})
                 logevent(request,'Note.create',400,form.errors)
-                pass
-        pass
-    ##print "7: almost done"
-    ##print responses
+                
     response = HttpResponse(JSONEncoder().encode({'committed':responses, 'update':updateResponses}), "text/json")
     response.status_code = 200;
-    ##print "8: returning!"
     return response
 
+
 def get_iphone(request):
-    ##print "get_iphone started"
     request_user = basicauth_get_user_by_emailaddr(request);
-    ##print 0
     if not request_user:
         logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
         response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
         response.status_code = 401 ## removed semi-colon??
         return response
-    ##print 1
-    ## we want to determine order using magic note
-    if Note.objects.filter(owner=request_user,jid="-1").count() > 0:
-        magic_note = Note.objects.filter(owner=request_user,jid="-1")[0]
-        note_order = JSONDecoder().decode(magic_note.contents)['noteorder']
-        notes = [ n for n in Note.objects.filter(owner=request_user,deleted=False).exclude(jid=-1) ]
-        def sort_order(nx,ny):
-            if nx.jid in note_order and ny.jid in note_order:
-                result = note_order.index(nx.jid) - note_order.index(ny.jid)
-            else:
-                result = int((ny.created - nx.created)/1000)
-            return result
-        ## sort 'em
-        notes.sort(sort_order)
-    else:
-        # sort by creation date ?
-        notes = Note.objects.filter(owner=request_user,deleted=False).order_by("-created").exclude(jid=-1)
-    ##print 2
+
+    notes = sort_user_notes(request_user)
+        
     numNotes = len(notes)
     startIndex = int(request.GET.get("START_INDEX", 0))
     endIndex = int(request.GET.get("END_INDEX", None))
-    ##print 3
     if not endIndex:
         endIndex = numNotes
     notesLeft = numNotes - endIndex
-    ##print 4
-    ## make magic happen
+
     ndicts = [ extract_zen_notes_data(note) for note in notes[startIndex:endIndex] ]
-    ##print 5
     deltaIndex = endIndex - startIndex
-    ##print 6
     htmlblob = "\n".join(["<li><div name='note' style='overflow:hidden;' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onClick='gid(\"%(jid)s\").blur(); zenNoteView.noteClicked(\"%(jid)s\")'><pre>%(noteText)s</pre></div></li>" % n for n in ndicts ]) # onBlur='zenNoteView.noteBlur(\"%(jid)s\")' 
     if notesLeft > 0:       ## height:25px was in style for new notes (=2 lines visible without pre tags)
         htmlblob += "<li><div id='reqMore'><button id='requestMore' onClick='zenAjax.requestMore()'>Get %s of %s more notes</button></div></li>" % (min(deltaIndex, notesLeft), notesLeft)
-    ##print 7
     response = HttpResponse(htmlblob, 'text/html')
     response.status_code = 200
-    ##print 8
     return response
 
 def post_usage_statistics(request):
     print "usage stats"
     print request.raw_post_data
-    
     try:
         slog = ServerLog()    
         request_user = basicauth_get_user_by_emailaddr(request);    
@@ -946,7 +864,25 @@ def post_usage_statistics(request):
 ######################
 ##  Redaction Code  ##
 ######################
-    
+
+def convertWordToSymbols(word):
+    transTable = string.maketrans(
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890',
+        'XXXXXXXXXXXXXXXXXXXXXXXXXXxxxxxxxxxxxxxxxxxxxxxxxxxx9999999999')
+
+    print "Orig. Word: ", word
+    tempWord = word.translate(transTable)
+    print "Temp. Word: ", tempWord
+    word = ''
+    for char in tempWord:
+        if char == "X" or char == "x" or char == "9":
+            word += char
+	    continue;
+        word += "*"
+    print "Word converted to: ", word
+    return word
+
+
 def getWordMap(request_user, rType, origWord):
     print "getWordMap called"
     match = WordMap.objects.filter(owner=request_user,wordType=rType, originalWord=origWord)
@@ -966,8 +902,8 @@ def getWordMap(request_user, rType, origWord):
 
 ## Adds word of given type to WordMap, returns created WordMapand the repWord chosen
 def createWordMap(request_user, rType, origWord):
-    print "createWordMap called"
-    repWord = rType + str(len(WordMap.objects.filter(owner=request_user, wordType=rType)))
+    #repWord = rType + str(len(WordMap.objects.filter(owner=request_user, wordType=rType)))
+    repWord = convertWordToSymbols(origWord)
     
     wMap = WordMap()
     wMap.owner = request_user
@@ -975,12 +911,12 @@ def createWordMap(request_user, rType, origWord):
     wMap.originalWord = origWord
     wMap.replacementWord = repWord
     wMap.save()
-    print "ID: %s, rWord: %s" % (wMap.id, repWord)
     return (wMap, repWord)
+
+#t = maketrans('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890','XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX9999999999')
 
 
 def get_redact_notes(request):
-    print "get_redact_notes called"
     request_user = basicauth_get_user_by_emailaddr(request)
     if not request_user:
         logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
@@ -991,26 +927,27 @@ def get_redact_notes(request):
 
     ## Filter out notes that have already been redacted
     notes = Note.objects.filter(owner=request_user).order_by("-created").exclude(jid=-1).exclude(contents="")
+    numNotes = len(notes)
     userRedactedNotes = RedactedNote.objects.filter(owner=request_user)
-    
+    userSkippedNotes  = RedactNoteSkip.objects.filter(owner=request_user)
+    ## Remove all skipped notes
+    for skippedNote in userSkippedNotes:
+        notes = notes.exclude(version=skippedNote.version, jid=skippedNote.jid)
+        
+    ## Remove all previously-redacted notes, adding up their points.
     points = 0
-    for rNote in userRedactedNotes:
-        points += rNote.points
-    
     for redactedNote in userRedactedNotes:
-        print redactedNote.version, redactedNote.jid
+        points += redactedNote.points
         notes = notes.exclude(version=redactedNote.version, jid=redactedNote.jid)
 
-    print "# Notes returned: ", len(notes)
+    numNotesLeft = len(notes)
     ndicts = [ extract_zen_notes_data(note) for note in notes ]
-    
     allNotes = []
     for note in ndicts:
         allNotes.append(
             {"jid":note['jid'],"version":note['version'], "contents":note['noteText'],
              "deleted":note['deleted'], "created":str(note['created']),
              "edited":str(note['edited']) })
-
     resultMap = {
         'markAsRemoved' : {},
         'markAsName'    : {},
@@ -1022,15 +959,17 @@ def get_redact_notes(request):
         if wMap.wordType in resultMap:
             resultMap[wMap.wordType][wMap.originalWord] = True
 
-    pointsData = {'userPoints': str(points) }
+    userMeta = {
+        'userPoints': str(points),
+        'totalNotes': str(numNotes),
+        'numNotesLeft': str(numNotesLeft)}
     
-    response = HttpResponse(JSONEncoder().encode({'notes':allNotes, 'wordMapIndices':resultMap, 'points':pointsData } ), "text/json")
+    response = HttpResponse(JSONEncoder().encode({'notes':allNotes, 'wordMapIndices':resultMap, 'userMeta':userMeta}), "text/json")
     response.status_code = 200
     return response
 
 
 def post_redacted_note(request):
-    print "post_redacted_note called: Purpose: save a redacted note"
     request_user = basicauth_get_user_by_emailaddr(request)
     if not request_user:
         logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
@@ -1043,45 +982,23 @@ def post_redacted_note(request):
     for datum in JSONDecoder().decode(request.raw_post_data):
         ver = datum['version']
         noteID = datum['id']
-
         ## Don't save redacted note if we've already saved same (jid, ver) note.
         matchingNotes = RedactedNote.objects.filter(jid=noteID, version=ver)
-        print "# of matching notes: ", len(matchingNotes)
         if (len(matchingNotes) > 0):
-            print "Skipping note id:%s, ver:%s"% (noteID, ver)
             continue  ## Skip saving this note because we've already saved it before!
 
-##      for data in datum:
-##          print "Data: %s, %s" % (repr(data), repr(datum[data]))
-
         redNote = RedactedNote()
-        ##print 1.5, request_user.id
         redNote.owner = request_user
-        ##print 2
-
-        ##print 2.5, type(Decimal(datum['origCreated']))
-        ##print "orig created", type(int(datum['origCreated'])), datum['origCreated']
         redNote.origCreated = datum['origCreated']
-        ##print "orig edited", type(datum['origEdited']), datum['origEdited']
         redNote.origEdited  = datum['origEdited']
-        ##print "orig deleted: ", type(bool(datum['origDeleted'])), bool(datum['origDeleted'])
         redNote.origDeleted = datum['origDeleted']  
-
-        ##print "Created: ", type(datum['created']), datum['created']
         redNote.created = datum['created']
-
-        ##print 3.1, type(datum['id']), datum['id'] 
         redNote.jid = datum['id']
-        ##print 3.2, type(datum['version']), datum['version']
         redNote.version = datum['version']
-
-        ##print 4, type(str(datum['noteType'])), datum['noteType']
         redNote.noteType = datum['noteType']
         
         noteText = str(datum['text'])
-        ##print "NoteText\n", noteText
         noteTextWords = ' '.join(noteText.split('\n')).split(' ')
-        ##print "noteTextWords:\n", noteTextWords
         
         ## Stores [word index, WordMap(instance)] pairs
         ## for making WordMeta instances after note is saved
@@ -1092,41 +1009,55 @@ def post_redacted_note(request):
                 ## rType ~ markAsName, etc
                 ## index ~ index of word in note text
                 origWord = noteTextWords[index]
-
                 #matchWordMap ~ (WordMap, replWord)
                 matchWordMap = getWordMap(request_user, rType, origWord)
                 if matchWordMap is False:
-                    ##print "no match found"
                     ## Create a new WordMap
                     wordMapIDRep = createWordMap(request_user, rType, origWord)
                     ## Add map to store, replace word in noteText
                     wordMapIndicesStore.append([index, wordMapIDRep[0]])
-                    noteTextWords[index] = wordMapIDRep[1]
+                    
+                    noteTextWords[index] = wordMapIDRep[1]  ## consider X for letters and 9 for numbers
                 else:
-                    ##print "match found"
                     ## Add map to store, replace word in noteText
                     wordMapIndicesStore.append([index, matchWordMap[0]])
-                    noteTextWords[index] = matchWordMap[1]
+                    noteTextWords[index] = matchWordMap[1]  ## consider X for letters and 9 for numbers
 
-        ##print "Exited rType loop"
         redNote.contents = ' '.join(noteTextWords)
-        ##print "Added contents"
-        print "Points: ", datum['points']
-        redNote.points = datum['points']
-
-        print "Type: ", datum['noteType']
-
-        
+        redNote.points = datum['points']        
         redNote.save()
-        print "saved redacted note"
 
         ## Create all the WordMeta using pairs from wordMapIndicesStore
         for pair in wordMapIndicesStore:
-            ## pair[0] is index, pair[1] is WordMap instance
             wMeta = WordMeta(redactedNote=redNote, wordIndex=pair[0], wordMap=pair[1])
             wMeta.save()
-        ##print "END OF THIS DATUM"
+    
+    response = HttpResponse("No Errors?", "text/json")
+    response.status_code = 200
+    return response
 
+def post_skipped_redacted_note(request):
+    request_user = basicauth_get_user_by_emailaddr(request)
+    if not request_user:
+        logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
+        response = HttpResponse(JSONEncoder().encode(
+            {'autherror':"Incorrect user/password combination"}), "text/json")
+        response.status_code = 401
+        print "Failed to find request user"
+        return response
+
+    for datum in JSONDecoder().decode(request.raw_post_data):
+        ver = datum['version']
+        noteID = datum['id']
+        matchingNotes = RedactedNote.objects.filter(jid=noteID, version=ver)
+        if (len(matchingNotes) > 0):
+            continue        ## Skip note because we've already redacted (this should never happen)
+        skippedNote = RedactNoteSkip()
+        skippedNote.owner   = request_user
+        skippedNote.jid     = datum['id']
+        skippedNote.version = datum['version']
+        skippedNote.save()
+        
     response = HttpResponse("No Errors?", "text/json")
     response.status_code = 200
     return response
