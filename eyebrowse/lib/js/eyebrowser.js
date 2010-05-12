@@ -73,11 +73,11 @@ var Eyebrowser = {
 	    });
 	
 	this.refreshQueryInterface(query, div);
-	/*
+	
 	setInterval(function(){ if (viz.type == "pages"){ 
 		    viz.refreshQueryInterface(this.mainPanel);
-		    viz.runQuery(viz.type);} }, 10000);
-	*/
+		    viz.runQuery(viz.type);} }, 15000);
+
 	this.runQuery(this.type);
     },
     runQuery: function(type){

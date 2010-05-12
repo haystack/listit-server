@@ -824,6 +824,28 @@ def get_pagestats(request):
 
 
 ## PLUGIN
+def get_plugin_stats(request):
+    return json_response({ "code":200, "results": []});
+#     if not 'type' in request.GET:
+#         return json_response({ "code":404, "error": "get has no 'type' key" }) 
+
+#     from_msec,to_msec = _unpack_from_to_msec(request)
+
+#     request_type = {}
+#     if request.GET['type'].strip() == 'user':
+#         request_type['user'] = request.user.username
+#     elif request.GET['type'].strip() == 'friends':
+#         request_type['friends'] = request.user.username
+#     else:
+#         request_type['global'] = 'global'
+
+#     results = get_pulse_json(request_type, from_msec, to_msec)
+
+#     num = 500 
+#     results.append(get_dot_graph(num, request_type))
+
+#     return json_response({ "code":200, "results": results });
+
 def get_top_friend_and_number_friends_for_url(request, username):
     if not 'url' in request.GET:
         return json_response({ "code":404, "error": "get has no 'url' key" }) 
@@ -882,7 +904,7 @@ def _get_query_for_request(request):
 
 
 def get_latest_sites_for_filter(request):
-    n = 100
+    n = 200
     query = _get_query_for_request(request)
     group = request.GET['groups']  # string that corresponds to a tag
     country = request.GET['country'] #**string that corresponds to a country value
@@ -1206,27 +1228,6 @@ def cache_to_from_url(url,users, req_type, phits, uphit):
 #     return_results = fetch_data(inputUser, n)
         
 #     return json_response({ "code":200, "results": return_results }) 
-
-# def get_plugin_stats(request):
-#     if not 'type' in request.GET:
-#         return json_response({ "code":404, "error": "get has no 'type' key" }) 
-
-#     from_msec,to_msec = _unpack_from_to_msec(request)
-
-#     request_type = {}
-#     if request.GET['type'].strip() == 'user':
-#         request_type['user'] = request.user.username
-#     elif request.GET['type'].strip() == 'friends':
-#         request_type['friends'] = request.user.username
-#     else:
-#         request_type['global'] = 'global'
-
-#     results = get_pulse_json(request_type, from_msec, to_msec)
-
-#     num = 3500 
-#     results.append(get_dot_graph(num, request_type))
-
-#     return json_response({ "code":200, "results": results });
 
 
 # def get_dot_graph(n, req_type):

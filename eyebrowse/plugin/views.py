@@ -21,6 +21,7 @@ from eyebrowse.models import PageView
 from eyebrowse.models import *
 from countries.models import Country
 from eyebrowse.json.views import uniq
+from django.contrib.auth import authenticate, login
 ##
 ## this set of views are used by the plugin to post new events
 ##
@@ -52,18 +53,22 @@ def _get_client(request):
         return request.META["HTTP_X_CLIENTID"]
     return None        
 
-def login(request):
-    user = authenticate_user(request);
-    if not user:
-        return json_response({"error":"Incorrect user/password combination"},401);
-    return json_response({},200)
-
 def plugin_login(request):
     user = authenticate_user(request)
-    # user = authenticate(username=username, password=password)
     if user is not None:
-        #login(request, user)
-        return json_response({},200)
+        return json_response({},200)        
+    return json_response({"error":"Incorrect user/password combination"},401);
+
+def plugin_login_django(request):
+    # this user object does not have a 'backend' object attached to it and cannot be logged in
+    # user = authenticate_user(request)
+
+    decoded =  jv3.utils.basicauth_decode_email_password(request)
+    if decoded is not None and len(decoded) == 2 and len(decoded[0]) > 0 and len(decoded[1]) > 0:
+        user = authenticate(username=decoded[0], password=decoded[1])
+        if user is not None:
+            login(request, user)
+            return json_response({},200)
         
     return json_response({"error":"Incorrect user/password combination"},401);
 
