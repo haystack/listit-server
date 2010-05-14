@@ -86,7 +86,7 @@ class NoteCollection(Collection):
                 return response
             ## something didn't pass form validation
             logevent(request,'Note.create',400,form.errors)
-            print "CREATE form errors %s " % repr(form.errors)
+            ##print "CREATE form errors %s " % repr(form.errors)
             return self.responder.error(request, 400, form.errors);
         else:
             ## UPDATE an existing note
@@ -984,8 +984,9 @@ def post_redacted_note(request):
         redNote.jid = datum['id']
         redNote.version = datum['version']
         redNote.noteType = datum['noteType']
-        
-        noteText = str(datum['text'])
+
+        ## Removed str from: str(datum['text'])
+        noteText = datum['text']
         noteTextWords = ' '.join(noteText.split('\n')).split(' ')
         
         ## Stores [word index, WordMap(instance)] pairs
