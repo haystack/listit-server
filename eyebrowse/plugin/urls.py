@@ -8,8 +8,8 @@ from django.views.generic.simple import direct_to_template
 from eyebrowse.plugin.views import *
 
 urlpatterns = patterns('',
-                       (r'^plugin_login/$', plugin_login),  
-                       (r'^plugin_login_django/$', plugin_login_django),  
+                       (r'^plugin_login/?$', plugin_login),  
+                       (r'^plugin_login_django/?$', plugin_login_django),  
                        (r'^plugin_get_max_event$', get_most_recent_event_time),
                        (r'^plugin_post_events/$', post_events),
 
