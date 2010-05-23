@@ -44,6 +44,7 @@
   display:block;
   }
   div.blue:hover{ color:#0044CC; }
+  .biglink {font-weight:normal;}
 </style>
 {% endblock %}
 
@@ -82,7 +83,7 @@
 
       {% if request_user %}
       <div class="biglink" id="signUpLink">
-	welcome, <a href="/profile/{{ request_user }}">{{ request_user }}</a>! check out <a href="/eyebrowser">eyebrowser</a>
+	welcome, <a href="/profile/{{ request_user }}"><b>{{ request_user }}</b></a>! check out <a href="/eyebrowser"><b>eyebrowser</b></a>
       </div>
       {% endif %}
 
@@ -128,7 +129,7 @@
 
       <a href="/register/" style="text-decoration:none">
 	<div class="biglink blue" id="signUpLink">
-	  create an eyebrowse account
+	  create an <b>eyebrowse</b> account
 	</div>
       </a>
       </div>

@@ -304,7 +304,7 @@ var UserPage = {
     getLatestPages: function(){
         var this_ = this;
 	jQuery.get("/get_latest_views", {
-		       num: 40,
+		       num: 100,
 		       id: this_.recentID,
 		       type: 'user',
 		       username: this_.username
