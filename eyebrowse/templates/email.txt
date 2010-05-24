@@ -1,0 +1,27 @@
+Dear {{ username }}
+
+We would like to share with you some updates and improvements to Eyebrowse.
+
+Eyebrowse is an add-on for Firefox that records your web browsing
+activity to your private computer so you can check out how your
+activity changes over time. Selectively share your activities to find
+out find out what's hot and who's reading what.
+
+improvements:
+* much faster!
+* uses the Firefox 'newtab' page to show you live web browsing
+statistics and your top sites
+* the 'eyebrowser' for letting you find find new sites through the
+people that view them
+       for example: 'show me sites viewed by designers in Sweden ages 18-24'
+
+Give it a try at:
+http://eyebrowse.csail.mit.edu/eyebrowser
+
+Get the latest Eyebrowse Firefox plugin at:
+http://eyebrowse.csail.mit.edu/releases/eyebrowse.xpi
+
+Yours,
+electronic Max and Brennan Moore
+for the Eyebrowse team
+eyebrowse@csail.mit.edu

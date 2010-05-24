@@ -12,6 +12,8 @@ from eyebrowse.models import *
 from django.db.models.signals import post_save
 from jv3.models import Event ## from listit, ya.
 from django.utils.simplejson import JSONEncoder, JSONDecoder
+from django.core.mail import send_mail
+from django.template import loader, Context
 import json
 
 def get_title_from_evt(evt):
@@ -43,3 +45,15 @@ def create_www_pageviews_for_each_event(sender, created=None, instance=None, **k
             pageview.save()
 
 post_save.connect(create_www_pageviews_for_each_event, sender=Event, dispatch_uid='booz')
+
+
+def email_users_eyebrowse(users,subject,template):
+    t = loader.get_template(template)
+    for u in users:
+        #reg = get_newest_registration_for_user_by_email(u.email)
+        if u.email == None:
+            print "No registration found for user %s. Skipping" % repr(u.email)
+            continue
+
+        c = Context({'username':u.username})
+        send_mail(subject, t.render(c), 'eyebrowse@csail.mit.edu', [u.email], fail_silently=False)
