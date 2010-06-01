@@ -75,8 +75,8 @@ var Eyebrowser = {
 	this.refreshQueryInterface(query, div);
 	
 	setInterval(function(){ if (viz.type == "pages"){ 
-		    viz.refreshQueryInterface(this.mainPanel);
-		    viz.runQuery(viz.type);} }, 15000);
+		    viz.refreshQuery(viz.type);
+		} }, 15000);
 
 	this.runQuery(this.type);
     },
@@ -94,6 +94,22 @@ var Eyebrowser = {
 	    this.getUsers("#mainpanel", 40);
 	}
     },
+    refreshQuery: function(type){
+	if (type == "pages") {	   
+	    try {		
+		jQuery('#trending').show();
+		this.refreshPages("#mainpanel", 60);	
+		//this.getRecs('#trending');
+	    } catch (x) {
+		console.log(x);
+	    }
+	} else if (type == "users") {
+	    jQuery('#trending').hide();
+	    this.getUsers("#mainpanel", 40);
+	}
+    },
+
+
     initCompareQueryInterface: function(blankQuery, baseQuery){	  
 	jQuery('.panel').append(jQuery('.subpanel').clone().addClass('compare'));
 	jQuery('#report').append(jQuery('#trending').clone().addClass('compare').show().css({'float':'left'}));
@@ -111,7 +127,7 @@ var Eyebrowser = {
 		else { jQuery(item).removeClass('selected');}
 	    });
 	
-	this.displayQuery(this_.baseQuery, div, this.type);
+	this.displayQuery(this.baseQuery, div, this.type);
     },
     displayQuery: function(query, div, type) {
 	var stmnt = "showing " + type + " ";
@@ -319,7 +335,34 @@ var Eyebrowser = {
 			   else { jQuery('#mainpanel').html("<div id='help' class='recentpage'><div class='title'>sorry! no results ;(</div></div>"); } 
 		       }, "json");
     },
-    addRecentPage: function(divid, page, now) {	
+    refreshPages: function(divid, num){
+        var this_ = this;
+	this.mainLoading(true);
+	// should get latest for the current query
+
+	jQuery.getJSON("/get_latest_sites_for_filter", {
+			   id: this_.lastPageID,
+			   groups: jQuery('#group').val(),
+			   country: jQuery('#country').val(),
+			   friends: jQuery('#friends .selected').text(),
+			   gender: jQuery('#gender .selected').attr('data-val'),
+			   age: jQuery('#age .selected').attr('data-val'),
+			   time: jQuery('#recently .selected').text(),
+			   seen: jQuery('#hasseen .selected').text()
+		       }, function(data){
+			   this_.mainLoading(false);
+			   if (data.code == 200) {
+			       jQuery('#help').html('');
+			       var now = new Date().valueOf();
+			       data.results.map(function(item) { this_.addRecentPage(divid, item, now, true); });
+			       this_.lastPageID = data.results[0].id;
+			       jQuery('#mainpanel').hide().slideDown(300);
+			   } else if (data.code == 204) { 
+			       return;
+			   } else { jQuery('#mainpanel').html("<div id='help' class='recentpage'><div class='title'>sorry! no results ;(</div></div>"); } 
+	    }, "json");
+    },
+    addRecentPage: function(divid, page, now, isPrepend) {	
 	if (page.user == USERNAME) { return; };
 	var name = page.title?page.title:cleanupURL(page.url);
 	
@@ -356,7 +399,8 @@ var Eyebrowser = {
 		jQuery(this).text('hide stats');
 	    });
 
-	jQuery(divid).append(np);	    
+	if (isPrepend) { jQuery(divid).append(np);	   
+	} else { jQuery(divid).append(np); }
     },
     makeCompare: function(){
 	if (this.type == "compare"){ return;}

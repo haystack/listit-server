@@ -1,6 +1,6 @@
 Dear {{ username }}
 
-We would like to share with you some updates and improvements to Eyebrowse.
+We would like to share some new updates and improvements to Eyebrowse.
 
 Eyebrowse is an add-on for Firefox that records your web browsing
 activity to your private computer so you can check out how your
