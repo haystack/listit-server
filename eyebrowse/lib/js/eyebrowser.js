@@ -337,9 +337,8 @@ var Eyebrowser = {
     },
     refreshPages: function(divid, num){
         var this_ = this;
-	this.mainLoading(true);
-	// should get latest for the current query
 
+	// this gets latest for the current query
 	jQuery.getJSON("/get_latest_sites_for_filter", {
 			   id: this_.lastPageID,
 			   groups: jQuery('#group').val(),
@@ -350,13 +349,11 @@ var Eyebrowser = {
 			   time: jQuery('#recently .selected').text(),
 			   seen: jQuery('#hasseen .selected').text()
 		       }, function(data){
-			   this_.mainLoading(false);
 			   if (data.code == 200) {
 			       jQuery('#help').html('');
 			       var now = new Date().valueOf();
 			       data.results.map(function(item) { this_.addRecentPage(divid, item, now, true); });
 			       this_.lastPageID = data.results[0].id;
-			       jQuery('#mainpanel').hide().slideDown(300);
 			   } else if (data.code == 204) { 
 			       return;
 			   } else { jQuery('#mainpanel').html("<div id='help' class='recentpage'><div class='title'>sorry! no results ;(</div></div>"); } 
@@ -399,7 +396,7 @@ var Eyebrowser = {
 		jQuery(this).text('hide stats');
 	    });
 
-	if (isPrepend) { jQuery(divid).append(np);	   
+	if (isPrepend) { jQuery(divid).prepend(np);	   
 	} else { jQuery(divid).append(np); }
     },
     makeCompare: function(){
