@@ -727,7 +727,14 @@ def get_zen(request):
     ndicts = [ extract_zen_notes_data_extras(note) for note in notes[startIndex:endIndex] ]
     deltaIndex = endIndex - startIndex
 
-    htmlblob = "\n".join([ "<div class='note' name='%(archiveState)s' style='display:%(startVisibility)s'><img class='deleteX' src='arrow-left.png' alt='Delete' onMouseOver='zenNoteView.dispNoteOptions(\"%(jid)s\", true)' onmouseout=\"zenNoteView.noteOptions.startTimer();\"/> <textarea name='note' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onFocus='zenNoteView.noteClicked(\"%(jid)s\")' cols='%(col)s' rows='%(row)s' hasFocus='false' hasSelect='false' onBlur='zenNoteView.noteBlur(\"%(jid)s\")' style='overflow:hidden'>%(noteText)s</textarea></div>" % n for n in ndicts ])
+    iconType = request.GET.get("ICON", 'none')
+    if iconType == 'X':  ## For zen site
+        print "Called from /zen/ site"
+        htmlblob = "\n".join([ "<div class='note' name='%(archiveState)s' style='display:%(startVisibility)s'><img class='deleteX' src='x.png' alt='Delete' onClick='zenNoteAjax.saveEditedNote(\"%(jid)s\", true)'/> <textarea name='note' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onFocus='zenNoteView.noteClicked(\"%(jid)s\")' cols='%(col)s' rows='%(row)s' hasFocus='false' hasSelect='false' onBlur='zenNoteView.noteBlur(\"%(jid)s\")' style='overflow:hidden'>%(noteText)s</textarea></div>" % n for n in ndicts ])
+    else:                ## For tags site
+        print "Called from /tags/ site"
+        htmlblob = "\n".join([ "<div class='note' name='%(archiveState)s' style='display:%(startVisibility)s'><img class='deleteX' src='arrow-left.png' alt='Delete' onMouseOver='zenNoteView.dispNoteOptions(\"%(jid)s\", true)' onmouseout=\"zenNoteView.noteOptions.startTimer();\"/> <textarea name='note' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onFocus='zenNoteView.noteClicked(\"%(jid)s\")' cols='%(col)s' rows='%(row)s' hasFocus='false' hasSelect='false' onBlur='zenNoteView.noteBlur(\"%(jid)s\")' style='overflow:hidden'>%(noteText)s</textarea></div>" % n for n in ndicts ])
+    
     if iphone and additionalNotesWaiting:
         htmlblob += "\n <button id='requestMore' onClick='zeniPhone.requestMore()'>Get %s more notes</div>" % (deltaIndex)
     elif iphone:
