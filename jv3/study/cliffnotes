@@ -16,8 +16,11 @@ import rpy2.robjects as ro
 from jv3.study.study import *
 from numpy import array
 r = ro.r
-em = User.objects.filter(email="emax@csail.mit.edu")[0]
+emax = User.objects.filter(email="emax@csail.mit.edu")[0]
+emax2 = User.objects.filter(email="electronic@gmail.com")[0]
+brenn = User.objects.filter(email="brennanmoore@gmail.com")[0]
 gv = User.objects.filter(email="gvargas@mit.edu")[0]
+devoff = lambda : r('dev.off()')
 c = lambda vv : apply(r.c,vv)
 
 
@@ -27,11 +30,85 @@ c = lambda vv : apply(r.c,vv)
 ## consenting notes
 n = Note.objects.filter( owner__in=[ u for u in User.objects.all() if is_consenting_study2(u)] )
 
-## sort top users
+## sort top consenting users
 us = [u for u in User.objects.all() if is_consenting_study2(u)]
 un = dict([(u.id,u.note_owner.all().count()) for u in us])
 us.sort(lambda a,b: un[b.id] - un[a.id])
 us[0:10]
+
+## sort top users
+
+Us = [u for u in User.objects.all() if u.note_owner.all().count() > 20]
+print len(Us)
+un = dict([(u.id,u.note_owner.all().count()) for u in Us])
+Us.sort(lambda a,b: un[b.id] - un[a.id])
+Us.remove(brenn)
+Us.remove(emax)
+Us.remove(emax2)
+Us[0:10]
+
+## let's test to see how insane our actlogs are
+
+def plot_actlog_times_for(u):
+   uact = u.activitylog_set
+   whens = [float(x['when']) for x in uact.values('when')]
+   whens.sort()
+   cap.scatter( [(i, whens[i]) for i in r.seq(0,len(whens)-1)], filename='/var/listit/www-ssl/_studyplots/time_seq.png')
+
+def draw_datelines(whens):
+   start = min(whens)
+   end = max(whens)
+   while start < end:
+      datetime.datetime.fromtimestamp(start)
+   # broken!
+
+
+## KEEPING - inter part variation
+## simply print ratio of keep:delete
+
+def userlifespan_days(u):
+   uact = u.serverlog_set
+   if uact.count() == 0:  return 0         
+   print ">>>"
+   print uact.order_by('-when')[uact.count()-1].when, " 0 "
+   print uact.order_by('when')[uact.count()-1].when
+   print "<<<"
+   return float(uact.order_by('when')[uact.count()-1].when - uact.order_by('-when')[uact.count()-1].when)/(24*60*60000.0)
+
+keeping_interpart_variation=lambda Us,N: [(
+u.email, ## v[0]
+u.note_owner.filter(deleted=0).count(),   ## 1
+u.note_owner.filter(deleted=1).count(),           ## 2
+1.0*u.note_owner.filter(deleted=0).count()/(1+u.note_owner.filter(deleted=1).count()), ## 3
+100.0*u.note_owner.filter(deleted=0).count()/(1+u.note_owner.filter(deleted=0).count()+u.note_owner.filter(deleted=1).count()), ## 4
+userlifespan_days(u) ## 5
+) for u in Us[0:N]]
+
+keeping_interpart_variation_str=lambda Us,N=2000: '\n'.join([repr(p) for p in keeping_interpart_variation(Us,N)])
+
+print " lifespan ", min([v[5] for v in vv]), " mean ", mean([v[5] for v in vv]), " max ", max([v[5] for v in vv])
+
+
+## in order to get rid of outliers that are more than X standard deviations,
+## we assume normalcy and
+vv = keeping_interpart_variation(Us,10000)           
+z = lambda x,v:  (x - mean(v))/( r.var(c(v))[0]**0.5 )
+v_1s = [v_[1] for v_ in vv]
+v_2s = [v_[2] for v_ in vv]
+vv_nice = [v for v in vv if z(v[1],v_1s) < 8 and z(v[2],v_2s) < 8 and v[5] >= 0]
+
+# draw a histogram of the percentage kept
+cap.hist( c([v[4] for v in vv]),breaks=r.seq(0,100.1,by=5), filename='/var/listit/www-ssl/_studyplots/percentage_kept.png', title='percentage kept')
+
+## draw 
+max_v5 = max([v[5] for v in vv_nice])
+max_radius = 15.0
+cap.scatter( [(v[1],v[2]) for v in vv_nice] , filename='/var/listit/www-ssl/_studyplots/kept_v_deleted.png', title='kept vs deleted', asp=1.0, cex=c([max_radius*v[5]/max_v5 for v in vv_nice]),devoff=False)           
+r.lines(r.seq(0,800))
+devoff()
+
+## histogram of usage
+cap.hist( c([v[5] for v in vv_nice]),breaks=r.seq(0,max([v[5] for v in vv_nice])+31,by=7), filename='/var/listit/www-ssl/_studyplots/listit_lifetime.png', title='lifetime in days %d users (min: %g, median:%g max:%g)' % (len(vv_nice),min([v[5]for v in vv_nice]),median([v[5] for v in vv_nice]),max([v[5] for v in vv_nice])))
 
 ## sampling notes
 rn = cal.random_notes(25000)
@@ -47,7 +124,6 @@ x,y = ca.notes_to_features(renotes,False)
 
 >>> notes,cols = cal.import_notes_csv('/biggie/listit/study2010/exported-2500-subset-CODED-kp-w-b.csv')
 # then "notes" will have all the notes you loaded from the database as NOTES VALUES
-
 
 # then "cols" will contain the actual spreadsheet; if you want only the kp TODO NOTE VALUES:
 [ [n for n in renotes if n["id"] == int(row[0])][0] for row in cols if row[3] == '1' ]
