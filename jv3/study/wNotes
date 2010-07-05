@@ -43,6 +43,8 @@ def plot_xyz(filename,x,y,z, xl="x",yl="y",title="title"):
     r.plot(x,y,cex=z,xlab=xl,ylab=yl,main=title)
     devoff()
 
+
+
 def ezPlot(filename, x,y,z, xl="x",yl="y",title="title"):
     xd, yd, zd = c(x), c(y), c(z)
     plot_xyz(filename, xd, yd, zd, xl, yl, title)   
@@ -97,3 +99,20 @@ def plot_note_edits(filename, notes):
     username = notes[0].owner.email
     aPlot("note_edits/" +filename, notes, 'created', 'when', ['note-save', 'note-add'], 'created', 'when', 'Created vs When-Log-Entry-Recorded for '+username)
 
+
+
+def mPlot(filename, notes,  title='title'):
+  points = {'note-add':r.c(),'note-save':r.c(),'note-delete':r.c()}
+  r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=3200,h=1600)
+  allLogs = ActivityLog.objects.filter(owner=notes[0].owner, action__in=['note-add','note-save','note-delete'])
+  for log in allLogs:
+     noteArr = notes.filter(jid=log.noteid)
+     if len(noteArr) < 1:
+         continue
+     note = noteArr[0]
+     points[log.action] = r.rbind(points[log.action],c([float(note.created),float(log.when)]))
+     pass
+  r.plot(points['note-add'], cex=1.0,col = "orange", pch='o', xlab='created', ylab='action', main=title)
+  r.points(points['note-save'], cex=1.0,col = "green", pch='.')
+  r.points(points['note-delete'], cex=1.0,col = "dark red", pch='x')
+  devoff()
