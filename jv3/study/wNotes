@@ -95,5 +95,5 @@ def cPlot(filename, x, xProp, y, yProp, z, zProp, xl='x', yl='y', title='title')
 
 def plot_note_edits(filename, notes):
     username = notes[0].owner.email
-    aPlot(filename, notes, 'created', 'when', ['note-save', 'note-add'], 'created', 'when', 'Created vs When-Log-Entry-Recorded for '+username)
+    aPlot("note_edits/" +filename, notes, 'created', 'when', ['note-save', 'note-add'], 'created', 'when', 'Created vs When-Log-Entry-Recorded for '+username)
 
