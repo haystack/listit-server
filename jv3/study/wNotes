@@ -24,7 +24,6 @@ devoff = lambda : r('dev.off()')
 c = lambda vv : apply(r.c,vv)
 
 
-
 ## consenting users 
 u = [ us for us in User.objects.all() if is_consenting_study2(u)]
 ## consenting notes
@@ -40,22 +39,61 @@ def get_rand_user():
     return (user, notes)
 
 def plot_xyz(filename,x,y,z, xl="x",yl="y",title="title"):
-    r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=1024,h=768)
+    r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=3200,h=1600)
     r.plot(x,y,cex=z,xlab=xl,ylab=yl,main=title)
     devoff()
 
 def ezPlot(filename, x,y,z, xl="x",yl="y",title="title"):
     xd, yd, zd = c(x), c(y), c(z)
-    plot_xyz(filename, xd, yd, zd, xl, yl, title)    
+    plot_xyz(filename, xd, yd, zd, xl, yl, title)   
 
+
+## Given ONE user's notes, plot note attribute (created) vs activitylog attribute (when)
+def aPlot(filename, notes,  xProp, logProp, logTypes, xl='x', yl='y', title='title'):
+    x, y, z = [], [], []
+    allLogs = ActivityLog.objects.filter(owner=notes[0].owner, action__in=logTypes)
+
+    for log in allLogs:
+    	noteArr = notes.filter(jid=log.noteid)
+        if len(noteArr) != 1:
+    	   continue
+  	## We have a single note found
+	note = noteArr[0]
+	x.append(note.created)
+	y.append(log.when)
+	
+    ## Now we have a list of notes and logs
+    x = [float(v) for v in x]
+    y = [float(v) for v in y]    
+    ezPlot(filename, x,y,[1]*len(x),xl, yl, title)
+
+    ## bPlot(filename, x, xProp, y, logProp, 1, xl, yl, title)
+
+## X-Y Scatter Plots with bubble size fixed
+def bPlot(filename, x, xProp, y, yProp, size=1, xl='x', yl='y', title='title'):
+    xd = c(arr_prop(x, xProp))
+    yd = c(arr_prop(y, yProp))
+    zd = c([size]*len(x))
+    plot_xyz(filename, xd, yd, zd, xl, yl, title)
+
+## X-Y Scatter plots with specified bubble sizes
 def cPlot(filename, x, xProp, y, yProp, z, zProp, xl='x', yl='y', title='title'):
     xd = c(arr_prop(x, xProp))
     yd = c(arr_prop(y, yProp))
     zd = c(arr_prop(z, zProp))
     plot_xyz(filename, xd, yd, zd, xl, yl, title)
 
-def bPlot(filename, x, xProp, y, yProp, size=1, xl='x', yl='y', title='title'):
-    xd = c(arr_prop(x, xProp))
-    yd = c(arr_prop(y, yProp))
-    zd = c([size]*len(x))
-    plot_xyz(filename, xd, yd, zd, xl, yl, title)
+
+
+
+## Specific Plots using above general plots
+
+
+## Plots note-add and note-edits on a x=created, y=edited graph
+## - Vertical row of dots   = one note being edited a bunch
+## - Horizontal row of dots = one time when a bunch of notes edited
+
+def plot_note_edits(filename, notes):
+    username = notes[0].owner.email
+    aPlot(filename, notes, 'created', 'when', ['note-save', 'note-add'], 'created', 'when', 'Created vs When-Log-Entry-Recorded for '+username)
+
