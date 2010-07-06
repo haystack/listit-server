@@ -12,8 +12,8 @@ def mmmPlot(filename, notes,  title='title'):
   deaths = {}
   today = time.time()*1000.0
   r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=3200,h=1600)
-  minCreatedMSEC, maxCreatedMSEC = 0, 0
-  minActionMSEC, maxActionMSEC = 0, 0
+  minCreatedMSEC, maxCreatedMSEC = notes[0].created, 0
+  minActionMSEC, maxActionMSEC = allLogs[0].when, 0
   for log in allLogs:
      noteArr = notes.filter(jid=log.noteid)
      if len(noteArr) < 1:
@@ -38,6 +38,8 @@ def mmmPlot(filename, notes,  title='title'):
   #r.lines( reduce(r.rbind,[r.c(float(births[x]),float(deaths[x])) for x in births.keys() if x in deaths],r.c()), col = "dark red")
   xWks = (maxCreatedMSEC - minCreatedMSEC) / (1000*60*60*24*7)
   yWks = (maxActionMSEC - minActionMSEC) / (1000*60*60*24*7)
+  print "min/max for created/action: ", minCreatedMSEC, " : ",  maxCreatedMSEC, " : ", minActionMSEC, " : ", maxActionMSEC
+  print "x/y Wks: ", xWks, " : ", yWks
   r.grid(nx=int(xWks), ny=int(yWks), col="black", lwd=1)
   for x in births.keys():
      if x in deaths:
