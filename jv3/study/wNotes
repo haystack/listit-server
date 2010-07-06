@@ -100,10 +100,10 @@ def plot_note_edits(filename, notes):
     aPlot("note_edits/" +filename, notes, 'created', 'when', ['note-save', 'note-add'], 'created', 'when', 'Created vs When-Log-Entry-Recorded for '+username)
 
 
-
+## Given ONE user's notes, plot note attribute (created) vs activitylog attribute (when)
 def mPlot(filename, notes,  title='title'):
   points = {'note-add':r.c(),'note-save':r.c(),'note-delete':r.c()}
-  r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=3200,h=1600)
+  r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=3600,h=1800)
   allLogs = ActivityLog.objects.filter(owner=notes[0].owner, action__in=['note-add','note-save','note-delete'])
   for log in allLogs:
      noteArr = notes.filter(jid=log.noteid)
@@ -112,7 +112,107 @@ def mPlot(filename, notes,  title='title'):
      note = noteArr[0]
      points[log.action] = r.rbind(points[log.action],c([float(note.created),float(log.when)]))
      pass
-  r.plot(points['note-add'], cex=1.0,col = "orange", pch='o', xlab='created', ylab='action', main=title)
-  r.points(points['note-save'], cex=1.0,col = "green", pch='.')
+  r.plot(points['note-add'], cex=6.0,col = "orange", pch='.', xlab='created', ylab='action', main=title)
+  r.points(points['note-save'], cex=1.0,col = "purple", pch='o')
   r.points(points['note-delete'], cex=1.0,col = "dark red", pch='x')
   devoff()
+
+
+## + Added lines from mPlot
+## Given ONE user's notes, plot note attribute (created) vs activitylog attribute (when)
+def mmPlot(filename, notes,  title='title'):
+    points = {'note-add':r.c(),'note-save':r.c(),'note-delete':r.c()}
+    births = {}
+    deaths = {}
+    today = time.time()*1000.0
+    r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=3200,h=1600)
+    allLogs = ActivityLog.objects.filter(owner=notes[0].owner, action__in=['note-add','note-save','note-delete'])
+    for log in allLogs:
+    	noteArr = notes.filter(jid=log.noteid)
+	if len(noteArr) < 1:
+	   continue
+	note = noteArr[0]
+	## birth/deahts
+	births[note.jid] = note.created
+	if not note.deleted and note.jid not in deaths:
+	   deaths[note.jid] = today
+       	   pass
+     	if (log.action == 'note-delete'):
+           deaths[note.jid] = float(log.when)
+     	points[log.action] = r.rbind(points[log.action],c([float(note.created),float(log.when)]))
+     	pass
+    r.plot(points['note-add'], cex=1.0,col = "green", pch='o',xlab='',ylab='')
+    r.points(points['note-save'], cex=1.0,col = "orange", pch='o')
+    r.points(points['note-delete'], cex=1.0,col = "dark red", pch='x')
+    #r.lines( reduce(r.rbind,[r.c(float(births[x]),float(deaths[x])) for x in births.keys() if x in deaths],r.c()), col = "dark red")
+    for x in births.keys():
+    	if x in deaths:
+           if today - deaths[x] < 0.001 :
+	      color = 'green'
+           else:
+	      color = 'black'
+	r.lines(c([float(births[x])]*2),c([float(births[x]),float(deaths[x])]), col=color)
+        pass
+    devoff()
+
+## Given ONE user's notes, plot note attribute (created) vs activitylog attribute (when)
+def mmmPlot(filename, notes,  title='title'):
+  ## Meta-data for title
+  allLogs = ActivityLog.objects.filter(owner=notes[0].owner, action__in=['note-add','note-save','note-delete'])
+  useremail = notes[0].owner.email
+  noteCount = notes.count()
+  actionCount = allLogs.count()
+  title = "#Notes:#Logs:Email -- " + str(noteCount) + ":" + str(actionCount) + ":" + useremail 
+  ## Meta-data for points
+  points = {'note-add':r.c(),'note-save':r.c(),'note-delete':r.c()}
+  births = {}
+  deaths = {}
+  today = time.time()*1000.0
+  r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=3200,h=1600)
+  for log in allLogs:
+     noteArr = notes.filter(jid=log.noteid)
+     if len(noteArr) < 1:
+        continue
+     note = noteArr[0]
+     ## birth/deahts
+     births[note.jid] = note.created
+     if not note.deleted and note.jid not in deaths:
+        deaths[note.jid] = today
+        pass
+     if (log.action == 'note-delete'):
+        deaths[note.jid] = float(log.when)
+     points[log.action] = r.rbind(points[log.action],c([float(note.created),float(log.when)]))
+     pass
+  r.plot(points['note-add'], cex=1.0,col = "green", pch='o',xlab='Created Date',ylab='Action Date', main=title)
+  r.points(points['note-save'], cex=2.0,col = "purple", pch=17)
+  r.points(points['note-delete'], cex=2.0,col = "dark red", pch='x')
+  #r.lines( reduce(r.rbind,[r.c(float(births[x]),float(deaths[x])) for x in births.keys() if x in deaths],r.c()), col = "dark red")
+  for x in births.keys():
+     if x in deaths:
+        if today - deaths[x] < 0.001 :
+           color = 'green'
+        else:
+           color = 'black'
+        r.lines(c([float(births[x])]*2),c([float(births[x]),float(deaths[x])]), col=color)
+        pass
+  devoff()
+
+mmmPlot('wt0',emn)
+
+
+## Plot up to 100 users who satisfy conditions
+path = 'acu/note_life/user_note_life'
+i=0
+print "Start time: ", time.gmtime()
+startTime = time.time()
+for user in u:
+    uNotes = Note.objects.filter(owner=user)
+    uLogs = ActivityLog.objects.filter(owner=user, action__in=['note-add','note-save','note-delete'])
+    if (((uNotes.count() >= 120) or (uLogs.count() >= 120)) and ((uNotes.count() >= 50) and (uLogs.count() >= 50))):
+       mmmPlot(path+str(i), uNotes)
+       i += 1
+
+print "Users processed: ", i , " out of: ", len(u)
+print "Finish time: ", time.gmtime()
+finishTime = time.time()
+
