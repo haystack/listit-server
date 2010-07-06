@@ -54,7 +54,6 @@ def ezPlot(filename, x,y,z, xl="x",yl="y",title="title"):
 def aPlot(filename, notes,  xProp, logProp, logTypes, xl='x', yl='y', title='title'):
     x, y, z = [], [], []
     allLogs = ActivityLog.objects.filter(owner=notes[0].owner, action__in=logTypes)
-
     for log in allLogs:
     	noteArr = notes.filter(jid=log.noteid)
         if len(noteArr) != 1:
@@ -63,13 +62,10 @@ def aPlot(filename, notes,  xProp, logProp, logTypes, xl='x', yl='y', title='tit
 	note = noteArr[0]
 	x.append(note.created)
 	y.append(log.when)
-	
     ## Now we have a list of notes and logs
     x = [float(v) for v in x]
     y = [float(v) for v in y]    
     ezPlot(filename, x,y,[1]*len(x),xl, yl, title)
-
-    ## bPlot(filename, x, xProp, y, logProp, 1, xl, yl, title)
 
 ## X-Y Scatter Plots with bubble size fixed
 def bPlot(filename, x, xProp, y, yProp, size=1, xl='x', yl='y', title='title'):
@@ -169,11 +165,17 @@ def mmmPlot(filename, notes,  title='title'):
   deaths = {}
   today = time.time()*1000.0
   r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=3200,h=1600)
+  minCreatedMSEC, maxCreatedMSEC = 0, 0
+  minActionMSEC, maxActionMSEC = 0, 0
   for log in allLogs:
      noteArr = notes.filter(jid=log.noteid)
      if len(noteArr) < 1:
         continue
      note = noteArr[0]
+     minCreatedMSEC = min(minCreatedMSEC, note.created)
+     maxCreatedMSEC = max(maxCreatedMSEC, note.created)
+     minActionMSEC = min(minActionMSEC, log.when)
+     maxActionMSEC = max(maxActionMSEC, log.when)
      ## birth/deahts
      births[note.jid] = note.created
      if not note.deleted and note.jid not in deaths:
@@ -187,6 +189,9 @@ def mmmPlot(filename, notes,  title='title'):
   r.points(points['note-save'], cex=2.0,col = "purple", pch=17)
   r.points(points['note-delete'], cex=2.0,col = "dark red", pch='x')
   #r.lines( reduce(r.rbind,[r.c(float(births[x]),float(deaths[x])) for x in births.keys() if x in deaths],r.c()), col = "dark red")
+  xWks = (maxCreatedMSEC - minCreatedMSEC) / (1000*60*60*24*7)
+  yWks = (maxActionMSEC - minActionMSEC) / (1000*60*60*24*7)
+  r.grid(nx=int(xWks), ny=int(yWks), col="black", lwd=1)
   for x in births.keys():
      if x in deaths:
         if today - deaths[x] < 0.001 :
