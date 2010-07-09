@@ -8,7 +8,7 @@ def mmmPlot(filename, notes,  title='title'):
   title = "#Notes:#Logs:Email -- " + str(noteCount) + ":" + str(actionCount) + ":" + useremail 
   ## Meta-data for points
   points = {'note-add':r.c(),'note-save':r.c(),'note-delete':r.c()}
-  births , deaths, de, {}
+  births , deaths = {}, {}
   today = time.time()*1000.0
   r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=6400,h=3200) ## 3200x1600, 9600x4800, 12.8x6.4
   cc=[x['created'] for x in notes.values('created')]
@@ -34,15 +34,10 @@ def mmmPlot(filename, notes,  title='title'):
   r.plot(points['note-add'], cex=1.0,col = "green", pch='o',xlab=xl,ylab=yl, main=title, xlim=r.c(firstBirthEver, time.time()*1000), ylim=r.c(firstBirthEver, time.time()*1000.0), axes=False)
   xWeeks = [float(x) for x in range(firstBirthEver*msecToWeek, time.time()*1000*msecToWeek, 1)]
   yWeeks = [float(y) for y in range(firstBirthEver*msecToWeek, time.time()*1000*msecToWeek, 1)]
-  r.axis(1, at=c([float(x*7*24*60*60*1000.0) for x in xWeeks]), labels=c([int(x)-2011 for x in xWeeks]))
-  r.axis(2, at=c([float(y*7*24*60*60*1000.0) for y in yWeeks]), labels=c([int(x)-2011 for x in yWeeks]))
+  r.axis(1, at=c([float(x*7*24*60*60*1000.0) for x in xWeeks]), labels=c([int(x)-2012 for x in xWeeks]), tck=1)
+  r.axis(2, at=c([float(y*7*24*60*60*1000.0) for y in yWeeks]), labels=c([int(x)-2012 for x in yWeeks]), tck=1)
   r.points(points['note-save'], cex=2.0,col = "purple", pch=17)
   r.points(points['note-delete'], cex=2.0,col = "dark red", pch='x')
-  xWks = float(time.time()*1000 - firstBirthEver) / (1000.0*60*60*24*7)
-  yWks = float(time.time()*1000 - firstBirthEver) / (1000.0*60*60*24*7)
-  print "min/max for created/action: ", minBirth, " : ",  maxBirth, " : ", minAction, " : ", maxAction
-  print "x/y Wks: ", xWks, " : ", yWks
-  r.grid(nx=int(xWks), ny=int(yWks), col="black", lwd=1)
   for x in births.keys():
      if x in deaths:
         if today - deaths[x] < 0.001 :
