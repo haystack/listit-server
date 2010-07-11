@@ -1,4 +1,3 @@
-
 ## Given ONE user's notes, plot note attribute (created) vs activitylog attribute (when)
 def mmmPlot(filename, notes,  title='title'):
   ## Meta-data for title
@@ -37,8 +36,8 @@ def mmmPlot(filename, notes,  title='title'):
   yWeeks = [float(y) for y in range(firstBirthEver*msecToWeek, time.time()*1000*msecToWeek, 1)]
   r.axis(1, at=c([float(x*7*24*60*60*1000.0) for x in xWeeks]), labels=c([int(x)-2012 for x in xWeeks]), tck=1)
   r.axis(2, at=c([float(y*7*24*60*60*1000.0) for y in yWeeks]), labels=c([int(x)-2012 for x in yWeeks]), tck=1)
-  r.points(points['note-save'], cex=2.0,col = "purple", pch=17)
-  r.points(points['note-delete'], cex=2.0,col = "dark red", pch='x')
+  r.points(points['note-save'], cex=4.0,col = "purple", pch=17)
+  r.points(points['note-delete'], cex=4.0,col = "dark red", pch='x')
   for x in births.keys():
      if x in deaths:
         if today - deaths[x] < 0.001 :
@@ -51,4 +50,3 @@ def mmmPlot(filename, notes,  title='title'):
 
 mmmPlot('wt0',emn)
 mmmPlot('wt1',dkn)
-mmmPlot('wt2',nin)
