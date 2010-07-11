@@ -48,5 +48,6 @@ def mmmPlot(filename, notes,  title='title'):
         pass
   devoff()
 
-mmmPlot('wt0',emn)
-mmmPlot('wt1',dkn)
+def test_mmmPlot():
+  mmmPlot('wt0',emn)
+  mmmPlot('wt1',dkn)
