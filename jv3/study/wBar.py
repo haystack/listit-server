@@ -14,13 +14,13 @@ def sBar(filename, user, title='title'):
         actDay = dd.fromtimestamp(float(log.when)/1000.0).weekday()
         birthDay = dd.fromtimestamp(float(note.created)/1000.0).weekday()
         if (log.action == 'note-add'):      ## Record Add
-            data[wksToIndex(birthDay,actDay*3)] += 1
+            data[wksToIndex(birthDay,actDay*GROUP_TYPES)] += 1
             pass
         elif (log.action == 'note-save'):   ## Record Save
-            data[wksToIndex(birthDay, actDay*3+1)] += 1
+            data[wksToIndex(birthDay, actDay*GROUP_TYPES+1)] += 1
             pass
         elif (log.action == 'note-delete'): ## Record Death
-            data[wksToIndex(birthDay, actDay*3+2)] += 1
+            data[wksToIndex(birthDay, actDay*GROUP_TYPES+2)] += 1
             pass
         pass
     r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=1000,h=500)
