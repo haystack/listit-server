@@ -8,7 +8,7 @@ import jv3.study.ca_datetime as cadt
 import jv3.study.ca_sigscroll as cass
 import jv3.study.ca_load as cal
 import jv3.study.ca_plot as cap
-from cap import make_filename
+from jv3.study.ca_plot import make_filename
 import jv3.study.ca_search as cas
 import rpy2
 import rpy2.robjects as ro
@@ -17,7 +17,7 @@ from numpy import array
 import random
 r = ro.r
 em = User.objects.filter(email="emax@csail.mit.edu")[0]
-emn = Note.note_owner.all()
+emn = em.note_owner.all()
 dk = User.objects.filter(email='karger@mit.edu')[0]
 dkn = dk.note_owner.all()
 ws = User.objects.filter(email='wstyke@gmail.com')[0]
