@@ -22,6 +22,8 @@ dk = User.objects.filter(email='karger@mit.edu')[0]
 dkn = dk.note_owner.all()
 ws = User.objects.filter(email='wstyke@gmail.com')[0]
 wsn = ws.note_owner.all()
+kf = User.objects.filter(email='justacopy@gmail.com')[0]
+kfn = kf.note_owner.all()
 emax2 = User.objects.filter(email="electronic@gmail.com")[0]
 brenn = User.objects.filter(email="brennanmoore@gmail.com")[0]
 gv = User.objects.filter(email="gvargas@mit.edu")[0]
