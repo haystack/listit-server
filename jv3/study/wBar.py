@@ -41,16 +41,11 @@ def sBar(filename, user, title='title'):
     r.barplot(m_data, width=r.c(1,1,1),  legend=legText,main=title,ylab='# Action Logs',beside=True,names=axisNames)
     devoff()
 
-sBar('wt0',gv, "GV Note Action Periodicities")
-sBar('wt1',dk, "DK's Note Action Periodicities")
-sBar('wt2',em, "Emax's Note Action Periodicities")
-sBar('wt3',kf, "KatFang's Note Action Periodicities")
-sBar('wt4',ws, "WS's  Note Action Periodicities")
-sBar('wt5',brenn, "Brenn's Note Action Periodicities")
 
-sBar('wt5',gv, "GV's Weekly Note-creation") ## 0
-sBar('wt6',dk, "DK's  Weekly Note-creation") ## 1
-sBar('wt7',em, "Emax's Weekly Note-creation") ## 2
-sBar('wt8',kf, "KatFang's Weekly Note-creation") ## 4
-
-
+def test_wBar():
+    sBar('wt0',gv, "GV Note Action Periodicities")
+    sBar('wt1',dk, "DK's Note Action Periodicities")
+    sBar('wt2',em, "Emax's Note Action Periodicities")
+    sBar('wt3',kf, "KatFang's Note Action Periodicities")
+    sBar('wt4',ws, "WS's  Note Action Periodicities")
+    sBar('wt5',brenn, "Brenn's Note Action Periodicities")
