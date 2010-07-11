@@ -9,6 +9,7 @@ import jv3.study.ca_datetime as cadt
 import jv3.study.ca_sigscroll as cass
 import jv3.study.ca_load as cal
 import jv3.study.ca_plot as cap
+from cap import make_filename
 import jv3.study.ca_search as cas
 import rpy2
 import rpy2.robjects as ro
@@ -26,6 +27,7 @@ devoff = lambda : r('dev.off()')
 c = lambda vv : apply(r.c,vv)
 
 
+
 ## consenting users 
 u = [ us for us in User.objects.all() if is_consenting_study2(us)]
 ## consenting notes
@@ -41,16 +43,13 @@ def get_rand_user():
     return (user, notes)
 
 def plot_xyz(filename,x,y,z, xl="x",yl="y",title="title"):
-    r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=3200,h=1600)
+    r.png(file = make_filename(filename), w=3200,h=1600)
     r.plot(x,y,cex=z,xlab=xl,ylab=yl,main=title)
     devoff()
-
-
 
 def ezPlot(filename, x,y,z, xl="x",yl="y",title="title"):
     xd, yd, zd = c(x), c(y), c(z)
     plot_xyz(filename, xd, yd, zd, xl, yl, title)   
-
 
 ## Given ONE user's notes, plot note attribute (created) vs activitylog attribute (when)
 def aPlot(filename, notes,  xProp, logProp, logTypes, xl='x', yl='y', title='title'):
@@ -101,7 +100,7 @@ def plot_note_edits(filename, notes):
 ## Given ONE user's notes, plot note attribute (created) vs activitylog attribute (when)
 def mPlot(filename, notes,  title='title'):
   points = {'note-add':r.c(),'note-save':r.c(),'note-delete':r.c()}
-  r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=3600,h=1800)
+  r.png(file = make_filename(filename), w=3600,h=1800)
   allLogs = ActivityLog.objects.filter(owner=notes[0].owner, action__in=['note-add','note-save','note-delete'])
   for log in allLogs:
      noteArr = notes.filter(jid=log.noteid)
@@ -123,7 +122,7 @@ def mmPlot(filename, notes,  title='title'):
     births = {}
     deaths = {}
     today = time.time()*1000.0
-    r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=3200,h=1600)
+    r.png(file = make_filename(filename), w=3200,h=1600)
     allLogs = ActivityLog.objects.filter(owner=notes[0].owner, action__in=['note-add','note-save','note-delete'])
     for log in allLogs:
     	noteArr = notes.filter(jid=log.noteid)
@@ -166,7 +165,7 @@ def mmmPlot(filename, notes,  title='title'):
   births = {}
   deaths = {}
   today = time.time()*1000.0
-  r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=3200,h=1600)
+  r.png(file = make_filename(filename), w=3200,h=1600)
   minCreatedMSEC, maxCreatedMSEC = 0, 0
   minActionMSEC, maxActionMSEC = 0, 0
   for log in allLogs:

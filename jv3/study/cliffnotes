@@ -21,11 +21,16 @@ emax2 = User.objects.filter(email="electronic@gmail.com")[0]
 brenn = User.objects.filter(email="brennanmoore@gmail.com")[0]
 gv = User.objects.filter(email="gvargas@mit.edu")[0]
 wstyke = User.objects.filter(email="wstyke@gmail.com")[0]
+katfang = User.objects.filter(email="justacopy@gmail.com")
+karger = User.objects.filter(email="karger@mit.edu")
 devoff = lambda : r('dev.off()')
 c = lambda vv : apply(r.c,vv)
 
+cap.set_basedir('/var/listit/www-ssl/_studyplots/')
+
 ## consenting users 
-[ u for u in User.objects.all() if is_consenting_study2(u)]
+consenting = [ u for u in User.objects.all() if is_consenting_study2(u)]
+
 
 # participant report
 
@@ -43,8 +48,61 @@ def participant_report():
    print "consenting notes %d " % Note.objects.filter(owner__in=cu).count()
    durations = [ float(u.note_owner.order_by('-edited')[0].edited - u.note_owner.order_by('edited')[0].edited)/(24.0*60.0*60000.0) for u in User.objects.all() if u.note_owner.count() > 0  ]   
    print 'average duration of use min:%g max:%g median:%g mean: %g:' % (min(durations),max(durations),median(durations),mean(durations))
-   # durations = [ float(uact.serverlog_set.order_by('when')[uact.serverlog_set.count()-1].when - uact.serverlog_set.order_by('-when')[uact.serverlog_set.count()-1].when) for uact in User.objects.all() if uact.serverlog_set.count() > 0]
-   # print 'average duration of use min:%g max:%g median:%g mean%g:' % (min(durations),max(durations),median(durations),mean(durations))   
+   durations = [ float(uact.serverlog_set.order_by('when')[uact.serverlog_set.count()-1].when - uact.serverlog_set.order_by('-when')[uact.serverlog_set.count()-1].when) for uact in User.objects.all() if uact.serverlog_set.count() > 0]
+   print 'average duration of use min:%g max:%g median:%g mean: %g:' % (min(durations),max(durations),median(durations),mean(durations))   
+   print 'users still active in the last 14 days %d' % len(set([x['user'] for x in ServerLog.objects.order_by('when').filter(when__gt=repr(time.time()*1000 - 14*24*60*60000)).values('user')]))
+
+
+
+
+[ActivityLog.objects.filter(owner=emax,action="note-add",noteid=n.jid).count() for n in emax.note_owner.order_by('-created')[0:200]]
+[ActivityLog.objects.filter(owner=emax,action="note-add",noteid=n.jid).count() for n in emax.note_owner.order_by('-created')[0:1000]]
+
+
+## import f! 
+      
+ distances = ([abs(float(ActivityLog.objects.filter(owner=emax,action="note-add",noteid=n.jid).order_by('when')[0].when) - float(n.created)) for n in emax.note_owner.all() if ActivityLog.objects.filter(owner=emax,action="note-add",noteid=n.jid).count() == 1])
+
+
+max([abs(float(ActivityLog.objects.filter(owner=emax,action="note-add",noteid=n.jid).order_by('-when')[0].when) - float(n.created)) for n in emax.note_owner.order_by('-created')[0:1000] if ActivityLog.objects.filter(owner=emax,action="note-add",noteid=n.jid).count() > 0])
+
+## Given ONE user's notes, plot note attribute (created) vs activitylog attribute (when)
+def aPlot(filename, notes,  title='title'):
+   points = {'note-add':r.c(),'note-save':r.c(),'note-delete':r.c()}
+   births = {}
+   deaths = {}
+   today = time.time()*1000.0
+   
+   r.png(file = '/var/listit/www-ssl/_studyplots/' + filename + '.png', w=3200,h=1600)
+   allLogs = ActivityLog.objects.filter(owner=notes[0].owner, action__in=['note-add','note-save','note-delete'])
+   for log in allLogs:
+      noteArr = notes.filter(jid=log.noteid)
+      if len(noteArr) < 1:
+         continue
+      note = noteArr[0]
+      ## birth/deahts
+      births[note.jid] = note.created
+      if not note.deleted and note.jid not in deaths:
+         deaths[note.jid] = today
+         pass
+      if (log.action == 'note-delete'):
+         deaths[note.jid] = float(log.when)
+      points[log.action] = r.rbind(points[log.action],c([float(note.created),float(log.when)]))
+      pass
+   r.plot(points['note-add'], cex=1.0,col = "green", pch='o',xlab='',ylab='')
+   r.points(points['note-save'], col = "purple", pch='o',cex=3.0)
+   r.points(points['note-delete'], cex=1.0,col = "dark red", pch='x')
+   #r.lines( reduce(r.rbind,[r.c(float(births[x]),float(deaths[x])) for x in births.keys() if x in deaths],r.c()), col = "dark red")
+   for x in births.keys():
+      if x in deaths:
+         if today - deaths[x] < 0.001 :
+            color = 'green'
+         else:
+            color = 'black'
+         r.lines(c([float(births[x])]*2),c([float(births[x]),float(deaths[x])]), col=color)
+         pass
+   devoff()
+
 
 def diaginfos():
    import json
@@ -161,6 +219,9 @@ keeping_interpart_variation_str=lambda Us,N=2000: '\n'.join([repr(p) for p in ke
 
 print " lifespan ", min([v[5] for v in vv]), " mean ", mean([v[5] for v in vv]), " max ", max([v[5] for v in vv])
 
+## wnotes for edit life plots 
+## find . -name '*.png' -exec echo '<a href="{}" target="_blank"><img src="{}" width=400></a> &nbsp ' \; > index2.html
+
 
 ## in order to get rid of outliers that are more than X standard deviations,
 ## we assume normalcy and
@@ -188,7 +249,6 @@ rn = cal.random_notes(25000)
 
 ## content features
 x,y = ca.notes_to_features(rn,False,ca.content_features)
-
 ## import a spreadsheet that has already been coded
 renotes,cols = cal.import_notes_csv('/biggie/listit/study2010/wolfe-kp-2.5k.csv')
 x,y = ca.notes_to_features(renotes,False)
@@ -222,6 +282,7 @@ ns = [ca._note_instance_to_value(n) for n in cal.filter_notes( list(set(n1).unio
 nfk,nf = ca.notes_to_features(ns,False)
 ## perform histogram/stats on ALL features
 ca.feature_hists(nfk,nf)
+
 
 cass.select_dudes_to_revisit(ns)
 
