@@ -29,15 +29,8 @@ devoff = lambda : r('dev.off()')
 c = lambda vv : apply(r.c,vv)
 
 ## consenting users and notes
-u=None
-n=None
-def get_consenters():
-    global u, n
-    u = [ us for us in User.objects.all() if is_consenting_study2(us)]
-    n = Note.objects.filter( owner__in=[ us for us in User.objects.all() if is_consenting_study2(us)] )
-
-if (input("Set u,n to consentint users/notes? Yes=1, No=0: ") == 1):
-    get_consenters()
+u = [ us for us in User.objects.all() if is_consenting_study2(us)]
+n = Note.objects.filter( owner__in=[ us for us in User.objects.all() if is_consenting_study2(us)] )
 
 ## Returns array of property values for entityArray
 def arr_prop(objArray, prop):
