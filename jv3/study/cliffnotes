@@ -15,6 +15,7 @@ import rpy2
 import rpy2.robjects as ro
 from jv3.study.study import *
 from numpy import array
+import jv3.study.f as stuf
 r = ro.r
 emax = User.objects.filter(email="emax@csail.mit.edu")[0]
 emax2 = User.objects.filter(email="electronic@gmail.com")[0]
@@ -25,15 +26,13 @@ katfang = User.objects.filter(email="justacopy@gmail.com")
 karger = User.objects.filter(email="karger@mit.edu")
 devoff = lambda : r('dev.off()')
 c = lambda vv : apply(r.c,vv)
-
 cap.set_basedir('/var/listit/www-ssl/_studyplots/')
 
 ## consenting users 
 consenting = [ u for u in User.objects.all() if is_consenting_study2(u)]
-
+interesting_consenting = [ u for u in consenting if u.note_owner.count() > 60 ]
 
 # participant report
-
 excluders = [emax,emax2,brenn,gv,wstyke]
 
 def participant_report():
@@ -383,3 +382,6 @@ for x in todo:
 
 n == 215
 1.0 * n / len(aq)
+
+
+
