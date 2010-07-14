@@ -5,10 +5,9 @@ def sBar(filename, user, title='title'):
     COL_SEGMENTS, ROW_GROUPS, GROUP_TYPES = 7,7,5 ## add, edit,edit, del,del
     notes = user.note_owner.all()
     allLogs = ActivityLog.objects.filter(owner=user, action__in=['note-add','note-save','note-delete'])
-    data = r.matrix(0,nrow=COL_SEGMENTS, ncol=ROW_GROUPS*GROUP_TYPES) ## 3 cols per weekday, each col segmented into 7 parts/rows
+    data = r.matrix(0,nrow=COL_SEGMENTS, ncol=ROW_GROUPS*GROUP_TYPES)
     wksToIndex = lambda rowWeek, colWeek : rowWeek + (colWeek)*COL_SEGMENTS
-    nOldEdit = [[] for n in range(ROW_GROUPS)]
-    nNewEdit = [[] for n in range(ROW_GROUPS)]
+    nOldEdit, nNewEdit = [[] for n in range(ROW_GROUPS)], [[] for n in range(ROW_GROUPS)]
     for log in allLogs:
         noteArr = notes.filter(jid=log.noteid)
         if len(noteArr) < 1:  ## Processing logs for which we still
@@ -26,34 +25,22 @@ def sBar(filename, user, title='title'):
             data[wksToIndex(birthDay, actDay*GROUP_TYPES+0)] += 1
             pass
         elif (log.action == 'note-save'):   ## Record Save: Split (edit on day of note.created vs not)
-            ##continue if log.noteid in nNewEdit[actDay] else nNewEdit[actDay].append(log.noteid)
-            ##if log.noteid in nOldEdit[actDay]: continue
-            ##else: nEditProc[actDay].append(log.noteid)
+            addVal = 1 if actInPastWk else 2
+            if (actInPastWk and log.noteid in nNewEdit[actDay]) or (not actInPastWk and log.noteid in nOldEdits[actDay]):
+                continue  ## We've already recorded this note for it's time-frame
+            data[wksToIndex(birthDay, actDay*GROUP_TYPES + addVal)] += 1
             if actInPastWk:
-                if (log.noteid in nNewEdit[actDay]):
-                    continue
-                else:
-                    nNewEdit[actDay].append(log.noteid)
-                    data[wksToIndex(birthDay, actDay*GROUP_TYPES+1)] += 1
+                nNewEdit[actDay].append(log.noteid)
             else:
-                if (log.noteid in nOldEdit[actDay]):
-                    continue
-                else:
-                    nOldEdit[actDay].append(log.noteid)
-                    data[wksToIndex(birthDay, actDay*GROUP_TYPES+2)] += 1
+                nOldEdit[actDay].append(log.noteid)
         elif (log.action == 'note-delete'): ## Record Death
-            if actInPastWk:
-                data[wksToIndex(birthDay, actDay*GROUP_TYPES+3)] += 1
-            else:
-                data[wksToIndex(birthDay, actDay*GROUP_TYPES+4)] += 1
-        pass
+            addVal = 3 if actInPastWk else 4
+            data[wksToIndex(birthDay, actDay*GROUP_TYPES + addVal)] += 1
+            pass
     r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=1200,h=800)
     dayNames = ["Mon","Tues","Wed","Thur","Fri","Sat","Sun"]
-    colSums = r.colSums(data)
-    colMax = r.apply(data, 2, r.max) ## VooDoo !? Returns array of column max values
-    colRatios = [int(float(100*colMax[i])/float(colSums[i])) if colSums[i] != 0 else 0 for i in range(ROW_GROUPS*GROUP_TYPES)]
     axisNames = []
-    [axisNames.extend([dayNames[i], colRatios[i*GROUP_TYPES+1], colRatios[i*GROUP_TYPES+2], colRatios[i*GROUP_TYPES+3], colRatios[i*GROUP_TYPES+4]]) for i in range(ROW_GROUPS)] 
+    [axisNames.extend([dayNames[i],"","","",""]) for i in range(ROW_GROUPS)] 
     subTitle = "Actions: (black) note-add, note-save, note-delete (white)"
     colors = r.c("red", 'orange', 'yellow', 'green', 'blue', 'grey', 'brown')
     title = "#Notes:#Logs:Email:ID -- " + str(notes.count()) + ":" + str(allLogs.count()) + ":" + user.email + ":" + str(user.id)
