@@ -1,6 +1,5 @@
 import math
 from datetime import datetime as dd  # Stacked Bar Graph Function Helpers
-widths=[]
 def sBar(filename, user, title='title'):
     numLines = lambda txt: len(txt.splitlines())-txt.splitlines().count('')
     aveSize = lambda a,b: int(float(a)/float(b)) if b != 0 else 0  ## a=quantity of something per how many b elts, if no b, return 0
@@ -13,7 +12,6 @@ def sBar(filename, user, title='title'):
     nOldEdit, nNewEdit = [[] for n in range(ROW_GROUPS)], [[] for n in range(ROW_GROUPS)]
     createdSize = [[0,0] for i in range(ROW_GROUPS)] ## [# notes, # lines] for each day of week
     editedSize = [[0,0] for i in range(ROW_GROUPS)]
-    minSize,maxSize = 0,0
     for log in allLogs:
         noteArr = notes.filter(jid=log.noteid)
         if len(noteArr) < 1:  ## Processing logs for which we still
@@ -28,11 +26,11 @@ def sBar(filename, user, title='title'):
         actInPastWk = math.fabs(actTD.days) <= 6 ## Both .created and .when  happened within (current day + 6 previous days)
         if (log.action == 'note-add'):      ## Record Add
             data[wksToIndex(birthDay, actDay*GROUP_TYPES+0)] += 1
-            minSize,maxSize = min(minSize, len(note.contents)), max(maxSize,len(note.contents))
             if len(note.contents) > 0 and len(note.contents) < 1000:
-                createdSize[actDay][0] += 1
-                createdSize[actDay][1] += len(note.contents)
-            pass
+                createdSize[actDay][0] += 1   ## Increment: ave note size,
+                ##increment = 0 if note.deleted else 50
+                increment = numLines(log.noteText) if log and log.noteText and (numLines(log.noteText) < 1000) else 0
+                createdSize[actDay][1] += int(increment)
         elif (log.action == 'note-save'):   ## Record Save: Split (edit on day of note.created vs not)
             addVal = 1 if actInPastWk else 2
             if (actInPastWk and log.noteid in nNewEdit[actDay]) or (not actInPastWk and log.noteid in nOldEdit[actDay]):
@@ -46,7 +44,6 @@ def sBar(filename, user, title='title'):
             addVal = 3 if actInPastWk else 4
             data[wksToIndex(birthDay, actDay*GROUP_TYPES + addVal)] += 1
             pass
-    print minSize, maxSize
     r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=1000,h=500)
     dayNames = ["Mon","Tues","Wed","Thur","Fri","Sat","Sun"]
     axisNames = []
@@ -54,7 +51,6 @@ def sBar(filename, user, title='title'):
     colors = r.c("red", 'orange', 'yellow', 'green', 'blue', 'grey', 'brown')
     title = "#Notes:#Logs:Email:ID -- " + str(notes.count()) + ":" + str(allLogs.count()) + ":" + user.email + ":" + str(user.id)
     aveWidth = int(float(sum([elt[1] for elt in createdSize]))/float(sum([elt[0] for elt in createdSize])))
-    global widths
     widths = []
     [widths.extend([aveSize(elt[1],elt[0]), aveWidth, aveWidth, aveWidth, aveWidth]) for elt in createdSize]
     r.barplot(data, main=title,ylab='# Action Logs',beside=False, col=colors, space=r.c(3,1,0.1,1,.1), names=axisNames, width=c(widths))
