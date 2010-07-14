@@ -137,14 +137,17 @@ def print_r_classes(notes,dv,cluster):
 #bb = nc.notes_to_bow_features_nltk(notes)
 #bb = nc.notes_to_note_features(notes,bb)
 
-# cc,classes,km = nc.km_cluster_docs(bb,10)
-
+# don't use this: cc,classes,km = nc.km_cluster_docs(bb,10)
 # nc.print_classes(notes,classes)                  
 
+# use these:
+#dv,clusters,pclusters = nc.km_r_cluster(bb,10)
+#nc.print_r_classes(notes,dv,clusters)
 
 
 ## Wolfe Edits:
 ## use  km_r_cluster     not km_cluster_Docs    
+
     
 
 
