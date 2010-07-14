@@ -25,6 +25,7 @@ name_stop_list = ["web","page","les","tray"]
 
 def note_names(note):
     from content_analysis import count_regex_matches
+    import content_analysis
     global _names
     global name_stop_list
     if _names is None:
@@ -33,6 +34,6 @@ def note_names(note):
     if len(rnames) > 0:
         hits = [(n,count_regex_matches(n,note["contents"])) for n in rnames]
         #print hits
-        hits = {"names": reduce(lambda x,y: x + y, [count_regex_matches(n,note["contents"]) for n in rnames])}
+        hits = content_analysis.make_feature("names", reduce(lambda x,y: x + y, [count_regex_matches(n,note["contents"]) for n in rnames]))
         return hits
-    return {"names": 0}    
+    return content_analysis.make_feature("names", 0)

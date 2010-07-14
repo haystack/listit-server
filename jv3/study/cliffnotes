@@ -35,24 +35,13 @@ interesting_consenting = [ u for u in consenting if u.note_owner.count() > 60 ]
 # participant report
 excluders = [emax,emax2,brenn,gv,wstyke]
 
-def participant_report():
-   print "users "
-   cu = [ u for u in User.objects.all() if is_consenting_study2(u)]
-   print "total %d " % len(User.objects.all())
-   print "total nonotes %d " % len([ u for u in User.objects.all() if u.note_owner.count() == 0])
-   print "consenting %d " % len(cu)
-   print "consenting somenotes %d " % len([c for c in cu if c.note_owner.count() > 0])
-   print "consenting nonotes %d " % len([c for c in cu if c.note_owner.count() == 0])
-   print "total notes %d " % Note.objects.exclude(owner__in=excluders).count()
-   print "consenting notes %d " % Note.objects.filter(owner__in=cu).count()
-   durations = [ float(u.note_owner.order_by('-edited')[0].edited - u.note_owner.order_by('edited')[0].edited)/(24.0*60.0*60000.0) for u in User.objects.all() if u.note_owner.count() > 0  ]   
-   print 'average duration of use min:%g max:%g median:%g mean: %g:' % (min(durations),max(durations),median(durations),mean(durations))
-   durations = [ float(uact.serverlog_set.order_by('when')[uact.serverlog_set.count()-1].when - uact.serverlog_set.order_by('-when')[uact.serverlog_set.count()-1].when) for uact in User.objects.all() if uact.serverlog_set.count() > 0]
-   print 'average duration of use min:%g max:%g median:%g mean: %g:' % (min(durations),max(durations),median(durations),mean(durations))   
-   print 'users still active in the last 14 days %d' % len(set([x['user'] for x in ServerLog.objects.order_by('when').filter(when__gt=repr(time.time()*1000 - 14*24*60*60000)).values('user')]))
+ca.make_feature=lambda k,v:(k,v)
+cadt.make_feature=lambda k,v:(k,v)
 
+import jv3.study.new_classify as nc
 
-
+notes = emax.note_owner.all().values()[1000:]
+bb = nc.notes_to_note_features(notes)
 
 [ActivityLog.objects.filter(owner=emax,action="note-add",noteid=n.jid).count() for n in emax.note_owner.order_by('-created')[0:200]]
 [ActivityLog.objects.filter(owner=emax,action="note-add",noteid=n.jid).count() for n in emax.note_owner.order_by('-created')[0:1000]]
@@ -103,66 +92,6 @@ def aPlot(filename, notes,  title='title'):
    devoff()
 
 
-def diaginfos():
-   import json
-   results = []
-   for slog in ServerLog.objects.filter(url='post_diagnostics').values('info'):
-      try:
-         info = json.loads(slog['info'])[0]
-         results.append(info)
-      except:
-         print sys.exc_info()
-   return results
-
-def diaginfos_by_clientid(infos=None):
-   import json
-   if infos is None: infos = diaginfos()
-   return dict((info['clientid'],info) for info in infos)
-
-infos = diaginfos()
-icb = diaginfos_by_clientid(infos)
-
-number_of_distinct_clients = lambda icb: len(icb.keys())
-number_of_distinct_users = lambda icb: len(list(set([v['username'] for v in icb.values()])))
-number_of_blank_users = lambda icb: len(list([v['username'] for v in icb.values() if v['username'] == '']))
-
-def clients_per_user(infos):
-   by_user = {}
-   if infos is None: infos = diaginfos()
-   for info in infos :
-      username = info.get('username','')
-      if username == '': continue
-      userclients = by_user.get(username,[])
-      userclients.append(info)
-      by_user[username] = userclients
-   return by_user
-
-number_of_clients_per_user = lambda infos: [len(set([X['clientid'] for X in info])) for info in clients_per_user(infos).values()]
-
-def histogram_of_number_of_computers_per_user(width=900,height=500,filename='/var/listit/www-ssl/_studyplots/clients.png'):
-   clientsperuser = number_of_clients_per_user(diaginfos())
-   print clientsperuser
-   #print "one"
-   r.png('/tmp/foo',width=1024,height=768)
-   aa = r.hist(c(clientsperuser))
-   devoff();
-   print "twos"
-   try:
-      print sum(aa[1])
-      print "outputting to %s " % filename
-      cap.hist(clientsperuser,filename=filename, labels=True,xlabel='number of computers per user', ylabel='number of users', width=width,height=height,title="Number of computers for signed up users (N=%d)" % sum(aa[1]))
-   except:
-      print sys.exc_info()
-   return clientsperuser
-
-def histogram_of_platforms(infos,filename='/var/listit/www-ssl/_studyplots/client_platforms.png'):
-   platforms = {}
-   infos = [v for v in diaginfos_by_clientid(infos).values()]
-   for info in infos:
-      platforms[info['platform_os']] = platforms.get(info['platform_os'],0) + 1
-   print [x for x in platforms.iteritems()]
-   cap.bar([x for x in platforms.iteritems()], width=900,height=500,filename=filename,labels=True,title="Distribution of List-It client installs by platform")
-   return platforms
 
 ## consenting notes
 n = Note.objects.filter( owner__in=[ u for u in User.objects.all() if is_consenting_study2(u)] )

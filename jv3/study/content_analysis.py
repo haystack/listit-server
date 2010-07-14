@@ -18,7 +18,7 @@ import jv3
 import random,sys,re
 import numpy
 import jv3.study.ca_plot as cap
-
+from django.db.models.query import QuerySet
 
 DATABASE_SNAPSHOT_TIME = 1252468800000 # september 9, 2009
 
@@ -78,8 +78,15 @@ def to_feature_vec(tokens,wordlist):
             fv[t] = fv.get(t,0)+1
     return fv
 
-def notes_to_bow_features(notes, text=lambda x: eliminate_urls(x["contents"]), word_proc=striplow, word_filter=all_pass, lexicon=None,
-                          lexicon_size_limit=float('Inf'), min_word_freq=0):
+
+def notes_to_bow_features(notes,
+                          text=lambda x: eliminate_urls(x["contents"]),
+                          word_proc=striplow, 
+                          word_filter=all_pass,
+                          lexicon=None,
+                          lexicon_size_limit=float('Inf'),
+                          min_word_freq=0):
+    
     tokenizer = WordTokenizer()
     notewords = lambda x : [ word_proc(x) for x in tokenizer.tokenize(text(n)) if word_filter(x) ]
     tokenized_notes = dict( [ (n["id"],notewords(n)) for n in notes ] )
@@ -120,29 +127,52 @@ note_owner = lambda note: {'note_owner': repr(note["owner"])}
 note_length = lambda x : {'note_length':len(x["contents"])}
 #note_words = lambda x : {'note_words':len(nltk.word_tokenize(eliminate_urls(x["contents"])))}
 
-note_words = lambda x : {'note_words':len([ w for w in re.compile('\s').split(x["contents"]) if len(w.strip())>0])}
-note_words_sans_urls = lambda x : {'note_words_sans_urls':note_words(x)['note_words']-note_urls(x)['note_urls']}
-note_edits = lambda(note) : {'note_edits':len(activity_logs_for_note(note,"note-save"))}
-note_did_edit = lambda(note) : {'note_did_edit': note_edits(note) > 0}
-note_deleted = lambda(note) : {'note_deleted': q(note["deleted"],True,False)}
-note_urls = lambda note: {'note_urls': str_n_urls(note["contents"])}
-note_phone_numbers = lambda x: {'phone_nums':count_regex_matches("(^|\s+)([0-9]( |-)?)?(\(?[0-9]{3}\)?|[0-9]{3})( |-)?([0-9]{3}( |-)?[0-9]{4}|[a-zA-Z0-9]{7})($|\s+)",x["contents"])}
-note_emails = lambda note: {'email_addrs':str_n_emails(note["contents"])}
-numbers = lambda note: {'numbers':count_regex_matches("(^|\s+)(\d+)($|s)",note["contents"])}
-nonword_mix = lambda note: {'numword_mix':count_regex_matches("(^|\s+)(.*\d.*)($|s)",note["contents"])}
-note_punctuation = lambda note:{'note_punct': count_regex_matches("[\.\,]", note["contents"]) }
+DOWS=["mon","monday","tue","tuesday","wed","wedmesday","thu","thurs","thursday","fri","friday","sat","saturday","sun","sunday"]
+
+MONTHS=["jan","january",
+        "feb","february",
+        "mar","march",
+        "apr", "april",
+        "may", "jun","june",
+        "jul","july",
+        "aug","august",
+        "sep","sept",
+        "september",
+        "oct","october",
+        "nov","november",
+        "dec","december"]
+
+
+make_feature = lambda k,v: {k:v}
+
+note_words = lambda x : make_feature('note_words',len([ w for w in re.compile('\s').split(x["contents"]) if len(w.strip())>0]))
+note_words_sans_urls = lambda x : make_feature('note_words_sans_urls',note_words(x)['note_words']-note_urls(x)['note_urls'])
+note_edits = lambda(note) : make_feature('note_edits',len(activity_logs_for_note(note,"note-save")))
+note_did_edit = lambda(note) : make_feature('note_did_edit', note_edits(note) > 0)
+note_deleted = lambda(note) : make_feature('note_deleted', q(note["deleted"],True,False))
+note_urls = lambda note: make_feature('note_urls', str_n_urls(note["contents"]))
+note_phone_numbers = lambda x: make_feature('phone_nums',count_regex_matches("(^|\s+)([0-9]( |-)?)?(\(?[0-9]{3}\)?|[0-9]{3})( |-)?([0-9]{3}( |-)?[0-9]{4}|[a-zA-Z0-9]{7})($|\s+)",x["contents"]))
+note_emails = lambda note: make_feature('email_addrs',str_n_emails(note["contents"]))
+numbers = lambda note: make_feature('numbers',count_regex_matches("(^|\s+)(\d+)($|\s+)",note["contents"]))
+NUMBERS=["one","two","three","four","five","six","seven","eight","nine","ten","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety","hundred"]
+wordnumbers = lambda note: make_feature('wordnumbers',sum([count_regex_matches("(^|\s+)%s($|\s+)" % x,note["contents"]) for x in NUMBERS]))
+daysofweek = lambda note: make_feature('daysofweek',sum([count_regex_matches("(^|\s+)%s($|\s+)" % x,note["contents"]) for x in DOWS]))
+months = lambda note: make_feature('months',sum([count_regex_matches("(^|\s+)%s($|\s+)" % x,note["contents"]) for x in MONTHS]))
+nonword_mix = lambda note: make_feature('numword_mix',count_regex_matches("(^|\s+)(.*\d.*)($|\s+)",note["contents"]))
+note_punctuation = lambda note:make_feature('note_punct', count_regex_matches("[\.\,\'\:\;\?]", note["contents"]) )
+
 def note_verbs(note):
-    return {'note_verbs': reduce(lambda x,y: x+y, [count for pos,count in note_pos_features(note).items() if pos in ["VB","VBD","VBG","VBN","VBP","VBZ"]])}    
+    return make_feature('note_verbs', reduce(lambda x,y: x+y, [count for pos,count in note_pos_features(note).items() if pos in ["VB","VBD","VBG","VBN","VBP","VBZ"]]))    
 def note_verbs_over_length(note):
-    return {'note_verbs_over_length': note_verbs(note)["note_verbs"]*1.0/note_words(note)["note_words"]  }
+    return make_feature('note_verbs_over_length', note_verbs(note)["note_verbs"]*1.0/note_words(note)["note_words"]  )
 def names_over_length(note):
-    return {'note_names_over_length': note_names(note)["names"]*1.0/note_words(note)["note_words"]  }
+    return make_feature('note_names_over_length', note_names(note)["names"]*1.0/note_words(note)["note_words"]  )
 def dte_over_length(note):
-    return {'dte_over_length': note_date_count(note)["date_time_exprs"]*1.0/note_words(note)["note_words"]  }
+    return make_feature('dte_over_length', note_date_count(note)["date_time_exprs"]*1.0/note_words(note)["note_words"]  )
 def urls_over_length(note):
-    return {'urls_over_length': note_urls(note)["note_urls"]*1.0/note_words(note)["note_words"]  }
+    return make_feature('urls_over_length', note_urls(note)["note_urls"]*1.0/note_words(note)["note_words"]  )
 def todos_over_length(note):
-    return {'todos_over_length': count_regex_matches("(^|\s|@)((todo)|(to do)|(to-do))(\s|$)",note["contents"] )*1.0/note_words(note)["note_words"] }
+    return make_feature('todos_over_length', count_regex_matches("(^|\s|@)((todo)|(to do)|(to-do))(\s|$)",note["contents"] )*1.0/note_words(note)["note_words"] )
 
 ## addresses?
 ## dates/times
@@ -166,13 +196,13 @@ def average_edit_distance(n):
                 continue
             distances.append( d.edit_distance( edits[i], edits[i+1] ) )
         if len(distances) > 0:
-            return {"edit_distance":median(distances)}
-    return {'edit_distance':MISSING}
+            return make_feature("edit_distance",median(distances))
+    return make_feature('edit_distance',MISSING)
 
 ## now feature compilation stuff
 
 punkt =  nltk.tokenize.PunktSentenceTokenizer()
-note_sentences = lambda n : { "note_sentences" : len(punkt.tokenize(n["contents"])) }
+note_sentences = lambda n : make_feature( "note_sentences" , len(punkt.tokenize(n["contents"])) )
 
 all_fns = [
     note_lifetime,
@@ -207,12 +237,21 @@ default_note_feature_fns = [
 
 content_features = [
     note_names,
+    numbers,
+    nonword_mix,
+    note_punctuation,
+    note_words,    
     note_phone_numbers,
     note_urls,
     note_date_count,
     note_emails,
-    note_pos_features
+    daysofweek,
+    months,
+    wordnumbers,
+    note_date_count
 ]                                                          
+
+#    note_pos_features,
 
 def notes_to_features(notes,include_bow_features=False,bow_parameters={},note_feature_fns=default_note_feature_fns):
     # generates feature vectors like this:
@@ -221,7 +260,8 @@ def notes_to_features(notes,include_bow_features=False,bow_parameters={},note_fe
     lexicon_freq = None
 
     # preprocess notes
-    for n in notes: n["contents"] = n["contents"].strip().lower()
+    if type(notes) == QuerySet: notes = _notes_to_values(notes)
+    for n in notes:  n["contents"] = n["contents"].strip().lower()
     
     if include_bow_features:
         note_fvs,lexicon,lexicon_freq = notes_to_bow_features(notes,**bow_parameters)

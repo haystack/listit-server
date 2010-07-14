@@ -18,6 +18,25 @@ from jv3.study.ca_plot import make_filename
 r = ro.r
 c = lambda vv : apply(r.c,vv)
 
+########################################################
+# 
+
+def participant_report():
+   print "users "
+   cu = [ u for u in User.objects.all() if is_consenting_study2(u)]
+   print "total %d " % len(User.objects.all())
+   print "total nonotes %d " % len([ u for u in User.objects.all() if u.note_owner.count() == 0])
+   print "consenting %d " % len(cu)
+   print "consenting somenotes %d " % len([c for c in cu if c.note_owner.count() > 0])
+   print "consenting nonotes %d " % len([c for c in cu if c.note_owner.count() == 0])
+   print "total notes %d " % Note.objects.exclude(owner__in=excluders).count()
+   print "consenting notes %d " % Note.objects.filter(owner__in=cu).count()
+   durations = [ float(u.note_owner.order_by('-edited')[0].edited - u.note_owner.order_by('edited')[0].edited)/(24.0*60.0*60000.0) for u in User.objects.all() if u.note_owner.count() > 0  ]   
+   print 'average total length of activity min:%g max:%g median:%g mean: %g:' % (min(durations),max(durations),median(durations),mean(durations))
+   durations = [ float(uact.serverlog_set.order_by('when')[uact.serverlog_set.count()-1].when - uact.serverlog_set.order_by('-when')[uact.serverlog_set.count()-1].when) for uact in User.objects.all() if uact.serverlog_set.count() > 0]
+   print 'average duration of use min:%g max:%g median:%g mean: %g:' % (min(durations),max(durations),median(durations),mean(durations))   
+   print 'users still active in the last 14 days %d' % len(set([x['user'] for x in ServerLog.objects.order_by('when').filter(when__gt=repr(time.time()*1000 - 14*24*60*60000)).values('user')]))
+
 months = [0, 'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
 
 
