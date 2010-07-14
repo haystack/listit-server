@@ -142,7 +142,9 @@ def print_r_classes(notes,dv,cluster):
 # nc.print_classes(notes,classes)                  
 
 
-    
+
+## Wolfe Edits:
+## use  km_r_cluster     not km_cluster_Docs    
     
 
 
