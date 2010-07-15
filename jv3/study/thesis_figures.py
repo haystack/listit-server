@@ -66,6 +66,8 @@ def cumulative_registrations(width=1000,height=700):
    #   r.lines(c([float(x) for x in cudist.keys()]), c([x for x in cudist.values()]),xlab=r.c(),ylab=r.c()))
    r('dev.off()')
 
+   
+
 
 #########################################################
 # time until deletion distribution, but NOT INCLUDED
@@ -243,3 +245,82 @@ def debug_distance_between_note_add_and_creation_times(u):
 
    return (number,mind,maxd,bogusnotes)
 
+
+## note length distribtion
+def plot_note_words_hist(notes,filename="num_words",width=1024,height=800,soft_max=300):
+   user = notes[0].owner
+   nwords = [ca.note_words(x)[1] for x in notes.values("contents")]
+   
+   nchars_  = [len(x["contents"].strip()) for x in notes.values("contents")]
+   nchars = [x for x in nchars_ if x < soft_max]
+
+   r.png(file='/dev/null',width=width,height=height)
+   breaks=[x for x in xrange(soft_max)]
+   nchars = r.hist(c(nchars),breaks=c(breaks))[1]
+   r('dev.off()')
+   
+   r.png(file=make_filename(filename),width=width,height=height)
+   nwords_ = [x for x in nwords]
+   nwords = [x for x in nwords if x < soft_max]
+
+   hh = r.hist(c(nwords),breaks=c(breaks),labels=c(breaks), freq=True,xlab='',ylab='',main='length of notes (in words) %s (%d)' % (user.email,len(notes)))
+   print len(breaks)," ", len(nchars)
+   print nchars
+   r.lines(c(breaks[:-1]),nchars,col='green')
+   r.text(r.c(3.0/4.0*soft_max),r.c(3.0/4.8*max(hh[1])+0.1*max(hh[1])),"notes min-median-mode-max: %f %f %f %f" % (min(nwords_),median(nwords_),ca.mode(nwords_),max(nwords_)))
+   r.text(r.c(3.0/4.0*soft_max),r.c(3.0/4.8*max(hh[1])),"char min-median-mode-max: %f %f %f %f" % (min(nchars_),median(nchars_),ca.mode(nchars_),max(nchars_)))
+
+   r('dev.off()')
+   return hh
+
+def batch(fn,users,batchpath):
+   import sys
+   index = 0
+   for u in users:
+      print u,len(u.note_owner.all())
+      try:
+         fn(u.note_owner.all(),filename=('%s/%d'%(batchpath,index)))
+         index = index + 1
+      except:
+         try:
+            print sys.exc_info();
+            r('dev.off()')
+         except:
+            pass
+      pass
+   pass
+
+batch_note_words = lambda users,batchpath="note_words/": batch(plot_note_words_hist, users, batchpath)
+
+## this method goes and performs all plots a user at a time
+
+def batch_juxtapose(users):
+   import sys,jv3.study.wNotes
+   fns = [
+      lambda n,i:("lifeline-%d"%i,wNotes.mPlot("lifeline-%d"%i,n,'lifetime for notes %s' % n[0].owner.email)),
+      lambda n,i:("edit-recency-%d"%i,edit_recency(n,filename="edit-recency-%d"%i)),
+      lambda n,i:("delete-recency-%d"%i,edit_recency(n,action='note-delete',filename="delete-recency-%d"%i,nuke_consecutive_edits=False)),
+      lambda n,i:("note-length-%d" % i,plot_note_words_hist(n,filename="note-length-%d"%i,soft_max=500))
+   ];      
+      
+          
+   index = 0
+   for u in users:
+      nonblank = [u for u in note_owner.all() if len(u.contents.strip()) > 0]
+      try:
+         fnames = []
+         for f in fn:
+            fname, foo = fn(nonblank,index)
+            fnames.push(fname)
+         html = " &nbsp; ".join(tothumbimg(fnames)) + htmlnotes(nonblank)
+         index = index + 1
+      except:
+         try:
+            print sys.exc_info();
+            r('dev.off()')
+         except:
+            pass
+      pass
+   pass
+
+# nc.batch_note_words(interesting_consenting)
