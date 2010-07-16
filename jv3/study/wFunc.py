@@ -38,7 +38,7 @@ def mmmPlot(filename, notes,  title='title', make_filename=''):
   points = {'note-add':r.c(),'note-save':r.c(),'note-delete':r.c()}
   births , deaths = {}, {}
   today = time.time()*1000.0
-  r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=6400,h=3200) ## 3200x1600, 9600x4800, 12.8x6.4
+  r.png(file = filename, w=6400,h=3200) ## 3200x1600, 9600x4800, 12.8x6.4
   cc=[x['created'] for x in notes.values('created')]
   dd=allLogs.values('when')
   firstBirthEver = 1217622560992.0
