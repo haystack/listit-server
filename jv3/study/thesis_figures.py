@@ -16,6 +16,9 @@ from numpy import array
 from django.db.models.query import QuerySet
 from jv3.study.ca_plot import make_filename
 import jv3.study.exporter as exporter
+import jv3.study.wNotes as w
+import jv3.study.wFunc as wF
+import jv3.study.wBar as wB
 r = ro.r
 c = lambda vv : apply(r.c,vv)
 
@@ -275,7 +278,6 @@ def plot_note_words_hist(notes,filename="num_words",width=1024,height=800,soft_m
    return hh
 
 def batch(fn,users,batchpath):
-   import sys
    index = 0
    for u in users:
       print u,len(u.note_owner.all())
@@ -350,18 +352,15 @@ def juxtapose_notes(notes):
 def batch_juxtapose(users,basedir):
    ca.make_feature=lambda k,v:(k,v)
    cadt.make_feature=lambda k,v:(k,v)      
-   import sys
-   import jv3.study.wNotes as w
-   import jv3.study.wFunc as wF
-   import jv3.study.wBar as wB
+   
    cap.set_basedir(basedir)
    html = ''   
    fns = [
       lambda n,i:("lifeline-%d"%i,wF.mmmPlot("lifeline-%d"%i,n,'lifetime for notes %s' % n[0].owner.email)),  ## modified to wF.mmmPlot  (also, title is being over-written, will change soon)
       lambda n,i:("edit-recency-%d"%i,edit_recency(n,filename="edit-recency-%d"%i)),
       lambda n,i:("delete-recency-%d"%i,edit_recency(n,action='note-delete',filename="delete-recency-%d"%i,nuke_consecutive_edits=False)),
-      lambda n,i:("note-length-%d" % i,plot_note_words_hist(n,filename="note-length-%d"%i,soft_max=500))
-      lambda n,i:("periodicity-%d" %i, wB.sBar("periodicity-%d"%i,n[0].owner) ## added
+      lambda n,i:("note-length-%d" % i,plot_note_words_hist(n,filename="note-length-%d"%i,soft_max=500)),
+      lambda n,i:("periodicity-%d" %i, wB.sBar("periodicity-%d"%i,n[0].owner)) ## added
    ];                
    index = 0
    for u in users:
@@ -371,12 +370,13 @@ def batch_juxtapose(users,basedir):
          for fn in fns:
             fname, foo = fn(ns,index)
             fnames.append(fname)
-         html = html +'<div class="user"> %s </div>' % ("".join([juxtapose_imgs(f) for f in fnames]) + '<br><div class="shownotes">show notes</div><div class="notes"' + juxtapose_notes(ns) +"</div>")
+         html = html +'<div class="user">%s: %s </div>' % (u.email,"".join([juxtapose_imgs(f) for f in fnames]) + '<br><div class="shownotes">show notes</div><div class="notes"' + juxtapose_notes(ns) +"</div>")
          index = index + 1
          pass
       except:
-         import sys
+         import traceback
          print sys.exc_info()
+         traceback.print_tb(sys.exc_info()[2])
          try:
             r('dev.off()')
          except:

@@ -56,7 +56,7 @@ def sBar(filename, user, title='title'):
     devoff()
 
 ## How to tell when a note is one 'phrase' repeated over and over? , most of 2.4k notes over 1000 chars are like this!!!!!!!!!!!
-sBar('wt00',gv,"GV's Note Action Periodicities")
+# sBar('wt00',gv,"GV's Note Action Periodicities")
 
 def test_wBar(s):
     sBar('wt'+str(s),gv, "GV Note Action Periodicities")            ## Was 6-11 (accidentally over-wrote 6!)

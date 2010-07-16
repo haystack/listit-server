@@ -36,6 +36,8 @@ interesting_consenting = [ u for u in consenting if u.note_owner.count() > 60 ]
 # participant report
 excluders = [emax,emax2,brenn,gv,wstyke]
 
+
+
 ca.make_feature=lambda k,v:(k,v)
 cadt.make_feature=lambda k,v:(k,v)
 
