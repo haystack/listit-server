@@ -5,8 +5,8 @@ from datetime import datetime as dd  # Stacked Bar Graph Function Helpers
 def sTime(filename, user, title='title'):
     aveSize = lambda a,b: int(float(a)/float(b)) if b != 0 else 0  ## a=quantity of something per how many b elts, if no b, return 0
     msecToDate = lambda msec : dd.fromtimestamp(float(msec)/1000.0)
-    dtToDayMsec = lambda dt: (((dt.weekday()*24+dt.hour)*60+dt.minute)*60+dt.second)*1000 + float(dt.microsecond)/1000.0
-    dtToHourMsec = lambda dt: ((dt.hour*60+dt.minute)*60+dt.second)*1000 + float(dt.microsecond)/1000.0
+    dtToDayMsec = lambda dt: int((((dt.weekday()*24+dt.hour)*60+dt.minute)*60+dt.second)*1000 + float(dt.microsecond)/1000.0)
+    dtToHourMsec = lambda dt: int(((dt.hour*60+dt.minute)*60+dt.second)*1000 + float(dt.microsecond)/1000.0)
     notes = user.note_owner.all()
     allLogs = ActivityLog.objects.filter(owner=user, action__in=['note-add','note-save','note-delete'])
     points = {'note-add':r.c(),'note-save':r.c(),'note-delete':r.c()}
