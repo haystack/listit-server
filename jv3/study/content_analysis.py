@@ -146,6 +146,7 @@ MONTHS=["jan","january",
 make_feature = lambda k,v: {k:v}
 
 note_words = lambda x : make_feature('note_words',len([ w for w in re.compile('\s').split(x["contents"]) if len(w.strip())>0]))
+note_lines = lambda x : make_feature('note_lines',len([ w for w in re.compile('\n').split(x["contents"]) if len(w.strip())>0]))
 note_words_sans_urls = lambda x : make_feature('note_words_sans_urls',note_words(x)['note_words']-note_urls(x)['note_urls'])
 note_edits = lambda(note) : make_feature('note_edits',len(activity_logs_for_note(note,"note-save")))
 note_did_edit = lambda(note) : make_feature('note_did_edit', note_edits(note) > 0)

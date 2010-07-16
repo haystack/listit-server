@@ -15,6 +15,7 @@ from jv3.study.study import *
 from numpy import array
 from django.db.models.query import QuerySet
 from jv3.study.ca_plot import make_filename
+import jv3.study.exporter as exporter
 r = ro.r
 c = lambda vv : apply(r.c,vv)
 
@@ -294,33 +295,93 @@ batch_note_words = lambda users,batchpath="note_words/": batch(plot_note_words_h
 
 ## this method goes and performs all plots a user at a time
 
-def batch_juxtapose(users):
-   import sys,jv3.study.wNotes
+n2vals = lambda n :{"contents":n.contents}
+def htmlesc(text):
+   import cgi
+   return cgi.escape(text)
+
+juxtapose_note = lambda n: "".join(
+   [("<td>%s</td>" % repr(x)) for
+    x
+    in [exporter.makedate_usec(float(n.created)),n.deleted, len(n.contents.strip()),ca.note_words(n2vals(n))[1],ca.note_lines(n2vals(n))[1], n.version,htmlesc(n.contents[:3000])]])
+
+juxtapose_html = lambda body :"""
+<html>
+<head>
+<title>notes juxt</title>
+<script src="http://astroboy.csail.mit.edu/js/sorttable.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="http://astroboy.csail.mit.edu/_studyplots/juxta.css" type="text/javascript"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/jquery-ui.min.js"></script>
+<script type="text/javascript">
+    jQuery(document).ready(function() {
+        // do something
+        jQuery(".shownotes").click(function(e) { console.log("click",jQuery(this)); jQuery(this).parent().find(".notes").slideDown(); });
+    });
+</script>
+</head>
+<body>
+%s
+</body>
+</html>
+""" % body
+
+juxtapose_imgs = lambda fname: ('<a href="%s.png" target="_blank"><img src="thumbs/%s.png"></a>' % (fname,fname))
+
+def juxtapose_notes(notes):
+   innards =  "".join([ "<tr>%s</tr>" % juxtapose_note(n) for n in notes ])   
+   return """
+   <table class="sortable">
+   <thead>
+     <tr>
+     <th>created</th>
+     <th>deleted</th>
+     <th>nchars</th>
+     <th>nwords</th>
+     <th>nlines</th>
+     <th>version</th>
+     <th>contents</th>
+     </tr>
+   </thead>
+     %s
+   </table>
+   """ % innards
+
+def batch_juxtapose(users,basedir):
+   ca.make_feature=lambda k,v:(k,v)
+   cadt.make_feature=lambda k,v:(k,v)      
+   import sys
+   import jv3.study.wNotes as w
+   cap.set_basedir(basedir)
+   html = ''   
    fns = [
-      lambda n,i:("lifeline-%d"%i,wNotes.mPlot("lifeline-%d"%i,n,'lifetime for notes %s' % n[0].owner.email)),
+      lambda n,i:("lifeline-%d"%i,w.mPlot("lifeline-%d"%i,n,'lifetime for notes %s' % n[0].owner.email)),
       lambda n,i:("edit-recency-%d"%i,edit_recency(n,filename="edit-recency-%d"%i)),
       lambda n,i:("delete-recency-%d"%i,edit_recency(n,action='note-delete',filename="delete-recency-%d"%i,nuke_consecutive_edits=False)),
       lambda n,i:("note-length-%d" % i,plot_note_words_hist(n,filename="note-length-%d"%i,soft_max=500))
-   ];      
-      
-          
+   ];                
    index = 0
    for u in users:
-      nonblank = [u for u in note_owner.all() if len(u.contents.strip()) > 0]
       try:
+         ns = u.note_owner.all()     
          fnames = []
-         for f in fn:
-            fname, foo = fn(nonblank,index)
-            fnames.push(fname)
-         html = " &nbsp; ".join(tothumbimg(fnames)) + htmlnotes(nonblank)
+         for fn in fns:
+            fname, foo = fn(ns,index)
+            fnames.append(fname)
+         html = html +'<div class="user"> %s </div>' % ("".join([juxtapose_imgs(f) for f in fnames]) + '<br><div class="shownotes">show notes</div><div class="notes"' + juxtapose_notes(ns) +"</div>")
          index = index + 1
+         pass
       except:
+         import sys
+         print sys.exc_info()
          try:
-            print sys.exc_info();
             r('dev.off()')
          except:
             pass
-      pass
-   pass
+         
+   f = open("%s/index.html" % basedir,'w')
+   f.write(juxtapose_html(html))
+   print "ok!"
+   return len(html)
 
 # nc.batch_note_words(interesting_consenting)
