@@ -13,7 +13,7 @@ import rpy2
 import rpy2.robjects as ro
 from jv3.study.study import *
 from numpy import array
-import jv3.study.f as stuf
+##import jv3.study.f as stuf
 import jv3.study.thesis_figures as tfigs
 import math
 from datetime import datetime as dd  # Stacked Bar Graph Function Helpers
@@ -28,7 +28,7 @@ karger = User.objects.filter(email="karger@mit.edu")
 devoff = lambda : r('dev.off()')
 c = lambda vv : apply(r.c,vv)
 
-def bTime(filename, user):
+def bTime(filename, user, title='title'):
     filename = cap.make_filename(filename)
     COL_SEGMENTS = 2
     ROW_GROUPS = 24
@@ -41,7 +41,7 @@ def bTime(filename, user):
     ##
     notes = user.note_owner.all()
     allLogs = ActivityLog.objects.filter(owner=user, action__in=['note-add','note-save','note-delete'])
-    points = {'note-add':[0 for i in xrange(0,24)],'note-save':[0 for i in xrange(0,24)],'note-delete':[0 for i in xrange(0,24)]}
+    ##points = {'note-add':[0 for i in xrange(0,ROW_GROUPS*COL_SEGMENTS)],'note-save':[0 for i in xrange(0,24)],'note-delete':[0 for i in xrange(0,24)]}
     data = r.matrix(0,nrow=COL_SEGMENTS, ncol=ROW_GROUPS*GROUP_TYPES)
     for log in allLogs:
         noteArr = notes.filter(jid=log.noteid)
@@ -49,9 +49,10 @@ def bTime(filename, user):
             continue          ## have the note (deleted or not)
         note = noteArr[0]
         aDate, bDate = msecToDate(log.when), msecToDate(note.created)
-        aHour = aDate.hour
+        aDay, aHour = aDate.weekday(), aDate.hour
         dIndex = hrsToIndex(0, aHour)
-        points[log.action][dIndex] += 1
+        ##points[log.action][dIndex] += 1
+        data[dIndex] += 1
         if (log.action == 'note-add'):      ## Record Add
             pass
         elif (log.action == 'note-save'):   ## Record Save: Split (edit on day of note.created vs not)
@@ -61,13 +62,13 @@ def bTime(filename, user):
         ##xTime = dtToDayMsec(aDate)
         ##yTime = dtToHourMsec(aDate)##dd(year=1,month=1,day=1, hour=aDate.hour,minute=aDate.minute,microsecond=aDate.microsecond))
         pass
-    r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=2000,h=1000)
+    r.png(file = filename, w=2000,h=1000)
     if title == 'title':
         title = "#Notes:#Logs:Email:ID -- " + str(notes.count()) + ":" + str(allLogs.count()) + ":" + user.email + ":" + str(user.id)
     dayNames = ["Mon","Tues","Wed","Thur","Fri","Sat","Sun","Mon"]
     hourNames = ['midnight', '1am','2am','3am','4am','5am','6am','7am','8am','9am','10am','11am','noon']
-    hourNames.extend(['1pm','2pm','3pm','4pm','5pm','6pm','7pm','8pm','9pm','10pm','11pm','midnight'])
-    r.barplot(data, main=title,ylab='# Action Logs',beside=False, col=colors, names=hourNames)##, width=c(widths))
+    hourNames.extend(['1pm','2pm','3pm','4pm','5pm','6pm','7pm','8pm','9pm','10pm','11pm'])
+    r.barplot(data, main=title,ylab='# Action Logs',beside=False, names=hourNames)##, width=c(widths), col=colors)
     ##
     ##r.barplot(points['note-add'], cex=8.0,col = "green", pch='o',xlab="Day Of Week", ylab="Hour of Day",main=title, axes=False, xlim=r.c(0,7*24*3600*1000), ylim=r.c(0,24*3600*1000))
     ##r.points(points['note-save'], cex=4.0,col = "purple", pch=17)
