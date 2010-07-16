@@ -12,7 +12,7 @@ import rpy2
 import rpy2.robjects as ro
 from jv3.study.study import *
 from numpy import array
-import jv3.study.f as stuf
+## import jv3.study.f as stuf  ## not found / not used??
 r = ro.r
 emax = User.objects.filter(email="emax@csail.mit.edu")[0]
 emax2 = User.objects.filter(email="electronic@gmail.com")[0]

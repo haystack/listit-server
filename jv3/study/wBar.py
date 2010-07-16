@@ -27,11 +27,11 @@ def sBar(filename, user, title='title'):
         actInPastWk = math.fabs(actTD.days) <= 6 ## Both .created and .when  happened within (current day + 6 previous days)
         if (log.action == 'note-add'):      ## Record Add
             data[wksToIndex(birthDay, actDay*GROUP_TYPES+0)] += 1
-            if len(note.contents) > 0 and len(note.contents) < 10000:
+            if ((log.noteText != None) and (log.noteText.count('') > 1) and (log.noteText.count('\n') < 100)):
                 createdSize[actDay][0] += 1   ## Increment: ave note size,
                 ##increment = 0 if note.deleted else 50
                 ##increment = numLines(log.noteText) if log and log.noteText and (numLines(log.noteText) < 1000) else 0
-                increment = note.version*10
+                increment = log.noteText.count('')-1  ##note.version*10
                 createdSize[actDay][1] += int(increment)
         elif (log.action == 'note-save'):   ## Record Save: Split (edit on day of note.created vs not)
             addVal = 1 if actInPastWk else 2
