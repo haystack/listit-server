@@ -21,15 +21,16 @@ def sTime(filename, user, title='title'):
         points[log.action] = r.rbind(points[log.action],c([xTime, yTime]))
         pass
     r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=2000,h=1000)
-    title = "#Notes:#Logs:Email:ID -- " + str(notes.count()) + ":" + str(allLogs.count()) + ":" + user.email + ":" + str(user.id)
+    if title == 'title':
+        title = "#Notes:#Logs:Email:ID -- " + str(notes.count()) + ":" + str(allLogs.count()) + ":" + user.email + ":" + str(user.id)
     dayNames = ["Mon","Tues","Wed","Thur","Fri","Sat","Sun","Mon"]
     hourNames = ['midnight', '1am','2am','3am','4am','5am','6am','7am','8am','9am','10am','11am','noon']
     hourNames.extend(['1pm','2pm','3pm','4pm','5pm','6pm','7pm','8pm','9pm','10pm','11pm','midnight'])
-    r.plot(points['note-add'], cex=8.0,col = "green", pch='o',xlab="Day Of Week", ylab="Hour of Day",main=title, axes=False)
-    r.axis(1, at=c([float(x*24*60*60*1000.0) for x in range(0,8)]), labels=c([x for x in dayNames]), tck=1)
-    r.axis(2, at=c([float(y*60*60*1000.0) for y in range(0,25)]), labels=c([x for x in hourNames]), tck=1)
+    r.plot(points['note-add'], cex=8.0,col = "green", pch='o',xlab="Day Of Week", ylab="Hour of Day",main=title, axes=False, xlim=r.c(0,7*24*3600*1000), ylim=r.c(0,24*3600*1000))
     r.points(points['note-save'], cex=4.0,col = "purple", pch=17)
     r.points(points['note-delete'], cex=4.0,col = "dark red", pch='x')
+    r.axis(1, at=c([float(x*24*60*60*1000.0) for x in range(0,8)]), labels=c([x for x in dayNames]), tck=1)
+    r.axis(2, at=c([float(y*60*60*1000.0) for y in range(0,25)]), labels=c([x for x in hourNames]), tck=1)
     devoff()
 
 sTime('wt001', gv)
