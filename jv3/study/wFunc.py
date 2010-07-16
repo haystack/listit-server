@@ -26,7 +26,8 @@ devoff = lambda : r('dev.off()')
 c = lambda vv : apply(r.c,vv)
 
 ## Given ONE user's notes, plot note attribute (created) vs activitylog attribute (when)
-def mmmPlot(filename, notes,  title='title'):
+def mmmPlot(filename, notes,  title='title', make_filename=''):
+  filename = cap.make_filename(filename)
   ## Meta-data for title
   allLogs = ActivityLog.objects.filter(owner=notes[0].owner, action__in=['note-add','note-save','note-delete'])
   msecToWeek = 1.0/(1000.0*60*60*24*7)
@@ -48,7 +49,6 @@ def mmmPlot(filename, notes,  title='title'):
      if len(noteArr) < 1:
         continue
      note = noteArr[0]
-     ## birth/deahts
      births[note.jid] = note.created
      if not note.deleted and note.jid not in deaths:
         deaths[note.jid] = today
