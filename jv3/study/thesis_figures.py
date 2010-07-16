@@ -352,13 +352,16 @@ def batch_juxtapose(users,basedir):
    cadt.make_feature=lambda k,v:(k,v)      
    import sys
    import jv3.study.wNotes as w
+   import jv3.study.wFunc as wF
+   import jv3.study.wBar as wB
    cap.set_basedir(basedir)
    html = ''   
    fns = [
-      lambda n,i:("lifeline-%d"%i,w.mPlot("lifeline-%d"%i,n,'lifetime for notes %s' % n[0].owner.email)),
+      lambda n,i:("lifeline-%d"%i,wF.mmmPlot("lifeline-%d"%i,n,'lifetime for notes %s' % n[0].owner.email)),  ## modified to wF.mmmPlot  (also, title is being over-written, will change soon)
       lambda n,i:("edit-recency-%d"%i,edit_recency(n,filename="edit-recency-%d"%i)),
       lambda n,i:("delete-recency-%d"%i,edit_recency(n,action='note-delete',filename="delete-recency-%d"%i,nuke_consecutive_edits=False)),
       lambda n,i:("note-length-%d" % i,plot_note_words_hist(n,filename="note-length-%d"%i,soft_max=500))
+      lambda n,i:("periodicity-%d" %i, wB.sBar("periodicity-%d"%i,n[0].owner) ## added
    ];                
    index = 0
    for u in users:
