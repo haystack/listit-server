@@ -11,6 +11,14 @@ def clean_tutorial_notes():
             i+=1
     print "Deleted: ", i, " notes."
 
+
+## Delete all note-order (jid=-1) notes?? Maybe we want these for analysis though...
+## Just don't want them muddling up version average, etc...
+def clean_noteorder():
+    pass
+    
+        
+
 ## Detect/delete notes with text that's been repeated
 def clean_repeat_notes(notes):
     i = 0

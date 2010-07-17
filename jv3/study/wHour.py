@@ -29,16 +29,12 @@ devoff = lambda : r('dev.off()')
 c = lambda vv : apply(r.c,vv)
 
 def bTime(filename, user, title='title'):
-    filename = cap.make_filename(filename)
-    COL_SEGMENTS = 2
-    ROW_GROUPS = 24
-    GROUP_TYPES = 1
+    COL_SEGMENTS, ROW_GROUPS, GROUP_TYPES = 3, 24, 1
     aveSize = lambda a,b: int(float(a)/float(b)) if b != 0 else 0  ## a=quantity of something per how many b elts, if no b, return 0
     msecToDate = lambda msec : dd.fromtimestamp(float(msec)/1000.0)
     dtToDayMsec = lambda dt: int((((dt.weekday()*24+dt.hour)*60+dt.minute)*60+dt.second)*1000 + float(dt.microsecond)/1000.0)
     dtToHourMsec = lambda dt: int(((dt.hour*60+dt.minute)*60+dt.second)*1000 + float(dt.microsecond)/1000.0)
-    hrsToIndex = lambda colSeg, hrOfDay : colSeg + (hrOfDay)*COL_SEGMENTS
-    ##
+    hrsToIndex = lambda colSeg, group, hrOfDay : colSeg + (hrOfDay*GROUP_TYPES+group)*COL_SEGMENTS  # for group in [0,GROUP_TYPES-1]
     notes = user.note_owner.all()
     allLogs = ActivityLog.objects.filter(owner=user, action__in=['note-add','note-save','note-delete'])
     ##points = {'note-add':[0 for i in xrange(0,ROW_GROUPS*COL_SEGMENTS)],'note-save':[0 for i in xrange(0,24)],'note-delete':[0 for i in xrange(0,24)]}
@@ -50,25 +46,27 @@ def bTime(filename, user, title='title'):
         note = noteArr[0]
         aDate, bDate = msecToDate(log.when), msecToDate(note.created)
         aDay, aHour = aDate.weekday(), aDate.hour
-        dIndex = hrsToIndex(0, aHour)
+        ##dIndex = hrsToIndex(0, aHour)
         ##points[log.action][dIndex] += 1
-        data[dIndex] += 1
+        ##data[dIndex] += 1
         if (log.action == 'note-add'):      ## Record Add
-            pass
+            data[hrsToIndex(0,0,aHour)] += 1
         elif (log.action == 'note-save'):   ## Record Save: Split (edit on day of note.created vs not)
-            pass
+            data[hrsToIndex(1,0,aHour)] += 1
         elif (log.action == 'note-delete'): ## Record Death
-            pass
+            data[hrsToIndex(2,0,aHour)] += 1
         ##xTime = dtToDayMsec(aDate)
         ##yTime = dtToHourMsec(aDate)##dd(year=1,month=1,day=1, hour=aDate.hour,minute=aDate.minute,microsecond=aDate.microsecond))
         pass
-    r.png(file = filename, w=2000,h=1000)
+    r.png(file=cap.make_filename(filename), w=2000,h=1000)
     if title == 'title':
         title = "#Notes:#Logs:Email:ID -- " + str(notes.count()) + ":" + str(allLogs.count()) + ":" + user.email + ":" + str(user.id)
     dayNames = ["Mon","Tues","Wed","Thur","Fri","Sat","Sun","Mon"]
     hourNames = ['midnight', '1am','2am','3am','4am','5am','6am','7am','8am','9am','10am','11am','noon']
     hourNames.extend(['1pm','2pm','3pm','4pm','5pm','6pm','7pm','8pm','9pm','10pm','11pm'])
-    r.barplot(data, main=title,ylab='# Action Logs',beside=False, names=hourNames)##, width=c(widths), col=colors)
+    ##names = []
+    ##[names.extend([hrName, '','']) for hrName in hourNames]
+    r.barplot(data, main=title,ylab='# Action Logs',beside=False, names=hourNames, col=r.c('green', 'orange', 'black'))##, width=c(widths), col=colors)
     ##
     ##r.barplot(points['note-add'], cex=8.0,col = "green", pch='o',xlab="Day Of Week", ylab="Hour of Day",main=title, axes=False, xlim=r.c(0,7*24*3600*1000), ylim=r.c(0,24*3600*1000))
     ##r.points(points['note-save'], cex=4.0,col = "purple", pch=17)
@@ -76,3 +74,10 @@ def bTime(filename, user, title='title'):
     ##r.axis(1, at=c([float(x*24*60*60*1000.0) for x in range(0,8)]), labels=c([x for x in dayNames]), tck=1)
     ##r.axis(2, at=c([float(y*60*60*1000.0) for y in range(0,25)]), labels=c([x for x in hourNames]), tck=1)
     devoff()
+
+def plot_bTime():
+    bTime('bt0',em)
+    bTime('bt1',dk)
+    bTime('bt2',brenn)
+
+plot_bTime()
