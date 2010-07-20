@@ -16,9 +16,7 @@ from numpy import array
 from django.db.models.query import QuerySet
 from jv3.study.ca_plot import make_filename
 import jv3.study.exporter as exporter
-import jv3.study.wNotes as w
-import jv3.study.wFunc as wF
-import jv3.study.wBar as wB
+
 r = ro.r
 c = lambda vv : apply(r.c,vv)
 
@@ -350,8 +348,12 @@ def juxtapose_notes(notes):
    """ % innards
 
 def batch_juxtapose(users,basedir):
+   import jv3.study.wNotes as w
+   import jv3.study.wFunc as wF
+   import jv3.study.wBar as wB
+   
    ca.make_feature=lambda k,v:(k,v)
-   cadt.make_feature=lambda k,v:(k,v)      
+   cadt.make_feature=lambda k,v:(k,v)
    
    cap.set_basedir(basedir)
    html = ''   

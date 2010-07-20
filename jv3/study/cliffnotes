@@ -50,6 +50,7 @@ bb = nc.notes_to_note_features(notes)
 [ActivityLog.objects.filter(owner=emax,action="note-add",noteid=n.jid).count() for n in emax.note_owner.order_by('-created')[0:200]]
 [ActivityLog.objects.filter(owner=emax,action="note-add",noteid=n.jid).count() for n in emax.note_owner.order_by('-created')[0:1000]]
 
+[ u.note_owner.filter(deleted=False).count() for u in interesting_consenting ]
 
 ## import f! 
       
