@@ -1,6 +1,35 @@
+import os,sys
+from django.contrib.auth.models import User
+from jv3.models import *
+from jv3.utils import *
+import jv3.study.content_analysis as ca
+import jv3.study.ca_datetime as cadt
+import jv3.study.ca_sigscroll as cass
+import jv3.study.ca_load as cal
+import jv3.study.ca_plot as cap
+import jv3.study.ca_search as cas
+import rpy2
+import rpy2.robjects as ro
+from jv3.study.study import *
+from numpy import array
+import jv3.study.f as stuf
+import jv3.study.thesis_figures as tfigs
+r = ro.r
+emax = User.objects.filter(email="emax@csail.mit.edu")[0]
+emax2 = User.objects.filter(email="electronic@gmail.com")[0]
+brenn = User.objects.filter(email="brennanmoore@gmail.com")[0]
+gv = User.objects.filter(email="gvargas@mit.edu")[0]
+wstyke = User.objects.filter(email="wstyke@gmail.com")[0]
+katfang = User.objects.filter(email="justacopy@gmail.com")
+karger = User.objects.filter(email="karger@mit.edu")
+devoff = lambda : r('dev.off()')
+c = lambda vv : apply(r.c,vv)
+
 import math
 from datetime import datetime as dd  # Stacked Bar Graph Function Helpers
+
 def sBar(filename, user, title='title'):
+    from jv3.study.ca_plot import make_filename
     numLines = lambda txt: len(txt.splitlines())-txt.splitlines().count('')
     aveSize = lambda a,b: int(float(a)/float(b)) if b != 0 else 0  ## a=quantity of something per how many b elts, if no b, return 0
     wksToIndex = lambda rowWeek, colWeek : rowWeek + (colWeek)*COL_SEGMENTS
@@ -43,7 +72,7 @@ def sBar(filename, user, title='title'):
             addVal = 3 if actInPastWk else 4
             data[wksToIndex(birthDay, actDay*GROUP_TYPES + addVal)] += 1
             pass
-    r.png(file = '/var/listit/www-ssl/_studywolfe/' + filename + '.png', w=1000,h=500)
+    r.png(file = make_filename(filename), w=1000,h=500)
     dayNames = ["Mon","Tues","Wed","Thur","Fri","Sat","Sun"]
     colors = r.c("red", 'orange', 'yellow', 'green', 'blue', 'grey', 'brown')
     title = "#Notes:#Logs:Email:ID -- " + str(notes.count()) + ":" + str(allLogs.count()) + ":" + user.email + ":" + str(user.id)
