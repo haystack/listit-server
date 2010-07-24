@@ -106,6 +106,7 @@ def notes_to_bow_features(notes,
 ## FEATURE COMPUTERS ##################################################################################
 ## given a note, returns features of that note
 
+# values version
 def note_lifetime(note):
     ndt = get_note_deletion_time(note)
     if ndt is not None and ndt > 0:

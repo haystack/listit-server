@@ -1,0 +1,46 @@
+* {
+    vertical-align:top;
+}
+body {
+  font-family:sans-serif;
+}
+td {
+    font-size:9pt;
+    max-width:500px;
+    overflow:none;
+}
+
+.user {
+    border: solid 1px black;
+    margin:0px;
+    padding:10px;
+}
+.notes {
+    display:none;
+    margin:10px;
+    padding:10px;
+}
+.note_olde {
+   display:none;
+   color:#eeeeee;
+}
+.add {
+   color:black;
+   background-color:#cccc99;
+}
+.edit {
+   background-color:#ffffcc;
+   color:black;
+}
+.commentfield {
+    width:100%;
+    display:none;
+}
+.userstats {
+   font-size:80%;
+   font-weight:bold;
+}
+.userstats .val {
+   font-size:100%;
+   color:#ee00bb;
+}

@@ -16,6 +16,7 @@ from numpy import array
 from django.db.models.query import QuerySet
 from jv3.study.ca_plot import make_filename
 import jv3.study.exporter as exporter
+import json
 
 r = ro.r
 c = lambda vv : apply(r.c,vv)
@@ -76,8 +77,7 @@ def cumulative_registrations(width=1000,height=700):
 # @see edit_recency below
 def cumulative_time_till_delete(notes,filename='ttd',width=1280,height=800,xlim_days=90):
    tlim = 24*60*60*xlim_days
-   deletions = dict([(x[0],float(x[1]/1000)) for x in
-                ActivityLog.objects.filter(owner=notes[0].owner,noteid__in=[x.jid for x in notes],action='note-delete').values_list('noteid','when')])
+   deletions = dict([(x[0],float(x[1]/1000)) for x in ActivityLog.objects.filter(owner=notes[0].owner,noteid__in=[x.jid for x in notes],action='note-delete').values_list('noteid','when')])
    creations = dict([(x[0],float(x[1])/1000) for x in notes.values_list('jid','created')])
    
    d1 = [ (deletions[d] - creations[d]) for d in deletions.keys() if d in creations.keys()]
@@ -139,7 +139,7 @@ def edit_recency(notes,action='note-save',filename='recency',width=1280,height=1
     # filter things out
     edits_since_creation_all = [x for x in edits_since_creation_all if x < max(breaks) and x > 0]    
     
-    print max(breaks), max(edits_since_creation_all), max(breaks)-max(edits_since_creation_all)
+    # print max(breaks), max(edits_since_creation_all), max(breaks)-max(edits_since_creation_all)
     r.png(file=make_filename(filename),width=width,height=height)
     r.hist(c(edits_since_creation_all),breaks=c(breaks),labels=c(breaklabels),freq=True,xlab='',ylab='',main='frequency of edits to notes (measured in time since creation) %s' % user.email)
     r('dev.off()')
@@ -296,16 +296,56 @@ batch_note_words = lambda users,batchpath="note_words/": batch(plot_note_words_h
 ## this method goes and performs all plots a user at a time
 
 n2vals = lambda n :{"contents":n.contents}
+text2vals = lambda ntext :{"contents":ntext}
+
 def htmlesc(text):
+   if text is None: return "<None>"
    import cgi
-   return cgi.escape(text)
+   return cgi.escape(text).replace('\n','<br>')
 
-juxtapose_note = lambda n: "".join(
-   [("<td>%s</td>" % repr(x)) for
-    x
-    in [exporter.makedate_usec(float(n.created)),n.deleted, len(n.contents.strip()),ca.note_words(n2vals(n))[1],ca.note_lines(n2vals(n))[1], n.version,htmlesc(n.contents[:3000])]])
+njidtodel={}
+def time_till_deletion(n):
+   global njidtodel
+   if n.owner.email not in njidtodel:
+      njidtodel[n.owner.email] = dict([(jid,float(when)-float(n.created)) for jid,when in ActivityLog.objects.filter(owner=n.owner,action="note-delete").values_list("noteid","when")])
+   return njidtodel[n.owner.email].get(n.jid,None)
 
-juxtapose_html = lambda body :"""
+juxtapose_n_props = lambda n_created,n_text,n : "".join(
+   [("<td>%s</td>" % repr(x)) for x in [
+         exporter.makedate_usec(float(n_created)),
+         (time_till_deletion(n)/(24*60*60*1000) if time_till_deletion(n) is not None else "-?-") if n.deleted else "NOT DELETED",        
+         len(n_text) if n_text is not None else 0,
+         ca.note_words(text2vals(n_text))[1] if n_text is not None else 0,
+         ca.note_lines(text2vals(n_text))[1] if n_text is not None else 0,
+         n.version,
+         htmlesc(n_text)         
+    ]])
+
+njidtosave={}
+def juxtapose_note(n):
+   ## cache all the note-saves, build chronological revision array { user.id : { noteid: (when, contents), (when, contents) , ... } }
+   global njidtosave
+   if n.owner.email not in njidtosave:
+      person = {}
+      for when,noteid,contents,action in ActivityLog.objects.filter(owner=n.owner,action__in=["note-add","note-save"]).values_list("when","noteid","noteText","action"):
+         person[noteid] = person.get(noteid,[]) + [(float(when),contents,action)]
+      for nid,edits in person.iteritems():
+         edits.sort(key=lambda x:-x[0]) # reverse
+      njidtosave[n.owner.email] = person
+      pass
+   olde = ""
+   if n.jid in njidtosave[n.owner.email]:
+      olde = ''.join(['<tr class="note_olde %s" jid="%s" owner="%s" version="%s">%s</tr>' %
+                      ("add" if action == "note-add" else "edit", n.jid, n.owner.email, n.version, juxtapose_n_props(when,text,n)) for when,text,action in njidtosave[n.owner.email][n.jid]])
+   newe = '<tr jid="%s" owner="%s" version="%s" class=\"note_current\">%s</tr>' % (n.jid,n.owner.email,n.version,juxtapose_n_props(n.created,n.contents,n))
+   return newe + olde
+
+juxtapose_make_fname = lambda i: "index-%d.html" % i
+
+def juxtapose_make_range(start,end,step):
+   return' &nbsp '.join(['<a href="'+juxtapose_make_fname(i)+'"> [%d] </a>' % i for i in xrange(start,end+step,step)])
+
+juxtapose_html = lambda body,range_start,range_end,range_step :"""
 <html>
 <head>
 <title>notes juxt</title>
@@ -313,80 +353,181 @@ juxtapose_html = lambda body :"""
 <link rel="stylesheet" type="text/css" href="http://astroboy.csail.mit.edu/_studyplots/juxta.css" type="text/javascript"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/jquery-ui.min.js"></script>
-<script type="text/javascript">
-    jQuery(document).ready(function() {
-        // do something
-        jQuery(".shownotes").click(function(e) { console.log("click",jQuery(this)); jQuery(this).parent().find(".notes").slideDown(); });
-    });
-</script>
+<script type="text/javascript" src="http://astroboy.csail.mit.edu/_studyplots/juxta.js"></script>
 </head>
 <body>
 %s
+<hr>
+%s
+<hr>
+%s
 </body>
 </html>
-""" % body
+""" % (juxtapose_make_range(range_start,range_end,range_step),body,juxtapose_make_range(range_start,range_end,range_step))
 
 juxtapose_imgs = lambda fname: ('<a href="%s.png" target="_blank"><img src="thumbs/%s.png"></a>' % (fname,fname))
 
+def juxta_basicstats(u):
+   ns = u.note_owner
+   nvals = u.note_owner.values()
+   stats = (
+      ("N", ns.count()),  ## number of notes
+      ("keep/del" ,"%s/%s" % (ns.filter(deleted=0).count(),ns.filter(deleted=1).count())),
+      ("s:", exporter.makedate_usec(  min([float(x['created']) for x in nvals]) )),
+      ("l:", exporter.makedate_usec(  max([float(x['edited']) for x in nvals]) )),
+      ("|words|", mean([ca.note_words(nvs)[1] for nvs in nvals])),
+      ("|chars|",  mean([len(nvs['contents'].strip()) for nvs in nvals])),
+      ("|urls%|",sum([1 for nvs in nvals if ca.note_urls(nvs)[1] > 0])/(1.0*ns.count())*100)
+   )
+   return '<span class="userstats">%s</span>' % "; ".join([ '%s: <span class="val">%s</span>' %
+                                                            (k,v) for k,v in stats])      
+
 def juxtapose_notes(notes):
-   innards =  "".join([ "<tr>%s</tr>" % juxtapose_note(n) for n in notes ])   
+   innards =  "".join([juxtapose_note(n) for n in notes])   
    return """
    <table class="sortable">
    <thead>
      <tr>
-     <th>created</th>
+     <th>created </th>
      <th>deleted</th>
      <th>nchars</th>
      <th>nwords</th>
      <th>nlines</th>
      <th>version</th>
-     <th>contents</th>
+     <th>text</th>
      </tr>
    </thead>
+   <tbody>
      %s
+   </tbody>
    </table>
    """ % innards
 
-def batch_juxtapose(users,basedir):
+
+def juxtapose_user(u,user_index):
+
    import jv3.study.wNotes as w
    import jv3.study.wFunc as wF
    import jv3.study.wBar as wB
-   
-   ca.make_feature=lambda k,v:(k,v)
-   cadt.make_feature=lambda k,v:(k,v)
-   
-   cap.set_basedir(basedir)
-   html = ''   
-   fns = [
+
+   juxtapose_fns = [
       lambda n,i:("lifeline-%d"%i,wF.mmmPlot("lifeline-%d"%i,n,'lifetime for notes %s' % n[0].owner.email)),  ## modified to wF.mmmPlot  (also, title is being over-written, will change soon)
       lambda n,i:("edit-recency-%d"%i,edit_recency(n,filename="edit-recency-%d"%i)),
       lambda n,i:("delete-recency-%d"%i,edit_recency(n,action='note-delete',filename="delete-recency-%d"%i,nuke_consecutive_edits=False)),
       lambda n,i:("note-length-%d" % i,plot_note_words_hist(n,filename="note-length-%d"%i,soft_max=500)),
       lambda n,i:("periodicity-%d" %i, wB.sBar("periodicity-%d"%i,n[0].owner)) ## added
-   ];                
+   ]
+   
+   ns = u.note_owner.all()     
+   fnames = []
+   for fn in juxtapose_fns:
+      fname, foo = fn(ns,user_index)
+      fnames.append(fname)
+   return '<div class="user" owner="%s">%s (%s): %s<br>%s<br>%s</div>' % (u.email,
+                                                                          u.email,
+                                                                          juxta_basicstats(u),
+                                                                          '<span class="comments">[ comments ]</span><textarea class="commentfield">**COMMENT SERVER DOWN DO NOT LEAVE COMMENTS**</textarea>',
+                                                                          "".join([juxtapose_imgs(f) for f in fnames]),
+                                                                          '<div class="shownotes">notes</div><div class="notes"' + juxtapose_notes(ns) +"</div>"
+                                                                          )
+
+def batch_juxtapose(users,basedir):
+   ca.make_feature=lambda k,v:(k,v)
+   cadt.make_feature=lambda k,v:(k,v)
+   
+   cap.set_basedir(basedir)
+   html = ''   
    index = 0
-   for u in users:
-      try:
-         ns = u.note_owner.all()     
-         fnames = []
-         for fn in fns:
-            fname, foo = fn(ns,index)
-            fnames.append(fname)
-         html = html +'<div class="user">%s: %s </div>' % (u.email,"".join([juxtapose_imgs(f) for f in fnames]) + '<br><div class="shownotes">show notes</div><div class="notes"' + juxtapose_notes(ns) +"</div>")
-         index = index + 1
-         pass
-      except:
-         import traceback
-         print sys.exc_info()
-         traceback.print_tb(sys.exc_info()[2])
+   set_len = 10
+   for user_n_slice in [slice(x,x+set_len) for x in xrange(0,len(users),set_len)]:
+      uset = users[user_n_slice]
+      for u in uset:
          try:
-            r('dev.off()')
-         except:
+            html = html + juxtapose_user(u,index)
+            index = index + 1
             pass
-         
-   f = open("%s/index.html" % basedir,'w')
-   f.write(juxtapose_html(html))
-   print "ok!"
+         except:
+            import traceback
+            print sys.exc_info()
+            traceback.print_tb(sys.exc_info()[2])
+            try:
+               r('dev.off()')
+            except:
+               pass
+
+      filename = "%s/%s" % (basedir,juxtapose_make_fname(user_n_slice.start))
+      f = open(filename,'w')
+      print "writing ",filename
+      f.write(juxtapose_html(html,
+                             user_n_slice.start,
+                             user_n_slice.stop,
+                             set_len))
+      f.close()
    return len(html)
 
 # nc.batch_note_words(interesting_consenting)
+
+
+## supporting comments
+def _comments_read():
+   import csv,settings,time
+   f0 = "%s/%s" % (settings.THESIS_FIGURE_STUDY_DB,"index.csv")
+   datas = {}
+   if os.path.isfile(f0):
+      F = open(f0,'r')
+      rdr = csv.reader(F)
+      datas = dict([(r[0],r[1]) for r in rdr])
+      F.close()
+   return datas
+
+def _comments_write(comments):
+   import csv,settings,time
+   f0 = "%s/%s" % (settings.THESIS_FIGURE_STUDY_DB,"index.csv")
+   f1 = "%s/%s" % (settings.THESIS_FIGURE_STUDY_DB,"index-%s.csv" % time.ctime().replace(' ','_'))
+   for f in [f0,f1]:
+      print f
+      F = open(f,'w')
+      wtr = csv.writer(F)
+      [ wtr.writerow([uuid,comm]) for uuid,comm in comments.iteritems() ]
+      F.close()
+      pass
+   pass
+
+def _get_comment(uid):
+   print uid
+   return _comments_read().get(uid,"")
+
+def _save_comment(uid,comment):
+   hs = _comments_read()
+   hs[uid] = comment
+   _comments_write(hs)
+   return hs
+        
+# non-jsonp        
+def get_comments(request):
+   return HttpResponse(json.dumps(_comments_read()),"text/json")
+
+def get_comments_view_jsonp(request):
+   try :   
+      callback = request.GET['callback']
+      return HttpResponse('%s(%s)' % (callback, json.dumps(_comments_read())),"text/json")
+   except:
+      import traceback
+      print sys.exc_info()
+      traceback.print_tb(sys.exc_info()[2])      
+   
+def update_comment_view_jsonp(request):
+   try :
+      print request.GET.keys()
+      print request.raw_post_data
+      callback = request.GET['callback']
+      uid = request.GET['uid']
+      comment = request.GET['comment']
+      print "COMMENTSAVE %s : %s " % (uid, comment)
+      _save_comment(uid,comment)     
+      return HttpResponse('%s(%s)' % (callback, json.dumps({"status":'ok'})),"text/json")
+   except:
+      import traceback
+      print sys.exc_info()
+      traceback.print_tb(sys.exc_info()[2])      
+   
