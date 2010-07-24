@@ -1,5 +1,4 @@
 ##python manage.py shell
-## startup
 from django.contrib.auth.models import User
 from jv3.models import *
 from jv3.utils import *

@@ -27,6 +27,7 @@ c = lambda vv : apply(r.c,vv)
 
 ## Given ONE user's notes, plot note attribute (created) vs activitylog attribute (when)
 def mmmPlot(filename, notes,  title='title', make_filename=''):
+  firstBirthEver = 1217622560992.0
   filename = cap.make_filename(filename)
   ## Meta-data for title
   allLogs = ActivityLog.objects.filter(owner=notes[0].owner, action__in=['note-add','note-save','note-delete'])
@@ -41,7 +42,6 @@ def mmmPlot(filename, notes,  title='title', make_filename=''):
   r.png(file=filename, w=6400,h=3200) ## 3200x1600, 9600x4800, 12.8x6.4
   cc=[x['created'] for x in notes.values('created')]
   dd=allLogs.values('when')
-  firstBirthEver = 1217622560992.0
   minBirth, maxBirth = float(min(cc)), float(max(cc))                        ## Week 2011 was first week of listit
   minAction, maxAction = float(min(dd)['when']), float(max(dd)['when'])
   for log in allLogs:
@@ -67,12 +67,12 @@ def mmmPlot(filename, notes,  title='title', make_filename=''):
   r.points(points['note-delete'], cex=4.0,col = "dark red", pch='x')
   for x in births.keys():
      if x in deaths:
-        if today - deaths[x] < 0.001 :
-           color = 'green'
-        else:
-           color = 'black'
-        r.lines(c([float(births[x])]*2),c([float(births[x]),float(deaths[x])]), col=color)
-        pass
+       if today - deaths[x] < 0.001 :
+         color = 'green'
+       else:
+         color = 'black'
+         r.lines(c([float(births[x])]*2),c([float(births[x]),float(deaths[x])]), col=color)
+         pass
   devoff()
 
 def test_mmmPlot():
