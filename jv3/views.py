@@ -179,7 +179,6 @@ def notes_post_multi(request):
         response.status_code = 200;
         return response
 
-    print "Starting datum iterator"
     for datum in JSONDecoder().decode(request.raw_post_data):
         ## print "datum : %s "% repr(datum)
         ## print datum
@@ -197,16 +196,13 @@ def notes_post_multi(request):
             ## something didn't pass form validation
             logevent(request,'Note.create',400,form.errors)
             responses.append({"jid":form.data['jid'],"status":400})
-            print "CREATE form errors %s " % repr(form.errors)
             continue
         else:
-            print "UPDATE an existing note"
+            # print "UPDATE an existing note"
             ## check if the client version needs updating
             if len(matching_notes) > 1:  print "# of Matching Notes : %d " % len(matching_notes)
     
             if (matching_notes[0].version > form.data['version']):
-                errormsg = "Versions for jid %d not compatible (local:%d, received: %d). Do you need to update? "  % (form.data["jid"],matching_notes[0].version,form.data["version"])
-                ##print "NOT UPDATED error -- server: %d, YOU %d " % (matching_notes[0].version,form.data['version'])
                 responses.append({"jid":form.data['jid'],"status":400})
                 continue            
             # If the data contains no errors, migrate the changes over to
@@ -488,8 +484,10 @@ class ActivityLogCollection(Collection):
         try:
             most_recent_activity = get_most_recent(user_activity.filter(client=self._get_client(request)))
             if most_recent_activity:
-                #print "MOST RECENT ACTIVITY matching client  %s - %s " % (self._get_client(request),most_recent_activity.when)
-                return HttpResponse(JSONEncoder().encode({'value':int(most_recent_activity.when)}), self.responder.mimetype)
+                return HttpResponse(JSONEncoder().encode({
+                            'value':int(most_recent_activity.when),
+                            'num_logs':len(user_activity.filter(client=self._get_client(request))),
+                            }), self.responder.mimetype)
             return self.responder.error(request, 404, ErrorDict({"value":"No activity found"}));
         except:
             print sys.exc_info()

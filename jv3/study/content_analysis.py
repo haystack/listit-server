@@ -654,8 +654,5 @@ def subset_test(notevals,nf,nctest=all_pass,nftest=all_pass):
 def subset_values(notevals,nf,key,nctest=all_pass,nftest=all_pass):
     return [nf[key] for nid,nf in subset_test(notevals,nf,nctest,nftest)[1].iteritems()]
 
-        
 
-            
-        
     
