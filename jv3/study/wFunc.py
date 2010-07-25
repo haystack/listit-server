@@ -78,3 +78,21 @@ def mmmPlot(filename, notes,  title='title', make_filename=''):
 def test_mmmPlot():
   mmmPlot('wt0',emn)
   mmmPlot('wt1',dkn)
+
+
+def makeACUPlots():
+    i=0
+    path = 'acu/note_life2/'
+    print "Start time: ", time.gmtime()
+    startTime = time.time()
+    for user in u:
+        uNotes = Note.objects.filter(owner=user)
+        uLogs = ActivityLog.objects.filter(owner=user, action__in=['note-add','note-save','note-delete'])
+        if (((uNotes.count() >= 120) or (uLogs.count() >= 120)) and ((uNotes.count() >= 50) and (uLogs.count() >= 50))):
+            mmmPlot(path+str(i)+"-"+str(user.id), uNotes)
+            i += 1
+            pass
+        pass
+    print "Users processed: ", str(i) , " out of: ", str(len(u))
+    print "Finish time: ", time.gmtime()
+    finishTime = time.time()
