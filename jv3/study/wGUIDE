@@ -9,15 +9,37 @@ wNotes.py -> Helper functions for graphing
 -- Single function files:
 
 wBar.py -> Plots number of ActivityLogs for (created, edited w/in 1wk of creation, edited other, and deleted similarly to edited) for each day of the week
+  five vert. bars per day of week
+
 
 wVerUrl.py -> plots notes from a user with x-axis:version and y-axis:# of notes that are in (each version and have a url in each version)
+  
 
-wAge.py -> ## Plot of X-axis: age of a user's notes (birth to death), Y-axis: Try to correlate something with age!! 
+wVer.py ->
+  x-axis: version of notes: 1,2,3...
+  y-axis: plot # of notes for each ver AND some other statistic
 
-wFunc.py  --> ## Given ONE user's notes, plot note attribute (created) vs activitylog attribute (when)    
+  ...check if some statistic about notes correlates with version...
 
-wHour.py -> ## Stacked bar-graph showing hourly usage of List.it: X-Axis: hour of day, Y-axis: Quantity of creates/edits/deletes       
 
-wTime.py -> ## For a scatter plot of:   x-axis:day of week,  y-axis:time of day  
+wAge.py -> 
+  x-axis: age of user's notes (birth to death)
+  y-axis: #TODO# try to correlate something with age!
+
+
+wFunc.py - for one user's notes:
+  x-axis: created
+  y-axis: activityLog's when
+  ...note-lifetime graph showing all note's creation, lifetime, edits, and deletions...
+
+wHour.py -> 
+  ## Stacked bar-graph showing hourly usage of List.it
+  x-axis: hour of day
+  y-axis: # of creates(green)/edits/deletes(black)
+
+wTime.py -> ## For a scatter plot of:   #TODO#: fix time-shift bug here and in wHour.py!
+  x-axis: day of week
+  y-axis: time of day
+  ...shows note creations, edits, deletes in a scatterplot based on when each happend...
 
 wClean.py -> Cleaning database - jid=-1, 'tutorial note', bug notes (ie: 1 line repeating hundreds of times)
