@@ -301,28 +301,37 @@ text2vals = lambda ntext :{"contents":ntext}
 def htmlesc(text):
    if text is None: return "<None>"
    import cgi
-   return cgi.escape(text).replace('\n','<br>')
+   return cgi.escape(text).replace('\n','<br>').encode('ascii','ignore')
 
 njidtodel={}
 def time_till_deletion(n):
    global njidtodel
    if n.owner.email not in njidtodel:
-      njidtodel[n.owner.email] = dict([(jid,float(when)-float(n.created)) for jid,when in ActivityLog.objects.filter(owner=n.owner,action="note-delete").values_list("noteid","when")])
+      vs = ActivityLog.objects.filter(owner=n.owner,action="note-delete").values_list("noteid","when")
+      
+      max_deletes = {}
+      for jid,when in vs:
+         if not (jid in max_deletes) or max_deletes[jid] < float(when):
+            max_deletes[jid] = float(when)
+            
+      njidtodel[n.owner.email] = dict([(jid, (when-float(n.created))) for jid,when in max_deletes.iteritems()])
    return njidtodel[n.owner.email].get(n.jid,None)
 
-juxtapose_n_props = lambda n_created,n_text,n : "".join(
+juxtapose_n_props = lambda i,n_created,n_text,n : "".join(
    [("<td>%s</td>" % repr(x)) for x in [
+         i,
+         int(n.jid),
          exporter.makedate_usec(float(n_created)),
          (time_till_deletion(n)/(24*60*60*1000) if time_till_deletion(n) is not None else "-?-") if n.deleted else "NOT DELETED",        
          len(n_text) if n_text is not None else 0,
          ca.note_words(text2vals(n_text))[1] if n_text is not None else 0,
          ca.note_lines(text2vals(n_text))[1] if n_text is not None else 0,
-         n.version,
+         int(n.version),
          htmlesc(n_text)         
     ]])
 
 njidtosave={}
-def juxtapose_note(n):
+def juxtapose_note(i,n):
    ## cache all the note-saves, build chronological revision array { user.id : { noteid: (when, contents), (when, contents) , ... } }
    global njidtosave
    if n.owner.email not in njidtosave:
@@ -336,16 +345,16 @@ def juxtapose_note(n):
    olde = ""
    if n.jid in njidtosave[n.owner.email]:
       olde = ''.join(['<tr class="note_olde %s" jid="%s" owner="%s" version="%s">%s</tr>' %
-                      ("add" if action == "note-add" else "edit", n.jid, n.owner.email, n.version, juxtapose_n_props(when,text,n)) for when,text,action in njidtosave[n.owner.email][n.jid]])
-   newe = '<tr jid="%s" owner="%s" version="%s" class=\"note_current\">%s</tr>' % (n.jid,n.owner.email,n.version,juxtapose_n_props(n.created,n.contents,n))
+                      ("add" if action == "note-add" else "edit", n.jid, n.owner.email, n.version, juxtapose_n_props(i,when,text,n)) for when,text,action in njidtosave[n.owner.email][n.jid]])
+   newe = '<tr jid="%s" owner="%s" version="%s" class=\"note_current\">%s</tr>' % (n.jid,n.owner.email,n.version,juxtapose_n_props(i,n.created,n.contents,n))
    return newe + olde
 
-juxtapose_make_fname = lambda i: "index-%d.html" % i
-
+def juxtapose_make_fname(i):
+   return "index-%d.html" % i
 def juxtapose_make_range(start,end,step):
    return' &nbsp '.join(['<a href="'+juxtapose_make_fname(i)+'"> [%d] </a>' % i for i in xrange(start,end+step,step)])
-
-juxtapose_html = lambda body,range_start,range_end,range_step :"""
+def juxtapose_html(body,range_end,range_step):
+   return """
 <html>
 <head>
 <title>notes juxt</title>
@@ -363,7 +372,9 @@ juxtapose_html = lambda body,range_start,range_end,range_step :"""
 %s
 </body>
 </html>
-""" % (juxtapose_make_range(range_start,range_end,range_step),body,juxtapose_make_range(range_start,range_end,range_step))
+""" % (juxtapose_make_range(0,range_end,range_step),
+       body,
+       juxtapose_make_range(0,range_end,range_step))
 
 juxtapose_imgs = lambda fname: ('<a href="%s.png" target="_blank"><img src="thumbs/%s.png"></a>' % (fname,fname))
 
@@ -374,20 +385,23 @@ def juxta_basicstats(u):
       ("N", ns.count()),  ## number of notes
       ("keep/del" ,"%s/%s" % (ns.filter(deleted=0).count(),ns.filter(deleted=1).count())),
       ("s:", exporter.makedate_usec(  min([float(x['created']) for x in nvals]) )),
-      ("l:", exporter.makedate_usec(  max([float(x['edited']) for x in nvals]) )),
+      ("l:", exporter.makedate_usec(  max([ float(x['edited']) for x in nvals] + [ float(x['created']) for x in nvals ]))),
       ("|words|", mean([ca.note_words(nvs)[1] for nvs in nvals])),
       ("|chars|",  mean([len(nvs['contents'].strip()) for nvs in nvals])),
-      ("|urls%|",sum([1 for nvs in nvals if ca.note_urls(nvs)[1] > 0])/(1.0*ns.count())*100)
+      ("|urls%|",sum([1 for nvs in nvals if ca.note_urls(nvs)[1] > 0])/(1.0*ns.count())*100),
+      ("|#vers|",mean([float(nvs['version']) for nvs in nvals]))
    )
    return '<span class="userstats">%s</span>' % "; ".join([ '%s: <span class="val">%s</span>' %
                                                             (k,v) for k,v in stats])      
 
 def juxtapose_notes(notes):
-   innards =  "".join([juxtapose_note(n) for n in notes])   
+   innards =  "".join([juxtapose_note(i,notes[i]) for i in xrange(len(notes))])   
    return """
    <table class="sortable">
    <thead>
      <tr>
+     <th>_</th>
+     <th>jid </th>
      <th>created </th>
      <th>deleted</th>
      <th>nchars</th>
@@ -418,13 +432,13 @@ def juxtapose_user(u,user_index):
       lambda n,i:("periodicity-%d" %i, wB.sBar("periodicity-%d"%i,n[0].owner)) ## added
    ]
    
-   ns = u.note_owner.all()     
+   ns = u.note_owner.order_by('created').all()
+
    fnames = []
    for fn in juxtapose_fns:
       fname, foo = fn(ns,user_index)
       fnames.append(fname)
-   return '<div class="user" owner="%s">%s (%s): %s<br>%s<br>%s</div>' % (u.email,
-                                                                          u.email,
+   return '<div class="user" owner="%s">%s (%s): %s<br>%s<br>%s</div>' % (u.email, u.email,
                                                                           juxta_basicstats(u),
                                                                           '<span class="comments">[ comments ]</span><textarea class="commentfield">**COMMENT SERVER DOWN DO NOT LEAVE COMMENTS**</textarea>',
                                                                           "".join([juxtapose_imgs(f) for f in fnames]),
@@ -433,13 +447,12 @@ def juxtapose_user(u,user_index):
 
 def batch_juxtapose(users,basedir):
    ca.make_feature=lambda k,v:(k,v)
-   cadt.make_feature=lambda k,v:(k,v)
-   
+   cadt.make_feature=lambda k,v:(k,v)   
    cap.set_basedir(basedir)
-   html = ''   
    index = 0
    set_len = 10
    for user_n_slice in [slice(x,x+set_len) for x in xrange(0,len(users),set_len)]:
+      html = ''         
       uset = users[user_n_slice]
       for u in uset:
          try:
@@ -458,10 +471,7 @@ def batch_juxtapose(users,basedir):
       filename = "%s/%s" % (basedir,juxtapose_make_fname(user_n_slice.start))
       f = open(filename,'w')
       print "writing ",filename
-      f.write(juxtapose_html(html,
-                             user_n_slice.start,
-                             user_n_slice.stop,
-                             set_len))
+      f.write(juxtapose_html(html,len(users),set_len))
       f.close()
    return len(html)
 

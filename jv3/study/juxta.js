@@ -27,7 +27,7 @@ jQuery(document).ready(
 				 function(evt) {
 				     var comments = jQuery(this).parent().find(".commentfield");
 				     comments.is(":visible") ?  jQuery(this).parent().find(".commentfield").slideUp() : jQuery(this).parent().find(".commentfield").slideDown();				     				 });
-
+	
 	var postcomment = function(jQC) {
 		var username = jQC.parent().attr("owner");
 		var comment = jQC.val();	    
@@ -49,6 +49,7 @@ jQuery(document).ready(
 		     dataType:"jsonp",
 		     success:function(commentsall) {
 			 log("commentsall", commentsall);
+			 jQuery(".commentfield").val("");
 			 keys(commentsall).map(function(user) {
 						   log("setting ",user,commentsall[user].slice(0,10), jQuery("div[owner="+user+"]").find(".commentfield").val(commentsall[user]).length);
 						   jQuery("div[owner="+user+"]").find(".commentfield").val(commentsall[user]);

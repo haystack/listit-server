@@ -162,4 +162,10 @@ if hasattr(settings,'ACTIVITY_CONTEXT_MODELS') and settings.ACTIVITY_CONTEXT_MOD
                             (r'^eventlog/', contextlog_view),
                             (r'^post_events/$', post_events),
                             )
-
+    
+if hasattr(settings,'THESIS_FIGURE_COMMENTS') and settings.THESIS_FIGURE_COMMENTS:
+    print "THESIS"
+    from jv3.study.thesis_figures import get_comments_view_jsonp,update_comment_view_jsonp
+    urlpatterns += patterns('server.jv3.views.',
+                            (r'^tfig_post_comment/', update_comment_view_jsonp),
+                            (r'^tfig_get_comments$', get_comments_view_jsonp))
