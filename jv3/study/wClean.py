@@ -1,8 +1,10 @@
 ## For cleaning database: remove problematic notes
 ## ie. Tutorial notes, notes experiencing sync problems (repeated texts), etc
-
 from jv3.utils import is_tutorial_note
 from jv3.models import *
+
+
+
 
 def clean_tutorial_notes():
     i = 0
