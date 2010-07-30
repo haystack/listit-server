@@ -56,7 +56,7 @@ def rid_of_edits_that_dont_change_note():
     # ActivityLog.objects.filter(id__in=kill_list_alids).delete()
 
     print "ERRORS %d : %s",(len(errors),repr(errors))
-    return ActivityLog.objects.filter(id__in=kill_list_alids)
+    return kill_list_alids
                 
         
 

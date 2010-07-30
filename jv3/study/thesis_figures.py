@@ -115,7 +115,7 @@ def cumulative_time_for_all_users(users):
 # shows distribution of times-since-creation that notes
 # get edited or deleted
 # optional: cancelling of "adjacent edits"
-def edit_recency(notes,action='note-save',filename='recency',width=1280,height=1024, nuke_consecutive_edits=True):
+def edit_recency(notes,action='note-save',filename='recency',width=1280,height=1024): #, nuke_consecutive_edits=True):
     user = notes[0].owner
     tosecs = lambda s : float(s/1000)
     creations = dict([(x[0],tosecs(x[1])) for x in notes.values_list('jid','created')])
@@ -128,9 +128,13 @@ def edit_recency(notes,action='note-save',filename='recency',width=1280,height=1
         
     edits_since_creation_per_note = dict([ (n.jid, [(x - creations[n.jid]) for x in actlogd.get(n.jid,[])]) for n in notes ] )
 
+    # COMMENTING OUT nuke reedits because now we have code in ca which
+    # only considers note-add -> note-edit sequences that cause textual edits
+    #
+    # DISABLED
     # if note save, then we might want to obliterate adjacent re-edits; e.g., people editing over and over again
     # because they're likely to re-edit something they've touched
-    if action == 'note-save' and nuke_consecutive_edits : [nuke_reedits(x) for x in edits_since_creation_per_note.values()]
+    # if action == 'note-save' and nuke_consecutive_edits : [nuke_reedits(x) for x in edits_since_creation_per_note.values()]
 
     edits_since_creation_all = reduce(lambda x,y : x + y, edits_since_creation_per_note.values())
     
@@ -144,17 +148,17 @@ def edit_recency(notes,action='note-save',filename='recency',width=1280,height=1
     r.hist(c(edits_since_creation_all),breaks=c(breaks),labels=c(breaklabels),freq=True,xlab='',ylab='',main='frequency of edits to notes (measured in time since creation) %s' % user.email)
     r('dev.off()')
 
-def nuke_reedits(vec,threshold=10*60): # ten minutes
-    if len(vec) < 2 : return;
-    tonuke = []
-    last = vec[0]
-    for v in vec[1:] :
-        if v - last < threshold:
-            tonuke.append(v)
-        last = v
-    print "deleting %d " % len(tonuke)
-    [vec.remove(v) for v in tonuke if v in vec]
-    pass
+# def nuke_reedits(vec,threshold=10*60): # ten minutes
+#     if len(vec) < 2 : return;
+#     tonuke = []
+#     last = vec[0]
+#     for v in vec[1:] :
+#         if v - last < threshold:
+#             tonuke.append(v)
+#         last = v
+#     print "deleting %d " % len(tonuke)
+#     [vec.remove(v) for v in tonuke if v in vec]
+#     pass
 
 def edit_recency_batch(users,basepath='edit_since_creation/'):
     index = 0
@@ -295,7 +299,7 @@ batch_note_words = lambda users,batchpath="note_words/": batch(plot_note_words_h
 
 ## this method goes and performs all plots a user at a time
 
-n2vals = lambda n :{"contents":n.contents,"jid":n.jid,"owner":n.owner,"version":n.version,"deleted":n.deleted,"created":n.created,"id":n.id}
+n2vals = lambda n :{"contents":n.contents,"jid":n.jid,"owner_id":n.owner.id,"version":n.version,"deleted":n.deleted,"created":n.created,"id":n.id}
 text2vals = lambda ntext :{"contents":ntext}
 
 def htmlesc(text):
@@ -326,7 +330,7 @@ juxtapose_n_props = lambda i,n_created,n_text,n : "".join(
          len(n_text) if n_text is not None else 0,
          ca.note_words(text2vals(n_text))[1] if n_text is not None else 0,
          ca.note_lines(text2vals(n_text))[1] if n_text is not None else 0,
-         ca.note_edits(n2vals(n)),
+         ca.note_changed_edits(n2vals(n))[1],
          htmlesc(n_text)         
     ]])
 
@@ -427,7 +431,7 @@ def juxtapose_user(u,user_index):
    juxtapose_fns = [
       lambda n,i:("lifeline-%d"%i,wF.mmmPlot("lifeline-%d"%i,n,'lifetime for notes %s' % n[0].owner.email)),  ## modified to wF.mmmPlot  (also, title is being over-written, will change soon)
       lambda n,i:("edit-recency-%d"%i,edit_recency(n,filename="edit-recency-%d"%i)),
-      lambda n,i:("delete-recency-%d"%i,edit_recency(n,action='note-delete',filename="delete-recency-%d"%i,nuke_consecutive_edits=False)),
+      lambda n,i:("delete-recency-%d"%i,edit_recency(n,action='note-delete',filename="delete-recency-%d"%i)),
       lambda n,i:("note-length-%d" % i,plot_note_words_hist(n,filename="note-length-%d"%i,soft_max=500)),
       lambda n,i:("periodicity-%d" %i, wB.sBar("periodicity-%d"%i,n[0].owner)) ## added
    ]

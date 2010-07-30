@@ -25,6 +25,11 @@ karger = User.objects.filter(email="karger@mit.edu")
 devoff = lambda : r('dev.off()')
 c = lambda vv : apply(r.c,vv)
 
+def pch_of_delta(first,last):
+  if len(first) < len(last): return 2 # R's up triangle pch
+  if len(first) == len(last): return 5  # R's diamond  pch
+  return 6 # R's down triangle pch
+
 ## Given ONE user's notes, plot note attribute (created) vs activitylog attribute (when)
 def mmmPlot(filename, notes,  title='title', make_filename=''):
   firstBirthEver = 1217622560992.0
@@ -63,7 +68,21 @@ def mmmPlot(filename, notes,  title='title', make_filename=''):
   yWeeks = [float(y) for y in range(firstBirthEver*msecToWeek, time.time()*1000*msecToWeek, 1)]
   r.axis(1, at=c([float(x*7*24*60*60*1000.0) for x in xWeeks]), labels=c([int(x)-2012 for x in xWeeks]), tck=1)
   r.axis(2, at=c([float(y*7*24*60*60*1000.0) for y in yWeeks]), labels=c([int(x)-2012 for x in yWeeks]), tck=1)
-  r.points(points['note-save'], cex=4.0,col = "purple", pch=17)
+  
+  # new code for edits inserted here
+  edits_ = ca.note_edits_for_user(notes[0].owner)
+  points['note-edit'] = r.c()
+  edit_dir = r.c()
+  edit_delta = r.c()
+  for n in notes:
+    if n.jid in edits_:
+      print "in ",n.jid,n.owner.email,len(edits_[n.jid])
+      for edit_action in edits_[n.jid]:
+        points['note-edit'] = r.rbind(points['note-edit'],c([float(n.created), float(edit_action['when'])]))
+        edit_dir = r.c(edit_dir, pch_of_delta(edit_action['initial'],edit_action['final']))
+        edit_delta = r.c(edit_delta, abs(10 + 10*(len(edit_action['initial']) - len(edit_action['final']))/1000.0))
+
+  r.points(points['note-edit'], col = "black", pch=edit_dir,cex=edit_delta)
   r.points(points['note-delete'], cex=4.0,col = "dark red", pch='x')
   for x in births.keys():
      if x in deaths:

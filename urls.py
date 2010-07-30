@@ -3,6 +3,8 @@ from django.contrib import admin
 from django.conf import settings
 from django_restapi.responder import *
 
+
+
 admin.autodiscover()
 
 urlpatterns = patterns('')
@@ -11,10 +13,13 @@ if settings.LISTIT_SERVER:
     print "adding listit server"
     if not settings.DEVELOPMENT:
         ## deployment
+        print "DEPLOY"
         urlpatterns = patterns('',
                                (r'^jv3/', include('jv3.urls')),
                                (r'^plum/', include('plum.urls')))
     else:
+        import jv3.urls
+        print "DEVELOP"
         ## development
         urlpatterns = patterns('',
                                (r'^listit/jv3/', include('jv3.urls')),

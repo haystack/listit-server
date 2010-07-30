@@ -154,10 +154,16 @@ note_words_sans_urls = lambda x : make_feature('note_words_sans_urls',note_words
 # note_edits = lambda(note) : make_feature('note_edits',len(activity_logs_for_note(note,"note-save")))
 
 user_to_edits = {}
-def note_edits(note):
+def note_changed_edits(note):
     if note["owner_id"] not in user_to_edits:
         user_to_edits[note["owner_id"]] = note_edits_for_user(User.objects.filter(id=note["owner_id"])[0])
-    return len([x for x in reduce(lambda x,y:x+y,user_to_edits[note["owner_id"]].values()) if x['editdist'] > 0])
+    #print "total edits > 0 ", len([x for x in reduce(lambda x,y:x+y,user_to_edits[note["owner_id"]].values()) if x['editdist'] > 0])
+    #print "total edits for user ", len([x for x in reduce(lambda x,y:x+y,user_to_edits[note["owner_id"]].values())])
+    #[{"touches" : len(user_to_edits[note["owner_id"]].get(note["jid"],[])), "edits" : len([x for x in user_to_edits[note["owner_id"]].get(note["jid"],[]) if x["editdist"] > 0]) }]
+    return make_feature('note_edits', len([x for x in user_to_edits[note["owner_id"]].get(note["jid"],[]) if x["editdist"] > 0]))
+
+             
+    
     
 note_did_edit = lambda(note) : make_feature('note_did_edit', note_edits(note) > 0)
 note_deleted = lambda(note) : make_feature('note_deleted', q(note["deleted"],True,False))
@@ -227,7 +233,7 @@ all_fns = [
     note_ss,
     note_phone_numbers,
     note_date_count,
-    note_edits,
+    note_changed_edits,
     note_pos_features,
     note_sentences
 ]
@@ -235,7 +241,7 @@ all_fns = [
 default_note_feature_fns = [
     note_phone_numbers,    
     note_lifetime,
-    note_edits,    
+    note_changed_edits,    
     note_words,
     note_urls,
     note_names,
@@ -677,11 +683,11 @@ def note_edits_for_user(u):
         converted_edits = []
         for edit in edits:
             if edit['action'] == 'note-add' : continue
-            print edit["when"]," edit: ", edit["action"], edit["noteid"],
+#            print edit["when"]," edit: ", edit["action"], edit["noteid"],
             if edit['action'] == 'note-save' and last["action"] == 'note-edit' :
-                if edit['noteText'] is None: print "note-save noteText is none"
-                if last['noteText'] is None: print "note-add noteText is none"
-                print "__", jv3.utils.levenshtein(last['noteText'] if last["noteText"] is not None else "" ,edit['noteText'] if edit["noteText"] is not None else ""),
+#                 if edit['noteText'] is None: print "note-save noteText is none"
+#                 if last['noteText'] is None: print "note-add noteText is none"
+#                print "__", jv3.utils.levenshtein(last['noteText'] if last["noteText"] is not None else "" ,edit['noteText'] if edit["noteText"] is not None else ""),
                 converted_edits.append( { "when" : last["when"],
                                      "howlong": edit["when"] - last["when"],
                                      "initial": last["noteText"] if last["noteText"] is not None else "",
@@ -689,7 +695,7 @@ def note_edits_for_user(u):
                                      "editdist": jv3.utils.levenshtein(last['noteText'] if last["noteText"] is not None else "" ,edit['noteText'] if edit["noteText"] is not None else "")
                                      })
             last = edit
-            print ""
+ #          print ""
         edits_by_jid[jid]=converted_edits
     return edits_by_jid
                     
