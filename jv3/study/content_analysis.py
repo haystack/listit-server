@@ -654,5 +654,77 @@ def subset_test(notevals,nf,nctest=all_pass,nftest=all_pass):
 def subset_values(notevals,nf,key,nctest=all_pass,nftest=all_pass):
     return [nf[key] for nid,nf in subset_test(notevals,nf,nctest,nftest)[1].iteritems()]
 
+def note_edits_for_user(u):
+    import jv3.utils
+    by_jid = {}
+    edits_by_jid = {}
+    for edit in u.activitylog_set.filter(action__in=['note-add','note-edit','note-save']).values():
+        noteedits = by_jid.get(edit['noteid'],[])
+        noteedits.append( edit )
+        by_jid[edit['noteid']] = noteedits
+    
+    for jid,edits in by_jid.iteritems():
+        edits.sort(key=lambda x: float(x['when']))
+        converted_edits = []
+        for edit in edits:
+            if edit['action'] == 'note-add' : continue
+            print edit["when"]," edit: ", edit["action"], edit["noteid"],
+            if edit['action'] == 'note-save' and last["action"] == 'note-edit' :
+                if edit['noteText'] is None: print "note-save noteText is none"
+                if last['noteText'] is None: print "note-add noteText is none"
+                print "__", jv3.utils.levenshtein(last['noteText'] if last["noteText"] is not None else "" ,edit['noteText'] if edit["noteText"] is not None else ""),
+                converted_edits.append( { "when" : last["when"],
+                                     "howlong": edit["when"] - last["when"],
+                                     "initial": last["noteText"] if last["noteText"] is not None else "",
+                                     "final": edit["noteText"] if edit["noteText"] is not None else "",
+                                     "editdist": jv3.utils.levenshtein(last['noteText'] if last["noteText"] is not None else "" ,edit['noteText'] if edit["noteText"] is not None else "")
+                                     })
+            last = edit
+            print ""
+        edits_by_jid[jid]=converted_edits
+    return edits_by_jid
+                    
+
+        
+        
+    
+
+# def kill_note_Edits():
+#     from django.contrib.auth.models import User
+#     kill_list_alids = []
+#     errors = []
+#     for u in User.objects.all():
+#         user_kill = []
+#         try :
+#             edits_per_jid= dict([(jid,[(alid,text)])  for jid,alid,text in u.activitylog_set.filter(action="note-add").values_list('noteid','id','noteText')])
+#             # we have to believe they're consecutive
+#             alog_edits = u.activitylog_set.filter(action__in='note-edit').order_by('when').values_list('id','noteid','noteText')
+#             for alid,jid,noteText in alog_edits:
+#                 v = edits_per_jid.get(jid,[])
+#                 v.append( (alid,noteText) )
+#                 edits_per_jid[jid] = v
+                
+#             for jid,editpairs in edits_per_jid.iteritems():
+#                 noteText = editpairs[0][1]
+#                 for epair in editpairs[1:]:
+#                     alid,newText = epair
+#                     if noteText == newText:   # nothing's changed,kill
+#                         user_kill.append(alid)
+#                     else:
+#                         noteText = newText
+#                     pass
+#                 pass
+#             print "edits to kill for %s : %d " % (u.email,len(user_kill))
+#             kill_list_alids = kill_list_alids + user_kill
+#         except :
+#             import traceback,sys            
+#             errors.append(u)
+#             print sys.exc_info()
+#             traceback.print_tb(sys.exc_info()[2])
+#     # ActivityLog.objects.filter(id__in=kill_list_alids).delete()
+
+#     print "ERRORS %d : %s",(len(errors),repr(errors))
+#     return kill_list_alids
+                
 
     
