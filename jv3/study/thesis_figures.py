@@ -295,7 +295,7 @@ batch_note_words = lambda users,batchpath="note_words/": batch(plot_note_words_h
 
 ## this method goes and performs all plots a user at a time
 
-n2vals = lambda n :{"contents":n.contents}
+n2vals = lambda n :{"contents":n.contents,"jid":n.jid,"owner":n.owner,"version":n.version,"deleted":n.deleted,"created":n.created,"id":n.id}
 text2vals = lambda ntext :{"contents":ntext}
 
 def htmlesc(text):
@@ -326,7 +326,7 @@ juxtapose_n_props = lambda i,n_created,n_text,n : "".join(
          len(n_text) if n_text is not None else 0,
          ca.note_words(text2vals(n_text))[1] if n_text is not None else 0,
          ca.note_lines(text2vals(n_text))[1] if n_text is not None else 0,
-         int(n.version),
+         ca.note_edits(n2vals(n)),
          htmlesc(n_text)         
     ]])
 

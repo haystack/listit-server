@@ -149,7 +149,16 @@ make_feature = lambda k,v: {k:v}
 note_words = lambda x : make_feature('note_words',len([ w for w in re.compile('\s').split(x["contents"]) if len(w.strip())>0]))
 note_lines = lambda x : make_feature('note_lines',len([ w for w in re.compile('\n').split(x["contents"]) if len(w.strip())>0]))
 note_words_sans_urls = lambda x : make_feature('note_words_sans_urls',note_words(x)['note_words']-note_urls(x)['note_urls'])
-note_edits = lambda(note) : make_feature('note_edits',len(activity_logs_for_note(note,"note-save")))
+
+
+# note_edits = lambda(note) : make_feature('note_edits',len(activity_logs_for_note(note,"note-save")))
+
+user_to_edits = {}
+def note_edits(note):
+    if note["owner_id"] not in user_to_edits:
+        user_to_edits[note["owner_id"]] = note_edits_for_user(User.objects.filter(id=note["owner_id"])[0])
+    return len([x for x in reduce(lambda x,y:x+y,user_to_edits[note["owner_id"]].values()) if x['editdist'] > 0])
+    
 note_did_edit = lambda(note) : make_feature('note_did_edit', note_edits(note) > 0)
 note_deleted = lambda(note) : make_feature('note_deleted', q(note["deleted"],True,False))
 note_urls = lambda note: make_feature('note_urls', str_n_urls(note["contents"]))
