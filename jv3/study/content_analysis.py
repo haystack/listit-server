@@ -434,7 +434,7 @@ def _convert_to_float(t):
     try:
         return float(t)
     except:
-        #print sys.exc_info()
+        # print sys.exc_info()
         pass
     return 0.0
 
@@ -669,14 +669,17 @@ def subset_test(notevals,nf,nctest=all_pass,nftest=all_pass):
 def subset_values(notevals,nf,key,nctest=all_pass,nftest=all_pass):
     return [nf[key] for nid,nf in subset_test(notevals,nf,nctest,nftest)[1].iteritems()]
 
-def note_edits_for_user(u):
+def note_edits_for_user(u,filter_non_edits=True,include_levenstein=False):
     import jv3.utils
     by_jid = {}
     edits_by_jid = {}
+    print "Getting activity log set", 
     for edit in u.activitylog_set.filter(action__in=['note-add','note-edit','note-save']).values():
         noteedits = by_jid.get(edit['noteid'],[])
         noteedits.append( edit )
         by_jid[edit['noteid']] = noteedits
+
+    print "Done. now filtering"        
     
     for jid,edits in by_jid.iteritems():
         edits.sort(key=lambda x: float(x['when']))
@@ -687,15 +690,20 @@ def note_edits_for_user(u):
 #                 if edit['noteText'] is None: print "note-save noteText is none"
 #                 if last['noteText'] is None: print "note-add noteText is none"
 #                print "__", jv3.utils.levenshtein(last['noteText'] if last["noteText"] is not None else "" ,edit['noteText'] if edit["noteText"] is not None else ""),
-                converted_edits.append( { "when" : last["when"],
-                                     "howlong": edit["when"] - last["when"],
-                                     "initial": last["noteText"] if last["noteText"] is not None else "",
-                                     "final": edit["noteText"] if edit["noteText"] is not None else "",
-                                     "editdist": jv3.utils.levenshtein(last['noteText'] if last["noteText"] is not None else "" ,edit['noteText'] if edit["noteText"] is not None else "")
-                                     })
+                try:
+                    converted_edits.append( { "when" : last["when"],
+                                              "howlong": edit["when"] - last["when"],
+                                              "initial": last["noteText"] if last["noteText"] is not None else "",
+                                              "final": edit["noteText"] if edit["noteText"] is not None else "",
+                                              "lendiff" : abs(len(last['noteText']) - len(edit["noteText"]))
+                                              #                                     "editdist": -1 if include_levenstein == False else jv3.utils.levenshtein(last['noteText'] if last["noteText"] is not None else "" ,edit['noteText'] if edit["noteText"] is not None else "")
+                                              })
+                except :
+                    print sys.exc_info()
+                pass    
             last = edit
-        edits_by_jid[jid]=converted_edits
-    return edits_by_jid
+        edits_by_jid[jid]= converted_edits if not filter_non_edits else filter(lambda x : x['lendiff'] > 0, converted_edits)
+    return edits_by_jid 
                     
 
         
