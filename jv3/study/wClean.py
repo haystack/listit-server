@@ -6,8 +6,7 @@ from jv3.models import *
 def clean_full():  ## Perform all cleaning functions
     clean_tutorial_notes()
     clean_noteorder()
-    # how about repeat notes?
-    # 
+    clean_repeat_notes(Note.objects.all())
 
 def clean_tutorial_notes():
     i = 0
