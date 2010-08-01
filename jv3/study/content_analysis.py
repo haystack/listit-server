@@ -683,7 +683,6 @@ def note_edits_for_user(u):
         converted_edits = []
         for edit in edits:
             if edit['action'] == 'note-add' : continue
-#            print edit["when"]," edit: ", edit["action"], edit["noteid"],
             if edit['action'] == 'note-save' and last["action"] == 'note-edit' :
 #                 if edit['noteText'] is None: print "note-save noteText is none"
 #                 if last['noteText'] is None: print "note-add noteText is none"
