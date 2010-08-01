@@ -29,6 +29,7 @@
 
 import jv3.study.thesis_figures as tfigs
 
+
 ## May break if string is '......\'    not sure how to fix
 str_sum_words = lambda str: len([w for w in re.compile('\s').split(str) if len(w.strip())>0])
 str_sum_lines = lambda str: len([w for w in re.compile('\n').split(str) if len(w.strip())>0])

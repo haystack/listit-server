@@ -16,6 +16,7 @@ from numpy import array
 ##import jv3.study.f as stuf
 import jv3.study.thesis_figures as tfigs
 import math
+import jv3.study.wUtil as wUtil
 from datetime import datetime as dd  # Stacked Bar Graph Function Helpers
 r = ro.r
 emax = User.objects.filter(email="emax@csail.mit.edu")[0]
@@ -31,7 +32,7 @@ c = lambda vv : apply(r.c,vv)
 def bTime(filename, user, title='title'):
     COL_SEGMENTS, ROW_GROUPS, GROUP_TYPES = 3, 24, 1
     aveSize = lambda a,b: int(float(a)/float(b)) if b != 0 else 0  ## a=quantity of something per how many b elts, if no b, return 0
-    msecToDate = lambda msec : dd.fromtimestamp(float(msec)/1000.0)
+    ##msecToDate = lambda msec : dd.fromtimestamp(float(msec)/1000.0)
     dtToDayMsec = lambda dt: int((((dt.weekday()*24+dt.hour)*60+dt.minute)*60+dt.second)*1000 + float(dt.microsecond)/1000.0)
     dtToHourMsec = lambda dt: int(((dt.hour*60+dt.minute)*60+dt.second)*1000 + float(dt.microsecond)/1000.0)
     hrsToIndex = lambda colSeg, group, hrOfDay : colSeg + (hrOfDay*GROUP_TYPES+group)*COL_SEGMENTS  # for group in [0,GROUP_TYPES-1]
@@ -44,7 +45,7 @@ def bTime(filename, user, title='title'):
         if len(noteArr) < 1:  ## Processing logs for which we still
             continue          ## have the note (deleted or not)
         note = noteArr[0]
-        aDate, bDate = msecToDate(log.when), msecToDate(note.created)
+        aDate, bDate = wUtil.msecToDate(log.when), wUtil.msecToDate(note.created)
         aDay, aHour = aDate.weekday(), aDate.hour
         ##dIndex = hrsToIndex(0, aHour)
         ##points[log.action][dIndex] += 1
