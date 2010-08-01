@@ -695,7 +695,6 @@ def note_edits_for_user(u):
                                      "editdist": jv3.utils.levenshtein(last['noteText'] if last["noteText"] is not None else "" ,edit['noteText'] if edit["noteText"] is not None else "")
                                      })
             last = edit
- #          print ""
         edits_by_jid[jid]=converted_edits
     return edits_by_jid
                     

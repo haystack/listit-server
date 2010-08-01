@@ -3,6 +3,11 @@
 from jv3.utils import is_tutorial_note
 from jv3.models import *
 
+def clean_full():  ## Perform all cleaning functions
+    clean_tutorial_notes()
+    clean_noteorder()
+    
+
 
 
 
@@ -12,17 +17,19 @@ def clean_tutorial_notes():
         if is_tutorial_note(note.contents):
             note.delete()
             i+=1
-    print "Deleted: ", i, " notes."
+    print "Deleted: ", i, " tutorial notes."
 
-
-## Delete all note-order (jid=-1) notes?? Maybe we want these for analysis though...
-## Just don't want them muddling up version average, etc...
 def clean_noteorder():
-    pass
+    i = 0
+    for note in Note.objects.all():
+        if note.jid == -1:
+            note.delete()
+            i+=1
+    print "Deleted: ", i, " noteorder notes."
+
 
 def rid_of_edits_that_dont_change_note():
     from django.contrib.auth.models import User
-
     kill_list_alids = []
     errors = []
     for u in User.objects.all():
@@ -84,7 +91,7 @@ def clean_repeat_notes(notes):
                 maxP = phrase
         if maxPC > 400:
             ##print note.contents
-            print "Word1 is: ", maxP
+            print "Word1 is: ", maxP, "at", maxPC, "# of times repeated"
             ##input("Next?:")
             i += 1
     return i

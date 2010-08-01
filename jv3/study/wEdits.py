@@ -36,6 +36,8 @@ str_sum_lines = lambda str: len([w for w in re.compile('\n').split(str) if len(w
 str_to_words = lambda str: [w for w in re.compile('\s').split(str) if len(w.strip())>0]
 str_to_lines = lambda str: [w for w in re.compile('\n').split(str) if len(w.strip())>0]
 
+user_from_email = lambda mail: authmodels.User.objects.filter(email=mail)[0]
+
 ## Average words per line
 ave_words_per_line = lambda str: float(str_sum_words(str))/float(str_sum_lines(str)) if str_sum_lines(str) != 0 else 0
 
@@ -89,16 +91,10 @@ def get_note_with_edits(minEdits, startIndex=0):
     pass
 
 
-
-
-
-
-
-
 def show_notes(cat, all=False):
     i = 0
     for nn in n:
-        if not all and nn.owner.id == 3:
+        if not all and nn.owner.id in [3,7,17]:
             continue
         if str_sum_words(nn.contents)==0 or str_sum_lines(nn.contents)>100:
             continue
@@ -108,8 +104,6 @@ def show_notes(cat, all=False):
                     ## Note has less than median words per line and lines per note
                     i+=1
                     print nn.owner.id,':',nn.jid,'\n',nn.contents,'\n'
-                    if i%10==0 and input("Stop(=1) ?") == 1:
-                        break
         elif cat == 2:
             if ave_words_per_line(nn.contents) > wpl:
                 if str_sum_lines(nn.contents) <= lpn:
