@@ -188,8 +188,13 @@ def dte_over_length(note):
     return make_feature('dte_over_length', note_date_count(note)["date_time_exprs"]*1.0/note_words(note)["note_words"]  )
 def urls_over_length(note):
     return make_feature('urls_over_length', note_urls(note)["note_urls"]*1.0/note_words(note)["note_words"]  )
+def note_todos(note):
+    return make_feature('note_todos', count_regex_matches("(|\s|@)((todo)|(to do)|(to-do))(\s|$)", note["contents"] ))
 def todos_over_length(note):
     return make_feature('todos_over_length', count_regex_matches("(^|\s|@)((todo)|(to do)|(to-do))(\s|$)",note["contents"] )*1.0/note_words(note)["note_words"] )
+
+
+
 
 ## addresses?
 ## dates/times
@@ -673,13 +678,13 @@ def note_edits_for_user(u,filter_non_edits=True,include_levenstein=False):
     import jv3.utils
     by_jid = {}
     edits_by_jid = {}
-    print "Getting activity log set", 
+    ##print "Getting activity log set", 
     for edit in u.activitylog_set.filter(action__in=['note-add','note-edit','note-save']).values():
         noteedits = by_jid.get(edit['noteid'],[])
         noteedits.append( edit )
         by_jid[edit['noteid']] = noteedits
 
-    print "Done. now filtering"        
+    ##print "Done. now filtering"        
     
     for jid,edits in by_jid.iteritems():
         edits.sort(key=lambda x: float(x['when']))

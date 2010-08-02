@@ -1,11 +1,12 @@
 import os,sys
 import re as re
+from django.contrib.auth.models import User
 from datetime import datetime as dd  # Stacked Bar Graph Function Helpers
 
 
 ## Models ##
 
-user_from_email = lambda mail: authmodels.User.objects.filter(email=mail)[0]
+user_from_email = lambda mail: User.objects.filter(email=mail)[0]
 
 
 ## String##

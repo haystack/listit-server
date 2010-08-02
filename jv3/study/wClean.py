@@ -6,7 +6,7 @@ from jv3.models import *
 def clean_full():  ## Perform all cleaning functions
     clean_tutorial_notes()
     clean_noteorder()
-    clean_repeat_notes(Note.objects.all())
+    clean_repeat_notes(Note.objects.all()) ## Doesn't actually delete anything - ??
 
 def clean_tutorial_notes():
     i = 0
@@ -23,6 +23,7 @@ def clean_noteorder():
             note.delete()
             i+=1
     print "Deleted: ", i, " noteorder notes."
+
 ## Detect/delete notes with text that's been repeated
 def clean_repeat_notes(notes):
     i = 0
