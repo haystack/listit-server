@@ -145,11 +145,33 @@ def one_or_no_url_redblue(note):
   note = n2vals(note)
   urls = ca.note_urls(note)
   if type(urls) == dict:
-    return 'blue' if urls['note_urls'] > 0 else 'red'
-  return 'blue' if urls[1] > 0 else 'red'
-    
+    return 'red' if urls['note_urls'] > 0 else 'blue'
+  return 'red' if urls[1] > 0 else 'blue'
+
+def one_or_no_email_redgrey(note):
+  from thesis_figures import n2vals
+  note = n2vals(note)
+  emails = ca.note_emails(note)
+  if type(emails) == dict:
+    return 'red' if emails['email_addrs'] > 0 else 'grey'
+  return 'red' if email[1] > 0 else 'grey'
+
+def one_or_more_lines_multicolor(note):
+  from thesis_figures import n2vals
+  note = n2vals(note)
+  lines = ca.note_lines(note)
+  if type(lines) == dict:
+    val = lines['note_lines']
+  else:
+    val = lines[1]
+  if val == 1: return 'black'
+  if val in [2,3,4,5]: return 'blue'
+  if val in range(6,12): return 'orange'
+  return 'red'
+
+
+## performs a flattened collapsed lifeline with     
 def lifelineFlatCollapsedCompareColor(filename, notes, title='title', color_function=one_or_no_url_redblue, YMAG=0.5):
-  ## Meta-data for title
   allLogs = ActivityLog.objects.filter(owner=notes[0].owner, action__in=['note-add','note-delete'])
   firstBirth = float(min([x[0] for x in notes.values_list('created')]))
   title = "%s -- %s %s  " % (title,str(notes.count()),notes[0].owner.email)
