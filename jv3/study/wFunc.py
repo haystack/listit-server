@@ -16,6 +16,8 @@ import jv3.study.thesis_figures as tfigs
 import jv3.study.wUtil as wUtil
 from jv3.study.thesis_figures import n2vals
 r = ro.r
+c = lambda vv : apply(r.c,vv)
+devoff = lambda : r('dev.off()')
 emax = User.objects.filter(email="emax@csail.mit.edu")[0]
 emax2 = User.objects.filter(email="electronic@gmail.com")[0]
 brenn = User.objects.filter(email="brennanmoore@gmail.com")[0]
@@ -23,8 +25,7 @@ gv = User.objects.filter(email="gvargas@mit.edu")[0]
 wstyke = User.objects.filter(email="wstyke@gmail.com")[0]
 katfang = User.objects.filter(email="justacopy@gmail.com")
 karger = User.objects.filter(email="karger@mit.edu")
-devoff = lambda : r('dev.off()')
-c = lambda vv : apply(r.c,vv)
+
 
 firstBirth = 1229718560992.0 ## 21 weeks in
 
@@ -392,23 +393,22 @@ def compareEditsBinWeek(filename, notes, title='Note Lifelines', color_function=
         timeDelta = edit_action['when'] - n.created 
         ##if edit_action['when'] != None and edit_action['when'] > firstBirth and edit_action['when'] < ca.DATABASE_SNAPSHOT_TIME:
           ## Current y-val plots time between edit and creation -- second y-val in comment plots absolute time of edit
-        points['bin-edits'] = r.rbind(points['bin-edits'], c([int(noteDOW*7+editDOW), float(timeDelta)]))
-        maxDelta = max(float(timeDelta), maxDelta)
+        if timeDelta > 1000*3600*24*7:
+          points['bin-edits'] = r.rbind(points['bin-edits'], c([int(noteDOW*7+editDOW), float(timeDelta)]))
+          maxDelta = max(float(timeDelta), maxDelta)
         
           ##KEEP: points['bin-edits'] = r.rbind(points['bin-edits'], c([int(noteDOW*7+editDOW), float(edit_action['when'])]) )        
-        edit_col = r.c(edit_col, weekdayColors[editDOW])
+          edit_col = r.c(edit_col, weekdayColors[editDOW])
         pass
   xl,yl="Created Date", "Action Date"
   
   #maxDelta = 1000*3600*24*60
 
-  r.plot(points['bin-edits'], cex=1.0, col=edit_col, pch='x' ,xlab=xl,ylab=yl, main=title, xlim=r.c(0, 48), ylim=c([0, float(maxDelta)]), axes=False )
+  r.plot(points['bin-edits'], cex=3.0, col=edit_col, pch='x' ,xlab=xl,ylab=yl, main=title, xlim=r.c(0, 48), ylim=c([0, float(maxDelta)]), axes=False )
   ##KEEP: , axes=False)#, ylim=c([firstBirth, ca.DATABASE_SNAPSHOT_TIME]) )
   
   ## 1 below, 2 left
-  r.axis(1, at=c(range(0,49,7)), labels=c(['Mon','Tue','Wed','Thur','Fri','Sat','Sun']), col='grey' )
-
-  
+  r.axis(1, at=c(range(0,49,7)), labels=c(['Mon','Tue','Wed','Thur','Fri','Sat','Sun']), col='grey' )  
 
   ## Something wrong here  #help!#
   ## Graph is coming up with tiny y-axis plotting # of days between note-create and edit event
