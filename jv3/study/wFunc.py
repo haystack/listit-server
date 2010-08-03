@@ -332,3 +332,108 @@ def plot_all_lifelines_for_sentences_redblk(users):
 ## one_or_more_timeref_redblk
 ## one_or_more_todoref_redblk
 ## two_or_more_sentences_redblk
+
+
+
+## Plot edits by day of week of created note and day of week of edit
+def compareEditsBinWeek(filename, notes, title='Note Lifelines', color_function=one_or_no_url_redblk, YMAG=0.5):
+  allLogs = ActivityLog.objects.filter(owner=notes[0].owner, action__in=['note-add','note-delete'])
+  ##firstBirth = float(min([x[0] for x in notes.values_list('created')]))
+  global firstBirth
+  title = "%s -- %s %s %s  " % (title,str(notes.count()),notes[0].owner.email,notes[0].owner.id)
+  ## Meta-data for points
+  points = {'note-add':r.c(), 'note-delete':r.c()} ## Shortened to just the two, since note-edit added later
+  births, deaths = {}, {},
+  today = time.time()*1000.0
+  print "saving to %s " % cap.make_filename(filename)
+  r.png(file=cap.make_filename(filename), w=3200,h=1600) ## 3200x1600, 9600x4800, 12.8x6.4
+  colors=dict([(n.jid,color_function(n)) for n in notes])
+  
+  ## 7 creation bins, each with 7 edit bins inside
+  ## Each of 49 bins holds entries detailing when edits happen - plot these on line for that bin!
+  creationBins = [[r.c() for i in xrange(7)] for i in xrange(7)] 
+
+  # order notes by creation
+  jids = [id[0] for id in notes.order_by("created").values_list('jid')]
+  jid2idx = dict([(jids[i],i) for i in xrange(len(jids))])
+  for log in allLogs:
+     noteArr = notes.filter(jid=log.noteid)
+     if len(noteArr) < 1:
+        continue
+     note = noteArr[0]
+     births[note.jid] = jid2idx[note.jid]
+     if not note.deleted and note.jid not in deaths:
+        deaths[note.jid] = today
+        pass
+     if (log.action == 'note-delete'):
+        deaths[note.jid] = float(log.when-note.created)
+     points[log.action] = r.rbind(points[log.action],c([jid2idx[note.jid],float(log.when-note.created)]))
+     pass
+
+  # compute the edits, compile the colors
+  edits_ = ca.note_edits_for_user(notes[0].owner)
+  points['note-edit'] = r.c()
+  edit_dir, edit_delta, colors_r = r.c(), r.c(), r.c(),
+  ymax = 0
+
+  points['bin-edits'] = r.c()
+  weekdayColors = ['red','orange','yellow','green','blue','grey','brown']
+  edit_col = r.c()
+  maxDelta = 0
+
+
+  for n in notes:  ## wCom: not all notes eval'd here may have note-add events !!
+    colors_r = r.c(colors_r,colors[n.jid])
+    if n.jid in edits_:
+      for edit_action in edits_[n.jid]:
+        ## Add edit to creationBin
+        noteDOW = wUtil.msecToDate(n.created).weekday()
+        editDOW = wUtil.msecToDate(edit_action['when']).weekday()
+        timeDelta = edit_action['when'] - n.created 
+        ##if edit_action['when'] != None and edit_action['when'] > firstBirth and edit_action['when'] < ca.DATABASE_SNAPSHOT_TIME:
+          ## Current y-val plots time between edit and creation -- second y-val in comment plots absolute time of edit
+        points['bin-edits'] = r.rbind(points['bin-edits'], c([int(noteDOW*7+editDOW), float(timeDelta)]))
+        maxDelta = max(float(timeDelta), maxDelta)
+        
+          ##KEEP: points['bin-edits'] = r.rbind(points['bin-edits'], c([int(noteDOW*7+editDOW), float(edit_action['when'])]) )        
+        edit_col = r.c(edit_col, weekdayColors[editDOW])
+        pass
+  xl,yl="Created Date", "Action Date"
+  
+  #maxDelta = 1000*3600*24*60
+
+  r.plot(points['bin-edits'], cex=1.0, col=edit_col, pch='x' ,xlab=xl,ylab=yl, main=title, xlim=r.c(0, 48), ylim=c([0, float(maxDelta)]), axes=False )
+  ##KEEP: , axes=False)#, ylim=c([firstBirth, ca.DATABASE_SNAPSHOT_TIME]) )
+  
+  ## 1 below, 2 left
+  r.axis(1, at=c(range(0,49,7)), labels=c(['Mon','Tue','Wed','Thur','Fri','Sat','Sun']), col='grey' )
+
+  
+
+  ## Something wrong here  #help!#
+  ## Graph is coming up with tiny y-axis plotting # of days between note-create and edit event
+  yTicks, yNames, ySep = [], [], 1000*3600*24 # daily ticks
+  for tickTime in range(0,maxDelta, ySep): # daily ticks
+    yTicks.append(tickTime)
+    yNames.append(float(tickTime)/ySep)
+    pass
+  r.axis(2, at=c(yTicks), labels=c(yNames))
+  #help!#
+  
+  ##r.points(points['note-edit'], col=colors_r, pch=edit_dir,  cex=edit_delta)  
+  ##r.points(points['note-delete'], cex=2.0,col = colors_r, pch='x')
+  yWeeks = [int(y) for y in range(int(msecToWeek(firstBirth)), int(msecToWeek(time.time()*1000)), 1)]
+
+  for x in births.keys():
+     if x in deaths:
+       stillalive = (today-deaths[x] < 0.001)
+       color = colors[x] # ('green' if stillalive else 'black')
+       ##r.lines( c( [float(births[x])]*2)     ,c([ float(births[x]),float(deaths[x]-births[x]) ]), col=color)
+       pass
+     pass
+  for i in range(0,49,7):
+    r.abline(v=float(i)-0.5, col='purple')
+    pass
+  for i in range(0,49):
+    r.abline(v=float(i)-0.5, col='gray')
+  devoff()

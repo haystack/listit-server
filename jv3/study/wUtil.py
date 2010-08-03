@@ -22,3 +22,7 @@ ave_words_per_line = lambda str: float(str_sum_words(str))/float(str_sum_lines(s
 ## Time ##
 msecToDate = lambda msec : dd.fromtimestamp(float(msec)/1000.0)
 
+dtToDayMsec = lambda dt: int((((dt.weekday()*24+dt.hour)*60+dt.minute)*60+dt.second)*1000 + float(dt.microsecond)/1000.0)
+dtToHourMsec = lambda dt: int(((dt.hour*60+dt.minute)*60+dt.second)*1000 + float(dt.microsecond)/1000.0)
+
+ 
