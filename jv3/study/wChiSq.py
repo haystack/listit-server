@@ -77,7 +77,7 @@ def chi_sq_edits_per_user_2(user):
         pass
     print chiMatrix
     print '--------------------------------------------'
-    result = r('chisq.test')(chiMatrix,p=c(1/7,6/7))
+    result = r('chisq.test')(chiMatrix,p=r.c(1/7,6/7))
     print result
     print '--------------------------------------------'
     return result
@@ -131,7 +131,7 @@ def chisq_edits_for_users_2(users):
                 pass
             pass
         pass
-    result = r('chisq.test')(chiMatrix, p=c(1/7,6/7))
+    result = r('chisq.test')(chiMatrix, p=r.c(1/7,6/7))
     return (result, chiMatrix)
 
 
