@@ -32,9 +32,12 @@ def chi_sq_edits_per_user(user):
         if n.jid in edits_:
             createdDOW = wUtil.msecToDate(n.created).weekday()
             for edit_action in edits_[n.jid]:
-                ## For each edit of this note, find editDOW and increment spot in matrix
-                editDOW = wUtil.msecToDate(edit_action['when']).weekday()
-                chiMatrix[createdDOW+editDOW*7] += 1
+                timeDelta = edit_action['when'] - n.created
+                if timeDelta > 1000*3600*24*7:
+                    ## For each edit of this note, find editDOW and increment spot in matrix
+                    editDOW = wUtil.msecToDate(edit_action['when']).weekday()
+                    chiMatrix[createdDOW+editDOW*7] += 1
+                    pass
                 pass
             pass
         pass
@@ -45,3 +48,25 @@ def chi_sq_edits_per_user(user):
     print '--------------------------------------------'
     return result
 
+
+def chisq_edits_for_users(users):
+    chiMatrix = r.matrix(c([0 for i in range(49)]), ncol=7,nrow=7)
+    for user in users:
+        notes = Note.objects.filter(owner=user)
+        edits_ = ca.note_edits_for_user(user)
+        for n in notes:
+            if n.jid in edits_:
+                createdDOW = wUtil.msecToDate(n.created).weekday()
+                for edit_action in edits_[n.jid]:
+                    timeDelta = edit_action['when'] - n.created
+                    if timeDelta > 1000*3600*24*7:
+                    ## For each edit of this note, find editDOW and increment spot in matrix
+                        editDOW = wUtil.msecToDate(edit_action['when']).weekday()
+                        chiMatrix[createdDOW+editDOW*7] += 1
+                        pass
+                    pass
+                pass
+            pass
+        pass
+    result = r('chisq.test')(chiMatrix)
+    return (result, chiMatrix)
