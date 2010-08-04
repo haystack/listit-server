@@ -17,6 +17,7 @@ import jv3.study.thesis_figures as tfigs
 import jv3.study.wUtil as wUtil
 from jv3.study.thesis_figures import n2vals
 import r.chisq
+import datetime as dd
 
 r = ro.r
 c = lambda vv : apply(r.c,vv)
@@ -30,13 +31,47 @@ def chi_sq_edits_per_user(user):
     chiMatrix = r.matrix(c([0 for i in range(49)]), ncol=7,nrow=7)
     for n in notes:
         if n.jid in edits_:
-            createdDOW = wUtil.msecToDate(n.created).weekday()
+            createdDate = wUtil.msecToDate(n.created)
+            createdDOW = createdDate.weekday()
+            topOfDay = dd.datetime(year=createdDate.year, month=createdDate.month, day=createdDate.day)
             for edit_action in edits_[n.jid]:
-                timeDelta = edit_action['when'] - n.created
-                if timeDelta > 1000*3600*24*7:
+                timeDelta = wUtil.msecToDate(edit_action['when']) - topOfDay
+                if timeDelta.days >= 7:
                     ## For each edit of this note, find editDOW and increment spot in matrix
                     editDOW = wUtil.msecToDate(edit_action['when']).weekday()
                     chiMatrix[createdDOW+editDOW*7] += 1
+                    pass
+                pass
+            pass
+        pass
+    print chiMatrix
+    print '--------------------------------------------'
+    result = r('chisq.test')(chiMatrix)
+    print result
+    print '--------------------------------------------'
+    return result
+
+
+
+## Edit on same day vs diff day as created
+def chi_sq_edits_per_user_2(user):
+    notes = Note.objects.filter(owner=user)
+    edits_ = ca.note_edits_for_user(notes[0].owner)
+    chiMatrix = r.matrix(c([0 for i in range(14)]), ncol=2,nrow=7)
+    for n in notes:
+        if n.jid in edits_:
+            createdDate = wUtil.msecToDate(n.created)
+            createdDOW = createdDate.weekday()
+            topOfDay = dd.datetime(year=createdDate.year, month=createdDate.month, day=createdDate.day)
+            for edit_action in edits_[n.jid]:
+                timeDelta = wUtil.msecToDate(edit_action['when']) - topOfDay
+                if timeDelta.days >= 7:
+                    ## For each edit of this note, find editDOW and increment spot in matrix
+                    editDOW = wUtil.msecToDate(edit_action['when']).weekday()
+                    if createdDOW == editDOW:
+                        chiMatrix[createdDOW] += 1
+                    else:
+                        chiMatrix[createdDOW+7] += 1
                     pass
                 pass
             pass
