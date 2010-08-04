@@ -16,7 +16,6 @@ from numpy import array
 import jv3.study.thesis_figures as tfigs
 import jv3.study.wUtil as wUtil
 from jv3.study.thesis_figures import n2vals
-import r.chisq
 import datetime as dd
 
 r = ro.r
@@ -78,7 +77,7 @@ def chi_sq_edits_per_user_2(user):
         pass
     print chiMatrix
     print '--------------------------------------------'
-    result = r('chisq.test')(chiMatrix)
+    result = r('chisq.test')(chiMatrix,p=c(1/7,6/7))
     print result
     print '--------------------------------------------'
     return result
@@ -111,6 +110,7 @@ def chisq_edits_for_users(users):
 def chisq_edits_for_users_2(users):
     chiMatrix = r.matrix(c([0 for i in range(14)]), ncol=2,nrow=7)
     for user in users:
+        print user.id
         notes = Note.objects.filter(owner=user)
         edits_ = ca.note_edits_for_user(user)
         for n in notes:
@@ -131,7 +131,7 @@ def chisq_edits_for_users_2(users):
                 pass
             pass
         pass
-    result = r('chisq.test')(chiMatrix)
+    result = r('chisq.test')(chiMatrix, p=c(1/7,6/7))
     return (result, chiMatrix)
 
 
