@@ -689,9 +689,10 @@ def note_edits_for_user(u,filter_non_edits=True,include_levenstein=False):
     for jid,edits in by_jid.iteritems():
         edits.sort(key=lambda x: float(x['when']))
         converted_edits = []
+        last = None
         for edit in edits:
             if edit['action'] == 'note-add' : continue
-            if edit['action'] == 'note-save' and last["action"] == 'note-edit' :
+            if edit['action'] == 'note-save' and last is not None and last["action"] == 'note-edit' :
 #                 if edit['noteText'] is None: print "note-save noteText is none"
 #                 if last['noteText'] is None: print "note-add noteText is none"
 #                print "__", jv3.utils.levenshtein(last['noteText'] if last["noteText"] is not None else "" ,edit['noteText'] if edit["noteText"] is not None else ""),
