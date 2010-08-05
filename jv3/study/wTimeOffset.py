@@ -20,12 +20,18 @@ import random
 ## Calculate hour offset, bin actions by hour, then slide with 6-hour
 
 ## window = width in hours of window for counting actions
-def calc_time_offset(user, window=6):
+def calc_virtual_midnight(user, window=6, before=None,after=None):
     allLogs = ActivityLog.objects.filter(owner=user, action__in = ['note-add','note-edit','note-save','note-delete','sidebar-open','sidebar-close','significant-scroll','notes-reordered'])
     ## Bin by hour
     hourlyActions = [0 for i in range(24)]
     for log in allLogs: 
-        hourlyActions[wUtil.msecToDate(log.when).hour] += 1
+        if before is not None and int(log.when) > before:
+            continue
+        elif after is not None and int(log.when) < after:
+            continue
+        else:
+            hourlyActions[wUtil.msecToDate(log.when).hour] += 1
+        pass
     hourlyActions.extend(hourlyActions) ## --> creates a double! hr = [0,1,...23,24,1,2,3...] making window code easier!
     ## Determine min k-hour window of activity
     minHour, minSum = 0,  sum(hourlyActions[0:window])  ## initialize to some valid choice
@@ -36,11 +42,16 @@ def calc_time_offset(user, window=6):
             minHour = hr
         pass
     ## Report what the center of the minimum window is!
-    print "The center of a", window, "hour window is: ", minHour + (window/2.0)
-    return minHour + (window/2.0)
+    print "The center of a", window, "hour window is: ", (minHour + (window/2.0)) % 24
+    return (minHour + (window/2.0)) % 24
 
 
+def time_offsets(user):
+    return [calc_virtual_midnight(user, i) for i in xrange(1,24)]
 
+def time_offsets_max():
+    before = int(1.233e12)
+    return [calc_virtual_midnight(em, i, before) for i in xrange(1,24)]
 
 ## look at url type notes - define a bookmark carefully (note, serves to help people retrieve page)
 
