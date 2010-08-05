@@ -29,7 +29,6 @@ def calc_time_offset(user, window=6):
     hourlyActions.extend(hourlyActions) ## --> creates a double! hr = [0,1,...23,24,1,2,3...] making window code easier!
     ## Determine min k-hour window of activity
     minHour, minSum = 0,  sum(hourlyActions[0:window])  ## initialize to some valid choice
-    lastHour, lastSum = 0,0
     for hr in xrange(0,25): ## 0-5, 1-6, ...,23-3, 24-4 ## 
         currSum = sum(hourlyActions[hr:hr+window])
         if currSum < minSum:
