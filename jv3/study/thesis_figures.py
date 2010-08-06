@@ -270,7 +270,7 @@ def plot_note_words_hist(notes,filename="num_words",width=1024,height=800,soft_m
    nwords = [x for x in nwords if x < soft_max]
 
    hh = r.hist(c(nwords),breaks=c(breaks),labels=c(breaks), freq=True,xlab='',ylab='',main='length of notes (in words) %s (%d)' % (user.email,len(notes)))
-   print len(breaks)," ", len(nchars)
+   # print len(breaks)," ", len(nchars)
    print nchars
    r.lines(c(breaks[:-1]),nchars,col='green')
    r.text(r.c(3.0/4.0*soft_max),r.c(3.0/4.8*max(hh[1])+0.1*max(hh[1])),"notes min-median-mode-max: %f %f %f %f" % (min(nwords_),median(nwords_),ca.mode(nwords_),max(nwords_)))
@@ -430,6 +430,13 @@ def juxtapose_user(u,user_index):
 
    juxtapose_fns = [
       lambda n,i:("lifeline-%d"%i,wF.mmmPlot("lifeline-%d"%i,n,'lifetime for notes %s' % n[0].owner.email)),  ## modified to wF.mmmPlot  (also, title is being over-written, will change soon)
+      lambda n,i:("flatlife-urls-%d" %i, wF.lifelineFlatCollapsedCompareColor("flatlife-urls-%d"%i,n,'url vs no url %s ' %n[0].owner)), ## added
+      lambda n,i:("flatlife-email-%d" %i, wF.lifelineFlatCollapsedCompareColor("flatlife-email-%d"%i,n,'email addrs (red) vs none (black) %s ' % n[0].owner,color_function=wF.one_or_no_email_redblk)), ## added
+      lambda n,i:("flatlife-timeref-%d" %i, wF.lifelineFlatCollapsedCompareColor("flatlife-timeref-%d"%i,n,'time ref (red) vs none (black) %s ' % n[0].owner,color_function=wF.one_or_more_timeref_redblk)), ## added
+      lambda n,i:("flatlife-todoref-%d" %i, wF.lifelineFlatCollapsedCompareColor("flatlife-todoref-%d"%i,n,'todo (red) vs none (black) %s ' % n[0].owner,color_function=wF.one_or_more_todoref_redblk)), ## added
+      lambda n,i:("flatlife-dowref-%d" %i, wF.lifelineFlatCollapsedCompareColor("flatlife-dowref-%d"%i,n,'daysofweek (red) vs none (black) %s ' % n[0].owner,color_function=wF.one_or_more_daysofweek_redblk)), ## added
+      lambda n,i:("flatlife-verbsref-%d" %i, wF.lifelineFlatCollapsedCompareColor("flatlife-verbsref-%d"%i,n,'verbs (red) vs none (black) %s ' % n[0].owner,color_function=wF.one_or_more_verbs_redblk)), ## added            
+      lambda n,i:("flatlife-sentences-%d" %i, wF.lifelineFlatCollapsedCompareColor("flatlife-sentences-%d"%i,n,'sentences (red) vs none (black) %s ' % n[0].owner,color_function=wF.two_or_more_sentences_redblk)), ## added
       lambda n,i:("edit-recency-%d"%i,edit_recency(n,filename="edit-recency-%d"%i)),
       lambda n,i:("delete-recency-%d"%i,edit_recency(n,action='note-delete',filename="delete-recency-%d"%i)),
       lambda n,i:("note-length-%d" % i,plot_note_words_hist(n,filename="note-length-%d"%i,soft_max=500)),
@@ -465,6 +472,7 @@ def batch_juxtapose(users,basedir):
             pass
          except:
             import traceback
+            print "yo"
             print sys.exc_info()
             traceback.print_tb(sys.exc_info()[2])
             try:

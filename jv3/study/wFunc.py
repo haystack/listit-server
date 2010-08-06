@@ -160,7 +160,7 @@ def one_or_no_email_redblk(note):
   emails = ca.note_emails(note)
   if type(emails) == dict:
     return 'red' if emails['email_addrs'] > 0 else 'black'
-  return 'red' if email[1] > 0 else 'black'
+  return 'red' if emails[1] > 0 else 'black'
 
 def one_or_more_lines_multicolor(note):
   from thesis_figures import n2vals
@@ -177,35 +177,46 @@ def one_or_more_lines_multicolor(note):
 
 def one_or_more_numbers_redblk(note):
   note = n2vals(note)
-  numCount = ca.numbers(note)['numbers']
-  return 'red' if numCount > 0 else 'black'
+  lines = ca.numbers(note)
+  if type(lines) == dict:
+    val = lines['note_lines']
+  else:
+    val = lines[1]  
+  return 'red' if val > 0 else 'black'
 
 def one_or_more_verbs_redblk(note):
   note = n2vals(note)
-  verCount = ca.note_verbs(note)['note_verbs']
-  return 'red' if verCount > 0 else 'black'
+  lines = ca.note_verbs(note)
+  if type(lines) == dict:
+    val = lines['note_verbs']
+  else:
+    val = lines[1]    
+  return 'red' if val > 0 else 'black'
   
 def one_or_more_daysofweek_redblk(note):
   note = n2vals(note)
-  dayCount = ca.daysofweek(note)['daysofweek']
-  return 'red' if dayCount > 0 else 'black'
+  lines = ca.daysofweek(note)
+  if type(lines) == dict:
+    val = lines['daysofweek']
+  else:
+    val = lines[1]      
+  return 'red' if lines > 0 else 'black'
 
 def one_or_more_timeref_redblk(note):
   note = n2vals(note)
-  timeCount = ca.daysofweek(note)['daysofweek']
-  timeCount += ca.months(note)['months']
+  timeCount = ca.daysofweek(note)['daysofweek'] if type(ca.daysofweek(note)) == dict else ca.daysofweek(note)[1]
+  timeCount += ca.months(note)['months'] if type(ca.months(note)) == dict else ca.months(note)[1]
   return 'red' if timeCount > 0 else 'black'
 
 def one_or_more_todoref_redblk(note):
   note = n2vals(note)
-  todoCount = ca.note_todos(note)['note_todos']
+  todoCount = ca.note_todos(note)['note_todos'] if type(ca.note_todos(note) ) == dict else ca.note_todos(note)[1]  
   return 'red' if todoCount > 0 else 'black'
 
 def two_or_more_sentences_redblk(note):
   note = n2vals(note)
-  senCount = ca.note_sentences(note)['note_sentences']
+  senCount = ca.note_sentences(note)['note_sentences'] if type(ca.note_sentences(note)) == dict else ca.note_sentences(note)[1]
   return 'red' if senCount > 1 else 'black'
-
 
 ## performs a flattened collapsed lifeline with     
 def lifelineFlatCollapsedCompareColor(filename, notes, title='Note Lifelines', color_function=one_or_no_url_redblk, YMAG=0.5):

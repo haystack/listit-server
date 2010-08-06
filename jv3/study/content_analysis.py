@@ -160,7 +160,7 @@ def note_changed_edits(note):
     #print "total edits > 0 ", len([x for x in reduce(lambda x,y:x+y,user_to_edits[note["owner_id"]].values()) if x['editdist'] > 0])
     #print "total edits for user ", len([x for x in reduce(lambda x,y:x+y,user_to_edits[note["owner_id"]].values())])
     #[{"touches" : len(user_to_edits[note["owner_id"]].get(note["jid"],[])), "edits" : len([x for x in user_to_edits[note["owner_id"]].get(note["jid"],[]) if x["editdist"] > 0]) }]
-    return make_feature('note_edits', len([x for x in user_to_edits[note["owner_id"]].get(note["jid"],[]) if x["editdist"] > 0]))
+    return make_feature('note_edits', len([x for x in user_to_edits[note["owner_id"]].get(note["jid"],[]) if x["lendiff"] > 0]))
 
              
     
@@ -701,12 +701,10 @@ def note_edits_for_user(u,filter_non_edits=True,include_levenstein=False):
                                               "howlong": edit["when"] - last["when"],
                                               "initial": last["noteText"] if last["noteText"] is not None else "",
                                               "final": edit["noteText"] if edit["noteText"] is not None else "",
-                                              "lendiff" : abs(len(last['noteText']) - len(edit["noteText"]))
+                                              "lendiff" : abs(len(last['noteText']) - len(edit["noteText"])) if edit["noteText"] is not None else 0
                                               #                                     "editdist": -1 if include_levenstein == False else jv3.utils.levenshtein(last['noteText'] if last["noteText"] is not None else "" ,edit['noteText'] if edit["noteText"] is not None else "")
                                               })
-                except :
-                    print sys.exc_info()
-                pass    
+                except :  print sys.exc_info()
             last = edit
         edits_by_jid[jid]= converted_edits if not filter_non_edits else filter(lambda x : x['lendiff'] > 0, converted_edits)
     return edits_by_jid 
