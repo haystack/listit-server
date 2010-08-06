@@ -4,6 +4,9 @@ Guide file for the wName.py entities in this folder!
 
 wNotes.py -> Helper functions for graphing
 
+wTimeOffset.py
+  Contains calc_virtual_midnight for finding a user's virtual midnight!
+
 
 
 -- Single function files:
@@ -12,8 +15,9 @@ wBar.py -> Plots number of ActivityLogs for (created, edited w/in 1wk of creatio
   five vert. bars per day of week
 
 
-wVerUrl.py -> plots notes from a user with x-axis:version and y-axis:# of notes that are in (each version and have a url in each version)
-  
+wVerUrl.py -> 
+  x-axis: version: 1,2,3..
+  y-axis: # of notes in each ver (total, with url)  
 
 wVer.py ->
   x-axis: version of notes: 1,2,3...
@@ -41,5 +45,6 @@ wTime.py -> ## For a scatter plot of:   #TODO#: fix time-shift bug here and in w
   x-axis: day of week
   y-axis: time of day
   ...shows note creations, edits, deletes in a scatterplot based on when each happend...
+
 
 wClean.py -> Cleaning database - jid=-1, 'tutorial note', bug notes (ie: 1 line repeating hundreds of times)
