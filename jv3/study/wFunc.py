@@ -14,7 +14,7 @@ from jv3.study.study import *
 from numpy import array
 import jv3.study.thesis_figures as tfigs
 import jv3.study.wUtil as wUtil
-from jv3.study.thesis_figures import n2vals
+from jv3.study.thesis_figures import n2vals,text2vals
 r = ro.r
 c = lambda vv : apply(r.c,vv)
 devoff = lambda : r('dev.off()')
@@ -146,8 +146,9 @@ def makeACUPlots():
 
 msecToWeek = lambda x : x * (1.0/(1000.0*60*60*24*7))
 
+black = lambda note: 'black'
+
 def one_or_no_url_redblk(note):
-  from thesis_figures import n2vals
   note = n2vals(note)
   urls = ca.note_urls(note)
   if type(urls) == dict:
@@ -155,7 +156,6 @@ def one_or_no_url_redblk(note):
   return 'red' if urls[1] > 0 else 'black'
 
 def one_or_no_email_redblk(note):
-  from thesis_figures import n2vals
   note = n2vals(note)
   emails = ca.note_emails(note)
   if type(emails) == dict:
@@ -163,7 +163,6 @@ def one_or_no_email_redblk(note):
   return 'red' if emails[1] > 0 else 'black'
 
 def one_or_more_lines_multicolor(note):
-  from thesis_figures import n2vals
   note = n2vals(note)
   lines = ca.note_lines(note)
   if type(lines) == dict:
@@ -219,75 +218,102 @@ def two_or_more_sentences_redblk(note):
   return 'red' if senCount > 1 else 'black'
 
 ## performs a flattened collapsed lifeline with     
-def lifelineFlatCollapsedCompareColor(filename, notes, title='Note Lifelines', color_function=one_or_no_url_redblk, YMAG=0.5):
-  allLogs = ActivityLog.objects.filter(owner=notes[0].owner, action__in=['note-add','note-delete'])
+def lifelineFlatCollapsedCompareColor(filename, notes, title='Note Lifelines', color_function=black, YMAG=1.0):
+  allLogs = ActivityLog.objects.filter(owner=notes[0].owner, action__in=['note-add','note-save','note-delete'])
   firstBirth = float(min([x[0] for x in notes.values_list('created')]))
   title = "%s -- %s %s %s  " % (title,str(notes.count()),notes[0].owner.email,notes[0].owner.id)
   ## Meta-data for points
-  points = {'note-add':r.c(), 'note-delete':r.c()} ## Shortened to just the two, since note-edit added later
+
   births, deaths = {}, {}, 
   today = time.time()*1000.0
   print "saving to %s " % cap.make_filename(filename)
   r.png(file=cap.make_filename(filename), w=3200,h=1600) ## 3200x1600, 9600x4800, 12.8x6.4
-  colors=dict([(n.jid,color_function(n)) for n in notes])  
+  texts=dict([(n.jid,n.contents) for n in notes])
+  births = dict([(n.jid,float(n.created)) for n in notes])
+  jid2note = dict([(n.jid,n) for n in notes])
+  
+  whenmax = 0
+  whenmin = time.time()*1000.0
+  for log in allLogs:
+    if log.action == 'note-add':  births[log.noteid] = float(log.when)
+    if log.action in ['note-add','note-save'] and log.noteText is not None and log.noteid not in texts : texts[log.noteid] = log.noteText
+    if log.action == 'note-delete': deaths[log.noteid] = float(log.when)
+    whenmax = max(whenmax,float(log.when))
+    whenmin = min(whenmin,float(log.when))
+
+  print "whenmax ", whenmin, '-', int(whenmax), (whenmax-whenmin)/(24*60*60*1000.0)
+
+  # if not deleted we fill these in
+  for n in notes.filter(deleted=False) : deaths[n.jid] = whenmax
 
   # order notes by creation
-  jids = [id[0] for id in notes.order_by("created").values_list('jid')]
-  jid2idx = dict([(jids[i],i) for i in xrange(len(jids))])
-  
-  for log in allLogs:
-     noteArr = notes.filter(jid=log.noteid)
-     if len(noteArr) < 1:
-        continue
-     note = noteArr[0]
-     births[note.jid] = jid2idx[note.jid]
-     if not note.deleted and note.jid not in deaths:
-        deaths[note.jid] = today
-        pass
-     if (log.action == 'note-delete'):
-        deaths[note.jid] = float(log.when-note.created)
-     points[log.action] = r.rbind(points[log.action],c([jid2idx[note.jid],float(log.when-note.created)]))
-     pass
+  births_ordered = [ (jid, btime) for jid, btime in births.iteritems() ]
+  births_ordered.sort(key=lambda x:x[1])
+  jid2idx = dict([(births_ordered[i][0],i) for i in xrange(len(births_ordered))])
 
   # compute the edits, compile the colors
+  print "computing edits"
   edits_ = ca.note_edits_for_user(notes[0].owner)
-  points['note-edit'] = r.c()
-  edit_dir, edit_delta, colors_r = r.c(), r.c(), r.c(),
-  ymax = 0
-  for n in notes:  ## wCom: not all notes eval'd here may have note-add events !!
-    colors_r = r.c(colors_r,colors[n.jid])
-    if n.jid in edits_:
-      for edit_action in edits_[n.jid]:
+  
+  print "Color function"
+  colors=dict([(jid,color_function(text2vals(text))) for jid,text in texts.iteritems()])
+  print "--"
+  births_r,colors_r,deletes_r= r.c(),r.c(),r.c()
+  edits_r = r.c()
+  edit_dirs_r = r.c()
+  edit_delta = 3 
+
+  print "BIRTHS= %d " % len(births)
+  print "DEATHS %d " % len(deaths)
+  
+  for njid in births: 
+    births_r = r.rbind(births_r, c([ jid2idx[njid], 0 ]))  # 
+    colors_r = r.c(colors_r,colors[njid] if njid in colors else'grey') 
+    deletes_r = r.rbind(deletes_r, c([ jid2idx[njid], deaths[njid]-births[njid] if njid in deaths else whenmax-whenmin ])) # whenmax-whenmin])) 
+    if njid in edits_:
+      for edit_action in edits_[njid]:
         ## Add big icon
-        ymax = max(ymax,float(edit_action['when']-n.created))
-        points['note-edit'] = r.rbind(points['note-edit'],c([jid2idx[n.jid], float(edit_action['when']-n.created)]))
-        edit_dir = r.c(edit_dir, pch_of_delta(edit_action['initial'],edit_action['final']))
-        edit_delta = 3 # r.c(edit_delta, abs(3 + 1*(len(edit_action['initial']) - len(edit_action['final']))/1000.0))
-        # ## Add small icon
-        #         points['note-edit'] = r.rbind(points['note-edit'],c([jid2idx[n.jid], float(edit_action['when'])]))
-        #         edit_dir = r.c(edit_dir, pch_of_innerEdit(edit_action['initial'],edit_action['final']))
-        #         edit_delta = r.c(edit_delta, 7)#abs(10 + 10*(len(edit_action['initial']) - len(edit_action['final']))/1000.0))
-        #         edit_col = r.c(edit_col, col_of_edit(edit_action['initial'], 'inner', edit_action['when']))
-        
-  ##print points['note-edit']
-  xl,yl="Created Date", "Action Date"
-  r.plot(points['note-add'], cex=2.0,col=colors_r, pch='o',xlab=xl,ylab=yl, main=title, xlim=r.c(0, notes.count()),ylim=r.c(0, YMAG*ymax), axes=False)
-  r.points(points['note-edit'], col=colors_r, pch=edit_dir,  cex=edit_delta)
-  r.points(points['note-delete'], cex=2.0,col = colors_r, pch='x')
-  yWeeks = [int(y) for y in range(int(msecToWeek(firstBirth)), int(msecToWeek(time.time()*1000)), 1)]
+        edits_r = r.rbind(edits_r,c([jid2idx[njid], float(edit_action['when'])-births[njid]]))
+        edit_dirs_r = r.c(edit_dirs_r, pch_of_delta(edit_action['initial'],edit_action['final']))
+
+  r.plot(births_r,cex=2.0, col=colors_r, pch='o',xlab='Created date',ylab='Action date', main=title, xlim=r.c(0, notes.count()),ylim=r.c(0, YMAG*(whenmax-whenmin)), axes=False)
+  r.points(edits_r, col='black', pch=edit_dirs_r,  cex=edit_delta)
+  r.points(deletes_r, cex=2.0,col = 'black', pch='x')
+  
+  yWeeks = [int(y) for y in range(int(msecToWeek(firstBirth)), int(msecToWeek(whenmax)), 1)]
   r.axis(2, at=c([float(y*7*24*60*60*1000.0) for y in yWeeks]), labels=c([int(x)-2012 for x in yWeeks]), tck=1)
 
+  duds = []
   for x in births.keys():
-     if x in deaths:
-       stillalive = (today-deaths[x] < 0.001)
-       color = colors[x] # ('green' if stillalive else 'black')
-       r.lines(c([float(births[x])]*2),c([float(births[x]),float(deaths[x]-births[x])]), col=color)
-       pass
+    if x in deaths and x in colors:
+      r.lines(c([float(jid2idx[x])]*2),c([float(jid2idx[x]),float(deaths[x]-births[x])]), col=colors[x])
+    else:
+      duds.append(x)
+  print "skipped %d whose death time was not known " % len(duds)
+
+  goodness_stats = [
+    ("notes", len(births) ),
+    ("missing note" ,len( [x for x in births if x not in jid2note]) ),
+    ("missing text" ,len([x for x in births if x not in texts])),
+    ("missing note-delete times" , len([jid2note[x].deleted for x in births if x in jid2note and x not in deaths])),
+    ("negative lifetime", len([x for x in births if x in deaths and deaths[x] - births[x] < 0]))
+    ]
+
+  print "avg start-end %d " % (median( [deaths[njid]-births[njid] for njid in births.keys() if njid in deaths ] )/(24*60*60*1000.0))
+
   devoff()
+  return goodness_stats
 
+def summarize_goodness(gstats):
+  gstats = [dict(x) for x in gstats]
+  sumnotes, summissing,meanmissing = sum([x["notes"] for x in gstats]),sum([x["missing note"] for x in gstats]),mean([x["missing note"]*1.0/x["notes"] for x in gstats]),
+  print "missing notes %d/%d (%g %%) " % (summissing,sumnotes,meanmissing)
+  print "missing note-delete times %d %g " % (sum([x["missing note-delete times"] for x in gstats]),mean([x["missing note-delete times"]*1.0/x["notes"] for x in gstats]))
+  print "missing text %d : %g " % (mean([x["missing text"]*1.0/x["notes"] for x in gstats]), mean([x["missing text"]*1.0/x["notes"] for x in gstats]))
+  print "negative lifetimes  %d %g " % (sum([x["negative lifetime"] for x in gstats]),mean([x["negative lifetime"]*1.0/x["notes"] for x in gstats]))
 
-
-
+  print '\n'.join(["%g"%(x["missing note"]*1.0/x["notes"]) for x in gstats])
+  
 ## basedir like:   "acu/weekly_3/"     
 def plot_notelife_with_color(basedir, users, color_fn):#, firstHalf=True):
   i=0

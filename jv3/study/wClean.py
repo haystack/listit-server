@@ -8,11 +8,17 @@ def clean_full():  ## Perform all cleaning functions
     clean_noteorder()
     clean_repeat_notes(Note.objects.all()) ## Doesn't actually delete anything - ??
 
+def kill_note(n):
+    njid = n.jid
+    nowner = n.owner
+    note.delete()
+    ActivityLog.objects.filter(owner=nowner,noteid=njid).delete()
+
 def clean_tutorial_notes():
     i = 0
     for note in Note.objects.all():
         if is_tutorial_note(note.contents):
-            note.delete()
+            kill_note(note)
             i+=1
     print "Deleted: ", i, " tutorial notes."
 
@@ -20,7 +26,7 @@ def clean_noteorder():
     i = 0
     for note in Note.objects.all():
         if note.jid == -1:
-            note.delete()
+            kill_note(note)
             i+=1
     print "Deleted: ", i, " noteorder notes."
 

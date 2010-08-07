@@ -693,19 +693,14 @@ def note_edits_for_user(u,filter_non_edits=True,include_levenstein=False):
         for edit in edits:
             if edit['action'] == 'note-add' : continue
             if edit['action'] == 'note-save' and last is not None and last["action"] == 'note-edit' :
-#                 if edit['noteText'] is None: print "note-save noteText is none"
-#                 if last['noteText'] is None: print "note-add noteText is none"
-#                print "__", jv3.utils.levenshtein(last['noteText'] if last["noteText"] is not None else "" ,edit['noteText'] if edit["noteText"] is not None else ""),
-                try:
+                if edit["noteText"] is not None:
                     converted_edits.append( { "when" : last["when"],
                                               "howlong": edit["when"] - last["when"],
                                               "initial": last["noteText"] if last["noteText"] is not None else "",
                                               "final": edit["noteText"] if edit["noteText"] is not None else "",
                                               "lendiff" : abs(len(last['noteText']) - len(edit["noteText"])) if edit["noteText"] is not None else 0
-                                              #                                     "editdist": -1 if include_levenstein == False else jv3.utils.levenshtein(last['noteText'] if last["noteText"] is not None else "" ,edit['noteText'] if edit["noteText"] is not None else "")
                                               })
-                except :  print sys.exc_info()
-            last = edit
+                    last = edit
         edits_by_jid[jid]= converted_edits if not filter_non_edits else filter(lambda x : x['lendiff'] > 0, converted_edits)
     return edits_by_jid 
                     

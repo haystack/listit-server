@@ -299,8 +299,13 @@ batch_note_words = lambda users,batchpath="note_words/": batch(plot_note_words_h
 
 ## this method goes and performs all plots a user at a time
 
-n2vals = lambda n :{"contents":n.contents,"jid":n.jid,"owner_id":n.owner.id,"version":n.version,"deleted":n.deleted,"created":n.created,"id":n.id}
+def n2vals(n):
+   if type(n) == Note: return lambda n :{"contents":n.contents,"jid":n.jid,"owner_id":n.owner.id,"version":n.version,"deleted":n.deleted,"created":n.created,"id":n.id}
+   return n
+
 text2vals = lambda ntext :{"contents":ntext}
+
+
 
 def htmlesc(text):
    if text is None: return "<None>"
