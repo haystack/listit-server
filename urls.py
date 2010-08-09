@@ -26,10 +26,10 @@ if settings.LISTIT_SERVER:
                                (r'^listit/plum/', include('plum.urls')))
 
         ## stats server is only available in development mode
-        if settings.STATS_SERVER:
+        if hasattr(settings,"STATS_SERVER") and settings.STATS_SERVER:
             urlpatterns += patterns('', (r'^listit/stats/', include('jv3.stats.urls')))
 
-if settings.EYEBROWSE_SERVER:
+if hasattr(settings,"EYEBROWSE_SERVER") and settings.EYEBROWSE_SERVER:
     import eyebrowse.urls
     print "enabling eyebrowse"
     urlpatterns += eyebrowse.urls.urlpatterns
