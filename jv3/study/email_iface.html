@@ -1,0 +1,53 @@
+<html>
+  <head>
+    <title>listit email interface</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <script type="text/javascript" src="email_iface.js"></script>
+    <style type="text/css">
+      body { font-family: sans-serif; margin:10px; }
+      textarea { width:100%; padding:10px; }
+      #history textarea { width:500px; border:none; margin: 10px; padding: 5px; }
+      #history td { min-width:300px; border:none; margin: 10px; padding: 5px; }
+    </style>
+  </head>
+
+  <body style="background-color:rgba(200,200,200);">
+
+    <div style="background:white;width=80%;margin-left:auto;margin-right:auto">
+    <p>
+    all users:<br>
+    <textarea id="all_users"></textarea>
+    </p>
+    <p>
+    consenting users:<br>
+    <textarea id="consenting_users"></textarea>
+    </p>
+
+    
+    <div class="message">
+      to whom:
+      <textarea id="to">paste from above lines to here</textarea>
+      <p>
+	subject: <input type="text" id="subject">
+      <p>
+	body:<br>
+	<textarea id="body">
+	  Body
+	</textarea>
+      <button id="send">send email</div>	
+    </div>
+
+    <div id="status" style="position:fixed;display:none;left:10px;top:10px; right:10px;bottom:10px;font-size:12pt;background:rgba(255,255,200,0.8);padding:50px;color:black">
+      <div class="area">
+	    sending request to server....
+      </div>
+      <button id="cancel" onclick="cancel_send()">stop sending</button>
+    </div>
+    
+    <table id="history">
+      
+    </table>
+
+    </div>    
+  </body>
+</html>

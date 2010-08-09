@@ -1,6 +1,7 @@
 ## startup
 import os,sys
 from django.contrib.auth.models import User
+from django.db.models.query import QuerySet
 from jv3.models import *
 from jv3.utils import *
 import jv3.study.content_analysis as ca
@@ -13,7 +14,6 @@ import rpy2
 import rpy2.robjects as ro
 from jv3.study.study import *
 from numpy import array
-from django.db.models.query import QuerySet
 from jv3.study.ca_plot import make_filename
 import jv3.study.exporter as exporter
 import json
