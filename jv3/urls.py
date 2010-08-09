@@ -169,3 +169,16 @@ if hasattr(settings,'THESIS_FIGURE_COMMENTS') and settings.THESIS_FIGURE_COMMENT
     urlpatterns += patterns('server.jv3.views.',
                             (r'^tfig_post_comment/', update_comment_view_jsonp),
                             (r'^tfig_get_comments$', get_comments_view_jsonp))
+
+if hasattr(settings,'KARGER_EMAIL_IFACE') and settings.KARGER_EMAIL_IFACE:
+    print "KARGER EMAIL"
+    import jv3.study.email_iface
+    
+    urlpatterns += patterns('server.jv3.views.',
+                            (r'^karger_email_gu$', jv3.study.email_iface.ke_get_users),
+                            (r'^karger_email_gcu$', jv3.study.email_iface.ke_get_consenting_users),
+                            (r'^karger_email_hi$', jv3.study.email_iface.ke_get_email_history),
+                            (r'^karger_send_email$', jv3.study.email_iface.ke_send_email),
+                            (r'^karger_check_status$', jv3.study.email_iface.ke_check_status),
+                            (r'^karger_cancel_send$', jv3.study.email_iface.ke_cancel_send),
+                            )
