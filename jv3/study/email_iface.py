@@ -1,8 +1,9 @@
 ## startup
 import os,sys,csv,json
 from django import forms
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse,HttpResponseForbidden
 from django.shortcuts import render_to_response
+from django.contrib.auth.decorators import login_required
 
 from django.contrib.auth.models import User
 from jv3.models import *
@@ -19,15 +20,8 @@ from django.db.models.query import QuerySet
 from jv3.study.ca_plot import make_filename
 import jv3.study.exporter as exporter
 
-#consenting = [ u for u in User.objects.all() if is_consenting_study2(u)]
-consenting=User.objects.all()[0:10]
-
-def ke_get_users(request):
-    return HttpResponse(json.dumps([u.email for u in User.objects.all()[0:10]]),'text/json')
-
-def ke_get_consenting_users(request):
-    return HttpResponse(json.dumps([u.email for u in consenting]),'text/json')
-
+consenting = [ u for u in User.objects.all() if is_consenting_study2(u)]
+# consenting=User.objects.all()[0:1000]
 
 def _history_read():
    import csv,settings,time
@@ -60,21 +54,6 @@ def _history_append(rec):
     _history_write(hh)
     return rec
 
-def ke_get_email_history(request):
-    tosbyid = {}
-    raw_history = _history_read()
-    # compile the tos into one
-    [ tosbyid.update([(rec['id'],tosbyid.get(rec['id'],[])+[rec['to']])]) for rec in raw_history]
-
-    # this will get overwritten
-
-    histbyid = dict([(rec['id'],rec) for rec in raw_history])
-
-    for rid in tosbyid.keys():
-        histbyid[rid]['to'] = tosbyid[rid]
-        
-    return HttpResponse(json.dumps(histbyid.values()), 'text/json')
-
 send_thread = None
 send_thread_running = False
 
@@ -99,7 +78,36 @@ def  _send_email(txn):
     send_thread.start()
     pass
 
+def _check_auth(request):
+    print "auth? ", request.user.is_authenticated(), repr(request.user)
+    return request.user.is_authenticated() and not request.user.is_anonymous() and request.user.is_staff
+
+def ke_get_users(request):
+    if not _check_auth(request): return HttpResponseForbidden()
+    return HttpResponse(json.dumps([u.email for u in User.objects.all()[0:1000]]),'text/json')
+
+def ke_get_consenting_users(request):
+    if not _check_auth(request): return HttpResponseForbidden()    
+    return HttpResponse(json.dumps([u.email for u in consenting]),'text/json')
+
+def ke_get_email_history(request):
+    if not _check_auth(request): return HttpResponseForbidden()        
+    tosbyid = {}
+    raw_history = _history_read()
+    # compile the tos into one
+    [ tosbyid.update([(rec['id'],tosbyid.get(rec['id'],[])+[rec['to']])]) for rec in raw_history]
+
+    # this will get overwritten
+
+    histbyid = dict([(rec['id'],rec) for rec in raw_history])
+
+    for rid in tosbyid.keys():
+        histbyid[rid]['to'] = tosbyid[rid]
+        
+    return HttpResponse(json.dumps(histbyid.values()), 'text/json')
+
 def ke_cancel_send(request):
+    if not _check_auth(request): return HttpResponseForbidden()        
     global send_thread
     global send_thread_running
     send_thread_running = False
@@ -110,9 +118,9 @@ def ke_cancel_send(request):
             pass
         pass
     return HttpResponse("{}","text/json")
-        
-    
+
 def ke_check_status(request):
+    if not _check_auth(request): return HttpResponseForbidden()    
     id = request.GET['id']
     print id
     hist = _history_read()
@@ -121,7 +129,9 @@ def ke_check_status(request):
 
 randid  = lambda N=10: ''.join([chr(ord('A')+random.randint(0,23)) for x in range(N)])
 
+
 def ke_send_email(request):
+    if not _check_auth(request): return HttpResponseForbidden()    
     datas = json.loads(request.raw_post_data)
     to_addrs = datas["to"].split(',')
     subject  = datas["subject"]

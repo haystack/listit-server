@@ -11,7 +11,7 @@ def clean_full():  ## Perform all cleaning functions
 def kill_note(n):
     njid = n.jid
     nowner = n.owner
-    note.delete()
+    n.delete()
     ActivityLog.objects.filter(owner=nowner,noteid=njid).delete()
 
 def clean_tutorial_notes():

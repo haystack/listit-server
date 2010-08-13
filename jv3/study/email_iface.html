@@ -8,10 +8,28 @@
       textarea { width:100%; padding:10px; }
       #history textarea { width:500px; border:none; margin: 10px; padding: 5px; }
       #history td { min-width:300px; border:none; margin: 10px; padding: 5px; }
+      input { min-width:400px; }
+      .message  {
+         border: solid 1px black;
+         padding:10px;
+         background:rgb(255,240,240);
+      }
+      .history {
+         border: solid 1px black;
+         padding:10px;
+         background:rgb(240,255,255);      
+      }
+      .emaillist {
+          margin-top:10px;
+      }
     </style>
   </head>
 
   <body style="background-color:rgba(200,200,200);">
+
+    <div id="spinner" style="position:fixed;top:10px;left:10px;bottom:10px;right:10px;text-align:center">
+      <img src="ajax-loader.gif" width="400px">
+    </div>
 
     <div style="background:white;width=80%;margin-left:auto;margin-right:auto">
     <p>
@@ -26,28 +44,29 @@
     
     <div class="message">
       to whom:
-      <textarea id="to">paste from above lines to here</textarea>
+      <textarea id="to" onclick="to_click()">(paste from above lines to here)</textarea>
       <p>
-	subject: <input type="text" id="subject">
+	subject:
+	<textarea id="subject" rows=1></textarea>
       <p>
 	body:<br>
-	<textarea id="body">
-	  Body
-	</textarea>
-      <button id="send">send email</div>	
+	<textarea id="body" rows=30></textarea>
+      <button id="send">FAKE SEND EMAIL (wont actually do anything)</div>	
     </div>
 
-    <div id="status" style="position:fixed;display:none;left:10px;top:10px; right:10px;bottom:10px;font-size:12pt;background:rgba(255,255,200,0.8);padding:50px;color:black">
-      <div class="area">
+    <div id="status" style="position:fixed; overflow:scroll; display:none;left:10px;top:10px; right:10px;bottom:10px;font-size:12pt;background:rgba(255,255,200,0.8);padding:50px;color:black">
+      <div class="emaillist">
 	    sending request to server....
       </div>
       <button id="cancel" onclick="cancel_send()">stop sending</button>
     </div>
+
     
-    <table id="history">
+    <div class="history">
+      email history
+      <table id="history">
       
     </table>
-
-    </div>    
+    </div>
   </body>
 </html>

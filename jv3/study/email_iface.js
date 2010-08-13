@@ -7,6 +7,12 @@ var log = function() {
     } catch (x) { }
 };
 
+var check_ready = function() {
+    if (window.gu_load && window.gcu_load) {
+	jQuery("#spinner").fadeOut();
+    }
+};
+
 var reload_history = function() {
     jQuery("#history").fadeOut();
     jQuery.ajax({		    
@@ -23,7 +29,10 @@ var reload_history = function() {
 							      }).join("\n"));
 
 			},
-			error:function(x) { log(x); document.write(x.responseText);}			
+			error:function(x) {
+			    if (x.status == 403) { document.location = '/admin/';   }
+			    log(x); document.write(x.responseText);
+			}			
 			});
 };
 
@@ -35,15 +44,22 @@ jQuery(document).ready(function() {
 			url:call_prefix + "/karger_email_gu",
 			type:"GET",
 			success:function(data) {
+			    window.gu_load = true; 
+			    check_ready();
 			    log('all users',data);
 			    jQuery("#all_users").val(data.join(","));
 			},
-			error:function(x) { log(x); document.write(x.responseText); }
+			error:function(xmlresp) {
+			    log(xmlresp.status);
+			    if (xmlresp.status == 403) { document.location = '/admin/';   }
+			    log(x); document.write(x.responseText); }
 		    });
 	jQuery.ajax({
 			url:call_prefix + "/karger_email_gcu",
 			type:"GET",
 			success:function(data) {
+			    window.gcu_load = true; 
+			    check_ready();			    
 			    log('consenting users',data);
 			    jQuery("#consenting_users").val(data.join(","));
 			},
@@ -51,32 +67,31 @@ jQuery(document).ready(function() {
 		    });
 
 	jQuery("#send").click(function(bb) {
-			  jQuery("#send").attr("disabled",true);
-			  jQuery("#to").attr("disabled", true);
-			  jQuery("#body").attr("disabled", true);
-			  jQuery("#subject").attr("disabled",true);
-			  jQuery.ajax({url:call_prefix + "/karger_send_email",
-				       type:"POST",
-				       data:JSON.stringify({
-					       to:jQuery("#to").val(),
-					       body:jQuery("#body").val(),
-					       subject:jQuery("#subject").val()
-					   }),
-				       success:function(id) {
-					   log(id, typeof(id));
-					   _start_status_poller(id.id);
-					   reload_history();
-					   //jQuery("#to").val('');
-					   //jQuery("#body").val('');
-					   //jQuery("#subject").val('');
-					   // jQuery("#send").attr("disabled",false);
-				       },
-				       error:function(x) {
-					   log(x);
-					   document.write(x.responseText);
-				      }});
-			      });
-			   
+				  if (!confirm("Are sure you want to send message" + jQuery("#subject").val() + " to " +
+					       jQuery("#to").val().split(",").length + " users? " )) {
+				       return;
+				  }
+				  jQuery("#send").attr("disabled",true);
+				  jQuery("#to").attr("disabled", true);
+				  jQuery("#body").attr("disabled", true);
+				  jQuery("#subject").attr("disabled",true);
+				  jQuery.ajax({url:call_prefix + "/karger_send_email",
+					       type:"POST",
+					       data:JSON.stringify({
+								       to:jQuery("#to").val(),
+								       body:jQuery("#body").val(),
+								       subject:jQuery("#subject").val()
+								   }),
+					       success:function(id) {
+						   log(id, typeof(id));
+						   _start_status_poller(id.id);
+						   reload_history();
+					       },
+					       error:function(x) {
+						   log(x);
+						   document.write(x.responseText);
+					       }});
+			      });			   
 			   });
 
 var _start_status_poller = function(id) {
@@ -87,7 +102,7 @@ var _start_status_poller = function(id) {
 				  data:{ id:id },
 				  success:function(datas) {
 				      log(datas);
-				      jQuery("#status .area").html("sent email to : <br>" + datas.join("<br>"));
+				      jQuery("#status .emaillist").html("sent email to : <br>" + datas.join("<br>"));
 				  },
 				  error:function(x) {
 				      document.write(x.responseText);
@@ -96,12 +111,18 @@ var _start_status_poller = function(id) {
 		},1000);
 };
 
+			   function to_click() {
+			       if (jQuery("#to").val() == '(paste from above lines to here)') {
+				   jQuery("#to").val('');
+			       }
+			   };
+
 var cancel_send = function() {
     jQuery("#cancel").fadeOut();
     jQuery.ajax({ url: "/listit/jv3/karger_cancel_send",
 				  type:"GET",
 				  success:function(datas) {
-				      jQuery("#status .area").append("sucesfully cancelled");
+				      jQuery("#status .area").append("cancelled!");
 				      clearInterval(window.status_timer);
 				  },
 				  error:function(x) {
