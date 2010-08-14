@@ -19,36 +19,29 @@
          padding:10px;
          background:rgb(240,255,255);      
       }
-      #to {   min-height:500px;     }
       .emaillist {
           margin-top:10px;
       }
-      #all_users, #consenting_users { overflow:scroll; max-height: 300px; font-size:9pt; }
+      #all_users, #consenting_users { overflow:scroll; max-height: 25; font-size:9pt; }
     </style>
   </head>
 
   <body style="background-color:rgba(200,200,200);">
-
     <div id="spinner" style="position:fixed;top:10px;left:10px;bottom:10px;right:10px;text-align:center">
       <img src="ajax-loader.gif" width="400px">
     </div>
-
     <div style="background:white;width=80%;margin-left:auto;margin-right:auto">
-    <p>
-    all users:<span id="all_count">(loading.........)</span><input type="button" onclick="xfer_to_from_html(jQuery('#all_users'))" value="select all"><br>
-    <div id="all_users"></div>
-    </p>
-    <p>
-    consenting users:<span id="consenting_count">(loading........)</span> <input type="button" value="select all consenting" onclick="xfer_to_from_html(jQuery('#consenting_users'))"><br>
-    <div id="consenting_users"></div>
-    </p>
-    users active in last 2 months:<span id="last2months_count">(loading........)</span> <input type="button" value="select all last 2 months" onclick="xfer_to_from_html(jQuery('#last2months_users'))"><br>
-    <div id="last2months_users"></div>    
-
-alue    
+      <p>
+	all users:<span id="all_count">(loading.........)</span><input type="button" onclick="xfer_to_from_html('all')" value="select all"><br>
+      <p>
+	consenting users:<span id="consenting_count">(loading........)</span> <input type="button" value="select all consenting" onclick="xfer_to_from_html('consenting')"><br>
+      <p>
+	users active in last 2 months:<span id="last2months_count">(loading........)</span> <input type="button" value="select all last 2 months" onclick="xfer_to_from_html('recent')"><br>
+    </div>
+    <center>~~ message ~~</center>
     <div class="message">
       to whom:
-      <textarea id="to" onclick="to_click()">(paste from above lines to here)</textarea>
+      <div id="to">select set of users from above</div>
       <p>
 	subject:
 	<textarea id="subject" rows=1></textarea>
@@ -57,19 +50,15 @@ alue
 	<textarea id="body" rows=30></textarea>
       <button id="send">FAKE SEND EMAIL (wont actually do anything)</div>	
     </div>
-
     <div id="status" style="position:fixed; overflow:scroll; display:none;left:10px;top:10px; right:10px;bottom:10px;font-size:12pt;background:rgba(255,255,200,0.8);padding:50px;color:black">
       <div class="emaillist">
 	    sending request to server....
       </div>
       <button id="cancel" onclick="cancel_send()">stop sending</button>
-    </div>
-
-    
+    </div>    
     <div class="history">
       email history
-      <table id="history">
-      
+      <table id="history">      
     </table>
     </div>
   </body>

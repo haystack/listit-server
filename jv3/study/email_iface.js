@@ -1,14 +1,13 @@
 
 var call_prefix = "/listit/jv3";
+window.user_counts = { "" : 0 , "(select set of users from above)" : 0 };
 
 var log = function() {
-    try {
-	console.log.apply(console,arguments);
-    } catch (x) { }
+    try {console.log.apply(console,arguments); } catch (x) { }
 };
 
 var check_ready = function() {
-    if (window.gu_load && window.gcu_load) {
+    if (window.gu_load && window.gcu_load && window.l2m_load) {
 	jQuery("#spinner").fadeOut();
     }
 };
@@ -33,16 +32,11 @@ var reload_history = function() {
 			    if (x.status == 403) { return document.location = '/admin/';   }
 			    log(x); document.write(x.responseText);
 			}			
-			});
+		});
 };
 
 var xfer_to_from_html = function(jq) {
-    try {
-	    jQuery("#to").val(jq.html().replace(/<br>/g,"\n"));	
-    } catch (x) {
-	log(x);
-    }
-
+    try {  jQuery("#to").html(jq);    } catch (x) { log(x);    }
 };
 
 
@@ -53,11 +47,11 @@ jQuery(document).ready(function() {
 			url:call_prefix + "/karger_email_gu",
 			type:"GET",
 			success:function(data) {
+			    user_counts['all'] = data;
 			    window.gu_load = true; 
 			    check_ready();
 			    log('all users',data);
-			    jQuery("#all_count").html("("+data.length+")");			    
-			    jQuery("#all_users").html(data.join("<br>"));
+			    jQuery("#all_count").html("("+data+")");			    
 			},
 			error:function(xmlresp) {
 			    log(xmlresp.status);
@@ -69,11 +63,10 @@ jQuery(document).ready(function() {
 			url:call_prefix + "/karger_email_gcu",
 			type:"GET",
 			success:function(data) {
+			    user_counts['consenting'] = data;
 			    window.gcu_load = true; 
-			    check_ready();			    
-			    log('consenting users',data);
-			    jQuery("#consenting_count").html("("+data.length+")");
-			    jQuery("#consenting_users").html(data.join("<br>"));
+			    check_ready();
+			    jQuery("#consenting_count").html("("+data+")");
 			},
 			error:function(x) { log(x); document.write(x.responseText); }
 		    });
@@ -81,27 +74,23 @@ jQuery(document).ready(function() {
 			url:call_prefix + "/karger_email_l2m",
 			type:"GET",
 			success:function(data) {
+			    user_counts['recent'] = data;
 			    window.l2m_load = true; 
 			    check_ready();			    
-			    jQuery("#last2months_count").html("("+data.length+")");
-			    jQuery("#last2months_users").html(data.join("<br>"));
+			    jQuery("#last2months_count").html("("+data+")");
 			},
 			error:function(x) { log(x); /*document.write(x.responseText);*/ }
 		    });			   
 
 	jQuery("#send").click(function(bb) {
-				  if (!confirm("Are sure you want to send message" + jQuery("#subject").val() + " to " +
-					       jQuery("#to").val().replace(",","\n").split("\n").length + " users? " )) {
-				       return;
-				  }
+				  if (!confirm("Are sure you want to send message" + jQuery("#subject").val() + " to " + user_counts[jQuery("#to").html().trim()] + " users? " )) {  return; }
 				  jQuery("#send").attr("disabled",true);
-				  jQuery("#to").attr("disabled", true);
 				  jQuery("#body").attr("disabled", true);
 				  jQuery("#subject").attr("disabled",true);
 				  jQuery.ajax({url:call_prefix + "/karger_send_email",
 					       type:"POST",
 					       data:JSON.stringify({
-								       to:jQuery("#to").val().replace(/\n/g,","),
+								       to:jQuery("#to").html().trim(),
 								       body:jQuery("#body").val(),
 								       subject:jQuery("#subject").val()
 								   }),
@@ -112,7 +101,7 @@ jQuery(document).ready(function() {
 					       },
 					       error:function(x) {
 						   //log(x);
-						   //document.write(x.responseText);
+						   document.write(x.responseText);
 					       }});
 			      });			   
 			   });
@@ -134,12 +123,6 @@ var _start_status_poller = function(id) {
 				});		    
 		},1000);
 };
-
-			   function to_click() {
-			       if (jQuery("#to").val() == '(paste from above lines to here)') {
-				   jQuery("#to").val('');
-			       }
-			   };
 
 var cancel_send = function() {
     jQuery("#cancel").fadeOut();

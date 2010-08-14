@@ -38,7 +38,7 @@ def _history_write(history):
     # history is a list of dict s [ {when: "", to: "", "text" : "" } ... ]
    import csv,settings,time
    f0 = "%s/%s" % (settings.KARGER_EMAIL_IFACE_DB,"index.csv")
-   f1 = "%s/%s" % (settings.KARGER_EMAIL_IFACE_DB,"index-%s.csv" % time.ctime().replace(' ','_'))
+   f1 = "%s/%s" % (settings.KARGER_EMAIL_IFACE_DB,"index-%d-%d-%d%d.csv" % (time.localtime().tm_year, time.localtime().tm_mon, time.localtime().tm_mday, time.localtime().tm_hour))
    for f in [f0,f1]:
       print f
       F = open(f,'w')
@@ -57,10 +57,16 @@ def _history_append(rec):
 send_thread = None
 send_thread_running = False
 
+def _history_update(txn):
+   # update relevant rwo
+   hh = _history_read()
+   new_history = [h for h in hh if not h['id'] == txn['id']] + [txn]
+   _history_write(new_history)
+   pass
+
 def  _send_email(txn):
     # magical method which sets up a thread
     import jv3.utils
-    print len(txn["to"])
     global send_thread_running
     send_thread_running = True
     global send_thread
@@ -70,8 +76,8 @@ def  _send_email(txn):
             if not send_thread_running: break;
             print " -- sending email to -- ", to, "--", txn["subject"], "--", txn["body"]
             b = dict(txn)
-            b["to"] = to
-            _history_append(b)
+            b["to"] = txn["to"][0:txn["to"].index(to)]
+            _history_update(b)
             time.sleep(1)
     import threading
     send_thread = threading.Timer(0.1,_send_thread)
@@ -84,14 +90,14 @@ def _check_auth(request):
 
 def ke_get_users(request):
     if not _check_auth(request): return HttpResponseForbidden()
-    return HttpResponse(json.dumps([u.email for u in User.objects.all()]),'text/json')
+    return HttpResponse(json.dumps(len([u.email for u in User.objects.all()])),'text/json')
 
 def ke_get_consenting_users(request):
     if not _check_auth(request): return HttpResponseForbidden()
     if consenting is None:
        _start_recent_users_thread()
        return HttpResponse(json.dumps([]),'text/json')
-    return HttpResponse(json.dumps([u.email for u in consenting]),'text/json')
+    return HttpResponse(json.dumps(len([u.email for u in consenting])),'text/json')
 
 def ke_get_last_2_months_users(request):
    if not _check_auth(request): return HttpResponseForbidden()
@@ -100,8 +106,8 @@ def ke_get_last_2_months_users(request):
       import sys
       print >> sys.stderr, "starting thread......"
       #_ start_recent_users_thread()
-      return HttpResponse(json.dumps([]),'text/json')
-   return HttpResponse(json.dumps(recent_users),'text/json')
+      return HttpResponse("0",'text/json')
+   return HttpResponse(json.dumps(len(recent_users)),'text/json')
 
 def ke_get_email_history(request):
     if not _check_auth(request): return HttpResponseForbidden()        
@@ -144,19 +150,20 @@ randid  = lambda N=10: ''.join([chr(ord('A')+random.randint(0,23)) for x in rang
 
 
 def ke_send_email(request):
-    if not _check_auth(request): return HttpResponseForbidden()    
-    datas = json.loads(request.raw_post_data)
-    to_addrs = datas["to"].split(',')
-    subject  = datas["subject"]
-    body  = datas["body"]
-    print "to_addrs ", to_addrs
-    matching_users = User.objects.filter(email__in=to_addrs)
-    print "matching", matching_users
-    if len(matching_users) < len(to_addrs):  print "warning only found %d users " % len(matching_users)
-    email_matching = [x[0] for x in matching_users.values_list('email')]
-    new_record = { "id" : randid(), "when" : "%d" % (time.time()*1000), "to": email_matching, "subject": subject, "body" : body, "misc" : ""}
-    _send_email(new_record)    
-    return HttpResponse(json.dumps(new_record), 'text/json')
+   global consenting,recent
+   if not _check_auth(request): return HttpResponseForbidden()    
+   datas = json.loads(request.raw_post_data)
+
+   subject  = datas["subject"]
+   body  = datas["body"]   
+   to_mode = datas["to"]
+   matching_users = { "all" : User.objects.all(), "consenting" : consenting, "recent" : recent_users }.get(to_mode,None)
+   if matching_users is None:
+      HttpResponse(json.dumps({}), 'text/json')
+   email_matching = [x[0] for x in matching_users.values_list('email')]
+   new_record = { "id" : randid(), "when" : "%d" % (time.time()*1000), "to": email_matching, "subject": subject, "body" : body, "misc" : ""}
+   _send_email(new_record)    
+   return HttpResponse(json.dumps(new_record), 'text/json')
 
 
 def compute_recent_users():
