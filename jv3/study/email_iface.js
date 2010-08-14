@@ -30,10 +30,19 @@ var reload_history = function() {
 
 			},
 			error:function(x) {
-			    if (x.status == 403) { document.location = '/admin/';   }
+			    if (x.status == 403) { return document.location = '/admin/';   }
 			    log(x); document.write(x.responseText);
 			}			
 			});
+};
+
+var xfer_to_from_html = function(jq) {
+    try {
+	    jQuery("#to").val(jq.html().replace(/<br>/g,"\n"));	
+    } catch (x) {
+	log(x);
+    }
+
 };
 
 
@@ -47,12 +56,14 @@ jQuery(document).ready(function() {
 			    window.gu_load = true; 
 			    check_ready();
 			    log('all users',data);
-			    jQuery("#all_users").val(data.join(","));
+			    jQuery("#all_count").html("("+data.length+")");			    
+			    jQuery("#all_users").html(data.join("<br>"));
 			},
 			error:function(xmlresp) {
 			    log(xmlresp.status);
-			    if (xmlresp.status == 403) { document.location = '/admin/';   }
-			    log(x); document.write(x.responseText); }
+			    if (xmlresp.status == 403) { return document.location = '/admin/';   }
+			    log(x); document.write(x.responseText);
+			}
 		    });
 	jQuery.ajax({
 			url:call_prefix + "/karger_email_gcu",
@@ -61,14 +72,26 @@ jQuery(document).ready(function() {
 			    window.gcu_load = true; 
 			    check_ready();			    
 			    log('consenting users',data);
-			    jQuery("#consenting_users").val(data.join(","));
+			    jQuery("#consenting_count").html("("+data.length+")");
+			    jQuery("#consenting_users").html(data.join("<br>"));
 			},
 			error:function(x) { log(x); document.write(x.responseText); }
 		    });
+	jQuery.ajax({
+			url:call_prefix + "/karger_email_l2m",
+			type:"GET",
+			success:function(data) {
+			    window.l2m_load = true; 
+			    check_ready();			    
+			    jQuery("#last2months_count").html("("+data.length+")");
+			    jQuery("#last2months_users").html(data.join("<br>"));
+			},
+			error:function(x) { log(x); /*document.write(x.responseText);*/ }
+		    });			   
 
 	jQuery("#send").click(function(bb) {
 				  if (!confirm("Are sure you want to send message" + jQuery("#subject").val() + " to " +
-					       jQuery("#to").val().split(",").length + " users? " )) {
+					       jQuery("#to").val().replace(",","\n").split("\n").length + " users? " )) {
 				       return;
 				  }
 				  jQuery("#send").attr("disabled",true);
@@ -78,7 +101,7 @@ jQuery(document).ready(function() {
 				  jQuery.ajax({url:call_prefix + "/karger_send_email",
 					       type:"POST",
 					       data:JSON.stringify({
-								       to:jQuery("#to").val(),
+								       to:jQuery("#to").val().replace(/\n/g,","),
 								       body:jQuery("#body").val(),
 								       subject:jQuery("#subject").val()
 								   }),
@@ -88,8 +111,8 @@ jQuery(document).ready(function() {
 						   reload_history();
 					       },
 					       error:function(x) {
-						   log(x);
-						   document.write(x.responseText);
+						   //log(x);
+						   //document.write(x.responseText);
 					       }});
 			      });			   
 			   });
@@ -105,7 +128,8 @@ var _start_status_poller = function(id) {
 				      jQuery("#status .emaillist").html("sent email to : <br>" + datas.join("<br>"));
 				  },
 				  error:function(x) {
-				      document.write(x.responseText);
+				      log(x);
+				      // document.write(x.responseText);
 				  }
 				});		    
 		},1000);
@@ -126,7 +150,8 @@ var cancel_send = function() {
 				      clearInterval(window.status_timer);
 				  },
 				  error:function(x) {
-				      document.write(x.responseText);
+				      log(x);
+				      //document.write(x.responseText);
 				  }
 				});		    
 };

@@ -8,7 +8,7 @@
       textarea { width:100%; padding:10px; }
       #history textarea { width:500px; border:none; margin: 10px; padding: 5px; }
       #history td { min-width:300px; border:none; margin: 10px; padding: 5px; }
-      input { min-width:400px; }
+      input { min-width:100px; }
       .message  {
          border: solid 1px black;
          padding:10px;
@@ -19,9 +19,11 @@
          padding:10px;
          background:rgb(240,255,255);      
       }
+      #to {   min-height:500px;     }
       .emaillist {
           margin-top:10px;
       }
+      #all_users, #consenting_users { overflow:scroll; max-height: 300px; font-size:9pt; }
     </style>
   </head>
 
@@ -33,15 +35,17 @@
 
     <div style="background:white;width=80%;margin-left:auto;margin-right:auto">
     <p>
-    all users:<br>
-    <textarea id="all_users"></textarea>
+    all users:<span id="all_count">(loading.........)</span><input type="button" onclick="xfer_to_from_html(jQuery('#all_users'))" value="select all"><br>
+    <div id="all_users"></div>
     </p>
     <p>
-    consenting users:<br>
-    <textarea id="consenting_users"></textarea>
+    consenting users:<span id="consenting_count">(loading........)</span> <input type="button" value="select all consenting" onclick="xfer_to_from_html(jQuery('#consenting_users'))"><br>
+    <div id="consenting_users"></div>
     </p>
+    users active in last 2 months:<span id="last2months_count">(loading........)</span> <input type="button" value="select all last 2 months" onclick="xfer_to_from_html(jQuery('#last2months_users'))"><br>
+    <div id="last2months_users"></div>    
 
-    
+alue    
     <div class="message">
       to whom:
       <textarea id="to" onclick="to_click()">(paste from above lines to here)</textarea>

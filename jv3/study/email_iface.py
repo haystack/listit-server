@@ -20,8 +20,8 @@ from django.db.models.query import QuerySet
 from jv3.study.ca_plot import make_filename
 import jv3.study.exporter as exporter
 
-consenting = [ u for u in User.objects.all() if is_consenting_study2(u)]
-# consenting=User.objects.all()[0:1000]
+consenting = None 
+recent_users = None
 
 def _history_read():
    import csv,settings,time
@@ -84,11 +84,24 @@ def _check_auth(request):
 
 def ke_get_users(request):
     if not _check_auth(request): return HttpResponseForbidden()
-    return HttpResponse(json.dumps([u.email for u in User.objects.all()[0:1000]]),'text/json')
+    return HttpResponse(json.dumps([u.email for u in User.objects.all()]),'text/json')
 
 def ke_get_consenting_users(request):
-    if not _check_auth(request): return HttpResponseForbidden()    
+    if not _check_auth(request): return HttpResponseForbidden()
+    if consenting is None:
+       _start_recent_users_thread()
+       return HttpResponse(json.dumps([]),'text/json')
     return HttpResponse(json.dumps([u.email for u in consenting]),'text/json')
+
+def ke_get_last_2_months_users(request):
+   if not _check_auth(request): return HttpResponseForbidden()
+   global recent_users
+   if recent_users is None:
+      import sys
+      print >> sys.stderr, "starting thread......"
+      #_ start_recent_users_thread()
+      return HttpResponse(json.dumps([]),'text/json')
+   return HttpResponse(json.dumps(recent_users),'text/json')
 
 def ke_get_email_history(request):
     if not _check_auth(request): return HttpResponseForbidden()        
@@ -141,9 +154,44 @@ def ke_send_email(request):
     print "matching", matching_users
     if len(matching_users) < len(to_addrs):  print "warning only found %d users " % len(matching_users)
     email_matching = [x[0] for x in matching_users.values_list('email')]
-    print "email matching ",email_matching
     new_record = { "id" : randid(), "when" : "%d" % (time.time()*1000), "to": email_matching, "subject": subject, "body" : body, "misc" : ""}
     _send_email(new_record)    
     return HttpResponse(json.dumps(new_record), 'text/json')
 
 
+def compute_recent_users():
+   import time
+   print "computing recent users >>>>>>"
+   try:
+      print "computing conseting"
+
+      global consenting
+      consenting = [ u for u in User.objects.all() if is_consenting_study2(u)]
+      print "done with conseting"
+      today = lambda : long(time.time()*1000.0)
+      months_to_msec = lambda months: long(24*60*60*1000*30*months)
+      userids_anmonths = lambda n=2: set([u[0] for u in ServerLog.objects.exclude(user=None).filter(when__gt=long(today()-months_to_msec(n))).values_list('user')])
+      u = User.objects.filter(id__in=userids_anmonths())
+      print "done computing recent users"
+   except e:
+      import sys
+      print sys.exc_info()
+   return u
+
+_srut_thread = None
+def _start_recent_users_thread():
+   import threading
+   global _srut_thread 
+   def doit():
+      while True:
+         global recent_users
+         recent_users = compute_recent_users()
+         time.sleep(60*60*24*7*4)
+   if _srut_thread is None:
+      _srut_thread = threading.Timer(0.1,doit)
+      _srut_thread.start()
+
+
+                              
+                              
+   
