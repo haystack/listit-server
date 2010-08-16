@@ -705,46 +705,7 @@ def note_edits_for_user(u,filter_non_edits=True,include_levenstein=False):
     return edits_by_jid 
                     
 
-# from wikipedia
-english_prepositions = ["aboard","about","above","absent","across","after","against","along","alongside","amid","amidst","among","amongst","around","as","aside","astride","at","athwart","atop","barring","before","behind","below","beneath","beside","besides","between","betwixt","beyond","but","by","circa","concerning","despite","down","during","except","excluding","failing","following","for","from","given","in","including","inside","into","like","mid","midst","minus","near","next","of","off","on","onto","opposite","out","outside","over","pace","past","per","plus","pro","qua","regarding","round","save","since","than","through", "thru","throughout","till","times","to","toward","towards","under","underneath","unlike","until","up","upon","versus","vs.","via","with","within","without"]
-
-special_preps = ["@","at","about","after","before","by","around","during","for","from","in","into","near","on","past","per","since","thru","through","until","till","to","under","via","with"]
-special_preps_re  = [ re.compile('(^|\s)%s(\s|$)' % p) for p in special_preps ]
-
-def find_next_special_prep_idx(s):
-    starts = [x.start() for x in [pre.search(s) for pre in special_preps_re] if x is not None]
-    if len(starts) == 0: return None
-    return min(starts)
-
-def find_up_to_N_words_out(s,N):
-    import re
-    starts = 0
-    word = re.compile('\w+(\s|$)')
-    for i in range(N):
-        next = word.search(s,starts)
-        if next is None: return s.length
-        starts = next.end() + 1
-    return starts - 1
-
-def nonemin(a,b):
-    if a is None: b
-    if b is None: a
-    return min(a,b)
-
-def compile_preps(notes):
-    prep_bindings = {}
-    for n in notes:
-        for c in  n.content.lower().trim().split('\n'):
-            for pre in special_preps_re:
-                search = pre.search(c)
-                while search is not None:
-                    cpos,keyend = search.start(),search.end()
-                    val_end = cpos + 1 + nonemin(find_n_words_out(c[cpos+1:]),  find_next_special_prep(c[cpos+1:]))
-                    key = c[cpos:keyend].trim()
-                    val = c[keyend,val_end].trim()
-                    if len(val) > 0:   prep_bindings[key] = prep_bindings.get(key,[]) + [val]
-                    search = pre.search(c,cpos + 1)
-    return prep_bindings
+# prep parser moved to prep_parser.py
 
 
 # def kill_note_Edits():

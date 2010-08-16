@@ -13,6 +13,9 @@ def find_up_to_N_words_out(s,N=3):
         starts = next.end() + 1
     return starts - 1
 
+# from wikipedia
+english_prepositions = ["aboard","about","above","absent","across","after","against","along","alongside","amid","amidst","among","amongst","around","as","aside","astride","at","athwart","atop","barring","before","behind","below","beneath","beside","besides","between","betwixt","beyond","but","by","circa","concerning","despite","down","during","except","excluding","failing","following","for","from","given","in","including","inside","into","like","mid","midst","minus","near","next","of","off","on","onto","opposite","out","outside","over","pace","past","per","plus","pro","qua","regarding","round","save","since","than","through", "thru","throughout","till","times","to","toward","towards","under","underneath","unlike","until","up","upon","versus","vs.","via","with","within","without"]
+
 special_preps = ["@","at","about","after","before","by","around","during","for","from","in","into","near","on","past","per","since","thru","through","over","until","till","to","under","via","with","w/"]
 special_preps_re  = [ re.compile('(^|\s)%s(\s|$)' % p) for p in special_preps ]
 
