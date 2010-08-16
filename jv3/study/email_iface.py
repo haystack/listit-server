@@ -96,7 +96,7 @@ def ke_get_consenting_users(request):
     if not _check_auth(request): return HttpResponseForbidden()
     if consenting is None:
        _start_recent_users_thread()
-       return HttpResponse(json.dumps([]),'text/json')
+       return HttpResponse(json.dumps({"status":"loading please refresh"}),'text/json')
     return HttpResponse(json.dumps(len([u.email for u in consenting])),'text/json')
 
 def ke_get_last_2_months_users(request):
@@ -106,7 +106,7 @@ def ke_get_last_2_months_users(request):
       import sys
       print >> sys.stderr, "starting thread......"
       #_ start_recent_users_thread()
-      return HttpResponse("0",'text/json')
+      return HttpResponse(json.dumps({"status":"loading please refresh"}),'text/json')
    return HttpResponse(json.dumps(len(recent_users)),'text/json')
 
 def ke_get_email_history(request):

@@ -51,7 +51,8 @@ jQuery(document).ready(function() {
 			    window.gu_load = true; 
 			    check_ready();
 			    log('all users',data);
-			    jQuery("#all_count").html("("+data+")");			    
+			    jQuery("#all_count").html("("+data+")");
+			    jQuery("#all_button").attr("disabled",false);
 			},
 			error:function(xmlresp) {
 			    log(xmlresp.status);
@@ -66,7 +67,13 @@ jQuery(document).ready(function() {
 			    user_counts['consenting'] = data;
 			    window.gcu_load = true; 
 			    check_ready();
-			    jQuery("#consenting_count").html("("+data+")");
+			    if (data.status !== undefined) {
+				jQuery("#consenting_count").html("("+data.status+")");
+			    } else {
+				user_counts['consenting'] = data;
+				jQuery("#consenting_count").html("("+data+")");
+				jQuery("#consenting_button").attr("disabled",false);
+			    }			    
 			},
 			error:function(x) { log(x); document.write(x.responseText); }
 		    });
@@ -74,10 +81,17 @@ jQuery(document).ready(function() {
 			url:call_prefix + "/karger_email_l2m",
 			type:"GET",
 			success:function(data) {
-			    user_counts['recent'] = data;
+
 			    window.l2m_load = true; 
-			    check_ready();			    
-			    jQuery("#last2months_count").html("("+data+")");
+			    check_ready();
+			    if (data.status !== undefined) {
+				jQuery("#last2months_count").html("("+data.status+")");
+
+			    } else {
+				user_counts['recent'] = data;
+				jQuery("#last2months_count").html("("+data+")");
+				jQuery("#recent_button").attr("disabled",false);
+			    }
 			},
 			error:function(x) { log(x); /*document.write(x.responseText);*/ }
 		    });			   

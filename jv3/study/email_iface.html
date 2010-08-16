@@ -32,11 +32,11 @@
     </div>
     <div style="background:white;width=80%;margin-left:auto;margin-right:auto">
       <p>
-	all users:<span id="all_count">(loading.........)</span><input type="button" onclick="xfer_to_from_html('all')" value="select all"><br>
+	all users:<span id="all_count">(loading.........)</span><input type="button" disabled="true" id="all_button" onclick="xfer_to_from_html('all')" value="select all"><br>
       <p>
-	consenting users:<span id="consenting_count">(loading........)</span> <input type="button" value="select all consenting" onclick="xfer_to_from_html('consenting')"><br>
+	consenting users:<span id="consenting_count">(loading........)</span> <input type="button" id="consenting_button" disabled="true" value="select all consenting" onclick="xfer_to_from_html('consenting')"><br>
       <p>
-	users active in last 2 months:<span id="last2months_count">(loading........)</span> <input type="button" value="select all last 2 months" onclick="xfer_to_from_html('recent')"><br>
+	users active in last 2 months:<span id="last2months_count">(loading........)</span> <input id="recent_button" disabled="true" type="button" value="select all last 2 months" onclick="xfer_to_from_html('recent')"><br>
     </div>
     <center>~~ message ~~</center>
     <div class="message">
