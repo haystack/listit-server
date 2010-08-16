@@ -36,13 +36,13 @@ var reload_history = function() {
 };
 
 var xfer_to_from_html = function(jq) {
-    try {  jQuery("#to").html(jq);    } catch (x) { log(x);    }
+    try {  jQuery("#to").html(jq); jQuery("#send").attr("disabled",false);  } catch (x) { log(x);    }
 };
 
 
 
 jQuery(document).ready(function() {
-			   reload_history();			   
+	reload_history();			   
 	jQuery.ajax({
 			url:call_prefix + "/karger_email_gu",
 			type:"GET",
@@ -83,10 +83,11 @@ jQuery(document).ready(function() {
 		    });			   
 
 	jQuery("#send").click(function(bb) {
-				  if (!confirm("Are sure you want to send message" + jQuery("#subject").val() + " to " + user_counts[jQuery("#to").html().trim()] + " users? " )) {  return; }
+		if (!confirm("Are sure you want to send message subj: \""+jQuery("#subject").val()+"\"  \"" + jQuery("#body").val().slice(0,10) + "...\" to " + user_counts[jQuery("#to").html().trim()] + " users? " )) {  return; }
 				  jQuery("#send").attr("disabled",true);
 				  jQuery("#body").attr("disabled", true);
 				  jQuery("#subject").attr("disabled",true);
+				  jQuery("#send").attr("disabled",true);
 				  jQuery.ajax({url:call_prefix + "/karger_send_email",
 					       type:"POST",
 					       data:JSON.stringify({

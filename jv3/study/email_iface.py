@@ -160,7 +160,13 @@ def ke_send_email(request):
    matching_users = { "all" : User.objects.all(), "consenting" : consenting, "recent" : recent_users }.get(to_mode,None)
    if matching_users is None:
       HttpResponse(json.dumps({}), 'text/json')
-   email_matching = [x[0] for x in matching_users.values_list('email')]
+      
+   email_matching = []
+   if type(matching_users) == QuerySet :
+      email_matching = [x[0] for x in matching_users.values_list('email')] 
+   else:
+      email_matching = [x.email for x in matching_users]
+      
    new_record = { "id" : randid(), "when" : "%d" % (time.time()*1000), "to": email_matching, "subject": subject, "body" : body, "misc" : ""}
    _send_email(new_record)    
    return HttpResponse(json.dumps(new_record), 'text/json')
