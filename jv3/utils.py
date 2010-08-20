@@ -260,13 +260,22 @@ def get_consenting_users_emails(userset=None):
     return get_emails_of_users(get_consenting_users(userset=userset))
 
 def email_users(userset,subject,body):
+    from django.core.mail import EmailMessage
     for u in userset:
         reg = get_newest_registration_for_user_by_email(u.email)
         if reg == None:
             print "No registration found for user %s. Skipping" % repr(u.email)
             continue
         userparams = {'email':u.email,'server_url':settings.SERVER_URL,'cookie':reg.cookie,'first_name':reg.first_name, 'last_name':reg.last_name}
-        send_mail(subject % userparams, body % userparams, 'listit@csail.mit.edu', (u.email,'listit@csail.mit.edu'), fail_silently=False)
+        # send_mail(subject % userparams, body % userparams, 'listit@csail.mit.edu', (u.email), fail_silently=False)
+        print u.email
+        email = EmailMessage(subject % userparams, body % userparams, 'listit-noreply@csail.mit.edu', [u.email],
+                             ['emax@csail.mit.edu'],
+                             headers = {'Reply-To': 'listit@csail.mit.edu'})
+        email.send()
+
+
+
 
 def find_misconfigured_consenting_users():
     u = get_consenting_users()

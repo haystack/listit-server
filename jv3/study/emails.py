@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 emails = { "reconsent" : ('Launching List.it Study (confirmation action required)', """
 
@@ -893,4 +894,49 @@ listit@csail.mit.edu
 Yours,
 the list-it team.
 http://listit.csail.mit.edu
+"""),
+
+
+"august2010" : ("[List-it] What's coming up, syncing, notes for science", """
+(A quick bulletin from developers of List-it, the open source note-taking tool and research project)
+
+Dear Note Taking Friends,
+
+List-it is celebrating its 2nd birthday!  Our project now has had over 16,000 registered users and many of you have been using List-it for more than a year.  Thank you for all your comments, feedback and insights and for keeping the project alive!   What was initially a research prototype has grown into an indispensable tool for many of us - a great success!  
+
+Towards the future, we are very actively working on a number of new flavours of List-It for your favorite browsers, as well as improved, faster, simpler designs, and our Notes for Science study.  
+
+Speaking of the study, if you haven’t yet volunteered for our research study Notes for Science, please consider it joining -- we are about to embark on phase 3 of our research study and we need more data!  Joining Notes for Science requires virtually no effort on your part, except to give us permission to analyze the notes that you take in List-it.  Your notes will be kept confidential - only the research assistants will be given access to them under strict confidentiality guidelines.  If you have volunteered already, thank you.  
+
+To sign up, open List-it, click on the little cog icon (preferences), click to read the study terms and then click “Volunteer for MIT Notes for Science”. 
+
+A few tips from us: 
+
+1. Are you receiving “Certificate expired” errors from List-it ?  That means that you are using an out-of-date version of List-it (which used an old server that we took out of commission).  
+
+Please go to http://listit.csail.mit.edu/ and download Install Firefox (no need to un-install the old version, it will replace it automatically).  You will be notified when future versions are released.
+
+2. Are you having trouble syncing?   The gratifyingly high adoption of list.it showed its negative side when our servers ran out of disk space and had to be taken down and given a massage last week.  We are really sorry for any inconvenience this may have caused. 
+
+Your notes were kept safe, however, and we worked around the clock to get things back up asap.   List-it stores all its data on your client machines, you should have still been able to use and create notes without a problem, but you may have seen a delay in seeing changes to the notes be reflected across your computer(s).  Also the web interface (http://listit.csail.mit.edu/zen) went down during that time. 
+
+We are going to have to take the server down again to upgrade our server again when our disks finally arrive.  We will do that on a weekend during a time that people are not likely to need sync access and to do it as fast as possible.  After that, we should have enough space for a long time.
+
+Anyway, thanks for bearing with us as we work to make a better server!  Let us know if you see problems arise.
+
+3. Coming soon -- Improvements based on your feedback - (Possibily!) A Chrome version, an improved HTML5 (iPhone and Android) version, and a new interface for more easily retrieving notes are on their way.  Please stay tuned and send us more ideas about what you'd like to see in List-it.
+
+Have any questions, comments, or ideas?  Write us at listit@csail.mit.edu or join the Google Group at http://groups.google.com/group/list-it .
+
+Happy note taking,
+
+Yours,
+Prof. David Karger and the MIT List-It Team
+
+You are getting this e-mail because you are an active user of List-it, MIT’s free and open source note taking tool 
+and research project.
+
+~ List-it - http://welist.it (part of the Haystack Project at MIT CSAIL - http://haystack.csail.mit.edu) ~
+
+
 """)}
