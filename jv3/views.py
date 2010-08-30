@@ -870,19 +870,19 @@ def post_usage_statistics(request):
 ##  Redaction Code  ##
 ######################
 
-def convertWordToSymbols(word):
-    transTable = string.maketrans(
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890',
-        'XXXXXXXXXXXXXXXXXXXXXXXXXXxxxxxxxxxxxxxxxxxxxxxxxxxx9999999999')
-    tempWord = word.translate(transTable)
-    word = ''
-    for char in tempWord:
-        if char == "X" or char == "x" or char == "9":
-            word += char
-	    continue;
-        word += "*"
-    return word
-
+def convertWordToSymbols(origWord):
+    ##return "*"*len(origWord) ##HELP: For some reason .translate crashes everything??
+    repWord = ''
+    for char in origWord:
+        if char in string.ascii_lowercase:
+            repWord += 'x'
+        elif char in string.ascii_uppercase:
+            repWord += 'X'
+        elif char in string.digits:
+            repWord += '9'
+        else:
+            repWord += "*"
+    return repWord
 
 def getWordMap(request_user, rType, origWord):
     match = WordMap.objects.filter(owner=request_user,wordType=rType, originalWord=origWord)
@@ -899,7 +899,7 @@ def getWordMap(request_user, rType, origWord):
 def createWordMap(request_user, rType, origWord):
     #repWord = rType + str(len(WordMap.objects.filter(owner=request_user, wordType=rType)))
     repWord = convertWordToSymbols(origWord)
-    
+    print "word converted:", repWord
     wMap = WordMap()
     wMap.owner = request_user
     wMap.wordType = rType
@@ -907,9 +907,6 @@ def createWordMap(request_user, rType, origWord):
     wMap.replacementWord = repWord
     wMap.save()
     return (wMap, repWord)
-
-#t = maketrans('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890','XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX9999999999')
-
 
 def get_redact_notes(request):
     request_user = basicauth_get_user_by_emailaddr(request)
@@ -972,14 +969,17 @@ def post_redacted_note(request):
         response.status_code = 401
         return response
     
+    print "START ITERATING THROUGH SUBMITTED ELEMENTS"
     for datum in JSONDecoder().decode(request.raw_post_data):
         ver = datum['version']
         noteID = datum['id']
-        ## Don't save redacted note if we've already saved same (jid, ver) note.
         matchingNotes = RedactedNote.objects.filter(jid=noteID, version=ver)
-        if (len(matchingNotes) > 0):
-            continue  ## Skip saving this note because we've already saved it before!
-
+        
+        print "DELETE OLD ONES" ## and wordmetas associated with it
+        for mNote in matchingNotes:
+            del_wordmeta_for_note(mNote)
+            mNote.delete()
+           
         redNote = RedactedNote()
         redNote.owner = request_user
         redNote.origCreated = datum['origCreated']
@@ -990,7 +990,6 @@ def post_redacted_note(request):
         redNote.version = datum['version']
         redNote.noteType = datum['noteType']
 
-        ## Removed str from: str(datum['text'])
         noteText = datum['text']
         noteTextWords = ' '.join(noteText.split('\n')).split(' ')
         
@@ -998,34 +997,43 @@ def post_redacted_note(request):
         ## for making WordMeta instances after note is saved
         wordMapIndicesStore = [] 
 
+        print "CREATE rTYPES"
         for rType in datum['redactedIndices']:
             for index in datum['redactedIndices'][rType]:
+                print "1: ", rType, index
                 ## rType ~ markAsName, etc
                 ## index ~ index of word in note text
                 origWord = noteTextWords[index]
                 #matchWordMap ~ (WordMap, replWord)
                 matchWordMap = getWordMap(request_user, rType, origWord)
                 if matchWordMap is False:
+                    print "2A: origWord", origWord, ", rType:", rType
                     ## Create a new WordMap
-                    wordMapIDRep = createWordMap(request_user, rType, origWord)
+                    wordMapIDRep, repWord = createWordMap(request_user, rType, origWord)
+                    print "a"
                     ## Add map to store, replace word in noteText
-                    wordMapIndicesStore.append([index, wordMapIDRep[0]])
-                    
-                    noteTextWords[index] = wordMapIDRep[1]  ## consider X for letters and 9 for numbers
+                    wordMapIndicesStore.append([index, wordMapIDRep])
+                    print "b"
+                    noteTextWords[index] = repWord  ## consider X for letters and 9 for numbers
+                    print "c"
                 else:
+                    print "2B"
                     ## Add map to store, replace word in noteText
                     wordMapIndicesStore.append([index, matchWordMap[0]])
                     noteTextWords[index] = matchWordMap[1]  ## consider X for letters and 9 for numbers
 
         redNote.contents = ' '.join(noteTextWords)
-        redNote.points = datum['points']        
+        redNote.points = datum['points']
+        print "SAVE REDACTED NOTE"
         redNote.save()
 
         ## Create all the WordMeta using pairs from wordMapIndicesStore
+        print "CREATE WORD MAPS"
         for pair in wordMapIndicesStore:
             wMeta = WordMeta(redactedNote=redNote, wordIndex=pair[0], wordMap=pair[1])
             wMeta.save()
-    
+
+    print "RETURN RESPONSE AND END"
     response = HttpResponse("No Errors?", "text/json")
     response.status_code = 200
     return response
@@ -1043,8 +1051,14 @@ def post_skipped_redacted_note(request):
         ver = datum['version']
         noteID = datum['id']
         matchingNotes = RedactedNote.objects.filter(jid=noteID, version=ver)
-        if (len(matchingNotes) > 0):
-            continue        ## Skip note because we've already redacted (this should never happen)
+        matchingSkips = RedactNoteSkip.objects.filter(jid=noteID, version=ver)
+
+        for mNote in matchingNotes:
+            del_wordmeta_for_note(mNote)
+            mNote.delete()
+        for sNote in matchingSkips:
+            sNote.delete()
+
         skippedNote = RedactNoteSkip()
         skippedNote.owner   = request_user
         skippedNote.jid     = datum['id']
@@ -1054,3 +1068,9 @@ def post_skipped_redacted_note(request):
     response = HttpResponse("No Errors?", "text/json")
     response.status_code = 200
     return response
+
+## Deletes WordMeta objects associated with given note.
+def del_wordmeta_for_note(n):
+    wMetas = WordMeta.objects.filter(redactedNote=n)
+    for meta in wMetas:
+        meta.delete()
