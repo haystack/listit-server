@@ -300,10 +300,10 @@ batch_note_words = lambda users,batchpath="note_words/": batch(plot_note_words_h
 ## this method goes and performs all plots a user at a time
 
 def n2vals(n):
-   if type(n) == Note: return lambda n :{"contents":n.contents,"jid":n.jid,"owner_id":n.owner.id,"version":n.version,"deleted":n.deleted,"created":n.created,"id":n.id}
+   if type(n) == Note: return {"contents":n.contents,"jid":n.jid,"owner_id":n.owner.id,"version":n.version,"deleted":n.deleted,"created":n.created,"id":n.id}
    return n
 
-text2vals = lambda ntext :{"contents":ntext}
+text2vals = lambda ntext: {"contents":ntext}
 
 
 
@@ -558,3 +558,11 @@ def update_comment_view_jsonp(request):
       print sys.exc_info()
       traceback.print_tb(sys.exc_info()[2])      
    
+
+interesting_consenting = None
+def get_interesting_consenting():
+   global interesting_consenting
+   if interesting_consenting is None:
+      print "computing intersting_consenting"
+      interesting_consenting = [ u for u in User.objects.all() if is_consenting_study2(u) and u.note_owner.count() > 60 ]
+   return interesting_consenting

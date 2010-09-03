@@ -5,7 +5,7 @@ from jv3.models import *
 
 def clean_full():  ## Perform all cleaning functions
     clean_tutorial_notes()
-    clean_noteorder()
+    # clean_noteorder()
     clean_repeat_notes(Note.objects.all()) ## Doesn't actually delete anything - ??
 
 def kill_note(n):

@@ -88,11 +88,9 @@ def date_matches(s,ress=all_):
     return starts
 
 
-
-
 def note_date_count(s):
     import content_analysis
-    return content_analysis.make_feature("date_time_exprs" , len(date_matches(s["contents"]))) ##reduce(plus, [ count_regex_matches(f,s) for f in all_ ])
+    return content_analysis.make_feature("note_date_count" , len(date_matches(s["contents"]))) ##reduce(plus, [ count_regex_matches(f,s) for f in all_ ])
 
 def d(s):
     dm = list(date_matches(s))

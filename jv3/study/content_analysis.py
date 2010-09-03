@@ -162,21 +162,19 @@ def note_changed_edits(note):
     #[{"touches" : len(user_to_edits[note["owner_id"]].get(note["jid"],[])), "edits" : len([x for x in user_to_edits[note["owner_id"]].get(note["jid"],[]) if x["editdist"] > 0]) }]
     return make_feature('note_edits', len([x for x in user_to_edits[note["owner_id"]].get(note["jid"],[]) if x["lendiff"] > 0]))
 
-             
-    
-    
+note_abbreviated_contents = lambda(n): make_feature("note_abbreviated_contents", n["contents"].replace('\n','\N ',)[:200])
 note_did_edit = lambda(note) : make_feature('note_did_edit', note_edits(note) > 0)
 note_deleted = lambda(note) : make_feature('note_deleted', q(note["deleted"],True,False))
 note_urls = lambda note: make_feature('note_urls', str_n_urls(note["contents"]))
-note_phone_numbers = lambda x: make_feature('phone_nums',count_regex_matches("(^|\s+)([0-9]( |-)?)?(\(?[0-9]{3}\)?|[0-9]{3})( |-)?([0-9]{3}( |-)?[0-9]{4}|[a-zA-Z0-9]{7})($|\s+)",x["contents"]))
-note_emails = lambda note: make_feature('email_addrs',str_n_emails(note["contents"]))
+note_phone_numbers = lambda x: make_feature('note_phone_numbers',count_regex_matches("(^|\s+)([0-9]( |-)?)?(\(?[0-9]{3}\)?|[0-9]{3})( |-)?([0-9]{3}( |-)?[0-9]{4}|[a-zA-Z0-9]{7})($|\s+)",x["contents"]))
+note_emails = lambda note: make_feature('note_emails',str_n_emails(note["contents"]))
 numbers = lambda note: make_feature('numbers',count_regex_matches("(^|\s+)(\d+)($|\s+)",note["contents"]))
 NUMBERS=["one","two","three","four","five","six","seven","eight","nine","ten","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety","hundred"]
 wordnumbers = lambda note: make_feature('wordnumbers',sum([count_regex_matches("(^|\s+)%s($|\s+)" % x,note["contents"]) for x in NUMBERS]))
 daysofweek = lambda note: make_feature('daysofweek',sum([count_regex_matches("(^|\s+)%s($|\s+)" % x,note["contents"]) for x in DOWS]))
 months = lambda note: make_feature('months',sum([count_regex_matches("(^|\s+)%s($|\s+)" % x,note["contents"]) for x in MONTHS]))
-nonword_mix = lambda note: make_feature('numword_mix',count_regex_matches("(^|\s+)(.*\d.*)($|\s+)",note["contents"]))
-note_punctuation = lambda note:make_feature('note_punct', count_regex_matches("[\.\,\'\:\;\?]", note["contents"]) )
+numword_mix = lambda note: make_feature('numword_mix',count_regex_matches("(^|\s+)(.*\d.*)($|\s+)",note["contents"]))
+note_punct = lambda note:make_feature('note_punct', count_regex_matches("[\.\,\'\:\;\?]", note["contents"]) )
 
 def note_verbs(note):
     return make_feature('note_verbs', reduce(lambda x,y: x+y, [count for pos,count in note_pos_features(note).items() if pos in ["VB","VBD","VBG","VBN","VBP","VBZ"]]))    
@@ -189,7 +187,7 @@ def dte_over_length(note):
 def urls_over_length(note):
     return make_feature('urls_over_length', note_urls(note)["note_urls"]*1.0/note_words(note)["note_words"]  )
 def note_todos(note):
-    return make_feature('note_todos', count_regex_matches("(|\s|@)((todo)|(to do)|(to-do))(\s|$)", note["contents"] ))
+    return make_feature('note_todos', count_regex_matches("(|\s|@|#)((todo)|(to do)|(to-do))(\s|$)", note["contents"] ))
 def todos_over_length(note):
     return make_feature('todos_over_length', count_regex_matches("(^|\s|@)((todo)|(to do)|(to-do))(\s|$)",note["contents"] )*1.0/note_words(note)["note_words"] )
 
@@ -199,10 +197,21 @@ def todos_over_length(note):
 ## addresses?
 ## dates/times
 
+tagger = None
+def set_tagger(T):
+    global tagger
+    tagger = T
+
+def pos_tag(s):
+    tokens = nltk.word_tokenize(s)
+    if tagger is not None:
+        return tagger.tag(tokens)
+    return nltk.pos_tag(tokens) # default tokenizer    
+
 def note_pos_features(note):
     POS = ["CC","CD","DT","EX","FW","IN","JJ","LS","MD","NN","NNS","NNP","NNPS","PDT","POS","PRP","PRP$","RB","RBR","RBS","RP","SYM","TO","UH","VB","VBD","VBG","VBN","VBP","VBZ","WDT","WP","WP$","WRB"]
     counts = dict([ (x, 0) for x in POS ])
-    for k,pos in nltk.pos_tag(nltk.word_tokenize(note["contents"])):
+    for k,pos in pos_tag(note["contents"]):
         if pos in POS:
             counts[pos] = counts[pos]+ 1
     return counts
@@ -260,8 +269,8 @@ default_note_feature_fns = [
 content_features = [
     note_names,
     numbers,
-    nonword_mix,
-    note_punctuation,
+    numword_mix,
+    note_punct,
     note_words,    
     note_phone_numbers,
     note_urls,
@@ -745,5 +754,127 @@ def note_edits_for_user(u,filter_non_edits=True,include_levenstein=False):
 #     print "ERRORS %d : %s",(len(errors),repr(errors))
 #     return kill_list_alids
                 
-
     
+orders_by_user_id = {}
+
+def note_rank(nvalue):
+    # returns the position of the note nvalue in the user's list of notes
+    import json
+    try :
+        if nvalue["owner_id"] not in orders_by_user_id:
+            orders_by_user_id[nvalue["owner_id"]] = [long(x) for x in json.loads(Note.objects.filter(owner=User.objects.filter(id=nvalue["owner_id"])[0],jid=-1)[0].contents)['noteorder']]
+        neg_one = orders_by_user_id[nvalue["owner_id"]]
+        return make_feature('note_rank', neg_one.index(nvalue["jid"]))
+    except:
+        #import sys
+        #print sys.exc_info()
+        pass
+    return make_feature('note_rank', None)
+
+creation_order_by_user_id = {}
+def note_offset(nvalue):
+    # returns the difference in position for note nvalue
+    # between its _actual_ position and its position that it would have
+    # if none of the notes had been re-ordered
+    
+    if nvalue["owner_id"] not in creation_order_by_user_id:
+        creation_order_by_user_id[nvalue["owner_id"]] = [x[0] for x in Note.objects.filter(owner=User.objects.filter(id=nvalue["owner_id"])).order_by("-created").values_list('jid')]
+    actual_placement = note_rank(nvalue)['note_rank']
+    if nvalue["jid"] not in creation_order_by_user_id[nvalue["owner_id"]]:
+        print "njid not in corder"
+        return make_feature('note_offset', 'unknown')
+    if actual_placement is None:
+        print "actual is none"
+        return make_feature('note_offset', 'unknown')
+    creation_placement = creation_order_by_user_id[nvalue["owner_id"]].index(nvalue["jid"])    
+    print "actual: " , actual_placement, "creation ", creation_placement
+    return make_feature('note_offset', actual_placement - creation_placement)
+
+def user_note_rank_spearman(u):
+    try:
+        print u
+        import jv3.study.thesis_figures as tfigs
+        ff = [note_rank(tfigs.n2vals(n)) for n in u.note_owner.order_by('created')]
+        ff = [x['note_rank'] for x in ff if x['note_rank'] is not None]
+        reverse_standard = range(len(ff))
+        reverse_standard.reverse()
+        return r('cor.test')(c(ff),c(reverse_standard),method='spearman')[3][0]
+    except :
+        import sys
+        print sys.exc_info()
+    return None
+
+def plot_all_users_rank_spearman(us,filename):
+    from jv3.study.ca_plot import make_filename
+    rhos = [ ca.user_note_rank_spearman(u) for u in us ]
+    print "Nones: ", len([r for r in rhos if r is None])
+    rhosnn = [r for r in rhos if not r is None]
+    r.png(make_Filename(filename),width=1280,height=1024)
+    r.plot(c(rhosnn))
+    r('dev.off()')
+    return rhos
+
+def plot_(rhos,filename):
+    from jv3.study.ca_plot import make_filename
+    rhosnn = [rho for rho in rhos if not rho is None]
+    r.png(cap.make_filename(filename),width=1280,height=1024)
+    r.plot(c(rhosnn),ylab='')
+    r('dev.off()')
+    return rhosnn
+
+import json
+
+def alogs_for_user(u,action=None):
+    if action is not None:
+        return u.activitylog_set.filter(action=action).values()
+    return u.activitylog_set.values()
+
+# are = alogs_for_user(emax,'notes-reordered')
+# moved = [ca.find_moved_note(a,b) for a,b in zip(are[:-1],are[1:])]
+
+def find_moved_note(al1,al2):
+    if al1["when"] > al2["when"] :
+        al1,al2 = al2,al1
+
+    if "client" in al1 and "client" in al2 :
+        if not al1["client"] == al2["client"] : return None
+
+    def _notes_order(a):
+        if 'search' in a and a['search'] is not None:
+            return json.loads(a['search'])
+        if 'noteText' in a and a['noteText'] is not None:
+            return json.loads(a['noteText'])
+        return None
+
+    orders = [_notes_order(x) for x in al1,al2]
+    orders = [o for o in orders if o is not None]
+    if len(orders) < 2: return None
+    return _find_moved_number(*orders)
+
+def _find_moved_number(o1,o2):
+    # o1, o2 are each a sequence of note ids [2,3,17,29] .. [2,29,3,17]
+    # finds the note that was moved (e.g., 29)
+    # o2 has to be the _later_ order
+    o2 = o2[-len(o1):] # chop off all but the length of o1
+    for x,y in zip(o1,o2):
+        if not x == y:
+            return y
+    return None
+
+_reorder_alogs = {}
+_reorder_moved_note_freqdist = {}
+def note_reorderings(n):
+    import nltk
+    if not n["owner_id"] in _reorder_moved_note_freqdist:
+        are = [a_ for a_ in alogs_for_user(User.objects.filter(id=n["owner_id"])[0],"notes-reordered")]
+        _reorder_moved_note_freqdist[n["owner_id"]] = nltk.FreqDist([find_moved_note(a,b) for a,b in zip(are[:-1],are[1:])])
+    return _reorder_moved_note_freqdist[n["owner_id"]].get(n["jid"],0)
+
+def note_displacements(n):
+    # how much a note is raised or lowered
+    pass
+
+        
+
+
+
