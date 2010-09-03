@@ -975,62 +975,61 @@ def post_redacted_note(request):
         noteID = datum['id']
         matchingNotes = RedactedNote.objects.filter(jid=noteID, version=ver)
         
-        print "DELETE OLD ONES" ## and wordmetas associated with it
+        ##print "DELETE OLD ONES" ## and wordmetas associated with it
         for mNote in matchingNotes:
             del_wordmeta_for_note(mNote)
             mNote.delete()
-           
-        redNote = RedactedNote()
-        redNote.owner = request_user
-        redNote.origCreated = datum['origCreated']
-        redNote.origEdited  = datum['origEdited']
-        redNote.origDeleted = datum['origDeleted']  
-        redNote.created = datum['created']
-        redNote.jid = datum['id']
-        redNote.version = datum['version']
-        redNote.noteType = datum['noteType']
-
+            
+        ##print "CREATE NEW NOTE"
+        rNote = RedactedNote()
+        rNote.owner = request_user
+        rNote.origCreated = datum['origCreated']
+        rNote.origEdited  = datum['origEdited']
+        rNote.origDeleted = datum['origDeleted']
+        rNote.created = datum['created']
+        rNote.jid = datum['id']
+        rNote.version = datum['version']
+        rNote.noteType = datum['noteType']
         noteText = datum['text']
         noteTextWords = ' '.join(noteText.split('\n')).split(' ')
-        
         ## Stores [word index, WordMap(instance)] pairs
         ## for making WordMeta instances after note is saved
         wordMapIndicesStore = [] 
 
-        print "CREATE rTYPES"
+        ##print "CREATE rTYPES"
         for rType in datum['redactedIndices']:
             for index in datum['redactedIndices'][rType]:
-                print "1: ", rType, index
+                ##print "1: ", rType, index
                 ## rType ~ markAsName, etc
                 ## index ~ index of word in note text
                 origWord = noteTextWords[index]
                 #matchWordMap ~ (WordMap, replWord)
                 matchWordMap = getWordMap(request_user, rType, origWord)
                 if matchWordMap is False:
-                    print "2A: origWord", origWord, ", rType:", rType
+                    ##print "2A: origWord", origWord, ", rType:", rType
                     ## Create a new WordMap
                     wordMapIDRep, repWord = createWordMap(request_user, rType, origWord)
-                    print "a"
+                    ##print "a"
                     ## Add map to store, replace word in noteText
                     wordMapIndicesStore.append([index, wordMapIDRep])
-                    print "b"
+                   ## print "b"
                     noteTextWords[index] = repWord  ## consider X for letters and 9 for numbers
-                    print "c"
+                    ##print "c"
                 else:
-                    print "2B"
+                   ## print "2B"
                     ## Add map to store, replace word in noteText
                     wordMapIndicesStore.append([index, matchWordMap[0]])
                     noteTextWords[index] = matchWordMap[1]  ## consider X for letters and 9 for numbers
 
-        redNote.contents = ' '.join(noteTextWords)
-        redNote.points = datum['points']
-        print "SAVE REDACTED NOTE"
-        redNote.save()
+        rNote.contents = ' '.join(noteTextWords)
+        rNote.points = datum['points']
+        ##print "SAVE REDACTED NOTE"
+        rNote.save()
 
         ## Create all the WordMeta using pairs from wordMapIndicesStore
-        print "CREATE WORD MAPS"
+        ##print "CREATE WORD MAPS"
         for pair in wordMapIndicesStore:
-            wMeta = WordMeta(redactedNote=redNote, wordIndex=pair[0], wordMap=pair[1])
+            wMeta = WordMeta(redactedNote=rNote, wordIndex=pair[0], wordMap=pair[1])
             wMeta.save()
 
     print "RETURN RESPONSE AND END"
