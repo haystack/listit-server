@@ -148,7 +148,7 @@ urlpatterns = patterns('server.jv3.views.',
 )
 
 if hasattr(settings,'ACTIVITY_CONTEXT_MODELS') and settings.ACTIVITY_CONTEXT_MODELS:
-    from jv3.eventlog_view import EventLogCollection, post_events
+    from jv3.eventlog_view import EventLogCollection
     from jv3.models import Event
     print "EVENT LOG"
     contextlog_view = EventLogCollection(
@@ -160,7 +160,7 @@ if hasattr(settings,'ACTIVITY_CONTEXT_MODELS') and settings.ACTIVITY_CONTEXT_MOD
     
     urlpatterns += patterns('server.jv3.views.',
                             (r'^eventlog/', contextlog_view),
-                            (r'^post_events/$', post_events),
+                            (r'^post_events/$', contextlog_view),
                             )
     
 if hasattr(settings,'THESIS_FIGURE_COMMENTS') and settings.THESIS_FIGURE_COMMENTS:
