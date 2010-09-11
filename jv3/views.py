@@ -22,6 +22,7 @@ from django.template.loader import get_template
 import sys
 import string
 import tempfile,os
+import sys,string,time,logging
 
 logging.basicConfig(filename=os.sep.join([tempfile.gettempdir(),"listit-view-error-"+repr(int(time.time()))]),level=logging.DEBUG)
 
