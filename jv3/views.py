@@ -19,8 +19,9 @@ from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePassw
 from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username, get_user_by_email, is_consenting_study1, is_consenting_study2, json_response, set_consenting
 from django.template.loader import get_template
 import sys,string,time,logging
+import tempfile,os
 
-logging.basicConfig(filename='/tmp/viewerrors.log-'+repr(time.time()),level=logging.DEBUG)
+logging.basicConfig(filename=os.sep.join([tempfile.gettempdir(),"listit-view-error-"+repr(int(time.time()))]),level=logging.DEBUG)
 
 # Create your views here.
 class SPOCollection(Resource):
