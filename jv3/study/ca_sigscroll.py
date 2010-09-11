@@ -2,7 +2,7 @@
 from jv3.models import *
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 from django.contrib.auth.models import User
-import sys
+import sys,json
 
 ## signifiant scroll stuff ##
 sigscroll_cache_days_ago = None
@@ -72,12 +72,12 @@ def note_ss(note,filter_top=True):
     if note["id"] in SSCF :  return {'sigscroll_counts': len(SSCF.get(note["id"],[])),           'sigscroll_duration': compute_duration(note) }
 
     ## populate for this uer
-    alogs = activity_logs_for_user(note["owner"],None)
+    alogs = activity_logs_for_user(note["owner_id"],None)
     
     if len(alogs) == 0:
         ## means we have no activitylogs for that user
         from jv3.study.content_analysis import _notes_to_features
-        SSCF.update( [ (n["id"],[]) for n in [_notes_to_values(x) for x in Note.objects.filter(owner=n["owner"])] ] )
+        SSCF.update( [ (n["id"],[]) for n in [_notes_to_values(x) for x in Note.objects.filter(owner=n["owner_id"])] ] )
         return
     
     next_is_top = True    
@@ -98,8 +98,9 @@ def note_ss(note,filter_top=True):
             ##print "TOPLIST :: %s " % repr(toplist_jids)
             next_is_top = False            
         new_dudes = []        
-
-        for nv in JSONDecoder().decode(al["search"])["note_visibilities"]:
+        print "altype",type(al)
+        print "alsearch",al["search"],type(al["search"])
+        for nv in json.loads(al["search"]["note_visibilities"]): #JSONDecoder().decode(al["search"])["note_visibilities"]:
             try :
                 jid = int(nv["id"]) ## this returns the _jid_ not id!
                 ## omit nots that are at the top of the list
@@ -169,8 +170,8 @@ def _owner_count_notes(owner):
     
 def plot_revisitations_for_note(n,ss_send_cache=sigscroll_startend_cache,filename='/tmp/revisit.png'):
     import jv3.study.ca_plot as cap
-    #print ss_send_cache[n["owner"]]
-    visitations = ss_send_cache[n["owner"]].get(n["id"],[])
+    #print ss_send_cache[n["owne"]]
+    visitations = ss_send_cache[n["owner_id"]].get(n["id"],[])
     granularity = lambda t: int(t/(24*3600.0*1000.0))
     maxt = -1
     y = {}
@@ -186,7 +187,7 @@ def plot_revisitations_for_note(n,ss_send_cache=sigscroll_startend_cache,filenam
         pass
     
     return cap.scatter(y.items(),filename=filename,
-                       title="%d[%d] (%s:%d) %s "% (n["id"],len(n["contents"]),n["owner"].email,_owner_count_notes(n["owner"]), n["contents"][:25].replace('\n',' ')),
+                       title="%d[%d] (%s:%d) %s "% (n["id"],len(n["contents"]),n["owner_id"].email,_owner_count_notes(n["owner_id"]), n["contents"][:25].replace('\n',' ')),
                        ylabel="# of reaccess")
 
 

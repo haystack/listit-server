@@ -729,7 +729,7 @@ def sort_user_notes(request_user):
             if nx.jid in note_order and ny.jid in note_order:
                 result = note_order.index(nx.jid) - note_order.index(ny.jid)
             else:
-                result = long((ny.created - nx.created)/1000)
+                result = int((ny.created - nx.created)/1000)
             return result
         ## sort 'em
         notes.sort(sort_order)

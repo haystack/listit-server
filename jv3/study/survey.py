@@ -346,10 +346,13 @@ def export_note_questions_responses_row_per_note(users):
         if result:
             return (result[0][0]+result[0][3],int(result[0][1]))
 
+    def get_survey(u):
+        return jv3.models.SurveyQuestion.objects.filter(user=u).order_by('qid').values()
+
     questionnames = []
     peruser = {}
     for u in users:
-        survey = get_survey_for_user(u)
+        survey = get_survey(u) #get_survey_for_user(u)
         responses = {}
         for q in survey:
             if q.has_key('qid') and q['qid'].find('_jid_') >= 0:
@@ -367,7 +370,7 @@ def export_note_questions_responses_row_per_note(users):
     for u in users:
         if not peruser.has_key(u.email): continue
         for jid in peruser[u.email].iterkeys():
-            noterow = [u.email, jid, jv3.study.exporter.defang(get_notes(u,[jid])[0].contents)]
+            noterow = [u.email, jid, jv3.study.exporter.defang(get_notes(u,[jid])[0].contents).encode('ascii','ignore')]
             for qname in questionnames:                
                 noterow.append(peruser[u.email][jid].get(qname, ""))
             results.append( noterow )
