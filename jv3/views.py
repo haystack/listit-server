@@ -12,7 +12,7 @@ import django.contrib.auth.models as authmodels
 from django_restapi.resource import Resource
 from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note, NoteForm
-from jv3.models import RedactedNote, RedactNoteSkip
+from jv3.models import RedactedNote, RedactedSkip
 from jv3.models import WordMap, WordMeta
 import jv3.utils
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport, ServerLog, CachedActivityLogStats
@@ -910,43 +910,36 @@ def post_usage_statistics(request):
 ##  Redaction Code  ##
 ######################
 
-def convertWordToSymbols(origWord):
-    ##return "*"*len(origWord) ##HELP: For some reason .translate crashes everything??
-    repWord = ''
-    for char in origWord:
+def convertWordToSymbols(privWord):
+    ## Convert private word into public word
+    pubWord = ''
+    for char in privWord:
         if char in string.ascii_lowercase:
-            repWord += 'x'
+            pubWord += 'x'
         elif char in string.ascii_uppercase:
-            repWord += 'X'
+            pubWord += 'X'
         elif char in string.digits:
-            repWord += '9'
+            pubWord += '9'
         else:
-            repWord += "*"
-    return repWord
+            pubWord += "*"
+    return pubWord
 
-def getWordMap(request_user, rType, origWord):
-    match = WordMap.objects.filter(owner=request_user,wordType=rType, originalWord=origWord)
+def getWordMap(request_user, rType, privWord):
+    match = WordMap.objects.filter(owner=request_user,wordType=rType, privWord=privWord)
     if len(match) == 1:
-        return (match[0], match[0].replacementWord)
+        return (match[0], match[0].pubWord)
     elif len(match) == 0:
         return False
     elif len(match) > 1:
-        return (match[0], match[0].replacementWord)
         ## This should never happen, but default to first WordMap
-
+        return (match[0], match[0].pubWord)
 
 ## Adds word of given type to WordMap, returns created WordMapand the repWord chosen
-def createWordMap(request_user, rType, origWord):
-    #repWord = rType + str(len(WordMap.objects.filter(owner=request_user, wordType=rType)))
-    repWord = convertWordToSymbols(origWord)
-    print "word converted:", repWord
-    wMap = WordMap()
-    wMap.owner = request_user
-    wMap.wordType = rType
-    wMap.originalWord = origWord
-    wMap.replacementWord = repWord
+def createWordMap(request_user, rType, privWord):
+    pubWord = convertWordToSymbols(privWord)
+    wMap = WordMap(owner=request_user, wordType=rType, privWord=privWord, pubWord=pubWord)
     wMap.save()
-    return (wMap, repWord)
+    return (wMap, pubWord)
 
 def get_redact_notes(request):
     request_user = basicauth_get_user_by_emailaddr(request)
@@ -955,30 +948,31 @@ def get_redact_notes(request):
         response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
         response.status_code = 401
         return response
-
+    
     ## Filter out notes that have already been redacted
     notes = Note.objects.filter(owner=request_user).order_by("-created").exclude(jid=-1).exclude(contents="")
     numNotes = len(notes)
     userRedactedNotes = RedactedNote.objects.filter(owner=request_user)
-    userSkippedNotes  = RedactNoteSkip.objects.filter(owner=request_user)
+    userSkippedNotes  = RedactedSkip.objects.filter(owner=request_user)
     ## Remove all skipped notes
     for skippedNote in userSkippedNotes:
         notes = notes.exclude(version=skippedNote.version, jid=skippedNote.jid)
-        
     ## Remove all previously-redacted notes, adding up their points.
     points = 0
     for redactedNote in userRedactedNotes:
         points += redactedNote.points
         notes = notes.exclude(version=redactedNote.version, jid=redactedNote.jid)
-
+    
     numNotesLeft = len(notes)
     ndicts = [ extract_zen_notes_data(note) for note in notes ]
     allNotes = []
+    
     for note in ndicts:
         allNotes.append(
             {"jid":note['jid'],"version":note['version'], "contents":note['noteText'],
              "deleted":note['deleted'], "created":str(note['created']),
              "edited":str(note['edited']) })
+        
     resultMap = {
         'markAsRemoved' : {},
         'markAsName'    : {},
@@ -986,10 +980,11 @@ def get_redact_notes(request):
         'markAsPhone'   : {}}
 
     redactedWordArray = WordMap.objects.filter(owner=request_user)
+    
     for wMap in redactedWordArray:
         if wMap.wordType in resultMap:
-            resultMap[wMap.wordType][wMap.originalWord] = True
-
+            resultMap[wMap.wordType][wMap.privWord] = True
+        pass
     userMeta = {
         'userPoints': str(points),
         'totalNotes': str(numNotes),
@@ -1008,24 +1003,20 @@ def post_redacted_note(request):
             {'autherror':"Incorrect user/password combination"}), "text/json")
         response.status_code = 401
         return response
-    
-    print "START ITERATING THROUGH SUBMITTED ELEMENTS"
+
     for datum in JSONDecoder().decode(request.raw_post_data):
         ver = datum['version']
         noteID = datum['id']
         matchingNotes = RedactedNote.objects.filter(jid=noteID, version=ver)
-        
-        ##print "DELETE OLD ONES" ## and wordmetas associated with it
         for mNote in matchingNotes:
             del_wordmeta_for_note(mNote)
             mNote.delete()
-            
-        ##print "CREATE NEW NOTE"
+            pass
         rNote = RedactedNote()
         rNote.owner = request_user
-        rNote.origCreated = datum['origCreated']
-        rNote.origEdited  = datum['origEdited']
-        rNote.origDeleted = datum['origDeleted']
+        rNote.nCreated = datum['origCreated']
+        rNote.nEdited  = datum['origEdited']
+        rNote.nDeleted = datum['origDeleted']
         rNote.created = datum['created']
         rNote.jid = datum['id']
         rNote.version = datum['version']
@@ -1034,45 +1025,37 @@ def post_redacted_note(request):
         noteTextWords = ' '.join(noteText.split('\n')).split(' ')
         ## Stores [word index, WordMap(instance)] pairs
         ## for making WordMeta instances after note is saved
-        wordMapIndicesStore = [] 
+        wordMapIndicesStore = []
 
-        ##print "CREATE rTYPES"
         for rType in datum['redactedIndices']:
             for index in datum['redactedIndices'][rType]:
-                ##print "1: ", rType, index
                 ## rType ~ markAsName, etc
                 ## index ~ index of word in note text
-                origWord = noteTextWords[index]
+                privWord = noteTextWords[index]
                 #matchWordMap ~ (WordMap, replWord)
-                matchWordMap = getWordMap(request_user, rType, origWord)
+                matchWordMap = getWordMap(request_user, rType, privWord)
                 if matchWordMap is False:
-                    ##print "2A: origWord", origWord, ", rType:", rType
                     ## Create a new WordMap
-                    wordMapIDRep, repWord = createWordMap(request_user, rType, origWord)
-                    ##print "a"
+                    wordMapIDRep, repWord = createWordMap(request_user, rType, privWord)
                     ## Add map to store, replace word in noteText
                     wordMapIndicesStore.append([index, wordMapIDRep])
-                   ## print "b"
-                    noteTextWords[index] = repWord  ## consider X for letters and 9 for numbers
-                    ##print "c"
+                    noteTextWords[index] = repWord
                 else:
-                   ## print "2B"
                     ## Add map to store, replace word in noteText
                     wordMapIndicesStore.append([index, matchWordMap[0]])
-                    noteTextWords[index] = matchWordMap[1]  ## consider X for letters and 9 for numbers
-
+                    noteTextWords[index] = matchWordMap[1]
+                pass
+            pass
         rNote.contents = ' '.join(noteTextWords)
         rNote.points = datum['points']
-        ##print "SAVE REDACTED NOTE"
         rNote.save()
-
+        
         ## Create all the WordMeta using pairs from wordMapIndicesStore
-        ##print "CREATE WORD MAPS"
         for pair in wordMapIndicesStore:
-            wMeta = WordMeta(redactedNote=rNote, wordIndex=pair[0], wordMap=pair[1])
+            wMeta = WordMeta(rNote=rNote, wordIndex=pair[0], wordMap=pair[1])
             wMeta.save()
-
-    print "RETURN RESPONSE AND END"
+            pass
+        pass
     response = HttpResponse("No Errors?", "text/json")
     response.status_code = 200
     return response
@@ -1090,15 +1073,14 @@ def post_skipped_redacted_note(request):
         ver = datum['version']
         noteID = datum['id']
         matchingNotes = RedactedNote.objects.filter(jid=noteID, version=ver)
-        matchingSkips = RedactNoteSkip.objects.filter(jid=noteID, version=ver)
-
+        matchingSkips = RedactedSkip.objects.filter(jid=noteID, version=ver)
         for mNote in matchingNotes:
             del_wordmeta_for_note(mNote)
             mNote.delete()
         for sNote in matchingSkips:
             sNote.delete()
 
-        skippedNote = RedactNoteSkip()
+        skippedNote = RedactedSkip()
         skippedNote.owner   = request_user
         skippedNote.jid     = datum['id']
         skippedNote.version = datum['version']
@@ -1110,6 +1092,6 @@ def post_skipped_redacted_note(request):
 
 ## Deletes WordMeta objects associated with given note.
 def del_wordmeta_for_note(n):
-    wMetas = WordMeta.objects.filter(redactedNote=n)
+    wMetas = WordMeta.objects.filter(rNote=n)
     for meta in wMetas:
         meta.delete()

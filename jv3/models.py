@@ -251,66 +251,22 @@ if hasattr(settings, 'DEFINE_SURVEY') and settings.DEFINE_SURVEY:
     except sites.AlreadyRegistered,r:
         pass
 
-### ~ Notes saved via Redaction Tool ~ ###
-## Properties: created, owner, jid, version contents
 
-# helpful for wolfe!
+##  Redaction Models ##
 
-##    Create the form class.
-##>>> class ArticleForm(ModelForm):
-##...     class Meta:
-##...         model = Article
-##
-### Creating a form to add an article.
-##>>> form = ArticleForm()
-##
-### Creating a form to change an existing article.
-##>>> article = Article.objects.get(pk=1)
-##>>> form = ArticleForm(instance=article)
-
-# From our survey, in order of most used
-NOTE_TYPE = (                               ## DONT DO THIS: Let user add any type of note
-    ('futureUse', "Look up some day"),
-    ('ideas',     "Ideas & Brainstorming"),
-    ('todoNow',   "Immediate Todo"),
-    ('todoLater', "Longterm Todo"),
-    ('fromWeb',   "Pasted from Web"),
-    ('links',     "Links from Web"),
-    ('other',     "Other Stuff"),
-    ('contact',   "Contact Info"),
-    ('events',    "Upcoming Events"),
-    ('projects',  "Project Plans")
-)
-
-WORD_TYPE = (
-    ('removed', 'removed'),
-    ('name', 'name'),
-    ('password', 'password'),
-    ('phone#', 'phone#')
-)
-
-class RedactNoteSkip(models.Model):
+class RedactedSkip(models.Model):
     # Keeps track of notes a user doesn't want to redact.
     owner = models.ForeignKey(authmodels.User,related_name='skipped_redacted_note_owner',null=True)
     jid = models.IntegerField(default=0)
     version = models.IntegerField(default=0)
 
-try:
-    admin.site.register(RedactNoteSkip)
-except sites.AlreadyRegistered,r:
-    pass
-     
-
 class RedactedNote(models.Model):
     ## Original Note Data
-    origCreated = models.DecimalField(max_digits=19,decimal_places=0)
-    origEdited  = models.DecimalField(max_digits=19,decimal_places=0)
-    origDeleted = models.NullBooleanField()
+    nCreated = models.DecimalField(max_digits=19,decimal_places=0)
+    nEdited  = models.DecimalField(max_digits=19,decimal_places=0)
+    nDeleted = models.NullBooleanField()
 
-    ## Data for the new redacted note
     owner = models.ForeignKey(authmodels.User,related_name='redacted_note_owner',null=True)
-    ##redactor =  models.ForeignKey(authmodels.User,related_name='redacted_note_owner',null=True)
-
     created = models.DecimalField(max_digits=19,decimal_places=0)
     jid = models.IntegerField(default=0)
     version = models.IntegerField(default=0)
@@ -319,9 +275,6 @@ class RedactedNote(models.Model):
     noteType = models.CharField(max_length=50)
     points   = models.DecimalField(max_digits=19,decimal_places=0)
 
-    ## we use a nullboolean field because that simplifies validation -- 
-    
-    ## what is this for?
     update_fields = ['contents', 'created', 'origDeleted']
     def __unicode__(self):
         import utils
@@ -332,36 +285,39 @@ class RedactedNote(models.Model):
         #return unicode('[%s-%d-v%d] (%s) %s' % (repr(self.owner.username), self.jid, self.version,
         #utils.decimal_time_to_str(self.created), self.contents[:30]))
 
+# Stores mappings for types of words from originalWord to replacementWord,
+# to maintain consistency across multiple saved redacted notes (ie, name = "bob" maps to "name_3" for owner 1
+class WordMap(models.Model):
+    owner    = models.ForeignKey(authmodels.User,related_name='word_map_owner',null=True)
+    wordType = models.TextField(blank=True)
+    privWord = models.TextField(blank=True) ## Private - not to be shown to others (original word in note)
+    pubWord  = models.TextField(blank=True) ## Public  - word chosen to replace privWord
+    def __unicode__(self):
+        import utils
+        return unicode('o:%s, type:%s, (%s / %s)' % (
+            repr(self.owner.username), self.wordType, self.originalWord, self.replacementWord))
+
+
+# Stores meta information about a redacted note's redacted-words
+class WordMeta(models.Model):
+    rNote      = models.ForeignKey(RedactedNote,related_name='redacted_word_meta',null=True)
+    wordIndex  = models.DecimalField(max_digits=19,decimal_places=0)
+    wordMap    = models.ForeignKey(WordMap, related_name='redacted_word_map')
+    def __unicode__(self):
+        import utils
+        return unicode('(Note:%s), i:%s, map:%s' % (repr(self.redactedNote), self.wordIndex, self.wordMap))
+
+## Register RedactedSkip, RedactedNote, WordMeta, WordMap
+try:
+    admin.site.register(RedactedSkip)
+except sites.AlreadyRegistered,r:
+    pass
+
 try:
     admin.site.register(RedactedNote)
 except sites.AlreadyRegistered,r:
     pass
 
-# Stores mappings for types of words from originalWord to replacementWord,
-# to maintain consistency across multiple saved redacted notes (ie, name = "bob" maps to "name_3" for owner 1
-class WordMap(models.Model):
-    owner           = models.ForeignKey(authmodels.User,related_name='word_map_owner',null=True)
-    wordType        = models.CharField(max_length=100, choices=WORD_TYPE)
-    originalWord    = models.TextField(blank=True) ## Private - not to be shown to other owners
-    replacementWord = models.TextField(blank=True)
-    
-    def __unicode__(self):
-        import utils
-        return unicode('o:%s, type:%s, (%s / %s)' % (repr(self.owner.username), self.wordType, self.originalWord, self.replacementWord))
-
-
-# Stores meta information about a redacted note's redacted-words
-class WordMeta(models.Model):
-    redactedNote    = models.ForeignKey(RedactedNote,related_name='redacted_word_meta',null=True)
-    wordIndex       = models.DecimalField(max_digits=19,decimal_places=0)
-    wordMap         = models.ForeignKey(WordMap, related_name='redacted_word_map')
-
-    def __unicode__(self):
-        import utils
-        return unicode('(Note:%s), i:%s, map:%s' % (repr(self.redactedNote), self.wordIndex, self.wordMap))
-
-
-## Register WordMeta, WordMap                    
 try:
     admin.site.register(WordMap)
 except sites.AlreadyRegistered,r:
