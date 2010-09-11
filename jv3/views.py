@@ -15,14 +15,11 @@ from jv3.models import Note, NoteForm
 from jv3.models import RedactedNote, RedactedSkip
 from jv3.models import WordMap, WordMeta
 import jv3.utils
-from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport, ServerLog
+from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport, ServerLog, CachedActivityLogStats
 from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username, get_user_by_email, is_consenting_study1, is_consenting_study2, json_response, set_consenting
-import time
 from django.template.loader import get_template
-import sys
-import string
-import tempfile,os
 import sys,string,time,logging
+import tempfile,os
 
 logging.basicConfig(filename=os.sep.join([tempfile.gettempdir(),"listit-view-error-"+repr(int(time.time()))]),level=logging.DEBUG)
 
@@ -161,7 +158,6 @@ class NoteCollection(Collection):
     
 
 def notes_post_multi(request):
-    print "Entering Notes_post_multi"
     ## mirrored from NoteCollections.create upstairs but updated to handle
     ## new batch sync protocol from listit 0.4.0 and newer.
     
@@ -464,44 +460,76 @@ def changepassword(request): ## POST view, parameters cookie and password
 ## ... must check
 ## note.save()
 
-
-
-
 class ActivityLogCollection(Collection):
 
     def read(self,request):
         request_user = basicauth_get_user_by_emailaddr(request);
         if not request_user:
             logevent(request,'ActivityLog.read',401,{"requesting user:":jv3.utils.decode_emailaddr(request)})
-            return self.responder.error(request, 401, ErrorDict({"autherror":"Incorrect user/password combination"}))
-            
-        user_activity = ActivityLog.objects.filter(owner=request_user)
+            return self.responder.error(request, 401, ErrorDict({"autherror":"Incorrect user/password combintion"}))
+
+        clientid = self._get_client(request)
         if (request.GET['type'] == 'get_max_log_id'):
             ## "what is the last thing i sent?"
-            return self._handle_max_log_request(user_activity,request);
-        else:
-            ## retrieve the entire activity log            
-            return self.responder.list(request, qs_user)
+            try:
+                return self._handle_max_log_request(request_user,clientid);
+            except:
+                print sys.exc_info()
+                logging.error(str(sys.exc_info()))
+            return HttpResponse(JSONEncoder().encode({'value':0, 'num_logs':0}))
+        
+        return HttpResponse(JSONEncoder().encode([]), self.responder.mimetype)
 
-    def _handle_max_log_request(self,user_activity,request):
+    def _handle_max_log_request(self,user,clientid):
         ## return the max id (used by the client to determine which recordsneed to be retrieved.)
-        try:
-            most_recent_activity = get_most_recent(user_activity.filter(client=self._get_client(request)))
-            if most_recent_activity:
-                return HttpResponse(JSONEncoder().encode({
-                            'value':int(most_recent_activity.when),
-                            'num_logs':len(user_activity.filter(client=self._get_client(request))),
-                            }), self.responder.mimetype)
-            return self.responder.error(request, 404, ErrorDict({"value":"No activity found"}));
-        except:
-            print sys.exc_info()
-    
-    def _get_client(self,request):
-        if request.GET.has_key('client'):
-            print request.GET['client']
-            return request.GET['client']
-        return None                
+        maxdate,count = self._get_max_helper(user,clientid)
+        print "  returning ",maxdate,count
+        return HttpResponse(JSONEncoder().encode({'value':long(maxdate), 'num_logs':long(count)}))
 
+
+    @staticmethod
+    def _get_cached_activity_log_stats(user,clientid):
+        if clientid is not None:
+            return CachedActivityLogStats.objects.filter(user=user,client=clientid)
+        return CachedActivityLogStats.objects.filter(user=user)
+
+    @staticmethod
+    def _get_activity_logs(user,clientid):
+        if clientid is not None:
+            return ActivityLog.objects.filter(owner=user,client=clientid)
+        return ActivityLog.objects.filter(owner=user)    
+            
+    # uses new caching table awesomeness
+    def _get_max_helper(self,user,clientid):
+        if self._get_cached_activity_log_stats(user,clientid).count() == 0:
+            print "actloghelper nothing cached for",user,clientid,
+            user_activity = self._get_activity_logs(user,clientid)
+            most_recent_activity = get_most_recent(user_activity)
+            # compute manually
+            if most_recent_activity:
+                maxdate,count = long(most_recent_activity.when),len(user_activity)
+                self._set_maxdate_count_for_user(user,clientid,maxdate)
+                return maxdate,count
+            return 0,0
+        print "actloghelper cached ",user,clientid, "!",
+        cals = self._get_cached_activity_log_stats(user,clientid).order_by('-count')[0]
+        return cals.maxdate,cals.count
+    
+    def _set_maxdate_count_for_user(self,user,clientid,maxdate):
+        tablerecs = self._get_cached_activity_log_stats(user,clientid)
+        if tablerecs.count() > 0:
+            cal = tablerecs.order_by('-count')[0]
+        else:
+            cal = CachedActivityLogStats(user=user,client=clientid)
+        cal.maxdate = maxdate
+        cal.count = self._get_activity_logs(user,clientid).count()
+        cal.save()
+        pass
+
+    def _get_client(self,request):
+        if request.GET.has_key('client'):  return request.GET['client']
+        return None
+    
     def create(self,request):
         """
         lets the user post new activity in a giant single array of activity log elements
@@ -510,20 +538,23 @@ class ActivityLogCollection(Collection):
         if not request_user:
             logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
             return self.responder.error(request, 401, ErrorDict({"autherror":"Incorrect user/password combination"}))
-
-        user_activity = ActivityLog.objects.filter(owner=request_user,client=self._get_client(request))
+        
+        # clientid = self._get_client(request) # this doesn't work, emax
+        clientid = None
+        maxdate,count = self._get_max_helper(request_user,clientid) # overcount
         committed = [];
         incoming = JSONDecoder().decode(request.raw_post_data)
-        #print "incoming activity logs ~~ %d" % (len(incoming))
-        #if len(incoming) > 0:
-        #    print "starting at ~~ %s" % (repr(incoming[0]))
-        for item in incoming: #serializers.deserialize('json',request.raw_post_data):
+        print "activity log",request_user," received ",len(incoming)
+
+        dupes = 0
+        
+        for item in incoming: 
             #print "item is %s " % repr(item)
             try:
-                if len(user_activity.filter(when=item['id'])) > 0:
-                    print "activity log : skipping duplicate %d " % item['id'];
+                if ActivityLog.objects.filter(owner=request_user,when=item['id'],action=item['type']).count() > 0:
+                    # print "actlog skipping ~ "
+                    dupes = dupes + 1
                     continue
-                ##print "Committing %s item %s " % (entry.owner.email,repr(item))
                 entry = ActivityLog();
                 entry.owner = request_user;
                 entry.when = item['id'];
@@ -532,12 +563,18 @@ class ActivityLogCollection(Collection):
                 entry.noteText = item.get("noteText",None);
                 entry.search = item.get("search",None);
                 entry.client = item.get("client",None); ## added in new rev
+                clientid = item.get("client")
                 entry.save();
-                committed.append(item['id']);
+                committed.append(long(item['id']));
+
+                maxdate = max(maxdate,long(item['id']))
+                
             except StandardError, error:
                 print "Error with entry %s item %s " % (repr(error),repr(item))
-        pass
 
+        print "actlog dupes ", request_user, " ", dupes
+
+        self._set_maxdate_count_for_user(request_user,clientid,maxdate)
         response = HttpResponse(JSONEncoder().encode({'committed':committed}), self.responder.mimetype)
         response.status_code = 200;
         logevent(request,'commitActivityLog',200,repr(committed))
@@ -691,7 +728,7 @@ def sort_user_notes(request_user):
         notes = [ n for n in Note.objects.filter(owner=request_user,deleted=False).exclude(jid=-1) ]
         def sort_order(nx,ny):
             if nx.jid in note_order and ny.jid in note_order:
-                result = int(note_order.index(nx.jid) - note_order.index(ny.jid))
+                result = note_order.index(nx.jid) - note_order.index(ny.jid)
             else:
                 result = int((ny.created - nx.created)/1000)
             return result
