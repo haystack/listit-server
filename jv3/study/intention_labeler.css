@@ -1,0 +1,62 @@
+
+body {
+    font-family:'Crimson Text',sans-serif;
+    font-size:14pt;
+}
+td {
+    vertical-align:top;
+    padding-top:10px;
+}
+
+#tomark p {
+    margin:0px;
+    margin-top:10px;
+}
+
+#tomark td {
+    padding-top:10px;
+    padding-bottom:10px;
+    border-bottom:solid 1px rgba(0,0,0,0.2);
+}
+
+#tomark table { width: 100%; margin-bottom:100px;}
+#tomark .title { width: 100%; margin-bottom:0px;}
+
+.notecol { width : 300px; overflow:hidden; font-size:12pt; }
+.pricatcol { width : 130px; border-right: 1px solid black; padding-right:20px;}
+.seccatcol { width : 110px; }
+.set_title { font-size: 18pt; }
+#done {
+    position:fixed;
+    top:60px; bottom:60px; left: 100px; right:100px;
+    background-color:rgba(255,255,255,0.9);
+    border: solid 1px black;
+    padding:20px;
+}
+#done object, #done embed {
+    width:90%;
+    height:90%;
+    margin-left:auto; margin-right:auto;
+}
+
+#codername * {
+   font-size:110%;
+}
+
+dt {
+    font-style:italic;
+    font-size:110%;
+}
+
+dd {
+    margin-bottom:1.4em;
+}
+#definitions {
+    border:solid 1px rgb(150,150,150);
+    padding-left:30px;
+    padding-right:30px;
+    padding-top:5px;
+    padding-bottom:5px;
+    margin-top:1em;
+    margin-bottom:2em;
+}

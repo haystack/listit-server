@@ -1,0 +1,74 @@
+<html>
+  <head>
+    <title>Markup exercise</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>  
+    <script src="intention_labeler.js" type="text/javascript"></script>
+    <link href='http://fonts.googleapis.com/css?family=Crimson+Text' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="intention_labeler.css" type="text/css" /> 
+
+  </head>
+  <body>
+
+    <div style="width:1100px; margin-left:auto; margin-right:auto;">
+
+    <h1>Note intention study</h1>
+
+    <p>
+    In this exercise you're going to be presented with a bunch of random notes and your job
+    is to guess <i>why they were taken</i>.
+    </p>
+
+    <p>
+    For each note, choose a <i>primary category</i> (from the categories below), which
+    you think best reflects the purpose the note was taken.  After that, select how
+    likely the note is any of the other categories
+    </p>
+
+    <p>
+    Of course you can't read the mind of the note-taker, so just take you best guesses!
+    </p>
+
+    <p>
+    If you absolutely haven't a clue what a note means, leave it -no idea-
+    </p>    
+
+    <div id="definitions">
+    <dl>
+      <dt>memory trigger
+      <dd>A note whose purpose is to BRING SOMETHING TO MIND
+	
+      <dt>reference
+      <dd>A piece of information that might be useful later for doing something.
+
+	<dt>external cognition / brainstorming
+	<dd>notes taken while thinking through something -- writing something down to help you think about it. For example, drafts of papers, outlines of talks you have to give, hard problems you're trying to solve, a plan you're trying to device.
+
+	<dt>journal/activity log
+	<dd>something that serves as a record that you did or experienced something, or that something happened
+
+	<dt>posterity
+	<dd>stuff the person wanted to keep "just because", maybe to find some day (for no particular reason except boredom)	
+    </dl>
+    </div>
+    
+
+    <span id="codername">coder's name: <input type="text" id="coder" value="your name here" style="width:300px;"></input></span>
+    
+    <div id="tomark" ></div>
+
+    <button id="sendit" onclick="send_results()"> send results </button>
+    <div style="display:none">
+      <table class="title">
+	<tr><td class="notecol"></td><td class="pricatcol"></td><td class="seccatcol" colspan="5">secondary categories</td></tr>
+	<tr><td class="notecol">note</td><td class="pricatcol">primary category</td><td class="seccatcol">mem trig</td><td class="seccatcol">reference</td><td class="seccatcol">ext cog</td><td class="seccatcol">log</td><td class="seccatcol">posterity</td></tr>
+      </table>
+    </div>
+    <div id="done" style="display:none">
+      <h2>thank you! you deserve a break</h2>
+      <p>
+      <object width="640"><param name="movie" value="http://www.youtube.com/v/BpWM0FNPZSs?fs=1&amp;hl=en_US&amp;rel=0"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/BpWM0FNPZSs?fs=1&amp;hl=en_US&amp;rel=0" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="480" height="385"></embed></object>
+      </p>
+    </div>
+    </div>
+  </body>
+</html>
