@@ -165,6 +165,7 @@ try:
 except sites.AlreadyRegistered,r:
     pass
 
+
 ## server side activity logging
 class ServerLog(models.Model):
     when = models.DecimalField(max_digits=19,decimal_places=0)
@@ -183,20 +184,7 @@ try:
     admin.site.register(ServerLog)
 except sites.AlreadyRegistered,r:
     pass
-
-# introduced 9-4-2010 for saving the server from death.
-class CachedLogStats(models.Model):
-    user = models.ForeignKey(authmodels.User,null=True)
-    client = models.CharField(max_length=255,null=True)
-    maxdate = models.DecimalField(max_digits=19,decimal_places=0)
-    count = models.DecimalField(max_digits=19,decimal_places=0)
-    
-# introduced 9-4-2010 for saving the server from death.
-class CachedActivityLogStats(CachedLogStats):
-    #start = models.ForeignKey(ActivityLog,null=True)
-    #end = models.ForeignKey(ActivityLog,null=True)
-    pass
-
+   
 class BugReport(models.Model):
     when = models.DecimalField(max_digits=19,decimal_places=0)
     username = models.TextField()
@@ -221,13 +209,7 @@ if hasattr(settings, "ACTIVITY_CONTEXT_MODELS") and settings.ACTIVITY_CONTEXT_MO
         end = models.DecimalField(max_digits=19,decimal_places=0)
         entityid = models.TextField()
         entitytype = models.CharField(max_length=255)
-        entitydata = models.TextField()
-        pass
-
-    class CachedEventLogStats(CachedLogStats):
-        # start = models.ForeignKey(Event,null=True)
-        # end = models.ForeignKey(Event,null=True)
-        pass        
+        entitydata = models.TextField()        
 
 if hasattr(settings, 'DEFINE_SURVEY') and settings.DEFINE_SURVEY:
     class SurveyQuestion(models.Model):
@@ -250,7 +232,6 @@ if hasattr(settings, 'DEFINE_SURVEY') and settings.DEFINE_SURVEY:
         admin.site.register(SurveyDoneDeclaration)
     except sites.AlreadyRegistered,r:
         pass
-
 
 ##  Redaction Models ##
 
@@ -327,5 +308,3 @@ try:
     admin.site.register(WordMeta)
 except sites.AlreadyRegistered,r:
     pass
-
-
