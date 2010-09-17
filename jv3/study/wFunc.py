@@ -24,8 +24,8 @@ brenn = User.objects.filter(email="brennanmoore@gmail.com")[0]
 gv = User.objects.filter(email="gvargas@mit.edu")[0]
 wstyke = User.objects.filter(email="wstyke@gmail.com")[0]
 katfang = User.objects.filter(email="justacopy@gmail.com")
-karger = User.objects.filter(email="karger@mit.edu")
-
+dk = User.objects.filter(email="karger@mit.edu")
+dkn = Note.objects.filter(owner=dk)
 
 firstBirth = 1229718560992.0 ## 21 weeks in
 
@@ -57,10 +57,11 @@ def mmmPlot(filename, notes,  title='title'):
   ##firstBirth = 1217622560992.0
   ## Meta-data for title
   allLogs = ActivityLog.objects.filter(owner=notes[0].owner, action__in=['note-add','note-delete'])
+  saveLogCount = ActivityLog.objects.filter(owner=notes[0].owner, action='note-save').count()
   msecToWeek = 1.0/(1000.0*60*60*24*7)
   msecOfWeek = 1000.0*60*60*24*7
   useremail ,noteCount, actionCount = notes[0].owner.email, notes.count(), allLogs.count()
-  title = "#Notes:#Logs:Email -- " + str(noteCount) + ":" + str(actionCount) + ":" + useremail
+  title = "#Notes:#SaveLogs:#Dels:Email -- " + str(noteCount) + ":" + str(saveLogCount) + ":" + str(sum([n.deleted for n in notes])) + ":" + useremail
   ## Meta-data for points
   points = {'note-add':r.c(), 'note-delete':r.c()} ## Shortened to just the two, since note-edit added later
   births , deaths = {}, {}
@@ -114,7 +115,7 @@ def mmmPlot(filename, notes,  title='title'):
   for x in births.keys():
      if x in deaths:
        color = 'green' if (today-deaths[x] < 0.001) else 'black'
-       r.lines(c([float(births[x])]*2),c([float(births[x]),float(deaths[x])]), col=color)
+       r.lines(c([float(births[x])]*2),c([float(births[x]),float(deaths[x])]), col=color, lwd=3)
        pass
   devoff()
 
@@ -123,14 +124,14 @@ def test_mmmPlot():
   mmmPlot('wt1',dkn)
 
 
-def makeACUPlots():
+def makeACUPlots(u):
     i=0
-    path = 'acu/note_life2/'
+    path = cap.BASEDIR + '/note_life3/'
     print "Start time: ", time.gmtime()
     startTime = time.time()
     for user in u:
         uNotes = Note.objects.filter(owner=user)
-        uLogs = ActivityLog.objects.filter(owner=user, action__in=['note-add','note-save','note-delete'])
+        uLogs = ActivityLog.objects.filter(owner=user, action__in=['note-save','note-delete'])
         if (((uNotes.count() >= 120) or (uLogs.count() >= 120)) and ((uNotes.count() >= 50) and (uLogs.count() >= 50))):
             mmmPlot(path+str(i)+"-"+str(user.id), uNotes)
             i += 1
@@ -141,6 +142,154 @@ def makeACUPlots():
     finishTime = time.time()
 
 
+def makeNoteLifePlots(u, decider, middleDir):
+    i=0
+    path = cap.BASEDIR + middleDir
+    print "Start time: ", time.gmtime()
+    startTime = time.time()
+    for user in u:
+        if (isInterestingUser(user) and decider(user) and not isTroublesomeUser(user)):
+            uNotes = Note.objects.filter(owner=user)
+            print "Processing user %d with %d notes" % (user.id, uNotes.count())
+            mmmPlot(path+str(user.id), uNotes)
+            i += 1
+            pass
+        pass
+    print "Users processed: ", str(i) , " out of: ", str(len(u))
+    print "Finish time: ", time.gmtime()
+    finishTime = time.time()
+
+## Try to pick out pack-rats for plotting! !
+def plotPackRat(u):
+  makeNoteLifePlots(u, isPackRat, '/user_types/pack_rat/02/')
+
+def plotNeatFreak(u):
+  makeNoteLifePlots(u, isNeatFreak, '/user_types/neat_freak/01/')
+
+def plotAll(u):
+  makeNoteLifePlots(u, retTrue, '/note_life4/')
+
+def retTrue(u):
+  return True
+
+## Gatherers
+def getPackrats(users):
+  packrats, nonPR = [], []
+  for user in users:
+    if (not isInterestingUser(user) or isTroublesomeUser(user)):
+        continue
+    if (isPackRat(user)):
+        packrats.append(user)
+    else:
+        nonPR.append(user)
+  return (packrats, nonPR)
+
+def getNeatFreaks(users):
+  neatfreaks, nonNF = [], []
+  for user in users:
+    if (not isInterestingUser(user) or isTroublesomeUser(user)):
+        continue
+    if (isNeatFreak(user)):
+        neatfreaks.append(user)
+    else:
+        nonNF.append(user)
+  return (neatfreaks, nonNF)
+
+
+def getNumNotes(usersA):
+  countA = 0
+  for user in usersA:
+    countA += Note.objects.filter(owner=user).count()
+  ##for user in usersB:
+    ##countB += Note.objects.filter(owner=user).count()
+  return countA
+
+def getNumAliveNotes(usersA):  #, usersB):
+  countA =0 ##, countB = 0,0
+  for user in usersA:
+    countA += sum([1 - n.deleted for n in Note.objects.filter(owner=user)])
+  ##for user in usersB:
+    ##countB += sum([1 - n.deleted for n in Note.objects.filter(owner=user)])
+  return countA
+
+
+## Summarizer:
+
+def userStats(users):
+  userCount = len(users)
+  noteCount = []
+  noteAlive = []
+  noteDead  = []
+  aliveCharLength = []
+  deadCharLength = []
+  for user in users:
+    notes = Note.objects.filter(owner=user)
+    noteCount.append(notes.count())
+    noteAlive.append(int(sum([1-n.deleted for n in notes])))
+    noteDead.append(int(sum([n.deleted for n in notes])))
+    for note in notes:
+      if note.deleted == 1:
+        deadCharLength.append(int(len(note.contents)))
+      else:
+        aliveCharLength.append(int(len(note.contents)))
+      pass
+    pass
+  numNoteVar = variance(noteCount)
+  noteCount = sum(noteCount)
+  noteAliveVar = variance(noteAlive)
+  noteAliveCount = sum(noteAlive)
+  noteDeadVar = variance(noteDead)
+  noteDeadCount = sum(noteDead)  
+  aveAliveChar, aveDeadChar = mean(aliveCharLength), mean(deadCharLength)
+  varAliveChar, varDeadChar = variance(aliveCharLength), variance(deadCharLength)
+  print userCount, noteCount, noteCount/userCount, numNoteVar
+  print noteAliveCount, noteAliveCount/userCount, noteAliveVar
+  print noteDeadCount, noteDeadCount/userCount, noteDeadVar
+  print aveAliveChar, aveDeadChar, varAliveChar, varDeadChar
+  return aliveCharLength, deadCharLength, noteAlive, noteDead
+
+## Classifiers
+def isTroublesomeUser(user):
+  return user.id in [13867, 11756, 3, 7, 13, 17, 11310, 13273, 14137, 14291, 11658]
+
+def isInterestingUser(user):
+  numNotes = Note.objects.filter(owner=user).count()
+  numLogs = ActivityLog.objects.filter(owner=user, action__in=['note-add','note-delete']).count()
+  return numNotes >= 50 and numLogs >= 10
+
+def isPackRat(u):
+  uNotes = Note.objects.filter(owner=u)
+  if uNotes.count() == 0:
+    amt=-1
+  else:
+    amt = float(sum([n.deleted for n in uNotes])) / float(uNotes.count())
+  return 0 <= amt and amt <= 0.2
+
+def isNeatFreak(u):
+  uNotes = Note.objects.filter(owner=u)
+  if uNotes.count() == 0:
+    amt = -1
+  else:
+    amt = float(sum([n.deleted for n in uNotes])) / float(uNotes.count())
+  return 1.0 >= amt and amt >= 0.8
+
+## Helping me find classify bounds
+def getPackRatAmt(u):
+  allLogs = ActivityLog.objects.filter(owner=u)
+  uNotes = Note.objects.filter(owner=u)
+  uAdds = allLogs.filter(action='note-add')
+  uSave = allLogs.filter(action='note-save')
+  uDels = allLogs.filter(action='note-delete')
+  if uNotes.count() == 0:
+    amt=-1
+  else:
+    amt = float(sum([n.deleted for n in uNotes])) / float(uNotes.count())
+  return (amt, u.id, uNotes.count(),uAdds.count(),uSave.count(),uDels.count())
+
+def testPR(users):
+  for user in users:
+    if getPackRatAmt(user)[0] > 1:
+      print user.id, getPackRatAmt(user)
 
 ## Given ONE user's notes, plot note attribute (created) vs activitylog attribute (when)
 

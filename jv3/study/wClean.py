@@ -3,6 +3,9 @@
 from jv3.utils import is_tutorial_note
 from jv3.models import *
 
+## Todo: Kill huge notes
+## Todo: Kill notes that lasted less than ~30 seconds
+
 def clean_full():  ## Perform all cleaning functions
     clean_tutorial_notes()
     # clean_noteorder()

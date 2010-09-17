@@ -10,7 +10,7 @@ em = User.objects.filter(email="emax@csail.mit.edu")[0]
 c = lambda vv : apply(r.c,[float(v) for v in vv])
 
 # emax edited this so that he could set a different basedir
-BASEDIR = '/var/listit/www-ssl/_studywolfe'
+BASEDIR = '/home/emax/public_html/graphs'
 
 def set_basedir(basedir):
     global BASEDIR

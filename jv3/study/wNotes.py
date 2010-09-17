@@ -14,6 +14,9 @@ import rpy2.robjects as ro
 from jv3.study.study import *
 from numpy import array
 import random
+
+import jv3.study.wFunc as wf
+
 r = ro.r
 em = User.objects.filter(email="emax@csail.mit.edu")[0]
 emn = em.note_owner.all()
@@ -28,6 +31,8 @@ brenn = User.objects.filter(email="brennanmoore@gmail.com")[0]
 gv = User.objects.filter(email="gvargas@mit.edu")[0]
 devoff = lambda : r('dev.off()')
 c = lambda vv : apply(r.c,vv)
+
+cap.set_basedir('/home/emax/public_html/graphs')
 
 ## consenting users and notes
 u = [ us for us in User.objects.all() if is_consenting_study2(us)]
@@ -56,7 +61,7 @@ def aPlot(filename, notes,  xProp, logProp, logTypes, xl='x', yl='y', title='tit
     x, y, z = [], [], []
     allLogs = ActivityLog.objects.filter(owner=notes[0].owner, action__in=logTypes)
     for log in allLogs:
-    	noteArr = notes.filter(jid=log.noteid)
+   	noteArr = notes.filter(jid=log.noteid)
         if len(noteArr) != 1:
     	   continue
   	## We have a single note found

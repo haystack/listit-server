@@ -8,10 +8,10 @@ def look_at_notes(notes):
             countAdd = input("# items?: ")
             if countAdd == -1:
                 return count
-            print '------------------------------------\n\n'
+            print("------------------------------------\n")
         print note.owner.id, ', ', note.jid
         print note.contents, '\n'
-    print "Notes Looked At: ", i, ", count = ", count
+    print( "Notes Looked At: ", i, ", count = ", count)
 
 
 def compile_ver_from_users(userArr):
