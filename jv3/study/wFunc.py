@@ -110,6 +110,7 @@ def mmmPlot(filename, notes,  title='title'):
         edit_delta = r.c(edit_delta, 7)#abs(10 + 10*(len(edit_action['initial']) - len(edit_action['final']))/1000.0))
         edit_col = r.c(edit_col, col_of_edit(edit_action['initial'], 'inner', edit_action['when']))
   ##End new code
+  
   r.points(points['note-edit'], col=edit_col, pch=edit_dir,  cex=edit_delta)
   r.points(points['note-delete'], cex=5.0,col = "dark red", pch='x')
   for x in births.keys():
