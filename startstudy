@@ -18,6 +18,7 @@ from numpy import array
 import jv3.study.integrity as integ
 import jv3.study.thesis_figures as tfigs
 import jv3.study.note_labels as nl
+import jv3.study.intention as intent
 r = ro.r
 emax = User.objects.filter(email="emax@csail.mit.edu")[0]
 emax2 = User.objects.filter(email="electronic@gmail.com")[0]
