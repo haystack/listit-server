@@ -122,6 +122,9 @@ def post_intention(request):
 
 # ------------------- intention analysis -------------------------
 
+def _get_all_intention_ids():
+    return set([ int(x[0]) for x in reada() ])
+
 def reada(filename="index.csv"):
     foor=read(filename)
     gci = get_column_index
