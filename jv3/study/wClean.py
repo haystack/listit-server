@@ -33,7 +33,9 @@ def clean_noteorder():
             i+=1
     print "Deleted: ", i, " noteorder notes."
 
-def clean_blipNotes():
+def clean_lifelessNotes():
+    noDelete = list(intent._get_all_intention_ids())
+    noDelete.extend(intent._get_all_note_ids())
     for user in User.objects.all():
         nDels = ActivityLog.objects.filter(owner=user, action='note-delete')
         for note in Note.objects.filter(owner=user):
@@ -41,11 +43,18 @@ def clean_blipNotes():
             if len(nDel)==0:
                 continue
             nDel = nDel[0]
-            if ((nDel.when - note.created) < 1e7):
-                ## delete here
+            if ((nDel.when - note.created) < 1e7) and note.id not in noDelete:
+                deleteNoteAndLogs(note)
                 pass
             pass
         pass
+
+def deleteNoteAndLogs(note):
+    user = note.owner
+    allLogs = ActivityLog.objects.filter(owner=user, noteid=note.jid, action_in=['note-add', 'note-edit', 'note-save', 'note-delete'])
+    for log in allLogs:
+        log.delete()
+    note.delete()
 
 ## Detect/delete notes with text that's been repeated
 def clean_repeat_notes(notes):
