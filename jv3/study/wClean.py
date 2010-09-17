@@ -1,7 +1,13 @@
 ## For cleaning database: remove problematic notes
 ## ie. Tutorial notes, notes experiencing sync problems (repeated texts), etc
 from jv3.utils import is_tutorial_note
+
+from django.contrib.auth.models import User
 from jv3.models import *
+
+
+import jv3.study.intention as intent
+import jv3.study.note_labels as nl
 
 ## Todo: Kill huge notes
 ## Todo: Kill notes that lasted less than ~30 seconds
@@ -34,6 +40,8 @@ def clean_noteorder():
     print "Deleted: ", i, " noteorder notes."
 
 def clean_lifelessNotes():
+    totalDeleted = 0
+    logsDeleted = 0
     noDelete = list(intent._get_all_intention_ids())
     noDelete.extend(intent._get_all_note_ids())
     for user in User.objects.all():
@@ -44,17 +52,22 @@ def clean_lifelessNotes():
                 continue
             nDel = nDel[0]
             if ((nDel.when - note.created) < 1e7) and note.id not in noDelete:
-                deleteNoteAndLogs(note)
+                logsDeleted += deleteNoteAndLogs(note)
+                totalDeleted += 1
                 pass
             pass
         pass
+    print "Deleted", totalDeleted, "notes and", logsDeleted, "logs."
 
 def deleteNoteAndLogs(note):
+    totalDeleted = 0
     user = note.owner
     allLogs = ActivityLog.objects.filter(owner=user, noteid=note.jid, action_in=['note-add', 'note-edit', 'note-save', 'note-delete'])
     for log in allLogs:
-        log.delete()
-    note.delete()
+        ##log.delete()
+        totalDeleted += 1
+    ##note.delete()
+    return totalDeleted
 
 ## Detect/delete notes with text that's been repeated
 def clean_repeat_notes(notes):
