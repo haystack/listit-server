@@ -157,10 +157,7 @@ user_to_edits = {}
 def note_changed_edits(note):
     if note["owner_id"] not in user_to_edits:
         user_to_edits[note["owner_id"]] = note_edits_for_user(User.objects.filter(id=note["owner_id"])[0])
-    #print "total edits > 0 ", len([x for x in reduce(lambda x,y:x+y,user_to_edits[note["owner_id"]].values()) if x['editdist'] > 0])
-    #print "total edits for user ", len([x for x in reduce(lambda x,y:x+y,user_to_edits[note["owner_id"]].values())])
-    #[{"touches" : len(user_to_edits[note["owner_id"]].get(note["jid"],[])), "edits" : len([x for x in user_to_edits[note["owner_id"]].get(note["jid"],[]) if x["editdist"] > 0]) }]
-    return make_feature('note_edits', len([x for x in user_to_edits[note["owner_id"]].get(note["jid"],[]) if x["lendiff"] > 0]))
+    return make_feature('note_edits', len(user_to_edits[note["owner_id"]].get(note["jid"],[]))) # #[x for x in user_to_edits[note["owner_id"]].get(note["jid"],[]) if x["lendiff"] > 0]))
 
 note_abbreviated_contents = lambda(n): make_feature("note_abbreviated_contents", n["contents"].replace('\n','\N ',)[:200])
 note_did_edit = lambda(note) : make_feature('note_did_edit', note_edits(note) > 0)
@@ -688,14 +685,19 @@ def note_edits_for_user(u,filter_non_edits=True,include_levenstein=False):
     import jv3.utils
     by_jid = {}
     edits_by_jid = {}
-    ##print "Getting activity log set", 
     for edit in u.activitylog_set.filter(action__in=['note-add','note-edit','note-save']).values():
         noteedits = by_jid.get(edit['noteid'],[])
         noteedits.append( edit )
         by_jid[edit['noteid']] = noteedits
 
-    ##print "Done. now filtering"        
-    
+        
+    # nuke entires that don't have a note add
+    # the idea is as follows: if we don't have a note-add for a note, then it's most likely
+    # we don't have the complete activity logs for that note...
+    # todel = [jid for jid,edits in by_jid.iteritems() if 'note-add' not in [x["action"] for x in edits]]
+    # print "todel ", len(todel)
+    # for d in todel:   del by_jid[d]    
+        
     for jid,edits in by_jid.iteritems():
         edits.sort(key=lambda x: float(x['when']))
         converted_edits = []
@@ -703,14 +705,15 @@ def note_edits_for_user(u,filter_non_edits=True,include_levenstein=False):
         for edit in edits:
             if edit['action'] == 'note-add' : continue
             if edit['action'] == 'note-save' and last is not None and last["action"] == 'note-edit' :
-                if edit["noteText"] is not None:
+                if edit["noteText"] is not None and last["noteText"] is not None:
                     converted_edits.append( { "when" : last["when"],
                                               "howlong": edit["when"] - last["when"],
                                               "initial": last["noteText"] if last["noteText"] is not None else "",
                                               "final": edit["noteText"] if edit["noteText"] is not None else "",
                                               "lendiff" : abs(len(last['noteText']) - len(edit["noteText"])) if edit["noteText"] is not None else 0
                                               })
-                    last = edit
+            last = edit
+
         edits_by_jid[jid]= converted_edits if not filter_non_edits else filter(lambda x : x['lendiff'] > 0, converted_edits)
     return edits_by_jid 
                     
