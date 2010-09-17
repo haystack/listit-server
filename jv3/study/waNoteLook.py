@@ -2,15 +2,15 @@
 def look_at_notes(notes):
     i = 0
     count = 0
-    for note in notes:
+    for n in notes:
         i+=1
         if i % 10 == 0:
             countAdd = input("# items?: ")
             if countAdd == -1:
                 return count
             print("------------------------------------\n")
-        print note.owner.id, ', ', note.jid
-        print note.contents, '\n'
+        print n.owner.id, ', ', n.jid
+        print n.contents, '\n'
     print( "Notes Looked At: ", i, ", count = ", count)
 
 

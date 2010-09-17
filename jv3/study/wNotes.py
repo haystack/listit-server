@@ -15,6 +15,9 @@ from jv3.study.study import *
 from numpy import array
 import random
 
+
+import jv3.study.note_labels as nl
+import jv3.study.intention as intent
 import jv3.study.wFunc as wf
 
 r = ro.r

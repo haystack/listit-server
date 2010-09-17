@@ -33,6 +33,20 @@ def clean_noteorder():
             i+=1
     print "Deleted: ", i, " noteorder notes."
 
+def clean_blipNotes():
+    for user in User.objects.all():
+        nDels = ActivityLog.objects.filter(owner=user, action='note-delete')
+        for note in Note.objects.filter(owner=user):
+            nDel = nDels.filter(noteid=note.jid)
+            if len(nDel)==0:
+                continue
+            nDel = nDel[0]
+            if ((nDel.when - note.created) < 1e7):
+                ## delete here
+                pass
+            pass
+        pass
+
 ## Detect/delete notes with text that's been repeated
 def clean_repeat_notes(notes):
     i = 0
