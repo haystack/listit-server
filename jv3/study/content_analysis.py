@@ -165,6 +165,7 @@ def note_changed_edits(note):
 note_abbreviated_contents = lambda(n): make_feature("note_abbreviated_contents", n["contents"].replace('\n','\N ',)[:200])
 note_did_edit = lambda(note) : make_feature('note_did_edit', note_edits(note) > 0)
 note_deleted = lambda(note) : make_feature('note_deleted', q(note["deleted"],True,False))
+note_deleted_n = lambda(note) : make_feature('note_deleted', q(note["deleted"],1.0,0.0))
 note_urls = lambda note: make_feature('note_urls', str_n_urls(note["contents"]))
 note_phone_numbers = lambda x: make_feature('note_phone_numbers',count_regex_matches("(^|\s+)([0-9]( |-)?)?(\(?[0-9]{3}\)?|[0-9]{3})( |-)?([0-9]{3}( |-)?[0-9]{4}|[a-zA-Z0-9]{7})($|\s+)",x["contents"]))
 note_emails = lambda note: make_feature('note_emails',str_n_emails(note["contents"]))

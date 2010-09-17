@@ -7,6 +7,16 @@ from jv3.study.study import non_stop_consenting_users,non_stop_users
 from jv3.utils import current_time_decimal,is_tutorial_note,is_study1_note_contents
 import random,sys
 
+emax = User.objects.filter(email="emax@csail.mit.edu")[0]
+emax2 = User.objects.filter(email="electronic@gmail.com")[0]
+brenn = User.objects.filter(email="brennanmoore@gmail.com")[0]
+gv = User.objects.filter(email="gvargas@mit.edu")[0]
+wstyke = User.objects.filter(email="wstyke@gmail.com")[0]
+katfang = User.objects.filter(email="justacopy@gmail.com")[0]
+karger = User.objects.filter(email="karger@mit.edu")[0]
+
+RESEARCHERS = [emax,brenn,gv,wstyke]
+
 def is_english(s):
     try:
         return s.encode('utf-8','ignore') == s
@@ -49,16 +59,26 @@ def activity_logs_for_notes(ns,action=None):
 #         return float(logs[0]["when"])
 #     return None
 
+# def get_note_deletion_time(n):
+#     alfn = activity_logs_for_note(n)
+#     #print "got %s " % repr(alfn)
+#     if len(alfn) > 0:
+#         hits = [long(x["when"]) for x in alfn if x["action"] == "note-delete"]
+#         if len(hits) > 0:
+#             return hits[-1]
+#         pass
+#     return -1
+
 def get_note_deletion_time(n):
-    alfn = activity_logs_for_note(n)
-    #print "got %s " % repr(alfn)
-    if len(alfn) > 0:
-        hits = [long(x["when"]) for x in alfn if x["action"] == "note-delete"]
-        if len(hits) > 0:
-            return hits[-1]
-        pass
-    return -1
-        
+    # print "getting note deletion time",n["owner_id"],n["jid"]
+    h = ActivityLog.objects.filter(owner=n["owner_id"],noteid=n["jid"]).filter(action='note-delete').values_list('when',)
+    # print "done"
+    if len(h) > 0:
+        toret =  max([long(x[0]) for x in h])
+        #print "max ",n["id"],"-",toret
+        return toret
+    return -1    
+
 #__ndtime = None
 # def get_note_deletion_time(n):
 #     global __ndtime

@@ -6,14 +6,14 @@ function cat_to_id(cat) { return "category_"+cats.indexOf(cat); }
 var degrees = ["1- no","2- unlikely","3- could be","4- likely","5- definitely"];
 
 function make_note(n){
-  var s = "<tr><td class='notecol'>"+n.contents.replace("\n","\\N")+"</td>";
+  var s = "<tr class='note'><td class='notecol'>"+n.contents.replace("\n","<br>").slice(0,100)+"</td>";
   s += "<td class='pricatcol'><SELECT class='primary'><OPTION>"+cats.join("</OPTION><OPTION>")+"</OPTION></SELECT></td>";
   s += "</tr>";
   var sq = jQuery(s);
   cats.slice(1).map(function(x) {
 	     var secondary = jQuery("<td class='seccatcol'><SELECT class='secondary "+cat_to_id(x)+"' foo='"+x+"'></SELECT></td>");
 	     degrees.map(function(d) {
-			   secondary.find("select").append("<OPTION value=\"d\">"+d+"</OPTION>");
+			   secondary.find("select").append("<OPTION>"+d+"</OPTION>");
 			 });
 	     sq.append( secondary ) ;
 	   });
@@ -23,7 +23,7 @@ function make_note(n){
 
 function send(start,end,success_cont) {
   console.log("SEND >> ",start," - ", end);
-  var rows = jQuery("tr");
+  var rows = jQuery("tr").filter(".note");
   if (start !== undefined && end !== undefined) {
     rows = rows.slice(start,end);
   }
@@ -85,9 +85,16 @@ jQuery(document).ready(function() {
 			  }});
 			 jQuery(".pricatcol").find("select").live("change", function(evt) {
 									     var selected_primary_category = jQuery(this).val();
+								    console.log('select',degrees);
+								    self.SELECTS = jQuery(jQuery(this).parent().parent()[0]).find(".seccatcol").children("select");
+
 									     jQuery(jQuery(this).parent().parent()[0]).find(".seccatcol").children("select").attr("disabled",false);
 								             jQuery(jQuery(this).parent().parent()[0]).find(".seccatcol").children("select").val(degrees[0]);
 								             jQuery(jQuery(this).parent().parent()[0]).find(".seccatcol").children("select").filter("."+cat_to_id(selected_primary_category)).val(degrees[4]);
 									     jQuery(jQuery(this).parent().parent()[0]).find(".seccatcol").children("select").filter("."+cat_to_id(selected_primary_category)).attr("disabled",true);
 									  });
  		       });
+
+function declare_victory() {
+  jQuery("#done").fadeIn();
+};

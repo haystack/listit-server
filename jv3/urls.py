@@ -183,3 +183,12 @@ if hasattr(settings,'KARGER_EMAIL_IFACE') and settings.KARGER_EMAIL_IFACE:
                             (r'^karger_check_status$', jv3.study.email_iface.ke_check_status),
                             (r'^karger_cancel_send$', jv3.study.email_iface.ke_cancel_send),
                             )
+
+if hasattr(settings,'STUDY_INTENTION_LABELER_IFACE') and settings.STUDY_INTENTION_LABELER_IFACE:
+    print "INTENTION labeler"
+    import jv3.study.intention
+    urlpatterns += patterns('server.jv3.views.',
+                            (r'^intention_notes$', jv3.study.intention.get_notes),
+                            (r'^post_intention/', jv3.study.intention.post_intention),
+                            )
+    
