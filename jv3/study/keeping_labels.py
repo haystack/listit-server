@@ -61,7 +61,7 @@ def _write(datas):
     pass
         
 def parse_emax(rows,user_id):
-    print user_id
+    print "looking for : ", user_id, type(user_id)
     r = get_user(rows,user_id).get('emax',None)
     if r is None or r == '' or  r.find('ins') >= 0 : return None
     rs = [x for x in r.replace(';',' ').replace(' + ',' ').strip().split(' ') if len(x.strip()) > 0]
@@ -73,7 +73,7 @@ def parse_emax(rows,user_id):
           s['NICE'] = True
           continue
         try:
-            category = cats[int(r[0])]
+            category = cats[int(r[0])-1]
             strength = ({'--':1,'-':2,'':3,'+':4,'++':5,'+++':5}).get(r[1:],0)
             s[category]=strength
         except:
