@@ -3,18 +3,29 @@ from jv3.models import *
 from jv3.utils import *
 from decimal import Decimal
 from jv3.study.study import mean, variance
+import math
 ## Walk thru a user's actions, calculating things!
 
 def analyzeUserWalk(user):
     totalDays, activeDays, aliveAndDeadTotal, aliveAndDeadGained = userWalk(user)
-    nAddVel = sum(map(lambda x:x[0],aliveAndDeadGained))*1.0/activeDays
-    nAddVar = variance(map(lambda x:x[0],aliveAndDeadGained))
+    aliveGained = map(lambda x:x[0],aliveAndDeadGained)
+    nAddVel = sum(aliveGained)*1.0/activeDays
+    nAddVar = variance(aliveGained)
     print "Add v:", nAddVel, ", var:", nAddVar
-    nDelVel = sum(map(lambda x:x[1],aliveAndDeadGained))*1.0/activeDays
-    nDelVare = variance(map(lambda x:x[1], aliveAndDeadGained))*1.0
+    deadGained = map(lambda x:x[1],aliveAndDeadGained)
+    nDelVel = sum(deadGained)*1.0/activeDays
+    nDelVar = variance(deadGained)*1.0
     print "Del v:", nDelVel, ", var:", nDelVar
+    printBasicNoteStats(user)
     return nAddVel, nAddVar, nDelVel, nDelVar
 
+def printBasicNoteStats(user):
+    notes = Note.objects.filter(owner=user)
+    print "# Notes:", notes.count()
+    noteLen = map(lambda x:len(x.contents), notes)
+    noteLines = map(lambda x:len(x.contents.split('\n')), notes)
+    print "Ave #Chars:", mean(noteLen), ", Ave Var:", variance(noteLen) 
+    print "Ave #Lines:", mean(noteLines), ", Ave Var:", variance(noteLines)
 
 def userWalk(user):
     userNotes = Note.objects.filter(owner=user)
@@ -23,7 +34,6 @@ def userWalk(user):
     actLogs = reduceRepeatLogs(actLogsRepeating)
     actLogs.extend(userLogs.filter(action__in=['note-save','sidebar-open']))
     totDays, activeDays, chunkedLogs = chunkLogsByDay(actLogs)
-    ## Now run thru logs
     aliveAndDeadTotal = [] ##  Num (alive, dead) notes total on active day
     aliveAndDeadGained = [] ## Num (alive, dead) notes added/lost on active day
     runningLiving, runningDead = 0,0
@@ -50,7 +60,7 @@ def reduceRepeatLogs(logs):
         pass
     return cleanedLogs
 
-## Returns list of (lists of logs from diff. active dates)
+## Returns list of [#total days, #active days, (lists of logs from diff. active dates)]
 def chunkLogsByDay(logsList):
     logsList.sort(lambda x,y:cmp(x.when,y.when))
     chunkedList = reduce(chunkLogsByDayReducer, logsList) ## First entry is for list-compiling, not needed!

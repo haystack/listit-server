@@ -142,7 +142,6 @@ def makeACUPlots(u):
     print "Finish time: ", time.gmtime()
     finishTime = time.time()
 
-
 def makeNoteLifePlots(u, decider, middleDir):
     i=0
     path = cap.BASEDIR + middleDir
@@ -168,7 +167,7 @@ def plotNeatFreak(u):
   makeNoteLifePlots(u, isNeatFreak, '/user_types/neat_freak/01/')
 
 def plotAll(u):
-  makeNoteLifePlots(u, retTrue, '/note_life4/')
+  makeNoteLifePlots(u, retTrue, '/note_life5/')
 
 def retTrue(u):
   return True

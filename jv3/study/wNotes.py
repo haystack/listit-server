@@ -19,6 +19,7 @@ import random
 import jv3.study.note_labels as nl
 import jv3.study.intention as intent
 import jv3.study.wFunc as wf
+import jv3.study.wUserWalk as uw
 
 r = ro.r
 em = User.objects.filter(email="emax@csail.mit.edu")[0]
