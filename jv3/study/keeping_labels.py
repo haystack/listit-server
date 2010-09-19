@@ -133,7 +133,7 @@ def parse_wolfe(row):
             s[cats[1]] = 5
     return s
 
-cats = ['packrat','neat freak','sweeper']  ## delete when done looking at
+
 
 def parse_emax(row):
     r = row.get('emax',None)
