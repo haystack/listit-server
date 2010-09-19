@@ -282,11 +282,12 @@ owner_orm = lambda oid : User.objects.filter(id=oid)[0]
 note_orm = lambda nid : Note.objects.filter(id=nid)[0]
 default_features = [ca.note_words, ca.note_lines]
 
-def _gfanalyze(notes,feature_list,fset_names):
+def _gfanalyze(notes,feature_list,fset_names=None):
+    if fset_names is None:  fsetnames = [ ('feature_%d' % i) for i in xrange(len(feature_list))]    
     features = []
     for feat in feature_list:  features.append([feat(n).values()[0] for n in notes])
     print "means: ",[mean(x) for x in features]
-    print "vars: ",[ca.var(x) for x in features]
+    print "vars: ",[ca.var(x) if len(x) > 1 else "ZEROLENGTH" for x in features ]
     print "max: ",[max(x) for x in features]
     print "min: ",[min(x) for x in features]
 
@@ -299,10 +300,11 @@ def _gfanalyze(notes,feature_list,fset_names):
     
     return features
 
-def _gfcompare(fl1,fl2,fset_names):
+def _gfcompare(fl1,fl2,fset_names = None):
+    if fset_names is None:  fset_names = [ ('feature_%d' % i) for i in xrange(len(fl1))]    
     rets = {}
     for fset_i in xrange(len(fl1)):
-        print "testing",fset_names[fset_i]
+        # print "testing",fset_names[fset_i]
         toret = r('t.test')(c(fl1[fset_i]),c(fl2[fset_i]))
         rets[fset_names[fset_i]] = toret
     return rets

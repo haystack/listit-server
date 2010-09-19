@@ -2,6 +2,8 @@ from django.contrib.auth.models import User
 from jv3.models import *
 from jv3.utils import *
 from decimal import Decimal
+import math
+import jv3.study.content_analysis as ca
 from jv3.study.study import mean, variance
 import math
 ## Walk thru a user's actions, calculating things!
@@ -89,3 +91,67 @@ def chunkLogsByDayReducer(x, y):
             x[len(x)-1].append(y)
         return x
 
+
+_walk_cache = {}
+# these guys are feature extractors much like ca's but per user 
+def user_percent_active_days(userid):
+    global _walk_cache
+    if userid not in _walk_cache:
+        _walk_cache[userid] = userWalk(User.objects.filter(id=userid)[0])
+    totDays,activeDays,adeadtotal,adeadgained = _walk_cache[userid]
+    if (totDays <= 1 or activeDays <= 1): print '!!!!!!!!!!!!!!! ',userid,' has only 1 active day'        
+    return ca.make_feature('percent_days_active',activeDays / (1.0*totDays))
+def user_mean_alive_percent(userid):
+    global _walk_cache
+    if userid not in _walk_cache:
+        _walk_cache[userid] = userWalk(User.objects.filter(id=userid)[0])
+    totDays,activeDays,adeadtotal,adeadgained = _walk_cache[userid]
+    #for alive,dead in adeadtotal: print alive,",",dead
+    return ca.make_feature('mean_alive_notes',mean( [(alive/(1.0*(alive+dead+0.00001))) for alive,dead in adeadtotal ] ))
+def user_var_alive_percent(userid):
+    global _walk_cache
+    if userid not in _walk_cache:
+        _walk_cache[userid] = userWalk(User.objects.filter(id=userid)[0])
+    totDays,activeDays,adeadtotal,adeadgained = _walk_cache[userid]
+    return ca.make_feature('variance_alive_notes',variance( [(alive/(1.0*(alive+dead+0.00001))) for alive,dead in adeadtotal ] ))
+
+def user_mean_alive(userid):
+    global _walk_cache
+    if userid not in _walk_cache:
+        _walk_cache[userid] = userWalk(User.objects.filter(id=userid)[0])
+    totDays,activeDays,adeadtotal,adeadgained = _walk_cache[userid]
+    #for alive,dead in adeadtotal: print alive,",",dead
+    return ca.make_feature('mean_alive_notes',mean( [alive for alive,dead in adeadtotal ] ))
+def user_var_alive(userid):
+    global _walk_cache
+    if userid not in _walk_cache:
+        _walk_cache[userid] = userWalk(User.objects.filter(id=userid)[0])
+    totDays,activeDays,adeadtotal,adeadgained = _walk_cache[userid]
+    return ca.make_feature('variance_alive_notes',variance( [alive for alive,dead in adeadtotal ] ))
+
+def user_mean_day_add(userid):
+    global _walk_cache
+    if userid not in _walk_cache:
+        _walk_cache[userid] = userWalk(User.objects.filter(id=userid)[0])
+    totDays,activeDays,adeadtotal,adeadgained = _walk_cache[userid]
+    return ca.make_feature('mean_new_notes_per_day',mean([alive for alive,dead in adeadgained ] ))
+def user_var_day_add(userid):
+    global _walk_cache
+    if userid not in _walk_cache:
+        _walk_cache[userid] = userWalk(User.objects.filter(id=userid)[0])
+    totDays,activeDays,adeadtotal,adeadgained = _walk_cache[userid]
+    return ca.make_feature('var_new_notes_per_day',variance([alive for alive,dead in adeadgained ] ))
+def user_mean_day_del(userid):
+    global _walk_cache
+    if userid not in _walk_cache:
+        _walk_cache[userid] = userWalk(User.objects.filter(id=userid)[0])
+    totDays,activeDays,adeadtotal,adeadgained = _walk_cache[userid]
+    return ca.make_feature('mean_del_notes_per_day',mean([dead for alive,dead in adeadgained ] ))
+def user_var_day_del(userid):
+    global _walk_cache
+    if userid not in _walk_cache:
+        _walk_cache[userid] = userWalk(User.objects.filter(id=userid)[0])
+    totDays,activeDays,adeadtotal,adeadgained = _walk_cache[userid]
+    return ca.make_feature('var_del_notes_per_day',variance([dead for alive,dead in adeadgained ] ))
+
+    

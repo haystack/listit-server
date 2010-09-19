@@ -20,13 +20,15 @@ from django.utils.simplejson import JSONEncoder, JSONDecoder
 import rpy2,nltk,rpy2.robjects
 import jv3.study.note_labels as nl
 import jv3.study.intention as intent
+import jv3.study.wUserWalk as wuw
+
 
 r = rpy2.robjects.r
 ro = rpy2.robjects
 c = lambda vv : apply(r.c,vv)
 
 columns = ['userid','wolfe','emax','notes']
-cats = ['packrat','neat freak','sweeper','revisaholic']
+cats = ['packrat','neat freak','sweeper'] #,'revisaholic']
 
 def get_user(rows,userid): return [row for row in rows if row['userid'] == userid][0]
 
@@ -125,29 +127,47 @@ def parse_emax(row):
             print sys.exc_info()
     return s
 
-default_features = [ca.note_words, ca.note_lines]        
-def get_features_of_styles(arows,feature_list=None):
+default_note_features = [ca.note_words, ca.note_lines]
+default_user_features = [wuw.user_percent_active_days,
+                         wuw.user_mean_alive_percent,
+                         wuw.user_var_alive_percent,
+                         wuw.user_mean_alive,
+                         wuw.user_var_alive,                         
+                         wuw.user_mean_day_add,
+                         wuw.user_var_day_add,
+                         wuw.user_mean_day_del,
+                         wuw.user_var_day_del
+                         ]
+default_note_feature_names = ['words','lines']
+default_user_feature_names = ['active days','mean alive %','var alive %','mean alive N','var alive N','mean new/day','var new/day','mean del/day','var del/day']
+
+def get_features_of_styles(arows,note_feature_list=None,user_feature_list=None,note_feature_names=None,user_feature_names=None):
     # makes a nice table of statistics ~~
-    if feature_list is None: feature_list = default_features
-    # baseline - let's find the stats of all the owners of the notes
+    if note_feature_list is None: note_feature_list = default_note_features
+    if user_feature_list is None: user_feature_list = default_user_features
+    if note_feature_names is None: note_feature_names = default_note_feature_names
+    if user_feature_names is None: user_feature_names = default_user_feature_names    
     owners = set([x['userid'] for x in arows])
     owners = filter(lambda oid: intent.owner_orm(oid) not in cal.RESEARCHERS,owners)
     notes_of_owners = reduce(lambda x,y:x+y,[[n for n in intent.owner_orm(o).note_owner.all().values()] for o in owners])
 
     print "----------------------------------------------------------------------ALL -----------------------------------"
-    fsetnames = ['words','lines']
-    group_features = intent._gfanalyze(notes_of_owners,feature_list,fsetnames)
+    group_note_features = intent._gfanalyze(notes_of_owners,note_feature_list,note_feature_names)
+    group_user_features = intent._gfanalyze(owners,user_feature_list,user_feature_names)
 
     # now partition by cats?
-    cat_test = {}
+    cat_note_test = {}
+    cat_user_test = {}
     for cat in cats:
         users_with_cat = [x["userid"] for x in arows if arows is not None and x['consolidated'].get(cat, 0) >= 3]
         print "[",cat,"]:",len(users_with_cat)
         print "--------------:",cat,":-----------------------------"
         cat_notes =  reduce(lambda x,y: x+y,[[x for x in User.objects.filter(id=o)[0].note_owner.values()] for o in users_with_cat ])
-        cat_features = intent._gfanalyze(cat_notes,feature_list,fsetnames)
-        cat_test[cat] = intent._gfcompare(cat_features,group_features,fsetnames)
+        cat_note_features = intent._gfanalyze(cat_notes, note_feature_list)
+        cat_user_features = intent._gfanalyze(users_with_cat, user_feature_list)        
+        cat_note_test[cat] = intent._gfcompare(cat_note_features,group_note_features,note_feature_names)
+        cat_user_test[cat] = intent._gfcompare(cat_user_features,group_user_features,user_feature_names)
         
-    return notes_of_owners,cat_test
+    return cat_note_test,cat_user_test
 
 column_parsers = {'emax': parse_emax, notes: lambda x: None         }
