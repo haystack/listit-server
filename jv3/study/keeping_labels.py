@@ -107,6 +107,33 @@ def _read(filename=None):
 #             print sys.exc_info()
 #     return s
 
+def parse_wolfe(row):
+    r = row.get('wolfe',None)
+    if r is None or r == '' or  r.find('-1') >= 0 : return None
+    ##rs = [x for x in r.replace(';',' ').replace(' + ',' ').strip().split(' ') if len(x.strip()) > 0]
+    s = {}
+    print "reading wolfe on ",row["userid"],row["wolfe"]
+    for rt in r:
+        val = int(rt)
+        print "Value is: ", val
+        if val in [1,2,3]:
+            category = cats[val-1]
+            strength = 5
+            s[category] = strength
+        elif val == 4:
+            return None
+        elif val == 5:
+            s[cats[0]] = 5
+            s[cats[2]] = 5
+        elif val == 6:
+            s[cats[1]] = 5
+            s[cats[2]] = 5
+        elif val == 7:
+            s[cats[0]] = 5
+            s[cats[1]] = 5
+    return s
+
+cats = ['packrat','neat freak','sweeper']  ## delete when done looking at
 
 def parse_emax(row):
     r = row.get('emax',None)
