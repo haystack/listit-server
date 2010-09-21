@@ -51,11 +51,15 @@ def userWalk(user):
 
 def reduceRepeatLogs(logs):
     logDict = {}
+    whenSet = {}
     for log in logs:
-        if log.noteid not in logDict:
+        if log.noteid not in logDict: ## Noteid has no logs
             logDict[log.noteid] = [log]
-        elif log.when not in map(lambda x:x.when, logDict[log.noteid]):
+            whenSet[log.noteid] = set(log.when)
+        elif log.when not in whenSet: ## noteid has logs, ensure no time conflicts
             logDict[log.noteid].append(log)
+            whenSet[log.noteid] = whenSet[log.noteid].union([log.when])
+        pass
     cleanedLogs = []
     for noteid, logArr in logDict.items():
         cleanedLogs.extend(logArr)
@@ -169,3 +173,10 @@ def user_var_day_del(userid):
     return ca.make_feature('var_del_notes_per_day',variance([dead for alive,dead in adeadgained ] ))
 
     
+
+
+
+## Wolfe Code
+
+#def is_user_active(user):
+#    actLogs = ActivityLog.objects.filter(owner=user, action__in=['note-add','note-edit','note-save','note-delete', 'sidebar-open']).filter(when__gte=
