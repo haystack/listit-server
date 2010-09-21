@@ -200,7 +200,7 @@ def reaccess_urls():
     return [entropies[i]/maxentropies[i] for i in range(len(entropies))] 
 
 variance = lambda v: sum([ (i - sum(v)/len(v))**2 for i in v ])/(1.0*len(v))
-mean = lambda v: sum(v)/(1.0*len(v))
+mean = lambda v: sum(v)/(1.0*len(v)) if len(v) > 0 else 0
 
 def number_of_edits_histogram():
     adds = jv3.models.ActivityLog.objects.filter(action__contains="note-add", owner__in=non_stop_consenting_users())

@@ -27,8 +27,8 @@ r = rpy2.robjects.r
 ro = rpy2.robjects
 c = lambda vv : apply(r.c,vv)
 
-columns = ['userid','wolfe','emax','notes']
-cats = ['packrat','neat freak','sweeper'] #,'revisaholic']
+columns = ['userid','wolfe','emax','kat','wstyke','notes']
+cats = ['packrat','neat freak','sweeper','revisaholic']
 
 def get_user(rows,userid): return [row for row in rows if row['userid'] == userid][0]
 
@@ -46,8 +46,8 @@ def read(filename=None):
     rets = []
     for row in f:
         consolidated = {}
-        for c,f in column_parsers.iteritems():
-            ret = f(row)
+        for c,parser in column_parsers.iteritems():
+            ret = parser(row.get(c,None)) # parse it
             if ret is not None:
                 row[c] = ret
                 for cr,v in ret.iteritems(): consolidated[cr] = max(consolidated.get(cr,0),v)
@@ -134,19 +134,17 @@ def parse_wolfe(row):
     return s
 
 
-
-def parse_emax(row):
-    r = row.get('emax',None)
+def parse_emax(r):
     if r is None or r == '' or  r.find('ins') >= 0 : return None
+    print "parsing ",r
     rs = [x for x in r.replace(';',' ').replace(' + ',' ').strip().split(' ') if len(x.strip()) > 0]
     s = {}
-    print "reading emax on ",row["userid"],row["emax"]
     for r in rs:
-        print "arr is ",r
         if r.find('NICE') == 0 or r.find('(NI') == 0:
           s['NICE'] = True
           continue
         try:
+            if int(r[0]) == 5: continue #r = '3' + r[1:] #  
             category = cats[int(r[0])-1]
             strength = ({'--':1,'-':2,'':3,'+':4,'++':5,'+++':5}).get(r[1:],0)
             s[category]=strength
@@ -154,47 +152,81 @@ def parse_emax(row):
             print sys.exc_info()
     return s
 
-default_note_features = [ca.note_words, ca.note_lines]
+default_note_features = [ca.note_words, ca.note_lines, ca.note_changed_edits, ca.note_lifetime]
 default_user_features = [wuw.user_percent_active_days,
                          wuw.user_mean_alive_percent,
                          wuw.user_var_alive_percent,
                          wuw.user_mean_alive,
-                         wuw.user_var_alive,                         
+                         wuw.user_var_alive,
+                         wuw.user_mean_dead,
+                         wuw.user_var_dead,                                                  
                          wuw.user_mean_day_add,
                          wuw.user_var_day_add,
                          wuw.user_mean_day_del,
                          wuw.user_var_day_del
                          ]
-default_note_feature_names = ['words','lines']
-default_user_feature_names = ['active days','mean alive %','var alive %','mean alive N','var alive N','mean new/day','var new/day','mean del/day','var del/day']
+default_note_feature_names = ['words','lines','edits','lifetime']
+default_user_feature_names = ['active days',
+                              'mean alive %',
+                              'var alive %',
+                              'mean alive N',
+                              'var alive N',
+                              'mean dead N',
+                              'var dead N',
+                              'mean new/day',
+                              'var new/day',
+                              'mean del/day',
+                              'var del/day'
+                              ]
+
+def get_userids_with_cat(arows,cat=None):
+    if cat is None: return set([x["userid"] for x in arows])
+    return set([x["userid"] for x in arows if arows is not None and x['consolidated'].get(cat, 0) >= 3])
 
 def get_features_of_styles(arows,note_feature_list=None,user_feature_list=None,note_feature_names=None,user_feature_names=None):
     # makes a nice table of statistics ~~
+    arows = [a for a in arows if a.get('emax',None) is not None] # fiter out insub
     if note_feature_list is None: note_feature_list = default_note_features
     if user_feature_list is None: user_feature_list = default_user_features
     if note_feature_names is None: note_feature_names = default_note_feature_names
     if user_feature_names is None: user_feature_names = default_user_feature_names    
-    owners = set([x['userid'] for x in arows])
+    owners = get_userids_with_cat(arows)
     owners = filter(lambda oid: intent.owner_orm(oid) not in cal.RESEARCHERS,owners)
     notes_of_owners = reduce(lambda x,y:x+y,[[n for n in intent.owner_orm(o).note_owner.all().values()] for o in owners])
 
-    print "----------------------------------------------------------------------ALL -----------------------------------"
+    print "-----------ALL [", len(notes_of_owners)," from ",len(owners),"]"
     group_note_features = intent._gfanalyze(notes_of_owners,note_feature_list,note_feature_names)
     group_user_features = intent._gfanalyze(owners,user_feature_list,user_feature_names)
 
     # now partition by cats?
-    cat_note_test = {}
-    cat_user_test = {}
+    cat_test = {}
     for cat in cats:
-        users_with_cat = [x["userid"] for x in arows if arows is not None and x['consolidated'].get(cat, 0) >= 3]
-        print "[",cat,"]:",len(users_with_cat)
-        print "--------------:",cat,":-----------------------------"
+        users_with_cat = get_userids_with_cat(arows,cat)
         cat_notes =  reduce(lambda x,y: x+y,[[x for x in User.objects.filter(id=o)[0].note_owner.values()] for o in users_with_cat ])
+        print "--------------:",cat,":--------------- (u=",len(users_with_cat),"n =", len(cat_notes),")"
         cat_note_features = intent._gfanalyze(cat_notes, note_feature_list)
         cat_user_features = intent._gfanalyze(users_with_cat, user_feature_list)        
-        cat_note_test[cat] = intent._gfcompare(cat_note_features,group_note_features,note_feature_names)
-        cat_user_test[cat] = intent._gfcompare(cat_user_features,group_user_features,user_feature_names)
+        cat_test[cat] = intent._gfcompare(cat_note_features,group_note_features,note_feature_names)
+        cat_test[cat].update( intent._gfcompare(cat_user_features,group_user_features,user_feature_names)  )
         
-    return cat_note_test,cat_user_test
+    return cat_test
 
-column_parsers = {'emax': parse_emax, notes: lambda x: None         }
+column_parsers = {
+    'emax': parse_emax,
+    'kat': parse_emax,
+    'wstyke':parse_emax
+    }
+
+def get_distribution_of_days_active(user_ids,user_feature=wuw.user_percent_active_days,filename='daysdist'):
+    r.png(cap.make_filename(filename))
+    rhi = r.hist(c([user_feature(x).values()[0] for x in user_ids]),xlab=r.c(),ylab=r.c(),main=r.c())
+    r('dev.off()')
+    return rhi
+
+def compute_cats_per_user(arows):
+    return [ len([c for c,v in x['consolidated'].iteritems() if v > 2]) for x in arows  if len(x['consolidated']) > 0 ]
+
+# xw = kl.read()
+# get_distribution_of_days_active(
+
+# compute

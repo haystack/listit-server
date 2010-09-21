@@ -2,7 +2,7 @@
 from jv3.models import *
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 from django.contrib.auth.models import User
-import sys,json
+import sys,json,time
 
 ## signifiant scroll stuff ##
 sigscroll_cache_days_ago = None
@@ -43,24 +43,25 @@ def adjacent_filtered(views):
     result.append(cur)
     return result
 
+
 def get_ss_revisitations_for(n):
-    if n["id"] not in __sigscroll_startend_cache_flat:
+    if n["owner_id"] not in __sigscroll_cache_owners:
+    # if n["id"] not in __sigscroll_startend_cache_flat:
         note_ss(n)
-    return __sigscroll_startend_cache_flat[n["id"]]
+        __sigscroll_cache_owners.append(n["owner_id"])
+    return __sigscroll_startend_cache_flat.get(n["id"],None)
     
 __sigscroll_startend_cache_flat = {}
-def note_ss(note,filter_top=True):
+__sigscroll_cache_owners = []
+def note_ss(note,filter_top=False):
     from jv3.study.content_analysis import activity_logs_for_user
     from jv3.study.ca_load import jid2nidforuser
     global __sigscroll_startend_cache_flat
     SSCF = __sigscroll_startend_cache_flat
 
     def compute_duration(note):
-        print note
-        
         def dur(send):
-            if type(send) == tuple:
-                return send[1]-send[0]
+            if type(send) == tuple: return send[1]-send[0]
             return send        
         xd = SSCF.get(note["id"],[])
         if len(xd) > 1:
@@ -69,21 +70,26 @@ def note_ss(note,filter_top=True):
             return dur(xd[0])
         return -1
     
-    if note["id"] in SSCF :  return {'sigscroll_counts': len(SSCF.get(note["id"],[])),           'sigscroll_duration': compute_duration(note) }
+    if note["id"] in SSCF :
+        return {'sigscroll_counts': len(SSCF.get(note["id"],[])), 'sigscroll_duration': compute_duration(note) }
 
     ## populate for this uer
     alogs = activity_logs_for_user(note["owner_id"],None)
     
-    if len(alogs) == 0:
-        ## means we have no activitylogs for that user
-        from jv3.study.content_analysis import _notes_to_features
-        SSCF.update( [ (n["id"],[]) for n in [_notes_to_values(x) for x in Note.objects.filter(owner=n["owner_id"])] ] )
-        return
+    # if len(alogs) == 0:
+    #     ## means we have no activitylogs for that user
+    #     from jv3.study.content_analysis import _notes_to_features
+    #     SSCF.update( [ (n["id"],[]) for n in [_notes_to_values(x) for x in Note.objects.filter(owner=n["owner_id"])] ] )
+    #     return
+
+    debug__all_nids = []
     
     next_is_top = True    
     toplist_jids = [] # things to block
     alogs.sort(key=lambda x: x["when"])
+    print "activity logs", len(alogs)
     for al_i in range(len(alogs)):
+        print al_i
         al = alogs[al_i]        
         if al["action"] == 'sidebar-open':
             next_is_top = True
@@ -92,40 +98,42 @@ def note_ss(note,filter_top=True):
             continue
         if al["search"] is None: 
             print "skipping"
-            continue        
+            continue
+        al["search"] = json.loads(al["search"])        
         if next_is_top:
-            toplist_jids = [long(nv["id"]) for nv in JSONDecoder().decode(al["search"])["note_visibilities"]]
+            toplist_jids = [long(nv["id"]) for nv in al["search"]["note_visibilities"]]
             ##print "TOPLIST :: %s " % repr(toplist_jids)
-            next_is_top = False            
-        new_dudes = []        
-        print "altype",type(al)
-        print "alsearch",al["search"],type(al["search"])
-        for nv in json.loads(al["search"]["note_visibilities"]): #JSONDecoder().decode(al["search"])["note_visibilities"]:
+            next_is_top = False 
+        for nv in al["search"]["note_visibilities"]: 
             try :
                 jid = int(nv["id"]) ## this returns the _jid_ not id!
+                debug__all_nids.append(jid)
                 ## omit nots that are at the top of the list
                 if filter_top and jid in toplist_jids:
-                    #print "!!!!!!!! SKIPPING top %s " % repr(jid)
+                    print "filter top and jid in toplist continuing"
                     continue                
                 nid = jid2nidforuser(al["owner"],jid)  ## convert to NID (guaranteed unique)
-                new_dudes.append( nid )
                 if nv.has_key("exitTime") and nv.has_key("entryTime"):
                     ap = SSCF.get(nid,[])
                     if nv["entryTime"] == nv["exitTime"]:
+                        print " case 1 ",jid
                         ## this is to get around the bug in 0.4.5-7 which
                         ## results in (start,start) for no-scroll open-close, and search/idle
                         ap.append( (nv["entryTime"],long(al["when"])) )
                     else:
+                        print "case 2 "
                         ap.append( (nv["entryTime"],nv["exitTime"]) )
                     SSCF[nid] = ap
             except:
                 print "noncritical warn %s " % repr(sys.exc_info())
                 pass
-            ## filter all the newdudes
-            SSCF.update( dict([ (nid,adjacent_filtered(views)) for nid,views in SSCF.iteritems() if (nid in new_dudes) ] ) )
             
-    return {'sigscroll_counts': len(SSCF.get(note["id"],[])),'sigscroll_duration': compute_duration(note) }
+        ## filter all the newdudes
+    print SSCF
+    SSCF.update( dict([ (nid,adjacent_filtered(views)) for nid,views in SSCF.iteritems() ]) ) # if (nid in new_dudes) ] ) )
 
+    print "all debug__all_nids",len(set(debug__all_nids))
+    return {'sigscroll_counts': len(SSCF.get(note["id"],[])),'sigscroll_duration': compute_duration(note) }
 
 def count_dur_per_note_per_user(durs=sigscroll_dur_totals_cache):
     return [ (owner,[ dur for note,dur in durs[owner].iteritems()]) for owner in durs.keys() ]
@@ -194,5 +202,38 @@ def plot_revisitations_for_note(n,ss_send_cache=sigscroll_startend_cache,filenam
     
 
     
+def test_coverage(owner_id):
+    owner = User.objects.filter(id=owner_id)[0]
+    st = time.time()
+    sig_notes = set([long(n["jid"]) for n in owner.note_owner.all().values() if get_ss_revisitations_for(n) is not None])
+    print "---ss----",time.time()-st
+    st = time.time()
+    
+    alog_test = set([long(al["noteid"]) for al in owner.activitylog_set.values() if al["noteid"] is not None])
+    print "---al----",time.time()-st
+    st = time.time()
+    
+    note_test = set([long(n.jid) for n in owner.note_owner.all()])
+    print "---nid----",time.time()-st
+
+    return len(sig_notes),len(note_test),len(alog_test),len(sig_notes.intersection(alog_test)),len(sig_notes.intersection(note_test)),len(alog_test.intersection(note_test)),owner.note_owner.filter(deleted=True).count()
+
+def find_safe_users(userset):
+    alog_note_ratios = []
+    sig_alog_ratios=[]
+    def test_user(u):
+        print u
+        sig,notes,alogs,x,y,a,d = test_coverage(u.id)
+        alog_note_ratios.append( alogs/(1.0*notes) )
+        print alogs/(1.0*notes),
+        sig_alog_ratios.append(sig/(1.0*alogs))
+        print sig/(1.0*alogs),
+        print sig/(1.0*alogs) > 0.9
+        return sig/(1.0*alogs) > 0.9
+    return [u for u in userset if test_user(u)],alog_note_ratios,sig_alog_ratios
+
+
         
+    
+    
     

@@ -128,6 +128,20 @@ def user_var_alive(userid):
         _walk_cache[userid] = userWalk(User.objects.filter(id=userid)[0])
     totDays,activeDays,adeadtotal,adeadgained = _walk_cache[userid]
     return ca.make_feature('variance_alive_notes',variance( [alive for alive,dead in adeadtotal ] ))
+def user_mean_dead(userid):
+    global _walk_cache
+    if userid not in _walk_cache:
+        _walk_cache[userid] = userWalk(User.objects.filter(id=userid)[0])
+    totDays,activeDays,adeadtotal,adeadgained = _walk_cache[userid]
+    #for alive,dead in adeadtotal: print alive,",",dead
+    return ca.make_feature('mean_alive_notes',mean( [dead for alive,dead in adeadtotal ] ))
+def user_var_dead(userid):
+    global _walk_cache
+    if userid not in _walk_cache:
+        _walk_cache[userid] = userWalk(User.objects.filter(id=userid)[0])
+    totDays,activeDays,adeadtotal,adeadgained = _walk_cache[userid]
+    return ca.make_feature('variance_alive_notes',variance( [dead for alive,dead in adeadtotal ] ))
+
 
 def user_mean_day_add(userid):
     global _walk_cache
