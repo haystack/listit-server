@@ -55,7 +55,7 @@ def reduceRepeatLogs(logs):
     for log in logs:
         if log.noteid not in logDict: ## Noteid has no logs
             logDict[log.noteid] = [log]
-            whenSet[log.noteid] = set(log.when)
+            whenSet[log.noteid] = set([log.when])
         elif log.when not in whenSet: ## noteid has logs, ensure no time conflicts
             logDict[log.noteid].append(log)
             whenSet[log.noteid] = whenSet[log.noteid].union([log.when])
