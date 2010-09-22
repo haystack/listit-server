@@ -34,7 +34,9 @@ def userWalk(user):
     userLogs = ActivityLog.objects.filter(owner=user)
     actLogsRepeating = userLogs.filter(action__in=['note-add','note-delete'])
     actLogs = reduceRepeatLogs(actLogsRepeating)
-    actLogs.extend(userLogs.filter(action__in=['note-save','sidebar-open']))
+    actLogs.extend(reduceRepeatLogs(userLogs.filter(action__in=['note-save','sidebar-open'])))
+    if len(actLogs) == 0:
+        return (0,0,[],[])
     if len(actLogs) == 0 : return (0,0,[],[])
     totDays, activeDays, chunkedLogs = chunkLogsByDay(actLogs)
     aliveAndDeadTotal = [] ##  Num (alive, dead) notes total on active day
@@ -86,6 +88,15 @@ def reduceRepeatLogsValues2(logs):
         if log["when"] not in whenSet:
             results.append(log)
             whenSet = whenSet.union([log["when"]])
+    return results
+
+def reduceRepeatLogsBasic(logs):
+    whenSet = set([])
+    results = []
+    for log in logs:
+        if log.when not in whenSet:
+            results.append(log)
+            whenSet = whenSet.union([log.when])
     return results
 
 ## Returns list of [#total days, #active days, (lists of logs from diff. active dates)]
