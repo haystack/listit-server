@@ -7,6 +7,7 @@ import jv3.study.content_analysis as ca
 from decimal import Decimal
 import math
 from jv3.study.content_analysis import mean
+import jv3.study.wUserWalk as wuw
 
 search_cache = {}
 search_query_cache = {}
@@ -18,7 +19,7 @@ def user_search(user,days_ago=None,nosmoothing=False):
     global search_cache
     global search_query_cache
 
-    alogs = activity_logs_for_user(user,None,days_ago)
+    alogs = wuw.reduceRepeatLogsValues(activity_logs_for_user(user,None,days_ago))
 
     searches = []
     queries = []
@@ -154,3 +155,14 @@ def searchstats(users):
             ws.append(w)            
         results[u.id] = {'queries':f,'tot':t,'active':a,'chunked':c,'webpage':ws,'mean':m}
     return results,totalfreq
+
+def pr(s):
+    print s,
+
+def searchterms(users):
+    totalfreq = nltk.FreqDist()
+    for u in users:        
+        zoo = wuw.reduceRepeatLogsValues2(u.activitylog_set.filter(action='search').values())        
+        totalfreq = totalfreq + nltk.FreqDist([z['noteText'].lower().strip() for z in zoo if z.get('noteText',None) is not None])
+    return totalfreq,[ z['when']  for z in zoo ]
+    

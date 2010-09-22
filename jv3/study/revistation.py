@@ -56,21 +56,9 @@ def multiple_regression(notes, predictor_fn, feature_fns):
     # r('library(rpart)')
     # return r('rpart')(fmla,method=method)
 
-def reduceRepeatLogsValues(logs):
-    logDict = {}
-    whenSet = {}
-    for log in logs:
-        if log["noteid"] not in logDict:
-            logDict[log["noteid"]] = [log]
-            whenSet[log["noteid"]] = set([log["when"]])
-        elif log["when"] not in whenSet:  # map(lambda x:x["when"], logDict[log["noteid"]]):
-            logDict[log["noteid"]].append(log)
-            whenSet[log['noteid']] = whenSet[log['noteid']].union([log["when"]])
-    return reduce(lambda x,y:x+y,logDict.values(),[])
-
 def creations(users):
     print "bar"
-    cusave = [reduceRepeatLogsValues(list(cu.activitylog_set.filter(action__in=['notecapture-focus','note-add']).values())) for cu in users]
+    cusave = [wuw.reduceRepeatLogsValues(list(cu.activitylog_set.filter(action__in=['notecapture-focus','note-add']).values())) for cu in users]
     means = []
     varss = []
     userstimes = []
