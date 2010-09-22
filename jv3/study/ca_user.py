@@ -162,7 +162,7 @@ def active_days_for_users(users):
     b = []
     for x in users:
         try:
-            b.append((x.id,cas.active_days(x.id)))
+            b.append((x.id,active_days(x.id)))
         except:
             import sys
             print sys.exc_info()

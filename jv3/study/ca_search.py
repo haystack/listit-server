@@ -15,33 +15,10 @@ import rpy2
 import rpy2.robjects as ro
 from jv3.study.study import *
 from numpy import array
-import jv3.study.integrity as integ
-import jv3.study.thesis_figures as tfigs
-import jv3.study.note_labels as nl
-import jv3.study.intention as intent
-import jv3.study.content_analysis as ca
-import jv3.study.diagnostic_analysis as da
-import jv3.study.ca_datetime as cadt
-import jv3.study.ca_sigscroll as cass
-import jv3.study.ca_load as cal
-import jv3.study.ca_plot as cap
-import jv3.study.ca_search as cas
-import jv3.study.wFunc as wF
-import jv3.study.wClean as wC
 import rpy2,sys
-
 r = ro.r
-emax = User.objects.filter(email="emax@csail.mit.edu")[0]
-emax2 = User.objects.filter(email="electronic@gmail.com")[0]
-brenn = User.objects.filter(email="brennanmoore@gmail.com")[0]
-gv = User.objects.filter(email="gvargas@mit.edu")[0]
-wstyke = User.objects.filter(email="wstyke@gmail.com")[0]
-katfang = User.objects.filter(email="justacopy@gmail.com")[0]
-karger = User.objects.filter(email="karger@mit.edu")[0]
 devoff = lambda : r('dev.off()')
 c = lambda vv : apply(r.c,vv)
-cap.set_basedir('/var/listit/www-ssl/_studyplots/')
-
 
 search_cache = {}
 search_query_cache = {}
@@ -237,12 +214,13 @@ def times_search_used(users):
     return times
 
 def searches_per_day(users):
+    import jv3.study.ca_user as cau
     times = times_search_used(users)
     normed = {}
     adays = {}
     for u in users:
         if not u.id in times: continue
-        aday = active_days(u.id)
+        aday = cau.active_days(u.id)
         if aday == 0: continue
         normed[u.id] = times[u.id]/(1.0*aday)
         adays[u.id] = aday
