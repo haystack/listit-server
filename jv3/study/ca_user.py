@@ -43,6 +43,10 @@ import jv3.study.wClean as wC
 import rpy2,sys
 
 
+emax = User.objects.filter(email="emax@csail.mit.edu")[0]
+emax2 = User.objects.filter(email="electronic@gmail.com")[0]
+brenn = User.objects.filter(email="brennanmoore@gmail.com")[0]
+c = lambda vv : apply(r.c,vv)
 
 class PerUser:
     
