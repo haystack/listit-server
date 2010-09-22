@@ -66,30 +66,35 @@ def reduceRepeatLogsValues(logs):
         elif log["when"] not in whenSet:  # map(lambda x:x["when"], logDict[log["noteid"]]):
             logDict[log["noteid"]].append(log)
             whenSet[log['noteid']] = whenSet[log['noteid']].union([log["when"]])
-    return reduce(lambda x,y:x+y,logDict.values())
+    return reduce(lambda x,y:x+y,logDict.values(),[])
 
 def creations(users):
     print "bar"
-    cusave = [reduceRepeatLogs(list(cu.activitylog_set.filter(action__in=['notecapture-focus','note-add']).values())) for cu in users]
+    cusave = [reduceRepeatLogsValues(list(cu.activitylog_set.filter(action__in=['notecapture-focus','note-add']).values())) for cu in users]
     means = []
     varss = []
+    userstimes = []
     for u_i in xrange(len(cusave)):
         print u_i
         user = users[u_i]
         print user                
         uals = cusave[u_i]
-        print len(uals),uals[0]
         uals.sort(key=lambda x: long(x["when"]))
         if len(uals) == 0: continue
+        print len(uals)
         thisal = uals[0]
         usertimes = []
         for al in uals[1:]:
-            if thisal.action == 'notecapture-focus' and al.action == 'note-add':
+            if thisal["action"] == 'notecapture-focus' and al["action"] == 'note-add':
                 elapsed = long(al["when"]) - long(thisal["when"])
                 usertimes.append(long(al["when"]) - long(thisal["when"]))
             thisal = al
-        users.append(usertimes)
-        means.append(mean(usertimes))
-        varss.append(variance(usertimes))
-    return reduce(lambda x,y:x+y, users),users,means,varss
+        userstimes.append(usertimes)
+        try:
+            means.append(mean(usertimes))
+            varss.append(variance(usertimes))
+        except:
+            import sys
+            print sys.exc_info()
+    return reduce(lambda x,y:x+y, userstimes),userstimes,means,varss
             
