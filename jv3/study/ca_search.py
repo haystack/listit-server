@@ -193,31 +193,30 @@ def searchstats(users):
 def pr(s):
     print s,
 
+def helper(a):
+    if a.get("noteText",None) is not None:
+        return a.get("noteText")
+    if a.get('search',None) is not None and not a.get('search').find('{') == 0:
+        return a.get("search")
+def getQuery(a):
+    b = helper(a)
+    if b is not None:  return b.lower().strip()
+    
 def searchterms(users):
     totalfreq = nltk.FreqDist()
-    total = 0
-    
-    def helper(a):
-        if a.get("noteText",None) is not None:
-            return a.get("noteText")
-        if a.get('search',None) is not None and not a.get('search').find('{') == 0:
-            return a.get("search")
-    def getQuery(a):
-        b = helper(a)
-        if b is not None:  return b.lower().strip()
-    
+    total = 0    
     for u in users:        
         zoo = wuw.reduceRepeatLogsValues2(u.activitylog_set.filter(action='search').values())
-        total = total + len([z['noteText'].lower().strip() for z in zoo if z.get('noteText',None) is not None])
-        totalfreq = totalfreq + nltk.FreqDist([z['noteText'].lower().strip() for z in zoo if z.get('noteText',None) is not None])
-
-    return totalfreq,[ z['when']  for z in zoo ]
+        terms = [ getQuery(z) for z in zoo if getQuery(z) is not None ]
+        total = total + len(terms)
+        totalfreq = totalfreq + nltk.FreqDist(terms)
+    return totalfreq,[ z['when']  for z in zoo ],total
     
 def get_search_hits(users):
     us = {}
     for u in users:
         usearches = []
-        zoo = wuw.reduceRepeatLogsValues2(u.activitylog_set.filter(action='search').values())
+        zoo = [z for z in wuw.reduceRepeatLogsValues2(u.activitylog_set.filter(action='search').values()) if getQuery(z) is not None]
         for z in zoo:
             s = z.get("search",'')
             if s is None or len(s.strip()) == 0: continue
@@ -231,11 +230,23 @@ def get_search_hits(users):
     return us
 
 def times_search_used(users):
-    times = []
+    times = {}
     for u in users:
         if u.activitylog_set.filter(action='search').count() == 0: continue
-        times.append(len(wuw.reduceRepeatLogsValues2(u.activitylog_set.filter(action='search').values())))
+        times[u.id] = len([z for z in wuw.reduceRepeatLogsValues2(u.activitylog_set.filter(action='search').values()) if getQuery(z) is not None])
     return times
+
+def searches_per_day(users):
+    times = times_search_used(users)
+    normed = {}
+    adays = {}
+    for u in users:
+        if not u.id in times: continue
+        aday = active_days(u.id)
+        if aday == 0: continue
+        normed[u.id] = times[u.id]/(1.0*aday)
+        adays[u.id] = aday
+    return normed,adays
 
 def percent_notes_retrieved(gsh):
     return dict([(uid,len(set(reduce(lambda x,y:x+y,v,[])))/(1.0*User.objects.filter(id=uid)[0].note_owner.count())) for uid,v in gsh.iteritems() if User.objects.filter(id=uid)[0].note_owner.count() > 0])
@@ -262,15 +273,14 @@ def correlate_note_search_with_mean_alive(users):
     for u in users:
         print u
         zoo = wuw.reduceRepeatLogsValues2(list(u.activitylog_set.filter(action='search').values()))
-        if len(zoo) == 0: print "warning zero"
-        if u.activitylog_set.count() == 0: continue
+        if len(zoo) == 0:
+            print "warning zero"
+            continue
+        #if u.activitylog_set.count() == 0: continue
         try:
             rsize = r.c(rsize, wuw.user_mean_alive(u.id).values()[0])
             rsearch = r.c(rsearch, len(zoo) )
         except:
             print sys.exc_info()
-    return rsize,rsearch,r('cor.test')(notes,searches)
-
-
-
+    return rsize,rsearch,r('cor.test')(rsize,rsearch)
 

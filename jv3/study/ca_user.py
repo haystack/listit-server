@@ -1,4 +1,3 @@
-
 ## startup
 from django.contrib.auth.models import User
 from jv3.models import *
@@ -11,6 +10,39 @@ import jv3.study.ca_plot as cap
 import rpy2
 import rpy2.robjects as ro
 from jv3.study.study import *
+from jv3.models import *
+import jv3.study.wUserWalk as wuw
+from django.utils.simplejson import JSONDecoder
+import nltk
+import jv3.study.content_analysis as ca
+from decimal import Decimal
+import math
+from jv3.study.content_analysis import mean
+import jv3.study.wUserWalk as wuw
+import json
+from jv3.models import Note,ActivityLog
+from django.contrib.auth.models import User
+from jv3.study.study import safemedian
+import rpy2
+import rpy2.robjects as ro
+from jv3.study.study import *
+from numpy import array
+import jv3.study.integrity as integ
+import jv3.study.thesis_figures as tfigs
+import jv3.study.note_labels as nl
+import jv3.study.intention as intent
+import jv3.study.content_analysis as ca
+import jv3.study.diagnostic_analysis as da
+import jv3.study.ca_datetime as cadt
+import jv3.study.ca_sigscroll as cass
+import jv3.study.ca_load as cal
+import jv3.study.ca_plot as cap
+import jv3.study.ca_search as cas
+import jv3.study.wFunc as wF
+import jv3.study.wClean as wC
+import rpy2,sys
+
+
 
 class PerUser:
     
@@ -111,4 +143,35 @@ def make_lists_for_hist(users):
 	#ratio.append(undeleted*1.0/deleted)
     return ratio
 
-## METHOD 2: 
+## ============================================================================================
+## New user selection stuff
+
+
+def active_days(userid):
+    if userid not in wuw._walk_cache:
+        wuw._walk_cache[userid] = wuw.userWalk(User.objects.filter(id=userid)[0])
+    totDays,activeDays,adeadtotal,adeadgained = wuw._walk_cache[userid]
+    if (totDays <= 1 or activeDays <= 1): print '!!!!!!!!!!!!!!! ',userid,' has only 1 active day'        
+    return activeDays
+
+def active_days_for_users(users):
+    b = []
+    for x in users:
+        try:
+            b.append((x.id,cas.active_days(x.id)))
+        except:
+            import sys
+            print sys.exc_info()
+
+    return dict(b)
+
+def get_consenting_active_for(userpool,thresh_days=30):
+    active_days = active_days_for_users(userpool)
+    makes_the_cut = [x for x,y in active_days.iteritems() if y > thresh_days]
+    return [u for u in userpool if u.id in makes_the_cut],dict([(x,y) for x,y in active_days.iteritems() if x in makes_the_cut])
+
+def get_awesome(userpool,thresh_days=30,MIN_NOTES=30,MIN_LOGS=1000):
+    userpool = filter(lambda u: u not in [emax,emax2,brenn],userpool)
+    active_days = active_days_for_users(userpool)
+    makes_the_cut = [x for x,y in active_days.iteritems() if y > thresh_days]
+    return [u for u in userpool if u.id in makes_the_cut and u.note_owner.count() > MIN_NOTES and u.activitylog_set.count() > MIN_LOGS ],dict([(x,y) for x,y in active_days.iteritems() if x in makes_the_cut])

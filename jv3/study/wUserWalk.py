@@ -130,7 +130,8 @@ def chunkLogsByDayReducer(x, y):
 
 
 _walk_cache = {}
-# these guys are feature extractors much like ca's but per user 
+# these guys are feature extractors much like ca's but per user
+
 def user_percent_active_days(userid):
     global _walk_cache
     if userid not in _walk_cache:
