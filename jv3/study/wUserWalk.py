@@ -35,6 +35,7 @@ def userWalk(user):
     actLogsRepeating = userLogs.filter(action__in=['note-add','note-delete'])
     actLogs = reduceRepeatLogs(actLogsRepeating)
     actLogs.extend(userLogs.filter(action__in=['note-save','sidebar-open']))
+    if len(actLogs) == 0 : return (0,0,[],[])
     totDays, activeDays, chunkedLogs = chunkLogsByDay(actLogs)
     aliveAndDeadTotal = [] ##  Num (alive, dead) notes total on active day
     aliveAndDeadGained = [] ## Num (alive, dead) notes added/lost on active day

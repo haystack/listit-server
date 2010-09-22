@@ -243,6 +243,18 @@ def median(numbers):
    else:
       return (copy[n // 2 - 1] + copy[n // 2]) / 2
 
+def safemedian(numbers):
+   "Return the median of the list of numbers."
+   # Sort the list and take the middle element.
+   n = len(numbers)
+   if n == 0: return None
+   copy = numbers[:] # So that "numbers" keeps its original order
+   copy.sort()
+   if n & 1:         # There is an odd number of elements
+      return copy[n // 2]
+   else:
+      return (copy[n // 2 - 1] + copy[n // 2]) / 2   
+
 def users_reordering():
     switch = jv3.models.ActivityLog.objects.filter(action__contains="rerank-mode-switch")
     users = []
