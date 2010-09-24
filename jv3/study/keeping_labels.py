@@ -135,10 +135,11 @@ def parse_wolfe(row):
 
 def parse_emax(r):
     global cats
-    if r is None or r == '' or  r.find('ins') >= 0 or r.find('0') >= 0:
+    if r is None or r == '' or  r.find('ins') >= 0:
+        #print "Skipping empty/ins:",r
         return None
     if max([r.find('rain'), r.find('turn'), r.find('slow'), r.find('neat'), r.find('freak')]) >= 0:
-        print "Skipping 5 cases"
+        print "Skipping weird cases"
         return None
     rs = [x for x in r.replace(';',' ').replace(' + ',' ').strip().split(' ') if len(x.strip()) > 0]
     s = {}
@@ -147,7 +148,7 @@ def parse_emax(r):
           s['NICE'] = True
           continue
         try:
-            if r == '!!' or r[0] == '[' or int(r[0]) == 5:
+            if r == '!!' or r[0] == '[' or r[0] == '5' or r[0] == '0':
                 continue
             category = cats[int(r[0])-1]
             strength = ({'--':1,'-':2,'':3,'+':4,'++':5,'+++':5}).get(r[1:],0)
@@ -293,5 +294,5 @@ def simRat(userA,userB,userC):
 
 
 def fKap(ratingsA,ratingsB,ratingsC):
-    data = r.rbind(r.rbind(c(ratingsA), c(ratingsB)),c(ratingsC))
+    data = r.cbind(r.cbind(c(ratingsA), c(ratingsB)),c(ratingsC))
     print r('kappam.fleiss')(data)
