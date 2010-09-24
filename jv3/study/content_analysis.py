@@ -124,7 +124,7 @@ def time_of_activity(u):
 #nte_days_till_deletion = lambda x: {"days_till_deletion":  q(x["deleted"],int( (get_note_deletion_time(x) - x["created"])/(3600*1000.0*24) ),-1)}
 
 #note_lifetime = lambda note : {'note_lifetime_s': float((q(note["deleted"],  long(note["edited"] - DATABASE_SNAPSHOT_TIME, -1))/1000.0)}
-note_owner = lambda note: {'note_owner': repr(note["owner"])}
+note_owner = lambda note: {'note_owner': repr(note.get("owner",note["owner_id"]))}
 note_length = lambda x : {'note_length':len(x["contents"])}
 #note_words = lambda x : {'note_words':len(nltk.word_tokenize(eliminate_urls(x["contents"])))}
 

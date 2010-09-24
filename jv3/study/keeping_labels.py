@@ -162,7 +162,9 @@ default_user_features = [wuw.user_percent_active_days,
                          wuw.user_mean_day_add,
                          wuw.user_var_day_add,
                          wuw.user_mean_day_del,
-                         wuw.user_var_day_del
+                         wuw.user_var_day_del,
+                         wuw.user_mean_change,
+                         wuw.user_var_change,
                          ]
 default_note_feature_names = ['words','lines','edits','lifetime']
 default_user_feature_names = ['active days',
@@ -175,7 +177,9 @@ default_user_feature_names = ['active days',
                               'mean new/day',
                               'var new/day',
                               'mean del/day',
-                              'var del/day'
+                              'var del/day',
+                              'mean change/day',
+                              'var change/day',                              
                               ]
 
 def get_userids_with_cat(arows,cat=None):
@@ -224,6 +228,7 @@ def get_distribution_of_days_active(user_ids,user_feature=wuw.user_percent_activ
 
 def compute_cats_per_user(arows):
     return [ len([c for c,v in x['consolidated'].iteritems() if v > 2]) for x in arows  if len(x['consolidated']) > 0 ]
+
 
 # xw = kl.read()
 # get_distribution_of_days_active(

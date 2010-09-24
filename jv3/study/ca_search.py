@@ -25,6 +25,8 @@ search_query_cache = {}
 all_searches = []
 all_queries = []
 
+flatten = lambda L : reduce(lambda x,y:x+y,L)
+
 def user_search(user,days_ago=None,nosmoothing=False):
     from jv3.study.content_analysis import activity_logs_for_user
     global search_cache
@@ -261,4 +263,13 @@ def correlate_note_search_with_mean_alive(users):
         except:
             print sys.exc_info()
     return rsize,rsearch,r('cor.test')(rsize,rsearch)
+
+
+# looking at notes searched for
+#searchhits_awesome = cas.get_search_hits(awesome)
+
+#peepfreq = dict([(k,nltk.FreqDist(cas.flatten(x))) for k,x in searchhits_awesome.iteritems()])
+#supersearched = [(uid,[x for x,y in fd.iteritems() if y > 60]) for uid,fd in peepfreq.iteritems()]
+#supernotes = cas.flatten([[Note.objects.filter(owner=o,jid=j)[0] for j in pair] for o,pair in supersearched])
+#nl._write(nl.add_notes(supernotes))
 

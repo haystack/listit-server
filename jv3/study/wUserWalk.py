@@ -33,8 +33,8 @@ def userWalk(user):
     userNotes = Note.objects.filter(owner=user)
     userLogs = ActivityLog.objects.filter(owner=user)
     actLogsRepeating = userLogs.filter(action__in=['note-add','note-delete'])
-    actLogs = reduceRepeatLogs(actLogsRepeating)
-    actLogs.extend(reduceRepeatLogs(userLogs.filter(action__in=['note-save','sidebar-open'])))
+    actLogs = reduceRepeatLogsBasic(actLogsRepeating)
+    actLogs.extend(reduceRepeatLogsBasic(userLogs.filter(action__in=['note-save','sidebar-open'])))
     if len(actLogs) == 0:
         return (0,0,[],[])
     if len(actLogs) == 0 : return (0,0,[],[])
@@ -43,6 +43,8 @@ def userWalk(user):
     aliveAndDeadGained = [] ## Num (alive, dead) notes added/lost on active day
     runningLiving, runningDead = 0,0
     for logs in chunkedLogs:
+        # print "=================================="
+        # print [(x.when,x.action) for x in logs]
         liveChange = len(filter(lambda x: x.action=='note-add', logs))
         deadChange = len(filter(lambda x: x.action=='note-delete', logs))
         runningLiving += liveChange
@@ -52,22 +54,24 @@ def userWalk(user):
         pass
     return (totDays, activeDays, aliveAndDeadTotal, aliveAndDeadGained)
 
-def reduceRepeatLogs(logs):
-    logDict = {}
-    whenSet = {}
-    for log in logs:
-        if log.noteid not in logDict: ## Noteid has no logs
-            logDict[log.noteid] = [log]
-            whenSet[log.noteid] = set([log.when])
-        elif log.when not in whenSet: ## noteid has logs, ensure no time conflicts
-            logDict[log.noteid].append(log)
-            whenSet[log.noteid] = whenSet[log.noteid].union([log.when])
-        pass
-    cleanedLogs = []
-    for noteid, logArr in logDict.items():
-        cleanedLogs.extend(logArr)
-        pass
-    return cleanedLogs
+# this is buggy
+# def reduceRepeatLogs(logs):
+#     logDict = {}
+#     whenSet = {}
+#     for log in logs:
+#         if log.noteid not in logDict: ## Noteid has no logs
+#             logDict[log.noteid] = [log]
+#             whenSet[log.noteid] = set([log.when])
+#         elif log.when not in whenSet: ## noteid has logs, ensure no time conflicts
+#             logDict[log.noteid].append(log)
+#             whenSet[log.noteid] = whenSet[log.noteid].union([log.when])
+#         pass
+#     cleanedLogs = []
+#     for noteid, logArr in logDict.items():
+#         cleanedLogs.extend(logArr)
+#         pass
+#     return cleanedLogs
+
 
 def reduceRepeatLogsValues(logs):
     logDict = {}
@@ -98,6 +102,8 @@ def reduceRepeatLogsBasic(logs):
             results.append(log)
             whenSet = whenSet.union([log.when])
     return results
+
+reduceRepeatLogs = reduceRepeatLogsBasic
 
 ## Returns list of [#total days, #active days, (lists of logs from diff. active dates)]
 def chunkLogsByDay(logsList):
@@ -206,9 +212,23 @@ def user_var_day_del(userid):
     totDays,activeDays,adeadtotal,adeadgained = _walk_cache[userid]
     return ca.make_feature('var_del_notes_per_day',variance([dead for alive,dead in adeadgained ] ))
 
-    
+def user_mean_change(userid):
+    global _walk_cache
+    if userid not in _walk_cache:
+        _walk_cache[userid] = userWalk(User.objects.filter(id=userid)[0])
+    totDays,activeDays,adeadtotal,adeadgained = _walk_cache[userid]
+    delta = [(new - dead) for new,dead in adeadgained]
+    #print [(new,dead) for new,dead in adeadgained]
+    #print delta
+    return ca.make_feature('mean_change', mean(delta))
 
-
+def user_var_change(userid):
+    global _walk_cache
+    if userid not in _walk_cache:
+        _walk_cache[userid] = userWalk(User.objects.filter(id=userid)[0])
+    totDays,activeDays,adeadtotal,adeadgained = _walk_cache[userid]
+    delta = [(new - dead) for new,dead in adeadgained]
+    return ca.make_feature('var_change', variance(delta))
 
 ## Wolfe Code
 
