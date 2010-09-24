@@ -279,12 +279,15 @@ def simRat(userA,userB,userC):
             if user not in rating or type(rating[user]) != type({}):
                 #print "Skipping not-dict entry for user's rating"
                 continue
-            print rating[user], type(rating[user])
+            print rating[user]
             userRatings = [(typ,val) for typ,val in rating[user].items()]
+            print userRatings
             if len(userRatings) == 0:
                 print "Skipping dict with 0 ratings"
                 continue
-            maxType = [x for x,y in userRatings if y == max([i for n,i in userRatings])][0]
+            maxType = [x for x,y in userRatings if y == max([i for n,i in userRatings])]
+            print maxType
+            maxType = maxType[0]
             print maxType, " found as max type"
             userScores[4*ui+rTypes.index(maxType)] += 1
     print userScores
