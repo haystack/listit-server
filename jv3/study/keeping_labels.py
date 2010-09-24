@@ -134,8 +134,12 @@ def parse_wolfe(row):
 
 
 def parse_emax(r):
-    if r is None or r == '' or  r.find('ins') >= 0 : return None
-    print "parsing ",r
+    global cats
+    if r is None or r == '' or  r.find('ins') >= 0 or r.find('0') >= 0:
+        return None
+    if max([r.find('rain'), r.find('turn'), r.find('slow'), r.find('neat'), r.find('freak')]) >= 0:
+        print "Skipping 5 cases"
+        return None
     rs = [x for x in r.replace(';',' ').replace(' + ',' ').strip().split(' ') if len(x.strip()) > 0]
     s = {}
     for r in rs:
@@ -143,11 +147,13 @@ def parse_emax(r):
           s['NICE'] = True
           continue
         try:
-            if int(r[0]) == 5: continue #r = '3' + r[1:] #  
+            if r == '!!' or r[0] == '[' or int(r[0]) == 5:
+                continue
             category = cats[int(r[0])-1]
             strength = ({'--':1,'-':2,'':3,'+':4,'++':5,'+++':5}).get(r[1:],0)
             s[category]=strength
         except:
+            print "Problem r[0]:", r[0], r
             print sys.exc_info()
     return s
 
@@ -233,4 +239,59 @@ def compute_cats_per_user(arows):
 # xw = kl.read()
 # get_distribution_of_days_active(
 
-# compute
+# compute Cohen's kappa
+
+def getStats():
+    simRat('wstyke','emax','kat')
+
+def getRatings(userA, userB, userC):
+    ratings = read()
+    users = [[0]*4]*3 ## users[0,1,2][0,1,2,3]
+    rTypes = ['packrat','neat freak','sweeper','revisaholic']
+    for rating in ratings:
+        if userA not in rating or userB not in rating or userC not in rating:
+            continue
+        tmpUserRat = [[0]*4]*3
+        for ui, user in enumerate([userA,userB,userC]):
+#            print rating, user
+            if type(rating[user]) != type({}):
+                continue
+            userRatings = [(typ,val) for typ,val in rating[user].items()]
+#            print userRatings
+            if len(userRatings) == 0:
+                continue
+            maxType = [x for x,y in userRatings if y == max([i for n,i in userRatings])][0]
+#            print maxType
+            users[ui][rTypes.index(maxType)] += 1
+            pass
+    print users[0], users[1], users[2]
+    print fKap(users[0],users[1],users[2])
+
+def simRat(userA,userB,userC):
+    ratings = read()
+    userScores = [0]*12 ## 0-3,4-7,8-11
+    rTypes = ['packrat','neat freak','sweeper','revisaholic']
+    for rating in ratings:
+        #if userA not in rating or userB not in rating or userC not in rating:
+        #    print 'skipping'
+        for ui, user in enumerate([userA,userB,userC]):
+            if user not in rating or type(rating[user]) != type({}):
+                #print "Skipping not-dict entry for user's rating"
+                continue
+            print rating[user], type(rating[user])
+            userRatings = [(typ,val) for typ,val in rating[user].items()]
+            if len(userRatings) == 0:
+                print "Skipping dict with 0 ratings"
+                continue
+            maxType = [x for x,y in userRatings if y == max([i for n,i in userRatings])][0]
+            print maxType, " found as max type"
+            userScores[4*ui+rTypes.index(maxType)] += 1
+    print userScores
+    print userScores[0:4],userScores[4:8],userScores[8:12]
+    print fKap(userScores[0:4],userScores[4:8],userScores[8:12])
+
+
+
+def fKap(ratingsA,ratingsB,ratingsC):
+    data = r.rbind(r.rbind(c(ratingsA), c(ratingsB)),c(ratingsC))
+    print r('kappam.fleiss')(data)
