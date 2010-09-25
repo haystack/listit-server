@@ -277,7 +277,7 @@ def simRat(userA,userB,userC):
     for rating in ratings:
  #       if userA not in rating or userB not in rating or userC not in rating or type(rating[userA]) != type({}) or type(rating[userB]) != type({}) or type(rating[userC]) != type({}):
 #            print 'skipping', k
-        if noRat(userA) or noRat(userC):
+        if noRat(userA,rating) or noRat(userC,rating):
             k+=1
             continue
         for ui, user in enumerate([userA, userC]):
@@ -303,7 +303,7 @@ def simRat(userA,userB,userC):
     #print fKap(userScores[0],userScores[1],userScores[2])
 
 
-def noR(userString, rating):
+def noRat(userString, rating):
     noRat =  userString not in rating or type(rating[userString]) != type({})
     if not noRat:
         userRatings = [(typ,val) for typ,val in rating[userString].items()]
