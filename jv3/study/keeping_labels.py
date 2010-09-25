@@ -269,30 +269,51 @@ def getRatings(userA, userB, userC):
     print fKap(users[0],users[1],users[2])
 
 def simRat(userA,userB,userC):
+    import random
     ratings = read()
-    userScores = [0]*12 ## 0-3,4-7,8-11
+    userScores = [[], [],[]]
     rTypes = ['packrat','neat freak','sweeper','revisaholic']
+    k=1
     for rating in ratings:
-        #if userA not in rating or userB not in rating or userC not in rating:
-        #    print 'skipping'
-        for ui, user in enumerate([userA,userB,userC]):
-            if user not in rating or type(rating[user]) != type({}):
-                #print "Skipping not-dict entry for user's rating"
-                continue
-            print rating[user]
+ #       if userA not in rating or userB not in rating or userC not in rating or type(rating[userA]) != type({}) or type(rating[userB]) != type({}) or type(rating[userC]) != type({}):
+#            print 'skipping', k
+        if noRat(userA) or noRat(userC):
+            k+=1
+            continue
+        for ui, user in enumerate([userA, userC]):
             userRatings = [(typ,val) for typ,val in rating[user].items()]
-            print userRatings
             if len(userRatings) == 0:
-                print "Skipping dict with 0 ratings"
-                continue
+                print "Skipping dict with 0 ratings, happens for wstyke :("
+                break
             maxType = [x for x,y in userRatings if y == max([i for n,i in userRatings])]
-            print maxType
-            maxType = maxType[0]
-            print maxType, " found as max type"
-            userScores[4*ui+rTypes.index(maxType)] += 1
-    print userScores
-    print userScores[0:4],userScores[4:8],userScores[8:12]
-    print fKap(userScores[0:4],userScores[4:8],userScores[8:12])
+            maxType = maxType[random.randint(0,len(maxType)-1)]
+            print ui, maxType
+            print len(userScores[ui])
+            userScores[ui].append(maxType)
+            print len(userScores[ui])
+    #print userScores
+    print 'skipped', k
+    print len(userScores[0][:243]), len(userScores[1]), len(userScores[2])
+    print "Wolfe and Kat"
+    print fKap2(userScores[0][:243],userScores[1])
+#    print "Emax and Wolfe"
+#    print fKap2(userScores[0],userScores[1])
+#    print "Emax and Kat"
+#    print fKap2(userScores[1], userScores[2])
+    #print fKap(userScores[0],userScores[1],userScores[2])
+
+
+def noR(userString, rating):
+    noRat =  userString not in rating or type(rating[userString]) != type({})
+    if not noRat:
+        userRatings = [(typ,val) for typ,val in rating[userString].items()]
+        if len(userRatings) == 0:
+            noRat = True
+    return noRat
+
+def fKap2(ratingsA, ratingsB):
+    data = r.cbind(c(ratingsA), c(ratingsB))
+    print r('kappam.fleiss')(data)
 
 
 
