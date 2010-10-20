@@ -1,23 +1,27 @@
 
 .faq-list  {
    width: 400px;
-   font-family: verdana;
-   border: none;
    list-style-type: none;
 }
 
 .feature-list  {
    width: 400px;
-   font-family: verdana;
-   border: none;
    list-style-type: none;
 }
-.feature-list div {
-	background-color: #252525;
+
+.feature-list > li {
+    border:1px solid rgba(205,102,0,0.8);
+    -moz-border-radius:4px;
+    -webkit-border-radius:4px;
+    margin-bottom:10px;
 }
+.feature-list div {
+     /*background-color: #252525;*/
+}
+
+
 .feature-list p {
 	margin-bottom : 10px;
-	border: none;
 	text-decoration: none;
 	font-weight: normal;
 	margin: 0px;
@@ -30,26 +34,30 @@
 	margin-top: 0;
 	text-decoration: none;
 	font-weight: normal;
-	font-size:11pt;
-	background-color: #252525;
-	border-bottom: 1px solid #252525;
+	/*background-color: #252525;*/
+	/*background-image: url("../imgs/AccordionTab0.png");*/
 	height: 18px;
-	background-image: url("../imgs/AccordionTab0.png");
 }
 .feature-list .feature-title:hover {
-	background-color: #252525;
+	/*background-color: #252525;
 	background-image: url("../imgs/AccordionTab2.png");
+	*/
 }
 .feature-list .feature-title.selected {
-	color: #fca11f;
-	background-color: #252525;
+	color: #cc6600;
+	/*background-color: #252525;
 	background-image: url("../imgs/AccordionTab2.png");
+	*/
 }
 .feature-description {
-    padding-left:20px;
+    padding-left:16px;
     padding-right:20px;
     padding-top:5px;
     padding-bottom:5px;    
+}
+.credits {
+    font-size:8pt;
+    font-style:italic;
 }
 
 .listdot {
@@ -60,11 +68,10 @@
 
 .terms p {
     text-align:justify;
-	margin-bottom : 10px;
-	border: none;
-	text-decoration: none;
-	font-weight: bold;
-	font-size: 6pt;
-	margin: 0px;
-	padding: 10px;
+    margin-bottom : 10px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 10pt;
+    margin: 0px;
+    padding: 10px;
 }

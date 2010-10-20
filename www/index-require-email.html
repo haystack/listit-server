@@ -4,9 +4,9 @@
   <head><title>list.it - a place to stash your information</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta http-equiv="content-language" content="en" />
+    <link rel="stylesheet" type="text/css" href="css/reset.css" />
     <link rel="stylesheet" type="text/css" href="css/listit.css" />
     <link rel="stylesheet" type="text/css" href="css/soon.css" />
-
 
     <script type="text/javascript" src="js/jquery.js"></script>
     <script type="text/javascript" src="js/jquery.dimensions.js"></script>
@@ -18,13 +18,8 @@
 
   <body style="margin: 0;">
     <div id="topbar" class="topbar">
-      <table width="720" class="normal" cellpadding="0" cellspacing="0">
+      <table width="800px" class="normal" cellpadding="0" cellspacing="0">
         <tr valign="bottom">
-
-          <td style="padding-top:0px; font-weight: bold; margin: 5px">
-            <div id="topbartitle"><span style="font-size: 72px;">list<span style="font-size:36px;"><span style="color:#fca11f">.</span>it</span></span></div>
-          </td>
-
           <td align="right">
             <a target="_top" href="http://haystack.csail.mit.edu">Haystack Home</a>
             | list.it
@@ -35,8 +30,9 @@
         </tr>
       </table>
     </div>
-    <img id="back" src="imgs/postits-sm.jpg" style="z-index:-1; position:absolute; left:0px; top:1in; right:0px; bottom:0px;" alt="post-its"/>
-    <table width="800px" height="550px" cellspacing="0" border="0" id="main">
+    <div id="back" alt="list.it is free and open source software"></div>
+    <!--<img id="back" src="imgs/postits-sm.jpg" style="z-index:-1; position:absolute; left:0px; top:1in; right:0px; bottom:0px;" alt="list.it is free and open source software"/>-->
+    <table width="820px" height="550px" cellspacing="0" id="main">
       
       <tr valign="top">
         <td colspan="2">
@@ -48,11 +44,10 @@
                 -- <span style="font-weight:normal;font-size:12pt">before you forget it!</span>
               </h2>
   	          <p>
-		        <b>list<span style="color:#fca11f">.</span>it</b> is a simple, free,
-                <a target="_top" href="http://groups.google.com/group/list-it">open-source</a>
-                note-keeping tool to help you manage the tons of little information bits you
-                need to keep track of each day.
-              </p>
+		        <b>list<span style="color:#fca11f">.</span>it</b>
+			is a simple, <a target="_top"  href="http://groups.google.com/group/list-it">free and open-source</a> note-keeping tool to help you managethe tons of little information bits you need to keep
+			track of each day.
+		  </p>
 
 		      <img width="400px" style="float:right; margin:20px;" src="imgs/enable-js.png" alt="Enabling Javascript in Firefox Preferences"/>
 
@@ -76,8 +71,8 @@
 		      <h2><span style="font-size: 48pt;">list</span><span style="font-size:32pt;"><span style="color:#fca11f">.</span>it</span> -- <span style="font-weight:normal;font-size:12pt">before you forget it!</span></h2>
 		  
   		      <p>
-                <b>list<span style="color:#fca11f">.</span>it</b> is a simple, free,
-                <a target="_top" href="http://groups.google.com/group/list-it">open-source</a>
+                <b>list<span style="color:#fca11f">.</span>it</b> is a simple, <a target="_top" href="http://groups.google.com/group/list-it">free and 
+                open-source</a>
                 note-keeping tool to help you manage the tons of little information bits you
                 need to keep track of each day.
               </p>
@@ -105,32 +100,33 @@
 	  
 	  <tr id="main-content" valign="top" style="display:none;vertical-align:top" >
         <td width="400px">
-	      <h2><span style="font-size: 48pt;">list</span><span style="font-size:32pt;"><span style="color:#fca11f">.</span>it</span> <span style="font-weight:normal;font-size:12pt"> ...before you forget it!</span></h2>
-
-	      <p style="color:#fca11f; margin-left:2em; margin-bottom:2em;">
-
-		    <ul>
-		      <li>
-                Feb 02 2010 -
-                List.it featured in <br/>
+	  
+          <h2><span class="listitlogo">list<span class="dot">.</span>it</span> <span class="beforeyouforgetit"> ...before you forget it!</span></h2>
+	      
+	   <p>
+            <b>list<span style="color:#fca11f">.</span>it</b> is a simple,             <a target="_top" href="http://groups.google.com/group/list-it">free and open-source</a>
+            note-keeping tool to help you manage the tons of little information bits you need
+            to keep track of each day.
+          </p>
+	  <p>Watch the screencast to find out more.</p>
+	     <ul class="news">
+	      <li>
+                Aug 19 - Notes for Science III started
+              </li>		      	       
+	      <li>
+                Aug 15 - v. 0.4.9 for Firefox 4.0 beta!
+              </li>		      
+	      <li>
+                Feb 02 - List.it Featured in 
                 <a href="http://www.nytimes.com/external/readwriteweb/2010/02/02/02readwriteweb-listit-post-it-notes-for-the-twitter-genera-13868.html ">
-                  the New York Times
-                </a>
-                via
-                <a href="http://www.readwriteweb.com/archives/listit_like_post-it_notes_for_the_twitter_generati.php">
-                  The ReadWriteWeb
-                </a>
+                  the New York Times! </a>
               </li>
-		      <li>
-                Jan 21 2010 -
-                List.it 0.4.8.3 released (FF 3.6+)!
+	      <li> 
+                Aug 12 (2009) - 
+                Start of MIT Notes for Science II
               </li>
-		      <li>
-                Aug 12 2009 -
-                Start of MIT Notes for Science
-              </li>
-		      <li>
-                Apr 08 2009 -
+	       <li>
+                Apr 08 (2009) - 
                 <a href="http://groups.csail.mit.edu/haystack/blog/2009/04/12/a-short-note-about-short-notes-to-self/">
                   Research paper
                 </a>
@@ -139,17 +135,7 @@
                   CHI 2009
                 </a>
               </li>
-		    </ul>
-          </p>
-	      
-	      <p>
-            <b>list<span style="color:#fca11f">.</span>it</b> is a simple, free,
-            <a target="_top" href="http://groups.google.com/group/list-it">open-source</a>
-            note-keeping tool to help you manage the tons of little information bits you need
-            to keep track of each day.
-          </p>
-		
-	      <p>Watch the screencast to find out more.</p>
+              </ul>
 	      
 	      <ul class="feature-list" style="margin-left:0px; padding-left:0px;">
 		    <li>
@@ -204,10 +190,9 @@
                   and <a target="_top" href="http://users.ecs.soton.ac.uk/mc/">monica (mc) schraefel</a>.
                 </p>
 
-		        <p>list.it is a collaboration with the
-                  <a target="_top" href="http://www.ecs.soton.ac.uk">University of Southampton</a>
-                  and the <a href="http://research.nokia.com/">Nokia Research Center</a>, and is
-		          supported by the <a href="http://www.webscience.org">Web Science Research Initiative</a>
+		  <p>list.it is a collaboration between MIT and the 
+                  <a target="_top" href="http://www.ecs.soton.ac.uk">University of Southampton</a> and is
+		  supported by the <a href="http://www.webscience.org">Web Science Research Initiative</a>
                   and the <a href="http://www.nsf.gov/">The National Science Foundation</a>.
                 </p>
 		    
@@ -252,21 +237,18 @@
                 join the project
               </div>
 		      <div class="feature-description">
-		        <ul>
-		          <li>
-                    <b>Tell us what you think</b> - Visit the
+
+			<p>
+                    Tell us what you think - Visit the
                     <a target="_top" href="http://groups.google.com/group/list-it">list.it Google Group</a>
                     and tell us what you think -- what  do you want in a tool? Does list.it help? How well
                     does it work for you?
-                  </li>
-		          <li>
-                    <b>File bugs, hack on our code</b> - Are you a  programmer? Visit the
+		    <p>
+                    File bugs, hack on our code - Are you a  programmer? Visit the
                     <a target="_top" href="http://code.google.com/p/list-it">list.it  Google Code</a>
                     page if you wish to report a bug, or if you are a programmer and want to see the
                     source code.
-                  </li>
-		        </ul>
-		      </div>
+		    </div>
 		    </li>
 		  </ul> <!-- main panel -->
 		  <p>
@@ -338,7 +320,7 @@
 		    <div id="downloadlink" style="padding:20px;">
               <a target="_top" style="text-decoration:none"
                  href="https://welist.it/releases/builds/listit.xpi">
-                <span style="font-size:120%;font-weight:bold;text-align:center;background:url(../imgs/trans40.png);padding:10px">
+                <span id="download">
                   Install List.it for Firefox!</span>
               </a>
               (requires 3.0+)
@@ -370,6 +352,9 @@
 		    Lost your password or have questions? Check our
             <a href="https://welist.it/faq.html">Frequently Asked Questions</a> page.
           </p>
+		  <p class="credits">
+		    Background "set list" photo credit: <a href="http://www.flickr.com/photos/barraclough/2723443570/sizes/l/">Szuba</a>
+		  </p>
 		</td>
 	  </tr>
 	</table>

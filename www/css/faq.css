@@ -4,13 +4,22 @@
     padding-left:0px;
 }
 
+td {
+    padding:20px;
+}
+.faq-list > li {
+    border:1px solid rgba(205,102,0,0.8);
+    -moz-border-radius:4px;
+    -webkit-border-radius:4px;
+    margin-bottom:1em;
+    }
 .faq-list  {
    width: 600px;
    border: none;
    list-style-type: none;
 }
 .faq-list div {
-	background-color: #252525;
+	/*background-color: #252525;*/
 }
 .faq-list p {
 	margin-bottom : 10px;
@@ -28,19 +37,23 @@
 	text-decoration: none;
 	font-weight: normal;
 	font-size:11pt;
-	background-color: #252525;
-	border-bottom: 1px solid #252525;
+	/*background-color: #252525;*/
+	/*border-bottom: 1px solid #252525;*/
 	height: 18px;
-	background-image: url("../imgs/AccordionTab0.png");
+	/*background-image: url("../imgs/AccordionTab0.png");*/
 }
 .faq-list .faq-title:hover {
+    /*
 	background-color: #252525;
 	background-image: url("../imgs/AccordionTab2.png");
+	*/
 }
 .faq-list .faq-title.selected {
+    /*
 	color: #fca11f;
 	background-color: #252525;
 	background-image: url("../imgs/AccordionTab2.png");
+	*/
 }
 .faq-description {
     padding-left:20px;

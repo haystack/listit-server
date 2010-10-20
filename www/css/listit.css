@@ -1,45 +1,107 @@
 body { 
-   font-family: Tahoma, Arial,sans serif;
-   background-color:
-   black; color: white; 
-   margin-left:0px;
+   font-family: Helvetica Neue, Helvetica Neue, Helvetica, sans serif;
+   background-image:url(https://welist.it/list.jpg);
+   color: white; 
+   margin-left:0px
+   font-weight:200;
+   line-height:130%;
+   
+}
+/* fca11f */
+
+.listitlogo {
+    font-family: Helvetica Neue;
+    font-size:48pt;
+    color:#cc6600;
+}
+.dot {
+    color:black;
+}
+.beforeyouforgetit {
+    font-size:18pt;
 }
 
-a { color:#fca11f; } 
-a:visited {color: #ffffff }
-a:active  {color: white }
+a { color:#cc6600; } 
+a:visited {color: #cc6600 }
+a:active  {color: #cc66ff }
 a:hover{color: #fcd11f }
 
-h2 { font-size: 16pt; font-weight: bold; color: white; margin: 0pt;}
-h2 { font-size: 14pt; font-weight: bold; color: white; margin: 0pt;} 
+h2 { font-size: 16pt;  margin: 0pt; font-weight:normal; margin-bottom:1.2em;}
+
+p {  margin-top:1em; margin-bottom:1em; }
+
+.news {
+    margin-bottom:1.5em;
+}
+.news li {
+    margin-left:17px;
+    margin-bottom:3px;
+}
+
+#download {
+    border:solid 1px black;
+    -moz-border-radius:4px;
+    -webkit-border-radius:4px;
+    font-size:120%;font-weight:bold;text-align:center;padding:10px;
+}
+
+table {
+    color:black;
+    border-collapse:separate;
+}
+
+#back {
+    /*background-color:#cc6600;*/
+    z-index:-1; position:fixed; left:0px; top:1in; right:0px; bottom:0px;
+}
 
 #main {
-  background:url(../imgs/trans40.png);
+  /*background:url(../imgs/trans40.png);*/
+  /*background-color:rgba(205,102,00,0.4);*/ /* #cc6600 */
+    background-color:white;
+  border: solid 1px #cc6600;
+  background-color:rgba(255,255,255,0.6);
+  color:black;
   text-align:left;
   margin: 20px auto;
 }
+
+#main td {
+    padding-top:2em;
+}
+
 dl dt {}
 dl dd {
    margin-top: 5px;
    margin-left: 0px; margin-right:0px;
 }
 
+ul {
+    list-style-type:none;
+}
+ul li {
+    margin-bottom:2px;
+}
 
 
 #topbar {
-    color: #dddddd; 
+    /*color: #dddddd; 
     background-color: #252525;
-    border-bottom: 1px solid #aaaaaa; 
+        border-bottom: 1px solid #aaaaaa; 
+    */
+    margin-top:20px;
+    color:black;
     padding-bottom: 5pt;
     width:100%;
 }
 
 #topbartitle { 
-    color: #dddddd; 
+    /*color: #dddddd; */
+    color:black;
     position:relative; 
     top:21px; 
     padding-top:0px; 
-    font-weight: bold;  
+    /*font-weight: bold;  */
 }
 
 #topbar > table {
@@ -66,11 +128,11 @@ dl#sidebar {font-size: 8pt; margin-bottom: 20px; margin-top: 0px; left: 0px;}
 
 
 img.logo { width: 40px; height: 40px; margin: 0 4px 10px 0;}
-#topbar a:link { color: #fca11f; background: transparent; text-decoration: none; }
-#topbar a:visited { color: #fca11f; background: transparent; text-decoration: none; }
+#topbar a:link { color: #cc6600; background: transparent; text-decoration: none; }
+#topbar a:visited { color: #cc6600; background: transparent; text-decoration: none; }
 #topbar a:active { color: #a9d13e; background: transparent; text-decoration: none; }
-.prose a:link { color: #fca11f; background: transparent; text-decoration: none; }
-.prose a:visited { color: #fca11f; background: transparent; text-decoration: none; }
+.prose a:link { color: #cc6600; background: transparent; text-decoration: none; }
+.prose a:visited { color: #cc6600; background: transparent; text-decoration: none; }
 .prose a:active { color: #a9d13e; background: transparent; text-decoration: none; }
 
 /* captions for sidebar images */
@@ -86,7 +148,7 @@ img.logo { width: 40px; height: 40px; margin: 0 4px 10px 0;}
 
 #submit {
     cursor:pointer;
-    color:white;
+    color:grey;
     background:black;
     border-style:solid;
     border-width:1px;
@@ -97,7 +159,7 @@ img.logo { width: 40px; height: 40px; margin: 0 4px 10px 0;}
 input { color:#3b3b3b; background:#ffffff; border-style: solid; border-width: 1px; }
 .force140 { width:140px; }
 
-#terms { border-style:solid; border-width:1px; border-color:white; padding:10px; font-size:8pt;}
+#terms { border-style:solid; border-width:1px; border-color:#cc6600; padding:10px; font-size:8pt;}
 
 #main-content {  }
 #main-content td { padding:25px;  }
@@ -105,7 +167,7 @@ input { color:#3b3b3b; background:#ffffff; border-style: solid; border-width: 1p
 .feature-listinalist {  margin-left:0px; padding-left:20px; }
 .feature-listinalist li {  margin-left:0px; padding-left:0px; padding-top:0.2em; padding-bottom:0.2em; }
 
-.fakehyperlink { color: #fca11f; background: transparent; text-decoration: none; }
+.fakehyperlink { color: #cc6600; background: transparent; text-decoration: none; }
 
 #gettingstarted li {
     margin-top:5px;
