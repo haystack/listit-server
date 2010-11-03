@@ -270,37 +270,36 @@ def getRatings(userA, userB, userC):
 
 def simRat(userA,userB,userC):
     import random
+    r('library(irr)')
     ratings = read()
     userScores = [[], [],[]]
     rTypes = ['packrat','neat freak','sweeper','revisaholic']
     k=1
+    userA = userA
+    userC = userC
     for rating in ratings:
- #       if userA not in rating or userB not in rating or userC not in rating or type(rating[userA]) != type({}) or type(rating[userB]) != type({}) or type(rating[userC]) != type({}):
-#            print 'skipping', k
         if noRat(userA,rating) or noRat(userC,rating):
             k+=1
             continue
         for ui, user in enumerate([userA, userC]):
             userRatings = [(typ,val) for typ,val in rating[user].items()]
-            if len(userRatings) == 0:
-                print "Skipping dict with 0 ratings, happens for wstyke :("
-                break
             maxType = [x for x,y in userRatings if y == max([i for n,i in userRatings])]
-            maxType = maxType[random.randint(0,len(maxType)-1)]
-            print ui, maxType
-            print len(userScores[ui])
+
+            combined = [(x,y) for x,y in rating["consolidated"].iteritems()]
+            combined.sort(key=lambda x: -x[1]) # ascending sort
+            combined = [x for x,y in combined] # get rid of the ratings i think.
+            maxType.sort(key=lambda x:listfind(combined,x))
+
+            maxType = maxType[0]
             userScores[ui].append(maxType)
-            print len(userScores[ui])
-    #print userScores
     print 'skipped', k
-    print len(userScores[0][:243]), len(userScores[1]), len(userScores[2])
-    print "Wolfe and Kat"
-    print fKap2(userScores[0][:243],userScores[1])
-#    print "Emax and Wolfe"
-#    print fKap2(userScores[0],userScores[1])
-#    print "Emax and Kat"
-#    print fKap2(userScores[1], userScores[2])
-    #print fKap(userScores[0],userScores[1],userScores[2])
+    print len(userScores[0]), len(userScores[1]), len(userScores[2])
+    print userA, "and", userC
+    fKap2(userScores[0],userScores[1])
+
+def listfind(l,x):
+    if x in l: return l.index(x)
+    return -1
 
 
 def noRat(userString, rating):
