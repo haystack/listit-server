@@ -98,6 +98,8 @@ def refClassifier():
 
 ## Feature Set: dict mapping from "feature name to feature value"
 
+defaultMapping = {("contains-word",'email',True):0}
+
 def note_features(note):
     featureset = {}
     ## Add questions to feature set like:
@@ -105,4 +107,17 @@ def note_features(note):
         featureset["contains-word(%s)" % word] = True 
     ## more!
     return featureset
+
+
+## What is mapping?:  dict like:               {(featurename, featurevalue, label):index}
+## ex: featurename = contains-word(foobar)
+## ex: featurevalue  = True
+## ex: label = category or not...
+
+
+## Training tokens: List of tuples of (feature dict,string  label)
+## ie: train_toks = [({featureset}, "reference"), ... ]
+
+
+
 
