@@ -44,14 +44,18 @@ def splitNotes(category):
     nonMatchNotes = map(lambda x:Note.objects.filter(owner=getOwner(x[2]), jid=x[3])[0], nonMatches)
     return (matchNotes, nonMatchNotes)
 
-def initMaxEntModel(labels, mapping, weights):
-    encoding = nltk.BinaryMaxentFeatureEncoding(labels, mapping)
+def initMaxEntModel(encoding, weights):
     maxEntModel = nltk.MaxentClassifier(encoding, weights)
     return maxEntModel
 
 def getStdMapping():
     ## Returns (mapping, weights)
+    ## how to get mapping?
     
+    
+    
+    ## Choose weights randomly
+    weights = [0]*10 ## change this to how ever many features there are!
 
 
 def refClassifier():
@@ -60,4 +64,45 @@ def refClassifier():
     labels = ['reference', 'nonref']
     ## 
     mapping, weights = getStdMapping()
-    maxEntModel = initMaxEntModel(labels, mapping, weights)
+    encoding = nltk.BinaryMaxentFeatureEncoding(labels, mapping)
+    maxEntModel = initMaxEntModel(encoding, weights)
+
+
+
+## 
+#In [147]: BMFE.train([({'fname0':0,'fname1':1},'ref')])
+#Out[147]: <nltk.classify.maxent.BinaryMaxentFeatureEncoding object at 0x7517110>
+
+#In [149]: BMFE.train([({'fname0':0,'fname1':1},'ref')])
+#Out[149]: <nltk.classify.maxent.BinaryMaxentFeatureEncoding object at 0x7517250>
+
+#In [151]: BMFE.labels()
+#Out[151]: ['1', '2']
+
+#In [152]: mapp = {('fname0','fval0','nonref'):0,('fname','fval','ref'):1}
+
+#In [153]: BMFE = nltk.BinaryMaxentFeatureEncoding(['1','2'], mapp)
+
+
+# mapp = {('fname0','fval0','nonref'):'nonref',('fname','fval','ref'):'ref'}
+# BMFE = nltk.BinaryMaxentFeatureEncoding(labels=['ref','nonref'], mapping=mapp)
+# BMFE.labels() --> Out[165]: ['ref', 'nonref']
+# BMFE.train(train_toks=[({'fname0':'fval0'},"ref")])
+
+# BMFE.labels() --> ['ref', 'nonref']
+# BMFE.length() --> 2
+
+
+## FEATURE SETS ## http://nltk.googlecode.com/svn/trunk/doc/api/nltk.classify-module.html
+## Training Set: List of (featuredict, label) tuples !
+
+## Feature Set: dict mapping from "feature name to feature value"
+
+def note_features(note):
+    featureset = {}
+    ## Add questions to feature set like:
+    for word in note.contents.split(' '):
+        featureset["contains-word(%s)" % word] = True 
+    ## more!
+    return featureset
+
