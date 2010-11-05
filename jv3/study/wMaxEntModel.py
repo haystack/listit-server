@@ -62,13 +62,20 @@ def refClassifier():
 def nvals(note):
     return tfigs.n2vals(note)
 
+def pos_word(word):
+    return nltk.pos_tag([word])[0][1]
+
 def word_is_verb(word):
     is_verb = False
-    for qq,pos in nltk.pos_tag(word):
-        if pos in ["VB","VBD","VBG","VBN","VBP","VBZ"]:
-            is_verb = True
-            break
+    if pos_word(word) in ["VB","VBD","VBG","VBN","VBP","VBZ"]:
+        is_verb = True
     return is_verb
+
+def word_is_noun(word):
+    is_noun = False
+    if pos_word(word) in ["NN","NNS","NNP","NNPS"]:
+        is_noun = True
+    return is_noun
 
 mem, notMem = splitNotes('memory trigger')
 
@@ -82,37 +89,39 @@ def addFeature(featureset, fname, fval):
         for label in labels:
             mapping[(fname,fval,label)]=len(mapping)
 
+
 def noteFeatures(note):
     notevals = nvals(note)
-    featureset = {}
-    ## Add questions to feature set!
+    fs = {} ## Featureset
     words = nltk.word_tokenize(note.contents)
-#    for word in words: ## overfitting?
-        #addFeature(featureset,"contains-word(%s)"%(word), True)
-    ## Note Text Content
+    #for word in words: ## overfitting?
+    #    addFeature(fs,"contains-word()", word)
     first_word = words[0]
     first_word_verb = word_is_verb(first_word)
+    first_word_noun = word_is_noun(first_word)
     if first_word_verb:
-        addFeature(featureset, "first-word-is-verb", True)
-        #addFeature(featureset, "first-verb-is(%s)"%(first_word), True)
+        addFeature(fs, "first-word-is-verb", True)
+        #addFeature(fs, "first-verb", first_word)
+    if first_word_noun:
+        addFeature(fs, "first-word-is-noun", True)
     verb_count = ca.note_verbs(notevals)['note_verbs']
-    addFeature(featureset, "contains-k-verbs(%s)"%(verb_count), True)
+    addFeature(fs, "contains-k-verbs(%s)"%(verb_count), True)
     note_words = ca.note_words(notevals)['note_words']
     for i in range(note_words-1,note_words+2):
-        addFeature(featureset, "contains-k-words(%s)"%(max(i, 0)), True)
+        addFeature(fs, "contains-k-words()", i)
     note_lines = ca.note_lines(notevals)['note_lines']
-    addFeature(featureset, "contains-k-lines(%s)"%(note_lines), True)
+    addFeature(fs, "contains-k-lines(%s)"%(note_lines), True)
     note_urls = ca.note_urls(notevals)['note_urls']
     if note_urls > 0:
-        addFeature(featureset, "contains->1-urls()", True)
-        addFeature(featureset, "contains-k-urls(%s)"%(note_urls), True)
-    ## 80%
+        addFeature(fs, "contains->1-urls()", True)
+        addFeature(fs, "contains-k-urls(%s)"%(note_urls), True)
+        pass
     numbers = ca.numbers(notevals)['numbers']
     if numbers > 0:
-        addFeature(featureset, "contains->0-numbers()", True)
+        addFeature(fs, "contains->0-numbers()", True)
     symDaysofweek = "yes" if (ca.daysofweek(notevals)['daysofweek'] > 0) else "no"
-    addFeature(featureset, "contains-daysofweek(%s)"%(symDaysofweek), True)
-    return featureset
+    addFeature(fs, "contains-daysofweek",symDaysofweek)
+    return fs ## Featureset
 
 def createTokens(notesA, labelA, notesB, labelB):
     train_toks = [(noteFeatures(note), labelA) for note in notesA]
@@ -128,7 +137,7 @@ train_toks = createTokens(mem, 'memory trigger', notMem, 'not')  ##createMemToke
 tt_sample = train_toks[200:400]
 tt_sample.extend(train_toks[600:800])
 BMFE = nltk.BinaryMaxentFeatureEncoding(labels=labels,mapping=mapping)
-model = nltk.MaxentClassifier.train(tt_sample,encoding=BMFE,labels=labels,max_iter=3)
+model = nltk.MaxentClassifier.train(tt_sample,encoding=BMFE,labels=labels,max_iter=5)
 mAcc = nltk.classify.util.accuracy(model, [(noteFeatures(nn),'memory trigger') for nn in mem[:200]])
 nmAcc = nltk.classify.util.accuracy(model, [(noteFeatures(nn),'not') for nn in notMem[280:480]])
 print("Accuracy with mem trig & not mem trig = %s & %s" % (mAcc,  nmAcc))
