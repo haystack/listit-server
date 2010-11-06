@@ -4,7 +4,6 @@
 ## Classes: todo-reminder, reference, ext cog., journal/logging, 
 ## personal archival
 ## FEATURE SETS ## http://nltk.googlecode.com/svn/trunk/doc/api/nltk.classify-module.html
-
 from django.contrib.auth.models import User
 from jv3.models import *
 from jv3.utils import *
@@ -66,16 +65,10 @@ def pos_word(word):
     return nltk.pos_tag([word])[0][1]
 
 def word_is_verb(word):
-    is_verb = False
-    if pos_word(word) in ["VB","VBD","VBG","VBN","VBP","VBZ"]:
-        is_verb = True
-    return is_verb
+    return pos_word(word) in ["VB","VBD","VBG","VBN","VBP","VBZ"]
 
 def word_is_noun(word):
-    is_noun = False
-    if pos_word(word) in ["NN","NNS","NNP","NNPS"]:
-        is_noun = True
-    return is_noun
+    return pos_word(word) in ["NN","NNS","NNP","NNPS"]
 
 mem, notMem = splitNotes('memory trigger')
 
@@ -90,6 +83,7 @@ def addFeature(featureset, fname, fval):
             mapping[(fname,fval,label)]=len(mapping)
 
 
+# Pass in whole sentence, then get tag of the one you want!
 def noteFeatures(note):
     notevals = nvals(note)
     fs = {} ## Featureset

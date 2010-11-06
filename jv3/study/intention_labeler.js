@@ -81,7 +81,8 @@ jQuery(document).ready(function() {
 					jQuery(f.children("table")[jQuery(f).children("table").length - 1]).append(nq);
 				      });
 			   },error:function(e,v) {
-				 console.log("--------------- error", e,v);
+			       console.log("--------------- error", e,v);
+			     document.write(e.responseText);
 			  }});
 			 jQuery(".pricatcol").find("select").live("change", function(evt) {
 									     var selected_primary_category = jQuery(this).val();

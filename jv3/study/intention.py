@@ -39,6 +39,7 @@ aci = augmented_get_column_index
 
 
 def read(filename=None):
+   csv.field_size_limit(1000000000)
    f0 = "%s/%s" % (settings.STUDY_INTENTION_DIR, "index.csv" if filename is None else filename )
    datas = []
    if os.path.isfile(f0):
@@ -50,6 +51,7 @@ def read(filename=None):
 
 def _write(datas):
     import csv,settings,time
+    csv.field_size_limit(1000000000)
     f0 = "%s/%s" % (settings.STUDY_INTENTION_DIR,"index.csv")
     f1 = "%s/%s" % (settings.STUDY_INTENTION_DIR,"index-%d-%d-%d%d.csv" % (time.localtime().tm_year,
                                                                           time.localtime().tm_mon,
@@ -126,6 +128,8 @@ def _get_all_intention_ids():
     return set([ int(x[0]) for x in reada() ])
 
 def reada(filename="index.csv"):
+    csv.field_size_limit(1000000000)  ##problem, Error: field larger than field limit (131072)
+    ## http://lethain.com/entry/2009/jan/22/handling-very-large-csv-and-xml-files-in-python/
     foor=read(filename)
     gci = get_column_index
     # augment with noteid to make augmented 
