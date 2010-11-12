@@ -279,7 +279,7 @@ class RedactedNote(models.Model):
     def __unicode__(self):
         import utils
         return unicode('(%s-%s-%s) [User: %s, ID: %d, Ver: %s] (%s / %s) %s' % (
-            self.origCreated, self.origEdited, self.origDeleted, repr(self.owner.username), self.jid, self.version,
+            self.nCreated, self.nEdited, self.nDeleted, repr(self.owner.username), self.jid, self.version,
             utils.decimal_time_to_str(self.created), self.noteType,
             self.contents[:30]))
         #return unicode('[%s-%d-v%d] (%s) %s' % (repr(self.owner.username), self.jid, self.version,
@@ -294,18 +294,19 @@ class WordMap(models.Model):
     pubWord  = models.TextField(blank=True) ## Public  - word chosen to replace privWord
     def __unicode__(self):
         import utils
-        return unicode('o:%s, type:%s, (%s / %s)' % (
-            repr(self.owner.username), self.wordType, self.originalWord, self.replacementWord))
-
+        return unicode('o:%s, type:%s, (%s => %s)' % (
+            repr(self.owner.username), self.wordType, self.privWord, self.pubWord))
 
 # Stores meta information about a redacted note's redacted-words
 class WordMeta(models.Model):
+    owner      = models.ForeignKey(authmodels.User,related_name='word_meta_owner',null=True)
     rNote      = models.ForeignKey(RedactedNote,related_name='redacted_word_meta',null=True)
-    wordIndex  = models.DecimalField(max_digits=19,decimal_places=0)
+    charIndex  = models.DecimalField(max_digits=19,decimal_places=0) ## Starting character's index
+    wordLength = models.DecimalField(max_digits=19,decimal_places=0) ## Number of characters in word
     wordMap    = models.ForeignKey(WordMap, related_name='redacted_word_map')
     def __unicode__(self):
         import utils
-        return unicode('(Note:%s), i:%s, map:%s' % (repr(self.redactedNote), self.wordIndex, self.wordMap))
+        return unicode('(Note:%s), index:%s, len:%s, map:%s' % (repr(self.rNote), self.charIndex, self.wordLength self.wordMap))
 
 ## Register RedactedSkip, RedactedNote, WordMeta, WordMap
 try:

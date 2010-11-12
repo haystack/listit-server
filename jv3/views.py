@@ -911,19 +911,26 @@ def post_usage_statistics(request):
 ##  Redaction Code  ##
 ######################
 
+def getWordsArr(text):
+    ## Get array of words, separated by spaces, removing '\n'
+    wordsArr = []
+    dd = [wordsArr.extend(line.split(' ')) for line in text.split('\n')]
+    wordsArr = filter(lambda x:x!='',wordsArr)
+    return wordsArr
+
 def convertWordToSymbols(privWord):
     ## Convert private word into public word
-    pubWord = ''
-    for char in privWord:
+    pubWordList = list(privWord)
+    for i, char in enumerate(pubWordList):
         if char in string.ascii_lowercase:
-            pubWord += 'x'
+            pubWordList[i] = 'x'
         elif char in string.ascii_uppercase:
-            pubWord += 'X'
+            pubWordList[i] = 'X'
         elif char in string.digits:
-            pubWord += '9'
+            pubWordList[i] = '9'
         else:
-            pubWord += "*"
-    return pubWord
+            pubWordList[i] = "*"
+    return ''.join(pubWordList)
 
 def getWordMap(request_user, rType, privWord):
     match = WordMap.objects.filter(owner=request_user,wordType=rType, privWord=privWord)
@@ -1022,24 +1029,51 @@ def post_redacted_note(request):
         rNote.jid = datum['id']
         rNote.version = datum['version']
         rNote.noteType = datum['noteType']
-        noteText = datum['text']
-        noteTextWords = ' '.join(noteText.split('\n')).split(' ')
-        ## Stores [word index, WordMap(instance)] pairs
-        ## for making WordMeta instances after note is saved
-        wordMapIndicesStore = []
+        
+        ##noteText = datum['text']
+        ##noteTextWords = getWordsArr(noteText) ## list of words in note! may be deleted...
 
+        redactedCharInfo = datum['redactedCharInfo'] ## Tuples: (char index, word length)
+        noteCharList = list(datum['text']) ## List of characters
+
+        wordMapIndicesStore = [] ## Stores [word index, WordMap(instance)] pairs
+        ## for making WordMeta instances after note is saved
+
+        for charStartIndex, wordLength in redactedCharInfo:
+            rType = "markAsRemoved"
+            startIndex = charStartIndex
+            endIndex = startIndex + wordLength
+            privWord = ''.join(noteCharList[startIndex:endIndex])
+            matchWordMap = getWordMap(request_user, rType, privWord)
+            if matchWordMap is False:
+                ## Create a new WordMap
+                wordMapIDRep, repWord = createWordMap(request_user, rType, privWord)
+                wordMapIndicesStore.append([charStartIndex, wordLength, wordMapIDRep])
+                noteCharList[startIndex:endIndex] = list(repWord)
+            else:
+                wordMapIndicesStore.append([charStartIndex, wordLength, matchWordMap[0]])
+                noteCharList[startIndex:endIndex] = list(matchWordMap[1])
+
+        ## Christmas Comment string - kat goes lol :D
+        ## This code used to store words by word index, above method uses character index/length!
+        """ 
         for rType in datum['redactedIndices']:
-            for index in datum['redactedIndices'][rType]:
+            sortedIndices = datum['redactedIndices'][rType]
+            sortedIndices.sort()
+            for index in sortedIndices: ##datum['redactedIndices'][rType]:
                 ## rType ~ markAsName, etc
                 ## index ~ index of word in note text
                 privWord = noteTextWords[index]
                 #matchWordMap ~ (WordMap, replWord)
                 matchWordMap = getWordMap(request_user, rType, privWord)
+
                 if matchWordMap is False:
                     ## Create a new WordMap
                     wordMapIDRep, repWord = createWordMap(request_user, rType, privWord)
                     ## Add map to store, replace word in noteText
                     wordMapIndicesStore.append([index, wordMapIDRep])
+
+                    noteCharList[startCharIndex:endCharIndex] = list(repWord)
                     noteTextWords[index] = repWord
                 else:
                     ## Add map to store, replace word in noteText
@@ -1047,15 +1081,17 @@ def post_redacted_note(request):
                     noteTextWords[index] = matchWordMap[1]
                 pass
             pass
-        rNote.contents = ' '.join(noteTextWords)
+        """
+        
+        rNote.contents = ''.join(noteCharList)
         rNote.points = datum['points']
         rNote.save()
         
         ## Create all the WordMeta using pairs from wordMapIndicesStore
-        for pair in wordMapIndicesStore:
-            wMeta = WordMeta(rNote=rNote, wordIndex=pair[0], wordMap=pair[1])
+        for data in wordMapIndicesStore:
+            wMeta = WordMeta(owner=request_user, rNote=rNote, charIndex=data[0], wordLength=data[1], wordMap=data[2])
             wMeta.save()
-            pass
+             pass
         pass
     response = HttpResponse("No Errors?", "text/json")
     response.status_code = 200
