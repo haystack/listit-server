@@ -307,7 +307,7 @@ class WordMeta(models.Model):
     wordMap    = models.ForeignKey(WordMap, related_name='redacted_word_map')
     def __unicode__(self):
         import utils
-        return unicode('(Note:%s), index:%s, len:%s, map:%s' % (repr(self.rNote), self.charIndex, self.wordLength, self.wordMap))
+        return unicode('(Note:%s), char/word index:%s/%s, len:%s, map:%s' % (repr(self.rNote),self.charIndex,self.wordIndex,self.wordLength, self.wordMap))
 
 ## Register RedactedSkip, RedactedNote, WordMeta, WordMap
 try:
