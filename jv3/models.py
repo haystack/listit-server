@@ -301,12 +301,13 @@ class WordMap(models.Model):
 class WordMeta(models.Model):
     owner      = models.ForeignKey(authmodels.User,related_name='word_meta_owner',null=True)
     rNote      = models.ForeignKey(RedactedNote,related_name='redacted_word_meta',null=True)
-    charIndex  = models.DecimalField(max_digits=19,decimal_places=0) ## Starting character's index
-    wordLength = models.DecimalField(max_digits=19,decimal_places=0) ## Number of characters in word
+    charIndex  = models.IntegerField() ## Starting character's index
+    wordLength = models.IntegerField() ## Number of characters in word
+    wordIndex  = models.IntegerField() ## Index of redacted word
     wordMap    = models.ForeignKey(WordMap, related_name='redacted_word_map')
     def __unicode__(self):
         import utils
-        return unicode('(Note:%s), index:%s, len:%s, map:%s' % (repr(self.rNote), self.charIndex, self.wordLength self.wordMap))
+        return unicode('(Note:%s), index:%s, len:%s, map:%s' % (repr(self.rNote), self.charIndex, self.wordLength, self.wordMap))
 
 ## Register RedactedSkip, RedactedNote, WordMeta, WordMap
 try:

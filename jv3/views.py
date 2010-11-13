@@ -911,13 +911,6 @@ def post_usage_statistics(request):
 ##  Redaction Code  ##
 ######################
 
-def getWordsArr(text):
-    ## Get array of words, separated by spaces, removing '\n'
-    wordsArr = []
-    dd = [wordsArr.extend(line.split(' ')) for line in text.split('\n')]
-    wordsArr = filter(lambda x:x!='',wordsArr)
-    return wordsArr
-
 def convertWordToSymbols(privWord):
     ## Convert private word into public word
     pubWordList = list(privWord)
@@ -1031,15 +1024,12 @@ def post_redacted_note(request):
         rNote.noteType = datum['noteType']
         
         ##noteText = datum['text']
-        ##noteTextWords = getWordsArr(noteText) ## list of words in note! may be deleted...
-
         redactedCharInfo = datum['redactedCharInfo'] ## Tuples: (char index, word length)
         noteCharList = list(datum['text']) ## List of characters
 
         wordMapIndicesStore = [] ## Stores [word index, WordMap(instance)] pairs
         ## for making WordMeta instances after note is saved
-
-        for charStartIndex, wordLength in redactedCharInfo:
+        for charStartIndex, wordLength, wordIndex in redactedCharInfo:
             rType = "markAsRemoved"
             startIndex = charStartIndex
             endIndex = startIndex + wordLength
@@ -1048,10 +1038,10 @@ def post_redacted_note(request):
             if matchWordMap is False:
                 ## Create a new WordMap
                 wordMapIDRep, repWord = createWordMap(request_user, rType, privWord)
-                wordMapIndicesStore.append([charStartIndex, wordLength, wordMapIDRep])
+                wordMapIndicesStore.append([charStartIndex, wordLength, wordIndex, wordMapIDRep])
                 noteCharList[startIndex:endIndex] = list(repWord)
             else:
-                wordMapIndicesStore.append([charStartIndex, wordLength, matchWordMap[0]])
+                wordMapIndicesStore.append([charStartIndex, wordLength, wordIndex, matchWordMap[0]])
                 noteCharList[startIndex:endIndex] = list(matchWordMap[1])
 
         ## Christmas Comment string - kat goes lol :D
@@ -1086,12 +1076,11 @@ def post_redacted_note(request):
         rNote.contents = ''.join(noteCharList)
         rNote.points = datum['points']
         rNote.save()
-        
         ## Create all the WordMeta using pairs from wordMapIndicesStore
         for data in wordMapIndicesStore:
-            wMeta = WordMeta(owner=request_user, rNote=rNote, charIndex=data[0], wordLength=data[1], wordMap=data[2])
+            wMeta = WordMeta(owner=request_user, rNote=rNote, charIndex=data[0], wordLength=data[1], wordIndex=data[2], wordMap=data[3])
             wMeta.save()
-             pass
+            pass
         pass
     response = HttpResponse("No Errors?", "text/json")
     response.status_code = 200
