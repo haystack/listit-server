@@ -695,7 +695,7 @@ def extract_zen_notes_data(note):
             "col":80,
             "row":1,
             "version":note.version,
-            "deleted":"false",
+            "deleted": note.deleted,  # ?? "false",
             "created":note.created};
 
 
@@ -1022,7 +1022,6 @@ def post_redacted_note(request):
         rNote.jid = datum['id']
         rNote.version = datum['version']
         rNote.noteType = datum['noteType']
-        
         ##noteText = datum['text']
         redactedCharInfo = datum['redactedCharInfo'] ## Tuples: (char index, word length)
         noteCharList = list(datum['text']) ## List of characters
@@ -1035,8 +1034,7 @@ def post_redacted_note(request):
             endIndex = startIndex + wordLength
             privWord = ''.join(noteCharList[startIndex:endIndex])
             matchWordMap = getWordMap(request_user, rType, privWord)
-            if matchWordMap is False:
-                ## Create a new WordMap
+            if matchWordMap is False:   ## Create a new WordMap
                 wordMapIDRep, repWord = createWordMap(request_user, rType, privWord)
                 wordMapIndicesStore.append([charStartIndex, wordLength, wordIndex, wordMapIDRep])
                 noteCharList[startIndex:endIndex] = list(repWord)
@@ -1072,7 +1070,6 @@ def post_redacted_note(request):
                 pass
             pass
         """
-        
         rNote.contents = ''.join(noteCharList)
         rNote.points = datum['points']
         rNote.save()
@@ -1111,7 +1108,7 @@ def post_skipped_redacted_note(request):
         skippedNote.jid     = datum['id']
         skippedNote.version = datum['version']
         skippedNote.save()
-        
+        pass
     response = HttpResponse("No Errors?", "text/json")
     response.status_code = 200
     return response
