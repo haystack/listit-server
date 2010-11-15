@@ -273,7 +273,6 @@ class RedactedNote(models.Model):
     contents = models.TextField(blank=True)
     
     noteType = models.CharField(max_length=50)
-    points   = models.DecimalField(max_digits=19,decimal_places=0)
 
     update_fields = ['contents', 'created', 'origDeleted']
     def __unicode__(self):
@@ -291,7 +290,7 @@ class WordMap(models.Model):
     owner    = models.ForeignKey(authmodels.User,related_name='word_map_owner',null=True)
     wordType = models.TextField(blank=True)
     privWord = models.TextField(blank=True) ## Private - not to be shown to others (original word in note)
-    pubWord  = models.TextField(blank=True) ## Public  - word chosen to replace privWord
+    pubWord  = models.TextField(blank=True) ## Public  - word chosen to replace privWord [made of (x X 9 *)]
     def __unicode__(self):
         import utils
         return unicode('o:%s, type:%s, (%s => %s)' % (

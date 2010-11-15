@@ -958,12 +958,11 @@ def get_redact_notes(request):
     ## Remove all skipped notes
     for skippedNote in userSkippedNotes:
         notes = notes.exclude(version=skippedNote.version, jid=skippedNote.jid)
+        pass
     ## Remove all previously-redacted notes, adding up their points.
-    points = 0
     for redactedNote in userRedactedNotes:
-        points += redactedNote.points
         notes = notes.exclude(version=redactedNote.version, jid=redactedNote.jid)
-    
+        pass
     numNotesLeft = len(notes)
     ndicts = [ extract_zen_notes_data(note) for note in notes ]
     allNotes = []
@@ -987,7 +986,7 @@ def get_redact_notes(request):
             resultMap[wMap.wordType][wMap.privWord] = True
         pass
     userMeta = {
-        'userPoints': str(points),
+        'userPoints': "0",
         'totalNotes': str(numNotes),
         'numNotesLeft': str(numNotesLeft)}
     
@@ -1004,7 +1003,7 @@ def post_redacted_note(request):
             {'autherror':"Incorrect user/password combination"}), "text/json")
         response.status_code = 401
         return response
-
+    print("Starting loop")
     for datum in JSONDecoder().decode(request.raw_post_data):
         ver = datum['version']
         noteID = datum['id']
@@ -1022,10 +1021,9 @@ def post_redacted_note(request):
         rNote.jid = datum['id']
         rNote.version = datum['version']
         rNote.noteType = datum['noteType']
-        ##noteText = datum['text']
         redactedCharInfo = datum['redactedCharInfo'] ## Tuples: (char index, word length)
-        noteCharList = list(datum['text']) ## List of characters
-
+        noteText = datum['text']
+        noteCharList = list(noteText) ## List of characters
         wordMapIndicesStore = [] ## Stores [word index, WordMap(instance)] pairs
         ## for making WordMeta instances after note is saved
         for charStartIndex, wordLength, wordIndex in redactedCharInfo:
@@ -1041,37 +1039,8 @@ def post_redacted_note(request):
             else:
                 wordMapIndicesStore.append([charStartIndex, wordLength, wordIndex, matchWordMap[0]])
                 noteCharList[startIndex:endIndex] = list(matchWordMap[1])
-
-        ## Christmas Comment string - kat goes lol :D
-        ## This code used to store words by word index, above method uses character index/length!
-        """ 
-        for rType in datum['redactedIndices']:
-            sortedIndices = datum['redactedIndices'][rType]
-            sortedIndices.sort()
-            for index in sortedIndices: ##datum['redactedIndices'][rType]:
-                ## rType ~ markAsName, etc
-                ## index ~ index of word in note text
-                privWord = noteTextWords[index]
-                #matchWordMap ~ (WordMap, replWord)
-                matchWordMap = getWordMap(request_user, rType, privWord)
-
-                if matchWordMap is False:
-                    ## Create a new WordMap
-                    wordMapIDRep, repWord = createWordMap(request_user, rType, privWord)
-                    ## Add map to store, replace word in noteText
-                    wordMapIndicesStore.append([index, wordMapIDRep])
-
-                    noteCharList[startCharIndex:endCharIndex] = list(repWord)
-                    noteTextWords[index] = repWord
-                else:
-                    ## Add map to store, replace word in noteText
-                    wordMapIndicesStore.append([index, matchWordMap[0]])
-                    noteTextWords[index] = matchWordMap[1]
-                pass
             pass
-        """
         rNote.contents = ''.join(noteCharList)
-        rNote.points = datum['points']
         rNote.save()
         ## Create all the WordMeta using pairs from wordMapIndicesStore
         for data in wordMapIndicesStore:
@@ -1102,7 +1071,7 @@ def post_skipped_redacted_note(request):
             mNote.delete()
         for sNote in matchingSkips:
             sNote.delete()
-
+            pass
         skippedNote = RedactedSkip()
         skippedNote.owner   = request_user
         skippedNote.jid     = datum['id']
