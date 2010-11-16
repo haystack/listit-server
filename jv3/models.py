@@ -254,11 +254,11 @@ if hasattr(settings, 'DEFINE_SURVEY') and settings.DEFINE_SURVEY:
 
 ##  Redaction Models ##
 
-class RedactedSkip(models.Model):
-    # Keeps track of notes a user doesn't want to redact.
-    owner = models.ForeignKey(authmodels.User,related_name='skipped_redacted_note_owner',null=True)
-    jid = models.IntegerField(default=0)
-    version = models.IntegerField(default=0)
+##class RedactedSkip(models.Model):
+##    # Keeps track of notes a user doesn't want to redact.
+##    owner = models.ForeignKey(authmodels.User,related_name='skipped_redacted_note_owner',null=True)
+##    jid = models.IntegerField(default=0)
+##    version = models.IntegerField(default=0)
 
 class RedactedNote(models.Model):
     ## Original Note Data
@@ -309,10 +309,10 @@ class WordMeta(models.Model):
         return unicode('(Note:%s), char/word index:%s/%s, len:%s, map:%s' % (repr(self.rNote),self.charIndex,self.wordIndex,self.wordLength, self.wordMap))
 
 ## Register RedactedSkip, RedactedNote, WordMeta, WordMap
-try:
-    admin.site.register(RedactedSkip)
-except sites.AlreadyRegistered,r:
-    pass
+##try:
+##    admin.site.register(RedactedSkip)
+##except sites.AlreadyRegistered,r:
+##    pass
 
 try:
     admin.site.register(RedactedNote)

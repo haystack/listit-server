@@ -12,7 +12,7 @@ import django.contrib.auth.models as authmodels
 from django_restapi.resource import Resource
 from django_restapi.model_resource import InvalidModelData
 from jv3.models import Note, NoteForm
-from jv3.models import RedactedNote, RedactedSkip
+from jv3.models import RedactedNote ##, RedactedSkip
 from jv3.models import WordMap, WordMeta
 import jv3.utils
 from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport, ServerLog, CachedActivityLogStats
@@ -954,11 +954,11 @@ def get_redact_notes(request):
     notes = Note.objects.filter(owner=request_user).order_by("-created").exclude(jid=-1).exclude(contents="")
     numNotes = len(notes)
     userRedactedNotes = RedactedNote.objects.filter(owner=request_user)
-    userSkippedNotes  = RedactedSkip.objects.filter(owner=request_user)
+    ##userSkippedNotes  = RedactedSkip.objects.filter(owner=request_user)
     ## Remove all skipped notes
-    for skippedNote in userSkippedNotes:
-        notes = notes.exclude(version=skippedNote.version, jid=skippedNote.jid)
-        pass
+    ##for skippedNote in userSkippedNotes:
+    ##    notes = notes.exclude(version=skippedNote.version, jid=skippedNote.jid)
+    ##    pass
     ## Remove all previously-redacted notes, adding up their points.
     for redactedNote in userRedactedNotes:
         notes = notes.exclude(version=redactedNote.version, jid=redactedNote.jid)
@@ -1052,35 +1052,35 @@ def post_redacted_note(request):
     response.status_code = 200
     return response
 
-def post_skipped_redacted_note(request):
-    request_user = basicauth_get_user_by_emailaddr(request)
-    if not request_user:
-        logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
-        response = HttpResponse(JSONEncoder().encode(
-            {'autherror':"Incorrect user/password combination"}), "text/json")
-        response.status_code = 401
-        return response
-
-    for datum in JSONDecoder().decode(request.raw_post_data):
-        ver = datum['version']
-        noteID = datum['id']
-        matchingNotes = RedactedNote.objects.filter(jid=noteID, version=ver)
-        matchingSkips = RedactedSkip.objects.filter(jid=noteID, version=ver)
-        for mNote in matchingNotes:
-            del_wordmeta_for_note(mNote)
-            mNote.delete()
-        for sNote in matchingSkips:
-            sNote.delete()
-            pass
-        skippedNote = RedactedSkip()
-        skippedNote.owner   = request_user
-        skippedNote.jid     = datum['id']
-        skippedNote.version = datum['version']
-        skippedNote.save()
-        pass
-    response = HttpResponse("No Errors?", "text/json")
-    response.status_code = 200
-    return response
+##def post_skipped_redacted_note(request):
+##    request_user = basicauth_get_user_by_emailaddr(request)
+##    if not request_user:
+##        logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
+##        response = HttpResponse(JSONEncoder().encode(
+##            {'autherror':"Incorrect user/password combination"}), "text/json")
+##        response.status_code = 401
+##        return response
+##
+##    for datum in JSONDecoder().decode(request.raw_post_data):
+##        ver = datum['version']
+##        noteID = datum['id']
+##        matchingNotes = RedactedNote.objects.filter(jid=noteID, version=ver)
+##        ##matchingSkips = RedactedSkip.objects.filter(jid=noteID, version=ver)
+##        for mNote in matchingNotes:
+##            del_wordmeta_for_note(mNote)
+##            mNote.delete()
+##        for sNote in matchingSkips:
+##            sNote.delete()
+##            pass
+##        skippedNote = RedactedSkip()
+##        skippedNote.owner   = request_user
+##        skippedNote.jid     = datum['id']
+##        skippedNote.version = datum['version']
+##        skippedNote.save()
+##        pass
+##    response = HttpResponse("No Errors?", "text/json")
+##    response.status_code = 200
+##    return response
 
 ## Deletes WordMeta objects associated with given note.
 def del_wordmeta_for_note(n):

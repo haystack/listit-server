@@ -141,7 +141,7 @@ urlpatterns = patterns('server.jv3.views.',
                        
     (r'^get_redact_notes$', get_redact_notes),      ## GET              
     (r'^put_redact_notes/$', post_redacted_note),   ## POST redacted notes
-    (r'^put_skipped_redact_notes/$', post_skipped_redacted_note)    ## POST skipped redacted notes                  
+    ##(r'^put_skipped_redact_notes/$', post_skipped_redacted_note)    ## POST skipped redacted notes                  
     ##(r'^reconsent$', reconsent),                       
     #(r'^login$', 'django.contrib.auth.views.login', {'template_name': 'jv3/login.html', 'module_name':'jv3'}),
     #(r'^login$', login_view),                       
