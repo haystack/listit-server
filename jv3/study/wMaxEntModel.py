@@ -35,9 +35,26 @@ def getNoteCat():
     ## noteData[5] => highest rated category    
     return noteData
 
+def get_unique_cat():
+    ## Filters out multiple user ratings for same note
+    uniqueNotes = []
+    userDict = {}
+    noteData = intent.reada()
+    for item in noteData:
+        if item[2] in userDict.keys():
+            noteDict = userDict[item[2]]
+            if item[3] not in noteDict.keys():
+                userDict[item[3]] = True
+                uniqueNotes.append(item)
+        else: ## user doesn't have his own dict!
+            userDict[item[2]] = {item[3]:True}
+            uniqueNotes.append(item)
+    return uniqueNotes
+
+
 def splitNotes(category):
     getOwner = lambda x : User.objects.filter(id=x)[0] # turns id into owner
-    noteData = getNoteCat()
+    noteData = get_unique_cat()
     matches = filter(lambda x:x[5]==category, noteData)
     nonMatches = filter(lambda x:x[5]!=category, noteData)
     ## Turn list of category-note data into two list of notes
@@ -85,6 +102,7 @@ def addFeature(featureset, fname, fval):
 
 # Pass in whole sentence, then get tag of the one you want!
 def noteFeatures(note):
+    import math
     notevals = nvals(note)
     fs = {} ## Featureset
     words = nltk.word_tokenize(note.contents)
@@ -95,27 +113,34 @@ def noteFeatures(note):
     first_word_noun = word_is_noun(first_word)
     if first_word_verb:
         addFeature(fs, "first-word-is-verb", True)
-        #addFeature(fs, "first-verb", first_word)
+    #   addFeature(fs, "first-verb", first_word)
     if first_word_noun:
         addFeature(fs, "first-word-is-noun", True)
+    #addFeature(fs, "first-word", first_word)
+    #addFeature(fs, "second-word", words[1] if len(words)>=2 else "")
     verb_count = ca.note_verbs(notevals)['note_verbs']
     addFeature(fs, "contains-k-verbs(%s)"%(verb_count), True)
     note_words = ca.note_words(notevals)['note_words']
-    for i in range(note_words-1,note_words+2):
+    for i in range(note_words-1-math.floor(note_words/10.0),note_words+2+math.floor(note_words/10.0)):
         addFeature(fs, "contains-k-words()", i)
     note_lines = ca.note_lines(notevals)['note_lines']
     addFeature(fs, "contains-k-lines(%s)"%(note_lines), True)
     note_urls = ca.note_urls(notevals)['note_urls']
     if note_urls > 0:
         addFeature(fs, "contains->1-urls()", True)
-        addFeature(fs, "contains-k-urls(%s)"%(note_urls), True)
-        pass
+        #addFeature(fs, "contains-k-urls(%s)"%(note_urls), True)
     numbers = ca.numbers(notevals)['numbers']
     if numbers > 0:
         addFeature(fs, "contains->0-numbers()", True)
+    note_todos = ca.note_todos(notevals)['note_todos']
+    if note_todos > 0:
+        addFeature(fs, "contains-notetodos", True)
+    note_names = ca.note_names(notevals)["names"]
+    if note_names > 0:
+        addFeature(fs, "contains-note-names", True)
     symDaysofweek = "yes" if (ca.daysofweek(notevals)['daysofweek'] > 0) else "no"
     addFeature(fs, "contains-daysofweek",symDaysofweek)
-    return fs ## Featureset
+    return fs
 
 def createTokens(notesA, labelA, notesB, labelB):
     train_toks = [(noteFeatures(note), labelA) for note in notesA]
@@ -128,18 +153,16 @@ def createMemTokens():
     
 
 train_toks = createTokens(mem, 'memory trigger', notMem, 'not')  ##createMemTokens()
-tt_sample = train_toks[200:400]
-tt_sample.extend(train_toks[600:800])
+tt_sample = train_toks[0:170] # splits at 340
+tt_sample.extend(train_toks[487:657])
 BMFE = nltk.BinaryMaxentFeatureEncoding(labels=labels,mapping=mapping)
 model = nltk.MaxentClassifier.train(tt_sample,encoding=BMFE,labels=labels,max_iter=5)
-mAcc = nltk.classify.util.accuracy(model, [(noteFeatures(nn),'memory trigger') for nn in mem[:200]])
-nmAcc = nltk.classify.util.accuracy(model, [(noteFeatures(nn),'not') for nn in notMem[280:480]])
+mAcc = nltk.classify.util.accuracy(model, [(noteFeatures(nn),'memory trigger') for nn in mem[170:340]])
+nmAcc = nltk.classify.util.accuracy(model, [(noteFeatures(nn),'not') for nn in notMem[:170]])
 print("Accuracy with mem trig & not mem trig = %s & %s" % (mAcc,  nmAcc))
 
 model.show_most_informative_features(n=40)
 dummyvar = input("Next?")
 model.show_most_informative_features(n=40, show='pos')
-
-
 
 

@@ -274,28 +274,55 @@ def simRat(userA,userB,userC):
     ratings = read()
     userScores = [[], [],[]]
     rTypes = ['packrat','neat freak','sweeper','revisaholic']
-    k=1
+    k=0
     userA = userA
     userC = userC
     for rating in ratings:
         if noRat(userA,rating) or noRat(userC,rating):
             k+=1
             continue
+        sharedRatings = [(x,y) for x,y in rating[userA].iteritems() if x in rating[userC]]
         for ui, user in enumerate([userA, userC]):
+            ## Added 3 lines below: if two rates gave a shared rating to a user, 
+            ## use one of those shared ratings
+#            if len(sharedRatings) != 0:
+#                userScores[ui].append(sharedRatings[0][0])
+#                continue
             userRatings = [(typ,val) for typ,val in rating[user].items()]
-            maxType = [x for x,y in userRatings if y == max([i for n,i in userRatings])]
-
+#            maxType = [x for x,y in userRatings if y == max([i for n,i in userRatings])]
+            maxType = [x for x,y in userRatings]
             combined = [(x,y) for x,y in rating["consolidated"].iteritems()]
             combined.sort(key=lambda x: -x[1]) # ascending sort
             combined = [x for x,y in combined] # get rid of the ratings i think.
             maxType.sort(key=lambda x:listfind(combined,x))
-
-            maxType = maxType[0]
+            maxType = maxType[0]            
             userScores[ui].append(maxType)
     print 'skipped', k
     print len(userScores[0]), len(userScores[1]), len(userScores[2])
     print userA, "and", userC
     fKap2(userScores[0],userScores[1])
+
+def sman():
+    userA, userB = 'wstyke', 'kat'
+    users=[userA, userB]
+    ratings = read()
+    userScores = [[],[]]
+    rTypes = ['packrat','neat freak','sweeper','revisaholic']
+    for rating in ratings:
+        if noRat(userA, rating) or noRat(userB, rating):
+            continue
+        for ui,userString in enumerate(users):
+            userRating = rating[userString]
+            orderRating = [0]*4
+            for typIndex, typ in enumerate(rTypes):
+                if typ in userRating.keys():
+                    orderRating[typIndex] = userRating[typ]
+                else:
+                    orderRating[typIndex] = 0 ## shares '--' rating
+            userScores[ui].append(orderRating)
+    for i in range (0,4):
+        print "For type: ", rTypes[i]
+        print r('cor.test')( c([dd[i] for dd in userScores[0]]), c([dd[i] for dd in userScores[1]]), method="pearson")
 
 def listfind(l,x):
     if x in l: return l.index(x)
@@ -308,7 +335,11 @@ def noRat(userString, rating):
         userRatings = [(typ,val) for typ,val in rating[userString].items()]
         if len(userRatings) == 0:
             noRat = True
+    if 'userString' in rating:
+        if rating[userString] in ['','ins','0','insufficient']:
+            return True
     return noRat
+
 
 def fKap2(ratingsA, ratingsB):
     data = r.cbind(c(ratingsA), c(ratingsB))
