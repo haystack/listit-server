@@ -302,7 +302,7 @@ def simRat(userA,userB,userC):
     print userA, "and", userC
     fKap2(userScores[0],userScores[1])
 
-def sman():
+def ratingCorr():
     userA, userB = 'wstyke', 'kat'
     users=[userA, userB]
     ratings = read()
