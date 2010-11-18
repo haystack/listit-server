@@ -303,6 +303,7 @@ def simRat(userA,userB,userC):
     fKap2(userScores[0],userScores[1])
 
 def ratingCorr():
+    ## Correlation between Rater's ratings of users for each of 4 types
     userA, userB = 'wstyke', 'kat'
     users=[userA, userB]
     ratings = read()
@@ -320,9 +321,16 @@ def ratingCorr():
                 else:
                     orderRating[typIndex] = 0 ## shares '--' rating
             userScores[ui].append(orderRating)
-    for i in range (0,4):
-        print "For type: ", rTypes[i]
-        print r('cor.test')( c([dd[i] for dd in userScores[0]]), c([dd[i] for dd in userScores[1]]), method="pearson")
+    corr = []
+    for i in range(len(userScores[0])):
+        corr.append(r.cor(c(userScores[0][i]),c(userScores[1][i]),method='pearson')[0])
+    print sum(corr)/len(corr)
+    print sum(corr)
+    print len(corr)
+    ## This calculates correlation for each category, i think?
+    #for i in range (0,4):
+    #    print "For type: ", rTypes[i]
+    #    print r('cor.test')( c([dd[i] for dd in userScores[0]]), c([dd[i] for dd in userScores[1]]), method="pearson")
 
 def listfind(l,x):
     if x in l: return l.index(x)
