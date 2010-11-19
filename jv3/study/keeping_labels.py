@@ -302,9 +302,14 @@ def simRat(userA,userB,userC):
     print userA, "and", userC
     fKap2(userScores[0],userScores[1])
 
-def ratingCorr():
+def ratCorr():
+    ratingCorr('wstyke','emax')
+    ratingCorr('wstyke','kat')
+    ratingCorr('kat','emax')
+
+
+def ratingCorr(userA, userB):
     ## Correlation between Rater's ratings of users for each of 4 types
-    userA, userB = 'wstyke', 'kat'
     users=[userA, userB]
     ratings = read()
     userScores = [[],[]]
@@ -324,13 +329,20 @@ def ratingCorr():
     corr = []
     for i in range(len(userScores[0])):
         corr.append(r.cor(c(userScores[0][i]),c(userScores[1][i]),method='pearson')[0])
-    print sum(corr)/len(corr)
-    print sum(corr)
-    print len(corr)
-    ## This calculates correlation for each category, i think?
-    #for i in range (0,4):
-    #    print "For type: ", rTypes[i]
-    #    print r('cor.test')( c([dd[i] for dd in userScores[0]]), c([dd[i] for dd in userScores[1]]), method="pearson")
+    print "Pearson Correlation: ", sum(corr)/len(corr)
+    print "Variance: ", variance(corr), '\n\n'
+    ## This calculates intraclass correlation coefficient for each category
+    summary = ""
+    for catIndex in range(0,4):
+        print "ICC For type: ", rTypes[catIndex]
+        data = c([])
+        for ratIndex in range(len(userScores[0])):
+            data = r.rbind(data, c([userScores[0][ratIndex][catIndex],userScores[1][ratIndex][catIndex]]))
+        result = r.icc(data)
+        summary += "Category: %s, ICC: %s, p: %s, Confidince Interval: %s < ICC < %s\n" % (
+            rTypes[catIndex],result[6][0], result[11][0], result[13][0],result[14][0])
+        print result
+    print summary
 
 def listfind(l,x):
     if x in l: return l.index(x)
