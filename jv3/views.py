@@ -1004,8 +1004,8 @@ def post_redacted_note(request):
         response.status_code = 401
         return response
     print("Starting loop")
-    #for datum in JSONDecoder().decode(request.raw_post_data):
-    for datum in JSONDecoder().decode(unicode(request.raw_post_data, 'latin-1')):    
+    for datum in JSONDecoder().decode(request.raw_post_data):
+    #for datum in JSONDecoder().decode(unicode(request.raw_post_data, 'latin-1')):    
         ver = datum['version']
         noteID = datum['id']
         matchingNotes = RedactedNote.objects.filter(jid=noteID, version=ver)
