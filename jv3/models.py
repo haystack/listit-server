@@ -274,7 +274,7 @@ class RedactedNote(models.Model):
     
     noteType = models.CharField(max_length=50)
 
-    update_fields = ['contents', 'created', 'origDeleted']
+    ##update_fields = ['contents', 'created', 'origDeleted']
     def __unicode__(self):
         import utils
         return unicode('(%s-%s-%s) [User: %s, ID: %d, Ver: %s] (%s / %s) %s' % (
