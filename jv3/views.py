@@ -200,8 +200,8 @@ def notes_post_multi(request):
         else:
             # print "UPDATE an existing note"
             ## check if the client version needs updating
-            if len(matching_notes) > 1:  print "# of Matching Notes : %d " % len(matching_notes)
-    
+            if len(matching_notes) > 1:
+                print "# of Matching Notes : %d " % len(matching_notes)
             if (matching_notes[0].version > form.data['version']):
                 responses.append({"jid":form.data['jid'],"status":400})
                 continue            
@@ -768,10 +768,10 @@ def get_zen(request):
 
     iconType = request.GET.get("ICON", 'none')
     if iconType == 'X':  ## For zen site
-        print "Called from /zen/ site"
+        ##print "Called from /zen/ site"
         htmlblob = "\n".join([ "<div class='note' name='%(archiveState)s' style='display:%(startVisibility)s'><img class='deleteX' src='x.png' alt='Delete' onClick='zenNoteAjax.saveEditedNote(\"%(jid)s\", true)'/> <textarea name='note' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onFocus='zenNoteView.noteClicked(\"%(jid)s\")' cols='%(col)s' rows='%(row)s' hasFocus='false' hasSelect='false' onBlur='zenNoteView.noteBlur(\"%(jid)s\")' style='overflow:hidden'>%(noteText)s</textarea></div>" % n for n in ndicts ])
     else:                ## For tags site
-        print "Called from /tags/ site"
+        ##print "Called from /tags/ site"
         htmlblob = "\n".join([ "<div class='note' name='%(archiveState)s' style='display:%(startVisibility)s'><img class='deleteX' src='arrow-left.png' alt='Delete' onMouseOver='zenNoteView.dispNoteOptions(\"%(jid)s\", true)' onmouseout=\"zenNoteView.noteOptions.startTimer();\"/> <textarea name='note' id='%(jid)s' edited='%(edited)s' created='%(created)s' version='%(version)s' deleted='%(deleted)s' pk='%(pk)s' onFocus='zenNoteView.noteClicked(\"%(jid)s\")' cols='%(col)s' rows='%(row)s' hasFocus='false' hasSelect='false' onBlur='zenNoteView.noteBlur(\"%(jid)s\")' style='overflow:hidden'>%(noteText)s</textarea></div>" % n for n in ndicts ])
     
     if iphone and additionalNotesWaiting:
@@ -942,6 +942,15 @@ def createWordMap(request_user, rType, privWord):
     wMap.save()
     return (wMap, pubWord)
 
+## Use this when server and client disagree over length of word being redacted
+## IE: Chinese symbols, use length server sends out (1 per symbol)
+## not the 3 per symbol the client returns...
+def createSpecialWordMap(request_user, rType, privWord, wordLength):
+    pubWord = '^'*wordLength
+    wMap = WordMap(owner=request_user, wordType=rType, privWord=privWord, pubWord=pubWord)
+    wMap.save()
+    return (wMap, pubWord)
+
 def get_redact_notes(request):
     request_user = basicauth_get_user_by_emailaddr(request)
     if not request_user:
@@ -954,33 +963,24 @@ def get_redact_notes(request):
     notes = Note.objects.filter(owner=request_user).order_by("-created").exclude(jid=-1).exclude(contents="")
     numNotes = len(notes)
     userRedactedNotes = RedactedNote.objects.filter(owner=request_user)
-    ##userSkippedNotes  = RedactedSkip.objects.filter(owner=request_user)
-    ## Remove all skipped notes
-    ##for skippedNote in userSkippedNotes:
-    ##    notes = notes.exclude(version=skippedNote.version, jid=skippedNote.jid)
-    ##    pass
-    ## Remove all previously-redacted notes, adding up their points.
+    
     for redactedNote in userRedactedNotes:
         notes = notes.exclude(version=redactedNote.version, jid=redactedNote.jid)
         pass
     numNotesLeft = len(notes)
     ndicts = [ extract_zen_notes_data(note) for note in notes ]
     allNotes = []
-    
     for note in ndicts:
         allNotes.append(
             {"jid":note['jid'],"version":note['version'], "contents":note['noteText'],
              "deleted":note['deleted'], "created":str(note['created']),
              "edited":str(note['edited']) })
-        
     resultMap = {
         'markAsRemoved' : {},
         'markAsName'    : {},
         'markAsPassword': {},
         'markAsPhone'   : {}}
-
     redactedWordArray = WordMap.objects.filter(owner=request_user)
-    
     for wMap in redactedWordArray:
         if wMap.wordType in resultMap:
             resultMap[wMap.wordType][wMap.privWord] = True
@@ -989,7 +989,6 @@ def get_redact_notes(request):
         'userPoints': "0",
         'totalNotes': str(numNotes),
         'numNotesLeft': str(numNotesLeft)}
-    
     response = HttpResponse(JSONEncoder().encode({'notes':allNotes, 'wordMapIndices':resultMap, 'userMeta':userMeta}), "text/json")
     response.status_code = 200
     return response
@@ -1003,7 +1002,6 @@ def post_redacted_note(request):
             {'autherror':"Incorrect user/password combination"}), "text/json")
         response.status_code = 401
         return response
-    print("Starting loop")
     for datum in JSONDecoder().decode(request.raw_post_data):
     #for datum in JSONDecoder().decode(unicode(request.raw_post_data, 'latin-1')):    
         ver = datum['version']
@@ -1022,30 +1020,41 @@ def post_redacted_note(request):
         rNote.jid = datum['id']
         rNote.version = datum['version']
         rNote.noteType = datum['noteType']
-        redactedCharInfo = datum['redactedCharInfo'] ## Tuples: (char index, word length)
+        sCharIndices = datum['sCharIndices'] ## Tuples: (char index, word length)
         noteText = datum['text']
-        noteCharList = list(noteText) ## List of characters
-        wordMapIndicesStore = [] ## Stores [word index, WordMap(instance)] pairs
-        ## for making WordMeta instances after note is saved
-        for charStartIndex, wordLength, wordIndex in redactedCharInfo:
+        noteCharList = list(noteText)
+        wordMapIndicesStore = [] ## [word index, WordMap(instance)] to make WordMeta 
+        sCharIndices.sort(lambda x,y:cmp(y[2],x[2])) ## Sort redacted indices in reverse order
+        ## Walk thru note text, changing redacted text for public xX9* version
+        for rIndex, rLen, sIndex, sLen in sCharIndices:
+            ## Ex: chinese symbol Z from server seen on client as 3 utf-8 chars: abc
+            ## String "ZZ", with 2nd one redacted
+            ## rIndex = 4 = start index of redacted text in string
+            ## rLen   = 3 = length of word as seen by redact site (utf-8)
+            ## sIndex = 1 = start index of redacted text in original encoding (utf-16?)
+            ## sLen   = 1 = length of redacted string as sent from server
             rType = "markAsRemoved"
-            startIndex = charStartIndex
-            endIndex = startIndex + wordLength
-            privWord = ''.join(noteCharList[startIndex:endIndex])
+            privWord = ''.join(noteCharList[rIndex:rIndex+rLen])
             matchWordMap = getWordMap(request_user, rType, privWord)
             if matchWordMap is False:   ## Create a new WordMap
-                wordMapIDRep, repWord = createWordMap(request_user, rType, privWord)
-                wordMapIndicesStore.append([charStartIndex, wordLength, wordIndex, wordMapIDRep])
-                noteCharList[startIndex:endIndex] = list(repWord)
+                if rLen != sLen:
+                    ## Word server sent out and word recieved are encoded to different lengths
+                    wordMapIDRep, repWord = createSpecialWordMap(request_user, rType, privWord, sLen)
+                else:
+                    ## Create WordMap that stores original 
+                    wordMapIDRep, repWord = createWordMap(request_user, rType, privWord)
+                wordMapIndicesStore.append([sIndex, sLen, wordMapIDRep])
+                noteCharList[rIndex:rIndex+rLen] = list(repWord)
             else:
-                wordMapIndicesStore.append([charStartIndex, wordLength, wordIndex, matchWordMap[0]])
-                noteCharList[startIndex:endIndex] = list(matchWordMap[1])
+                ## Found a WordMap already describing this word
+                wordMapIndicesStore.append([sIndex, sLen, matchWordMap[0]])
+                noteCharList[rIndex:rIndex+rLen] = list(matchWordMap[1])
             pass
         rNote.contents = ''.join(noteCharList)
         rNote.save()
         ## Create all the WordMeta using pairs from wordMapIndicesStore
         for data in wordMapIndicesStore:
-            wMeta = WordMeta(owner=request_user, rNote=rNote, charIndex=data[0], wordLength=data[1], wordIndex=data[2], wordMap=data[3])
+            wMeta = WordMeta(owner=request_user, rNote=rNote, index=data[0], length=data[1], wordMap=data[2])
             wMeta.save()
             pass
         pass
@@ -1053,6 +1062,8 @@ def post_redacted_note(request):
     response.status_code = 200
     return response
 
+
+## Uses skippedNote model to remember never to pester user to redact a note again.
 ##def post_skipped_redacted_note(request):
 ##    request_user = basicauth_get_user_by_emailaddr(request)
 ##    if not request_user:

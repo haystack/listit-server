@@ -261,20 +261,18 @@ if hasattr(settings, 'DEFINE_SURVEY') and settings.DEFINE_SURVEY:
 ##    version = models.IntegerField(default=0)
 
 class RedactedNote(models.Model):
+    ## Redacted Note Data
+    owner = models.ForeignKey(authmodels.User,related_name='redacted_note_owner',null=True)
+    created = models.DecimalField(max_digits=19,decimal_places=0)
+    contents = models.TextField(blank=True)
+    noteType = models.CharField(max_length=100)
+
     ## Original Note Data
     nCreated = models.DecimalField(max_digits=19,decimal_places=0)
     nEdited  = models.DecimalField(max_digits=19,decimal_places=0)
     nDeleted = models.NullBooleanField()
-
-    owner = models.ForeignKey(authmodels.User,related_name='redacted_note_owner',null=True)
-    created = models.DecimalField(max_digits=19,decimal_places=0)
     jid = models.IntegerField(default=0)
     version = models.IntegerField(default=0)
-    contents = models.TextField(blank=True)
-    
-    noteType = models.CharField(max_length=50)
-
-    ##update_fields = ['contents', 'created', 'origDeleted']
     def __unicode__(self):
         import utils
         return unicode('(%s-%s-%s) [User: %s, ID: %d, Ver: %s] (%s / %s) %s' % (
@@ -296,17 +294,16 @@ class WordMap(models.Model):
         return unicode('o:%s, type:%s, (%s => %s)' % (
             repr(self.owner.username), self.wordType, self.privWord, self.pubWord))
 
-# Stores meta information about a redacted note's redacted-words
+# Stores meta info about a redacted note's redacted-words
 class WordMeta(models.Model):
-    owner      = models.ForeignKey(authmodels.User,related_name='word_meta_owner',null=True)
-    rNote      = models.ForeignKey(RedactedNote,related_name='redacted_word_meta',null=True)
-    charIndex  = models.IntegerField() ## Starting character's index
-    wordLength = models.IntegerField() ## Number of characters in word
-    wordIndex  = models.IntegerField() ## Index of redacted word
-    wordMap    = models.ForeignKey(WordMap, related_name='redacted_word_map')
+    owner   = models.ForeignKey(authmodels.User,related_name='word_meta_owner',null=True)
+    rNote   = models.ForeignKey(RedactedNote,related_name='redacted_word_meta',null=True)
+    index   = models.IntegerField() ## Starting character's index
+    length  = models.IntegerField() ## Number of characters in word
+    wordMap = models.ForeignKey(WordMap, related_name='redacted_word_map')
     def __unicode__(self):
         import utils
-        return unicode('(Note:%s), char/word index:%s/%s, len:%s, map:%s' % (repr(self.rNote),self.charIndex,self.wordIndex,self.wordLength, self.wordMap))
+        return unicode('(Note:%s), index/length:(%s:%s), map:%s' % (repr(self.rNote),self.index,self.length,self.wordMap))
 
 ## Register RedactedSkip, RedactedNote, WordMeta, WordMap
 ##try:
@@ -328,5 +325,3 @@ try:
     admin.site.register(WordMeta)
 except sites.AlreadyRegistered,r:
     pass
-
-
