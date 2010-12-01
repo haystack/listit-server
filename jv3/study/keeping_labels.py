@@ -303,17 +303,19 @@ def simRat(userA,userB,userC):
     fKap2(userScores[0],userScores[1])
 
 def ratCorr():
-    ratingCorr('wstyke','emax')
-    ratingCorr('wstyke','kat')
-    ratingCorr('kat','emax')
+    for us in [ratingCorr('wstyke','emax'), ratingCorr('wstyke','kat'), ratingCorr('kat','emax')]:
+        aveCorr(us)
+        iccCat(us)
 
+rTypes = ['packrat','neat freak','sweeper','revisaholic']
 
 def ratingCorr(userA, userB):
     ## Correlation between Rater's ratings of users for each of 4 types
     users=[userA, userB]
+    print "For raters: ", userA, ", ", userB
     ratings = read()
     userScores = [[],[]]
-    rTypes = ['packrat','neat freak','sweeper','revisaholic']
+    global rTypes
     for rating in ratings:
         if noRat(userA, rating) or noRat(userB, rating):
             continue
@@ -326,11 +328,17 @@ def ratingCorr(userA, userB):
                 else:
                     orderRating[typIndex] = 0 ## shares '--' rating
             userScores[ui].append(orderRating)
+    return userScores
+
+def aveCorr(userScores):
     corr = []
     for i in range(len(userScores[0])):
         corr.append(r.cor(c(userScores[0][i]),c(userScores[1][i]),method='pearson')[0])
     print "Pearson Correlation: ", sum(corr)/len(corr)
     print "Variance: ", variance(corr), '\n\n'
+
+def iccCat(userScores):
+    global rTypes
     ## This calculates intraclass correlation coefficient for each category
     summary = ""
     for catIndex in range(0,4):
@@ -338,11 +346,12 @@ def ratingCorr(userA, userB):
         data = c([])
         for ratIndex in range(len(userScores[0])):
             data = r.rbind(data, c([userScores[0][ratIndex][catIndex],userScores[1][ratIndex][catIndex]]))
-        result = r.icc(data)
+        result = r.icc(data, type='agreement')
         summary += "Category: %s, ICC: %s, p: %s, Confidince Interval: %s < ICC < %s\n" % (
             rTypes[catIndex],result[6][0], result[11][0], result[13][0],result[14][0])
         print result
     print summary
+    return result
 
 def listfind(l,x):
     if x in l: return l.index(x)

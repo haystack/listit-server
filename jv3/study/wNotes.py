@@ -21,6 +21,7 @@ import jv3.study.keeping_labels as kl
 import jv3.study.intention as intent
 import jv3.study.wFunc as wf
 import jv3.study.wUserWalk as uw
+import jv3.study.wMaxEntModel as wm
 
 r = ro.r
 em = User.objects.filter(email="emax@csail.mit.edu")[0]
