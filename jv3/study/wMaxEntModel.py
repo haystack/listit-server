@@ -304,3 +304,8 @@ def getListOfFirstWords(notes):
         rr.append((key, pair[1]))
     rr.sort(lambda x,y:cmp(x[1],y[1]))
     return rr
+
+def test(func):
+    for i in range(0,10):
+        print i
+        judgeFeature(lambda a,b:func(a,b,i),mem,notMem)
