@@ -112,6 +112,7 @@ def addFeature(featureset, fname, fval):
 reload(wFeatures)
 
 def noteFeatures(note):
+    global mem, notMem
     notevals = nvals(note)
     fs = {}
     noteWords = nltk.word_tokenize(note.contents)
@@ -207,7 +208,7 @@ training_set = getTrainingSet(posTokens, negTokens, 15)
 
 def buildModel(train_toks, posTest, negTest, count_cutoff=0):
     BMFE = nltk.BinaryMaxentFeatureEncoding.train(train_toks, count_cutoff)
-    model = nltk.MaxentClassifier.train(train_toks,encoding=BMFE,max_iter=5)
+    model = nltk.MaxentClassifier.train(train_toks,encoding=BMFE,max_iter=4)
     mAcc = nltk.classify.util.accuracy(model, posTest)#[(noteFeatures(nn),'memory trigger') for nn in posTest])
     nmAcc = nltk.classify.util.accuracy(model, negTest)#[(noteFeatures(nn),'not') for nn in negTest])
     totTest = posTest
@@ -284,8 +285,9 @@ def judgeFeature(func, mem, notMem):
     print sum(posNeg[0]), " / ", sum(posNeg[1])
     try:
         print "High = describes mem notes more: ", sum(posNeg[0]) / (1.0*sum(posNeg[1]))
+        return  sum(posNeg[0]) / (1.0*sum(posNeg[1]))
     except:
-        print "Oops"
+        return -1
     
 def judgeAllFeatures():
     for feat in wFeatures.features:
@@ -309,3 +311,4 @@ def test(func):
     for i in range(0,10):
         print i
         judgeFeature(lambda a,b:func(a,b,i),mem,notMem)
+
