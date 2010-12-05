@@ -95,6 +95,21 @@ except:
     mem, notMem = splitNotes('memory trigger')
 
 try:
+    allWordDict = allWordDict
+except:
+    allWordDict = {}
+    for note in mem:
+        for word in nltk.word_tokenize(note.contents):
+            if word not in allWordDict:
+                allWordDict[word]=(0,0)
+            allWordDict[word][0] += 1
+    for note in notMem:
+        for word in nltk.word_tokenize(note.contents):
+            if word not in allWordDict:
+                allWordDict[word]=(0,0)
+            allWordDict[word][1] += 1
+
+try:
     ref = ref
 except:
     ref, notRef = splitNotes('reference')
@@ -110,23 +125,44 @@ def addFeature(featureset, fname, fval):
             mapping[(fname,fval,label)]=len(mapping)
 
 reload(wFeatures)
+first_nonsymb_word_line = lambda txt: re.findall('^[^\w]*(\w+)', txt, re.MULTILINE)
+
 
 def noteFeatures(note):
     global mem, notMem
     notevals = nvals(note)
     fs = {}
-    noteWords = nltk.word_tokenize(note.contents)
+    noteWords = nltk.tokenize.WordPunctTokenizer().tokenize(note.contents)
     for feature in wFeatures.features:
         fname, fval = feature(notevals, noteWords)
-        addFeature(fs, fname, fval)
+        if fval != False:
+            addFeature(fs, fname, fval)
+#    for word in 
+#    global allWordDict
+#    for word in noteWords:
+#        if word in allWordDict:
+#            if (allWordDict[word][1] >= 6 or allWordDict[word][2] >= 6) and (
+#                allWordDict[word][1] >= 3*allWordDict[word][2] or
+#                allWordDict[word][2] >= 3*allWordDict[word][1]):
+#                addFeature(fs, 'contains-word-%s'%(word), True)
+## Boosted Neg to a solid 74.7% !!
+    seenWords = {}
+    for word in first_nonsymb_word_line(note.contents):
+        word = word.lower() ## map all words to lowercase words
+        if word not in seenWords:
+            seenWords[word] = 0
+        seenWords[word] += 1
+    for word, count in seenWords.items():
+        addFeature(fs,"HAS: %s"%(word), True)
+#        addFeature(fs, "%s-%s-times"%(word, count), True)
 #    for word in noteWords:
 #        if wFeatures.word_is_verb(word) or word in wFeatures.stopWords:
 #            addFeature(fs, 'contains-word', word)
 #    for i in range(len(noteWords)-1): ## Bigrams?
-#        addFeature(fs, "w1:%s"%(noteWords[i]), "w2:%s"%(noteWords[i+1]))
+#        addFeature(fs, "%s -^- %s"%(noteWords[i], noteWords[i+1]), True)
 #    for word in noteWords:
-#        if wFeatures.word_is_verb(word):
-#            addFeature(fs, "contains-word", word)
+#        if  word in wFeatures.actionWords:
+#            addFeature(fs, "has-word: %s"%(word), True)
     return fs
 
 def createTokens(notesA, labelA, notesB, labelB):
@@ -147,10 +183,10 @@ def splitTokens(posArray, negArray):
     import random as rr
     rr.shuffle(posArray)
     rr.shuffle(negArray)
-    pos_train = posArray[:len(posArray)/2]
-    pos_test = posArray[len(posArray)/2:]
-    neg_train = negArray[:len(negArray)/2]
-    neg_test = negArray[len(negArray)/2:]
+    pos_train = posArray[:len(posArray)/2]#int(2.0*len(posArray)/3.0)]
+    pos_test = posArray[len(posArray)/2:]#int(2.0*len(posArray)/3.0):]
+    neg_train = negArray[:len(negArray)/2]#int(2.0*len(negArray)/3.0)]
+    neg_test = negArray[len(negArray)/2:]#int(2.0*len(negArray)/3.0):]
     training_set = pos_train
     training_set.extend(neg_train)
     return (training_set, pos_test, neg_test)
@@ -164,7 +200,7 @@ def getTrainingSet(posTokens, negTokens, count=4):
         training_set.append(splitTokens(posTokens,negTokens))
     return training_set
 
-training_set = getTrainingSet(posTokens, negTokens, 15)
+training_set = getTrainingSet(posTokens, negTokens, 15)#15)
                            
 #mapping = {}
 #labels = ['reference', 'not']
@@ -208,7 +244,7 @@ training_set = getTrainingSet(posTokens, negTokens, 15)
 
 def buildModel(train_toks, posTest, negTest, count_cutoff=0):
     BMFE = nltk.BinaryMaxentFeatureEncoding.train(train_toks, count_cutoff)
-    model = nltk.MaxentClassifier.train(train_toks,encoding=BMFE,max_iter=4)
+    model = nltk.MaxentClassifier.train(train_toks,encoding=BMFE,max_iter=20)
     mAcc = nltk.classify.util.accuracy(model, posTest)#[(noteFeatures(nn),'memory trigger') for nn in posTest])
     nmAcc = nltk.classify.util.accuracy(model, negTest)#[(noteFeatures(nn),'not') for nn in negTest])
     totTest = posTest
@@ -222,38 +258,65 @@ def buildModel(train_toks, posTest, negTest, count_cutoff=0):
     
 
 def evaluateCutoffs(training_set, cutoffs):
+    global mem, notMem
     average = lambda x:sum(x)/len(x)
-    precision = lambda tp,fp: (1.0*tp)/(tp+fp)
-    recall = lambda tp,fn:(1.0*tp)/(tp+fn)
+    precision = lambda tp,fp: (1.0*tp)/(tp+fp) ## Pos Predictive Value
+    recall = lambda tp,fn:(1.0*tp)/(tp+fn)     ## Sensitivity
+    negPred = lambda tn, fn: (1.0*tn)/(tn+fn)
+    specificity = lambda tn,fp: (1.0*tn)/(tn+fp)
     accArray = []
     precallAverage = [] # [[Precision, Recall], ... ]
+    precallAverageB = []
     for index,cutoff in enumerate(cutoffs):
         print "Cutoff = ", cutoff
         posAcc,negAcc, totAcc = [],[],[]
-        prec = [] # Precision counts for each set in training_set
-        rec = []  # Recall counts for each set...
+        tpTOT = [] ## tp percents
+        fpTOT = []
+        fnTOT = []
+        tnTOT = []
+        prec = [] # Precision percents for each set in training_set
+        rec = []  # Recall percents for each set..
+        spec = []
+        negP = []
         for train_toks, posTest, negTest in training_set:
             model, mAcc, nmAcc, tAcc = buildModel(train_toks,posTest,negTest,cutoff)
             posAcc.append(mAcc)
             negAcc.append(nmAcc)
             totAcc.append(tAcc)
-            tp, fp = mAcc, 1-nmAcc
-            fn, tn = 1-mAcc, nmAcc
+            tp, fp = mAcc*len(mem), (1-nmAcc)*len(notMem)
+            fn, tn = (1-mAcc)*len(mem), nmAcc*len(notMem)
+            tpTOT.append(tp)
+            fpTOT.append(fp)
+            fnTOT.append(fn)
+            tnTOT.append(tn)
+            ## now tp,fp,fn,tn are counts
             prec.append(precision(tp,fp))
             rec.append(recall(tp,fn))
+            spec.append(specificity(tn,fp))
+            negP.append(negPred(tn,fn))
             pass
         accArray.append([average(posAcc), average(negAcc), average(totAcc)])
-        precallAverage.append([average(prec), average(rec)])
+        precallAverage.append([average(prec), average(rec), average(negP),average(spec)])
+        precallAverageB.append([precision(sum(tpTOT),sum(fpTOT)),recall(sum(tpTOT),sum(fnTOT)),
+                                negPred(sum(tnTOT),sum(fnTOT)), specificity(sum(tnTOT),sum(fpTOT))])
         pass
     for i, acc in enumerate(accArray):
-        print "Cutoff = %s => Average accuracy pos=%s, neg=%s, tot=%s"%(cutoffs[i],acc[0],acc[1],acc[2])
-        print "Precision: %s, Recall: %s"%(precallAverage[i][0],precallAverage[i][1]) 
-        print "F1 Score: %s"%(2.0*precallAverage[i][0]*precallAverage[i][1]/(precallAverage[i][0]+precallAverage[i][1]))
+        print "Cutoff......: %s"%(cutoffs[i])
+#        print "Cutoff = %s => Average accuracy pos=%s, neg=%s, tot=%s"%(cutoffs[i],acc[0],acc[1],acc[2])
+        print "Precision...: %s"%(precallAverageB[i][0])
+        print "Recall......: %s"%(precallAverageB[i][1])
+        print "True Neg....: %s"%(precallAverageB[i][2])
+        print "Specificity.: %s"%(precallAverageB[i][3])
+        #print "Precision/PosPredictive Value: %s, Recall: %s"%(precallAverage[i][0],precallAverage[i][1])
+        #print "Neg.PredictiveValue: %s, Specificity: %s"%(precallAverage[i][2],precallAverage[i][3])
+        #print "Precision / Recall / True Neg Rate / Specificity"
+        #print "%s / %s / %s / %s"%(precallAverageB[i][0],precallAverageB[i][1],precallAverageB[i][2],precallAverageB[i][3])
+        print "F1 Score....: %s"%(2.0*precallAverage[i][0]*precallAverage[i][1]/(precallAverage[i][0]+precallAverage[i][1]))
         print "--------------------------------------"
 
 
 
-evaluateCutoffs(training_set, [0,4])
+evaluateCutoffs(training_set, [0])#,10])#,4])
 
 #print "Category: Memory Trigger"
 #modelA = buildModel(train_toks, posTest, negTest, 0)
@@ -268,8 +331,8 @@ print "\x07"
       
 dummyvar = input("Next?")
 modelB = buildModel(train_toks, posTest, negTest, 0)
-modelB[0].show_most_informative_features(n=40, show='neg')
-modelB[0].show_most_informative_features(n=40, show='pos')
+modelB[0].show_most_informative_features(n=60, show='neg')
+modelB[0].show_most_informative_features(n=60, show='pos')
 
 
 def judgeFeature(func, mem, notMem):
@@ -312,3 +375,46 @@ def test(func):
         print i
         judgeFeature(lambda a,b:func(a,b,i),mem,notMem)
 
+
+
+contains_and = lambda notevals, words: ("contains_&", count_re('[\&]', notevals['contents']) > 0)
+
+#allWordDict = {}
+#for note in wm.mem:
+#    for word in nltk.word_tokenize(note.contents):
+#        if word not in allWordDict:
+#            allWordDict[word] = 0
+#        allWordDict[word] += 1
+
+#for note in wm.notMem:
+#    for word in nltk.word_tokenize(note.contents):
+#        if word not in allWordDict:
+#            allWordDict[word] = 0
+#        allWordDict[word] += 1
+
+allWords = [(pair[0],pair[1][0],pair[1][1]) for pair in allWordDict.items()]
+        
+def getParts(model):
+    ## TP,FN,FP,TN
+    modelParts = [[],[],[],[]]
+    for note in mem:
+        feat = noteFeatures(note)
+        if model.classify(feat) == 'not':
+            modelParts[1].append(note)
+        else:
+            modelParts[0].append(note)
+    for note in notMem:
+        feat = noteFeatures(note)
+        if model.classify(feat) == 'not':
+            modelParts[3].append(note)
+        else:
+            modelParts[2].append(note)
+    return modelParts
+
+def lookAt(parts):
+    pp=parts
+    for i in range(len(pp[1])):
+        print pp[1][i].contents
+        print '------------------------------------------------------------'
+        if (i%10==0):
+            time.sleep(3)
