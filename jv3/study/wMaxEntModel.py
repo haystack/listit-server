@@ -244,7 +244,7 @@ training_set = getTrainingSet(posTokens, negTokens, 15)#15)
 
 def buildModel(train_toks, posTest, negTest, count_cutoff=0):
     BMFE = nltk.BinaryMaxentFeatureEncoding.train(train_toks, count_cutoff)
-    model = nltk.MaxentClassifier.train(train_toks,encoding=BMFE,max_iter=20)
+    model = nltk.MaxentClassifier.train(train_toks,encoding=BMFE,max_iter=15)
     mAcc = nltk.classify.util.accuracy(model, posTest)#[(noteFeatures(nn),'memory trigger') for nn in posTest])
     nmAcc = nltk.classify.util.accuracy(model, negTest)#[(noteFeatures(nn),'not') for nn in negTest])
     totTest = posTest

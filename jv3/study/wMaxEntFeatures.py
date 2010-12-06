@@ -8,11 +8,7 @@ import re
 def makeLambda(f,i):
     return lambda x,y:f(x,y,i)
 
-
 stopWords = set(stopwords.words('english'))
-
-#stopWords = ["a", "about", "above", "above", "across", "after", "afterwards", "again", "against", "all", "almost", "alone", "along", "already", "also","although","always","am","among", "amongst", "amoungst", "amount",  "an", "and", "another", "any","anyhow","anyone","anything","anyway", "anywhere", "are", "around", "as",  "at", "back","be","became", "because","become","becomes", "becoming", "been", "before", "beforehand", "behind", "being", "below", "beside", "besides", "between", "beyond", "bill", "both", "bottom","but", "by", "call", "can", "cannot", "can't", "cant", "co", "con", "could", "couldnt", "cry", "de", "describe", "detail", "do", "done", "down", "due", "during", "each", "eg", "eight", "either", "eleven","else", "elsewhere", "empty", "enough", "etc", "even", "ever", "every", "everyone", "everything", "everywhere", "except", "few", "fifteen", "fify", "fill", "find", "fire", "first", "five", "for", "former", "formerly", "forty", "found", "four", "from", "front", "full", "further", "get", "give", "go", "had", "has", "hasnt", "have", "he", "hence", "her", "here", "hereafter", "hereby", "herein", "hereupon", "hers", "herself", "him", "himself", "his", "how", "however", "hundred", "ie", "if", "in", "inc", "indeed", "interest", "into", "is", "it", "its", "itself", "keep", "last", "latter", "latterly", "least", "less", "ltd", "made", "many", "may", "me", "meanwhile", "might", "mill", "mine", "more", "moreover", "most", "mostly", "move", "much", "must", "my", "myself", "name", "namely", "neither", "never", "nevertheless", "next", "nine", "no", "nobody", "none", "noone", "nor", "not", "nothing", "now", "nowhere", "of", "off", "often", "on", "once", "one", "only", "onto", "or", "other", "others", "otherwise", "our", "ours", "ourselves", "out", "over", "own","part", "per", "perhaps", "please", "put", "rather", "re", "same", "see", "seem", "seemed", "seeming", "seems", "serious", "several", "she", "should", "show", "side", "since", "sincere", "six", "sixty", "so", "some", "somehow", "someone", "something", "sometime", "sometimes", "somewhere", "still", "such", "system", "take", "ten", "than", "that", "the", "their", "them", "themselves", "then", "thence", "there", "thereafter", "thereby", "therefore", "therein", "thereupon", "these", "they", "thickv", "thin", "third", "this", "those", "though", "three", "through", "throughout", "thru", "thus", "to", "together", "too", "top", "toward", "towards", "twelve", "twenty", "two", "un", "under", "until", "up", "upon", "us", "very", "via", "was", "we", "well", "were", "what", "whatever", "when", "whence", "whenever", "where", "whereafter", "whereas", "whereby", "wherein", "whereupon", "wherever", "whether", "which", "while", "whither", "who", "whoever", "whole", "whom", "whose", "why", "will", "with", "within", "without", "would", "yet", "you", "your", "yours", "yourself", "yourselves", "the"]
-
 actionWords = ['todo','ToDo','TODO', 'See', 'see', 'send', 'get', 'call', 'email', 'read', 'Call', 'Set', 'ask', 'Do','do','contact','print','use']
 
 pos_word     = lambda word: nltk.pos_tag([word])[0][1]
@@ -24,8 +20,6 @@ count_pos    = lambda words, pos: sum([1 for pair in nltk.pos_tag(words) if pair
 count_array  = lambda words, array: sum([1 for word in words if word in array])
 get_posArray = lambda words: [pair[1] for pair in pos_word(words)] ## Returns array of pos tags for each word in wods
 
-
-
 ## RE_Features
 re_capword = lambda notevals, words: ("5+_allcaps", count_re('[A-Z]+',notevals['contents']) >4)
 re_num = lambda notevals, words: ("no_numsbers", count_re('[0-9.,/:]+', notevals['contents']) == 0)
@@ -33,20 +27,13 @@ re_numA = lambda notevals, words: ("1_numbers", count_re('[0-9.,/:]+', notevals[
 re_numB = lambda notevals, words: ("2_numbers", count_re('[0-9.,/:]+', notevals['contents']) == 2)
 re_numC = lambda notevals, words: ("3_numbers", count_re('[0-9.,/:]+', notevals['contents']) == 3)
 re_numD = lambda notevals, words: ("4+numbers", count_re('[0-9.,/:]+', notevals['contents']) > 3)
-##re_numwordA = lambda notevals, words: ("0_numwords", ca.numword_mix(notevals)['numword_mix'] == 0)
-##re_numwordB = lambda notevals, words: ("1_numwords", ca.numword_mix(notevals)['numword_mix'] == 1)
 lb_numword = lambda notevals, words: ("2+_numwords", ca.numword_mix(notevals)['numword_mix'] > 1)
 
 #k_test = lambda notevals, words, k: ("%s_numwords"%(k), ca.urls_over_length(notevals)[''] == k)
-
 #   k_test = lambda notevals, words, k: ("%s_numwords"%(k), count_re( , notevals['contents']) == k)
-# thresholdMaker([
-
 #re_name_len = lambda notevals, words: ("names/length", ca.(notevals)[''] > .005)
 
-
 re_features=[re_num, re_numA,re_numB,re_numC,re_numD,lb_numword]
-#re_features = [re_capword]
 
 ## Features
 first_word_noun = lambda notevals, words: ("first_word_noun", word_is_noun(words[0]))
@@ -62,10 +49,7 @@ first_word_action = lambda notevals, words: ("first_word_symb", words[0] in acti
 first_words_action = lambda notevals, words: ("first_2words_action", words[0] in actionWords or (len(words) > 1 and words[1] in actionWords))#['WDT','WP','WRB','WDT','VBZ'])
 first_3words_action = lambda notevals, words: ("first_3words_action", words[0] in actionWords or (len(words) > 1 and words[1] in actionWords) or  (len(words) > 2 and words[2] in actionWords))
 
-
-
 word_features = [first_word_det, first_word_verb,second_word_verb, first_word_action, first_words_action, first_word_stop, first_3words_action]
-word_features.extend([])
 ## trying to add things here!
 
 count_verbs = lambda notevals, words: ("count_verbs", ca.note_verbs(notevals)['note_verbs'])
@@ -84,17 +68,16 @@ contains_dets  = lambda notevals, words: ("contains_det", count_pos(words, ['DT'
 contains_3_dets  = lambda notevals, words: ("contains_3+_det", count_pos(words, ['DT']) >=3)
 contains_adj = lambda notevals, words: ("contains_adj", count_pos(words, ['JJ', 'JJR', 'JJS']) > 0)
 contains_adv = lambda notevals, words: ("contains_adv", count_pos(words, ['RB','RBR','RBS']) > 0)
-contains_linesZ = lambda notevals, words: ("contains_1_line", notevals['contents'].count('\n') == 0)
-contains_linesA = lambda notevals, words: ("contains_2+_lines", notevals['contents'].count('\n') >= 1)
+#contains_linesZ = lambda notevals, words: ("contains_1_line", notevals['contents'].count('\n') == 0)
+#contains_linesA = lambda notevals, words: ("contains_2+_lines", notevals['contents'].count('\n') >= 1)
 contains_linesB = lambda notevals, words: ("contains_3+_lines", notevals['contents'].count('\n') >= 2)
 contains_pronoun = lambda notevals, words: ("contains_1+_pronouns", count_pos(words, ['PRP', 'PRP$']) >= 1)
 #0.001 weight - contains_participle =  lambda notevals, words: ("contains_1+_participle", count_pos(words, ['RP']) >= 1)
 
 # contains_verbs .28 # contains_dets .5 # contains_3_dets .2187 # contains_adj .52 # contains_adv .49 # contains_linesB .35
 contains_features = [contains_verbs, contains_dets, contains_3_dets, contains_adj, contains_adv,contains_linesB]#,contains_linesZ,contains_linesA,contains_linesB]#, contains_tabs]#, contains_stopwds]
-contains_features.extend([contains_url])
+#contains_features.extend([contains_url])
 #contains_features = [contains_dow, contains_nouns, contains_verbs, contains_dets, contains_3_dets, contains_adj, contains_adv, contains_symb]#, contains_predet]
-
 
 # Testing below features
 DOWS=["mon","monday","tue","tuesday","wed","wedmesday","thu","thurs","thursday","fri","friday","sat","saturday","su\
@@ -119,9 +102,7 @@ contains_CC = lambda notevals, words: ("POS_coord_conjunction", count_pos(words,
 contains_todos = lambda notevals, words: ("contains_todos", ca.note_todos(notevals)['note_todos'] > 0)
 #contains_names = lambda notevals, words: ("contains_names", ca.note_names(notevals)["names"] > 0)
 
-
 # .5  # .48  # .42
-
 ## UNCOMMENT BELOW NOW !!!
 #testing_features = []
 testing_features = [contains_pronoun,contains_VBZ,contains_stopwds, contains_CC,contains_CD,contains_INA, contains_INB,contains_WDT, contains_PRP, contains_ending, contains_midpunct]
@@ -139,7 +120,6 @@ contains_atsymb = lambda notevals, words: ("contains_@", count_re('[\@]', noteva
 contains_hash = lambda notevals, words: ("contains_#", count_re('[\#]', notevals['contents']) > 0)
 contains_dollarsign = lambda notevals, words: ("contains_$", count_re('[\$]', notevals['contents']) > 0)
 
-
 contains_perc = lambda notevals, words: ("contains_%", count_re('[\%]', notevals['contents']) > 0)
 contains_caret = lambda notevals, words: ("contains_^", count_re('[\^]', notevals['contents']) > 0)
 contains_star = lambda notevals, words: ("contains_*", count_re('[\*]', notevals['contents']) > 0)
@@ -154,7 +134,6 @@ contains_brackets = lambda notevals, words: ("contains_brackets", count_re('[\[\
 # contains_period .38 # contains_comma .32  # contains_qmark .23  # contains_semicolon .235   # contains_colon .329
 punct_features = [contains_and,  contains_period, contains_periodA,contains_comma,contains_qmark,contains_semicolon,contains_colon,contains_brackets]#contains_quotes,contains_parens,contains_brackets]
 
-
 threshold_features = []
 def thresholdMaker(funcs, a,b,interval=1):
     global threshold_features
@@ -164,12 +143,9 @@ def thresholdMaker(funcs, a,b,interval=1):
 
 ## Threshold Functions ##
 lb_actwds = lambda notevals, words: ("contains_>=1_actwords", count_array(words, actionWords) >= 1)
-
 basic_threshold = [lb_actwds]
 
 ## Upper bound
-
-## Are these good/bad? ? ? ? <----  -- -- -- -- --
 ub_characters = lambda notevals, words, k: ("contains_<=%s_chars"%(k),  len(notevals['contents']) <= k)
 lb_characters = lambda notevals, words, k: ("contains_>=%s_chars"%(k),  len(notevals['contents']) >= k)
 ## Really low weights - too sparse it seems
@@ -188,12 +164,9 @@ ub_words = lambda notevals, words, k: ("contains_<=%s_words"%(k), len(words) >= 
 lb_characters = lambda notevals, words, k: ("contains_>=%s_chars"%(k),  len(notevals['contents']) >= k)
 thresholdMaker([lb_characters],100,141,40) #-- low weights :(  DONT USE!
 lb_words = lambda notevals, words, k: ("contains_>=%s_words"%(k), len(words) >= k)
-## ?? ?? ?? ?? ??
 thresholdMaker([ub_words],30,41,5) ## okay
-## ?? ?? ?? ?? ??
 lb_lines = lambda notevals, words, k: ("contains_>=%s_lines"%(k), notevals['contents'].count('\n') >= k)
-#?? ?? ?? ?? ?? NO NO NO ?? ?? ?? ?? ??thresholdMaker([lb_lines],2,11)#was 1,11
-
+#?? ?? ?? ?? ?? NO NO NO ?? ?? ?? ?? ??thresholdMaker([lb_lines],2,11)#was 1,11 BAD
 #lb_stpwds = lambda notevals, words, k: ("contains_>=%s_stopwords"%(k), count_array(words, stopWords) >= k)
 
 ## Fewer than k words per line on average
