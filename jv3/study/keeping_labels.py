@@ -14,7 +14,7 @@ from jv3.study.study import *
 from jv3.study.thesis_figures import n2vals
 from numpy import array
 import jv3.study.content_analysis as ca
-import codecs,json,csv
+import codecs,json,csv,StringIO
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 import rpy2,nltk,rpy2.robjects
 import jv3.study.note_labels as nl
@@ -30,7 +30,6 @@ columns = ['userid','wolfe','emax','kat','wstyke','notes']
 cats = ['packrat','neat freak','sweeper','revisaholic']
 
 def get_user(rows,userid): return [row for row in rows if row['userid'] == userid][0]
-
 
 def read(filename=None):
     # runs through all rows from spreadsheet, parses "unique" syntax into
@@ -189,9 +188,33 @@ default_user_feature_names = ['active days',
                               'var change/day',                              
                               ]
 
+# mutually exclusve (harsh) category selector that only takes the
+# maximum --- 
+def get_owner_category(owner_id):
+    # will err if owner_id is not known in krows
+    kl_rows = read()
+    return get_category([r for r in kl_rows if r['userid'] == owner_id][0])
+
+    
+def get_category(kl_row,min_thresh=3):
+    if len(kl_row['consolidated']) == 0: return None
+    maxv = max(kl_row['consolidated'].values())
+    if maxv < min_thresh: return None
+    topcats = [x for x,v in kl_row['consolidated'].iteritems() if v == maxv]
+    topcats.sort()
+    return topcats[0]
+
+def is_member_of_category(kl_row,cat):
+    return get_category(kl_row) == cat
+
 def get_userids_with_cat(arows,cat=None):
     if cat is None: return set([x["userid"] for x in arows])
-    return set([x["userid"] for x in arows if arows is not None and x['consolidated'].get(cat, 0) >= 3])
+
+    # used to be this one:
+    # is_member_of_category = lambda x,cat : x['consolidated'].get(cat, 0) >= 3
+
+    return set([x["userid"] for x in arows if arows is not None and is_member_of_category(x,cat)])
+
 
 def get_features_of_styles(arows,note_feature_list=None,user_feature_list=None,note_feature_names=None,user_feature_names=None):
     # makes a nice table of statistics ~~
@@ -220,6 +243,164 @@ def get_features_of_styles(arows,note_feature_list=None,user_feature_list=None,n
         cat_test[cat].update( intent._gfcompare(cat_user_features,group_user_features,user_feature_names)  )
         
     return cat_test
+
+########################################################################################
+## new delicious anova code for CHI 2011 paper
+## Figures 3 and 7 are generated from these fns
+## 
+## krows = kl.read()
+## kl.print_aov_bits(krows,'note_words')
+## kl.print_aov_bits(krows,'note_lines')
+## kl.print_aov_bits(krows,'note_deleted')
+## kl.print_aov_bits(krows,'note_lifetime_none')
+
+_filter_user_ids_for_researchers = lambda users: filter(lambda oid: intent.owner_orm(oid) not in cal.RESEARCHERS, users)
+_filter_missing_keeper_labels = lambda arows,labeler: filter(lambda arow: arow.get(labeler,None) is not None, arows)
+_get_all_notes_owned = lambda dude_ids: reduce(lambda x,y:x+y,[[n for n in intent.owner_orm(o).note_owner.all().values()] for o in dude_ids])
+_get_owners_of_rows = lambda arows: set([x["userid"] for x in arows])
+
+def anova_by_note_feature(krows,feature_name):
+    owners = _get_owners_of_rows(krows)
+    owners = _filter_user_ids_for_researchers(owners)
+
+    owner_types = {}
+    for cat in cats:
+        [ owner_types.update({long(owner) : cat}) for owner in get_userids_with_cat(krows,cat) ]
+
+    # gets rid of dudes who have no category
+    owners = list(owner_types.keys())
+    notes_of_owners = _get_all_notes_owned(owners)                                                  
+
+    def compfeat(n,name):
+        #print "COMPFEAT ", name, " ", n["id"]
+        #if intent.get_feature_for_note(n["id"],feature_name) < 0:
+        #print "getting feature for note ", n["id"], intent.get_feature_for_note(n["id"],feature_name), feature_name, n["contents"][:10], 
+        return intent.get_feature_for_note(n["id"],name)
+
+    feature_functions =  {
+        "owner_type" : lambda n : owner_types.get(n["owner_id"],None),
+        "owner_id" : lambda n: n["owner_id"],
+        feature_name : lambda n: compfeat(n,feature_name) # lambda n: intent.get_feature_for_note(n["id"],feature_name)
+        }
+
+    print "notes of owners ", len(notes_of_owners)
+    fmla = _make_aov_fmla(
+        '%s ~ owner_type + owner_id' % feature_name,
+        notes_of_owners,
+        feature_functions,
+        ['owner_id','owner_type'])
+
+    compute_averages(notes_of_owners,feature_functions,feature_name,'owner_type')
+    
+    aov = r('aov')(fmla)
+    tsd = r('TukeyHSD')(aov)
+    ios = StringIO.StringIO()
+    print >>ios,r.summary(tsd)
+    return fmla,aov,tsd,ios.getvalue()
+
+def anova_by_user_feature(krows,feature_name):
+    ## first get rid of owners that don't have a keeping category -- bamf!
+    krows = filter(lambda x : get_category(x) is not None, krows)
+    owners = _get_owners_of_rows(krows)
+    owners = _filter_user_ids_for_researchers(owners)
+
+    owner_types = {}
+    for cat in cats: [ owner_types.update({long(owner) : cat}) for owner in get_userids_with_cat(krows,cat) ]
+
+    # print owner_types
+
+    def compfeat(owner_id):
+        result = getattr(wuw,feature_name)(owner_id).values()[0]
+        print "owner -- ", owner_id, " ", result
+        return result
+
+    feature_functions =  {
+        "owner_type" : lambda ownid : owner_types.get(long(ownid),None),
+        #"owner_id" : lambda ownid: ownid,
+        feature_name : lambda ownid: compfeat(ownid) # lambda n: intent.get_feature_for_note(n["id"],feature_name)
+        }
+
+    # fmla = _make_aov_fmla('%s ~ owner_type + owner_id' % feature_name, owners, feature_functions, ['owner_id', 'owner_type'])
+    fmla = _make_aov_fmla('%s ~ owner_type' % feature_name, owners, feature_functions, ['owner_type'])
+
+    compute_averages(owners,feature_functions,feature_name,'owner_type')
+    aov = r('aov')(fmla)
+    tsd = r('TukeyHSD')(aov)
+    ios = StringIO.StringIO()
+    print >>ios,r.summary(tsd)
+    return fmla,aov,tsd,ios.getvalue()
+
+def compute_averages(items,featurefunctions,of_what,by_what):
+    sorted = {}
+    for item in items:
+        key = featurefunctions[by_what](item)
+        if key is None: print "item rendered none for ", by_what, "::", item
+        if key not in sorted:
+            sorted[key] = []
+        val = featurefunctions[of_what](item)
+        if val is not None:  sorted[key].append(featurefunctions[of_what](item))
+    #print sorted.keys()
+    for k in sorted.keys():
+        print k
+        #print sorted[k]
+        print "len : ", len(sorted[k]), "mean: ", mean(sorted[k]), "min ", min(sorted[k]), "max ", max(sorted[k]), " var:", ca.var(sorted[k]) if len(sorted[k]) > 1 else "CANT COMPUTE len = 1"
+
+def _make_env_dict(items,featurefunctions):
+    env = {}
+    [ env.update({name:r.c()}) for name in featurefunctions.keys()]
+    for item in items:
+        itemenv = {}
+        for name,fn in featurefunctions.iteritems():
+            rf = fn(item)
+            if rf is None: continue
+            itemenv[name] = rf
+        # ensure we've got all
+        if len(itemenv) == len(featurefunctions):
+            for name,rf in itemenv.iteritems():
+                env[name] = r.c(env[name],rf)
+    return env
+
+def _make_aov_fmla(fla, items, featurefunctions, factor_fields):
+    fmla = ro.Formula(fla)
+    env = {}
+    [ env.update({name:r.c()}) for name in featurefunctions.keys()]
+    for item in items:
+        itemenv = {}
+        for name,fn in featurefunctions.iteritems():
+            rf = fn(item)
+            if rf is None:
+                print "skipping ",item, "due to NULL", name
+                continue
+            itemenv[name] = rf
+        # ensure we've got all
+        if len(itemenv) == len(featurefunctions):
+            for name,rf in itemenv.iteritems():
+                # print name, '=', rf, type(rf)
+                env[name] = r.c(env[name],rf)
+
+
+    # debug
+                
+    # factorify r
+    [env.update( {field_name : r('as.factor')(env[field_name])} ) for field_name in factor_fields]
+    for k,v in env.iteritems(): fmla.environment[k] = v
+
+    # debug
+    print "------------ displaying contents of formula ---------------------"
+    for k,v in env.iteritems():
+        print k, v, "LENGTH: ", len(v)
+
+    return fmla
+
+def print_aov_bits(krows,feature_name):
+    nlk = anova_by_note_feature(krows,feature_name)
+    sio = StringIO.StringIO()
+    print >>sio,r.summary(nlk[1])
+    print sio.getvalue()[:7000]
+    sio = StringIO.StringIO()
+    print >>sio,nlk[2]
+    print sio.getvalue()[:8000]
+
 
 column_parsers = {
     'emax': parse_emax,

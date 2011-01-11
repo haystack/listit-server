@@ -31,7 +31,7 @@ def is_feature_name(s):
 
 def read(filename=None):
    f0 = "%s/%s" % (settings.NOTE_LABELINGS_DIR, "index.csv" if filename is None else filename )
-   print f0
+   #print f0
    datas = []
    note_fields = []
    feature_fields = []      
@@ -47,7 +47,7 @@ def read(filename=None):
       # split headers into note fields and label fields
 
       for header in headings:
-          print header
+          #print header
           if hasattr(n,header):
               # it's a note field
               note_fields.append(header)
@@ -61,9 +61,10 @@ def read(filename=None):
    
    return { "note_fields": note_fields, "label_fields": label_fields, "feature_fields": feature_fields, "notes" : datas }
 
-def _compute_feature_named(feature_name,n,note_dict):
+def compute_feature_named(feature_name,n):
     if getattr(ca,feature_name,None):
-        note_dict.update(getattr(ca,feature_name)(n2vals(n)))  ## compute the feature given the note!
+        return getattr(ca,feature_name)(n2vals(n))[feature_name]  ## compute the feature given the note!
+    return None
 
 def add_notes(ns):
     label_struct = read()
@@ -75,7 +76,7 @@ def add_notes(ns):
 
         # now we want to process each of the features
         for feature_name in label_struct["feature_fields"]:
-            _compute_feature_named(feature_name,n,note_dict);
+            note_dict[feature_name] = compute_feature_named(feature_name,n)
             
         # now we want to add labels
         for label_name in label_struct["label_fields"]:
@@ -95,7 +96,8 @@ def update_features(new_features, labels_struct):
             del note_dict[of]
         for feature_name in new_features:
             n = Note.objects.filter(id=note_dict["id"])[0]
-            _compute_feature_named(feature_name, n, note_dict)
+            note_dict[feature_name] = compute_feature_named(feature_name, n)
+            
     labels_struct["feature_fields"] = new_features
 
 def _write(labels_struct):
@@ -124,11 +126,17 @@ def _write(labels_struct):
         pass
     pass
 
+def is_note_interesting(n):
+    from jv3.utils import is_tutorial_note
+    from jv3.study.wClean import is_activity_log_fail
+    c = n.contents
+    return len(c.strip()) > 1 and not is_activity_log_fail(c) and not is_tutorial_note(n)
+
 def random_notes(N=1000,consenting=True):
     import random,jv3.study.thesis_figures
     emax = [User.objects.filter(email="emax@csail.mit.edu")[0],User.objects.filter(email="electronic@gmail.com")[0]]
     note_count = Note.objects.all().count()
-    good_note_ids = [x[0] for x in Note.objects.exclude(owner__in=emax).filter(owner__in=jv3.study.thesis_figures.get_interesting_consenting()).values_list('id')]
+    good_note_ids = [x.id for x in Note.objects.exclude(owner__in=emax).filter(owner__in=jv3.study.thesis_figures.get_interesting_consenting()) if is_note_interesting(x)]
     return Note.objects.filter(id__in=random.sample(good_note_ids,N))
 
 ## decision tree stuff ~~~ 

@@ -113,6 +113,13 @@ def note_lifetime(note):
         return {'note_lifetime': ( (1.0*ndt - long(note["created"]))/(3600*1000) ) }
     return {'note_lifetime':-1}
 
+# values version
+def note_lifetime_none(note):
+    ndt = get_note_deletion_time(note)
+    if ndt is not None and ndt > 0:
+        return {'note_lifetime_none': ( (1.0*ndt - long(note["created"]))/(3600*1000) ) }
+    return {'note_lifetime_none':None}
+
 def time_since_join(u):
     return (DATABASE_SNAPSHOT_TIME - apply(min, [x[0] for x in Note.objects.filter(owner=u).values_list("created")] ))/(24*3600*1000)
 
@@ -157,7 +164,7 @@ user_to_edits = {}
 def note_changed_edits(note):
     if note["owner_id"] not in user_to_edits:
         user_to_edits[note["owner_id"]] = note_edits_for_user(User.objects.filter(id=note["owner_id"])[0])
-    return make_feature('note_edits', len(user_to_edits[note["owner_id"]].get(note["jid"],[]))) # #[x for x in user_to_edits[note["owner_id"]].get(note["jid"],[]) if x["lendiff"] > 0]))
+    return make_feature('note_changed_edits', len(user_to_edits[note["owner_id"]].get(note["jid"],[]))) # #[x for x in user_to_edits[note["owner_id"]].get(note["jid"],[]) if x["lendiff"] > 0]))
 
 note_abbreviated_contents = lambda(n): make_feature("note_abbreviated_contents", n["contents"].replace('\n','\N ',)[:200])
 note_did_edit = lambda(note) : make_feature('note_did_edit', note_edits(note) > 0)

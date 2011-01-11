@@ -19,9 +19,12 @@ import codecs,json,csv
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 import rpy2,nltk,rpy2.robjects
 import jv3.study.note_labels as nl
+#r = ro.r <-- changed this by logging into mvk for a few seconds
+## This was breaking note_intent site
 
 r = rpy2.robjects.r
 ro = rpy2.robjects
+r = ro.r
 c = lambda vv : apply(r.c,vv)
 notepool = [2983,92830,9283,19283,8923,1982,3892,19293,74,5939,9583,2787,374,849,982,849,2313]
 N = 250
@@ -116,8 +119,7 @@ def post_intention(request):
     for ni in newsintentions:
         print ni
         r = []
-        for c in columns:
-            r.append(ni.get(c,None))
+        for c in columns:  r.append(ni.get(c,None))
         d.append(r)
     _write(d)
     return HttpResponse("{}","text/json")    
@@ -163,6 +165,13 @@ def build_fleiss(arows, n_raters=2): # augmented rows
 def _collect_all_ratings(arows,threshold='4- likely'):#'3- could be'):
     # primary is redundant since it will be set
     good_levels = levels[levels.index(threshold):]
+    results = []
+    # print 'good levels', good_levels
+    # for r in arows:
+    #     print r
+    #     print [ c for c in cats ] 
+    #     results.append([ c for c  in cats if r[aci(c)] in good_levels ])
+    # return reduce(lambda x,y: x+y, results, [])
     return reduce(lambda x,y: x+y, [ [ c for c in cats if r[aci(c)] in good_levels ] for r in arows ], [])
 
 def build_max_fleiss(arows, n_raters=2): # augmented rows
@@ -368,12 +377,154 @@ def agreements(arows):
         if ent > 0.5:
             s+=" ".join(["-----------\n",hits[0][aci('contents')], "\n", str(intent_dist), "\n"])
     return results,s
+
+def get_feature_for_note(nid,feature_name,coerce_fn=lambda x: float(x)):
+    nlread = nl.read()
+    N = filter(lambda n_: n_["id"] == str(nid), nlread["notes"])
+    if len(N) == 0 or feature_name not in nlread['note_fields'] + nlread['feature_fields'] + nlread['label_fields']:
+        ## debug
+        # if len(N) == 0:
+        #             print "warning unknown note computing ", nid, feature_name
+        #         else:
+        #             print "unknown feature name, trying to compute ", feature_name
         
-        
+        #print "result .... ", Note.objects.filter(id=nid).count(), nl.compute_feature_named(feature_name,Note.objects.filter(id=nid).values()[0])
+        return nl.compute_feature_named(feature_name,Note.objects.filter(id=nid).values()[0])
+
+    N = N[0]
+    return coerce_fn(N[feature_name])
+
+####################################################################
+## anovas for note roles
+## e.g.,
+## fmla = aov(arows,'note_length')
+## x,y,z = plotTukeyHSD(fmla)
+
+def aov(arows, feature_name, formula = "%s ~ cat + participant"):
+    fla = formula % feature_name
+    fmla = ro.Formula(fla)
+    env = fmla.environment
+    feats = r.c()
+    owners = r.c()
+    cats = r.c()
+    for row in arows:
+        rf = get_feature_for_note(row[0],feature_name)
+        if rf is None: continue
+        feats = r.c(feats,rf)
+        cats = r.c(cats,row[aci('primary')])
+        owners = r.c(owners,row[aci('owner_id')])
+
+    print "resulting rows", len(feats)
+    env[feature_name] = feats
+    env['cat'] = r('as.factor')(cats)
+    env['participant'] = r('as.factor')(owners)
+
+    print 'feats', env[feature_name]
+    print 'cat', env['cat']
+    print 'part', env['participant']
     
+    return fmla
+
+# largely a failed experiment - p values blow up completely because
+# we assign things to unknown category
+def aov_padded(arows, feature_name, min_N_per_user=20, formula = "%s ~ cat + participant"):
+    fla = formula % feature_name
+    fmla = ro.Formula(fla)
+    fmla.environment = ro.Environment()
+    env = fmla.environment
+    feats = r.c()
+    owners = r.c()
+    cats = r.c()
+    for row in arows:
+        rf = get_feature_for_note(row[0],feature_name)
+        if rf is None: continue
+        feats = r.c(feats,rf)
+        cats = r.c(cats,row[aci('primary')])
+        owners = r.c(owners,row[aci('owner_id')])
 
 
+    # if we have less than N notes per person, we have less than a representative sample :(
+    # so, to prevent the world from blowing, we fill in     
+        
+    notes_per_owner_in_arows = nltk.FreqDist( [ row[aci('owner_id')]  for row in arows ] )
+    note_ids = set( [row[0] for row in arows ])
+    for owner_id,v in notes_per_owner_in_arows.iteritems():
+        owned_notes_not_yet_chosen = [x for x in User.objects.filter(id=owner_id)[0].note_owner.all() if x.id not in note_ids and len(x.contents.strip()) > 0]
+        if v < min_N_per_user:
+            to_choose_k = min(len(owned_notes_not_yet_chosen),min_N_per_user-v)
+            chosen = random.sample(owned_notes_not_yet_chosen,to_choose_k)
+            assert to_choose_k == len(chosen), "Could not find note, somethings wrong %d %d" % (to_choose_k , len(chosen) )
+            for chnote in chosen:
+                feat = nl.compute_feature_named(feature_name,chnote)
+                feats = r.c(feats,nl.compute_feature_named(feature_name,chnote))
+                cats = r.c(cats,'uncategorized')
+                owners = r.c(owners,owner_id)
+            print "adding ",to_choose_k," to ", owner_id
 
+    env[feature_name] = feats
+    env['cat'] = r('as.factor')(cats)
+    env['participant'] = r('as.factor')(owners)
+
+    print 'feats', env[feature_name]
+    print 'cat', env['cat']
+    print 'part', env['participant']
+    return fmla
+
+# experiment #2 - strip people that are below N
+def aov_stripped(arows, feature_name, min_N_per_user=5, formula = "%s ~ cat + participant"):
+    fla = formula % feature_name
+    fmla = ro.Formula(fla)
+    fmla.environment = ro.Environment()
+    env = fmla.environment
+    feats = r.c()
+    owners = r.c()
+    cats = r.c()
+    notes_per_owner_in_arows = nltk.FreqDist( [ row[aci('owner_id')]  for row in arows ] )
+    owner_keepers = [owner for owner,notes in notes_per_owner_in_arows.iteritems() if notes > min_N_per_user]
+    print "reducing from " , len(notes_per_owner_in_arows), " to ", len(owner_keepers)
+    for row in arows:
+        if row[aci('owner_id')] in owner_keepers:
+            rf = get_feature_for_note(row[0],feature_name)
+            if rf is None: continue
+            feats = r.c(feats,rf)
+            cats = r.c(cats,row[aci('primary')])
+            owners = r.c(owners,row[aci('owner_id')])
+
+    print "resulting rows  ", len(feats)
+        
+    env[feature_name] = feats
+    env['cat'] = r('as.factor')(cats)
+    env['participant'] = r('as.factor')(owners)
+
+    print 'feats', env[feature_name]
+    print 'cat', env['cat']
+    print 'part', env['participant']
+    
+    return fmla
+
+def owner_hist(arows):
+    owners = r('as.factor')(c([row[aci('owner_id')] for row in arows]))
+    return owners
+
+def plotTukeyHSD(feature_name,fmla):
+    import StringIO
+    tsdres = StringIO.StringIO()    
+    name_aov = cap.make_filename('aov_%s' % feature_name)
+    name_tsd = cap.make_filename('tsd_%s' % feature_name)
+    r.png(name_aov)
+    aov = r('aov')(fmla)
+    print "AOV"
+    print >>tsdres,r.summary(aov)
+    r.plot(aov)
+    r('dev.off()')
+    tsd = r('TukeyHSD')(aov)
+    print "TSD"
+    print >>tsdres,tsd
+    print r.summary(tsd)
+    r.png(name_tsd)
+    r.plot(tsd)
+    r('dev.off()')
+    return name_aov,name_tsd,tsdres.getvalue(),aov,tsd
     
     
     
