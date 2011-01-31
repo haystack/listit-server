@@ -7,6 +7,12 @@ import jv3.study.content_analysis as ca
 from jv3.study.study import mean, variance
 import math
 ## Walk thru a user's actions, calculating things!
+## katfang
+## Add v: 1.0 , var: 6.22222222222
+## Del v: 0.466666666667 , var: 2.28888888889
+## # Notes: 353
+## Ave #Chars: 190.430594901 , Ave Var: 138125.784703
+## Ave #Lines: 6.76770538244 , Ave Var: 123.203966006
 
 def analyzeUserWalk(user):
     totalDays, activeDays, aliveAndDeadTotal, aliveAndDeadGained = userWalk(user)

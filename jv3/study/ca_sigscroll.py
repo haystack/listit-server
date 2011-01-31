@@ -1,4 +1,3 @@
-
 from jv3.models import *
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 from django.contrib.auth.models import User

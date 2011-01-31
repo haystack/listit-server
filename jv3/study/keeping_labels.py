@@ -205,7 +205,18 @@ def get_category(kl_row,min_thresh=3):
     return topcats[0]
 
 def is_member_of_category(kl_row,cat):
-    return get_category(kl_row) == cat
+    min_thresh = 3
+    if len(kl_row['consolidated']) == 0: return None
+    maxv = max(kl_row['consolidated'].values())
+    if maxv < min_thresh: return None
+    topcats = [x for x,v in kl_row['consolidated'].iteritems() if v >= min_thresh]
+    return cat in topcats
+    
+#topcats.sort()
+#    return topcats[0]
+
+
+#    return get_category(kl_row) == cat
 
 def get_userids_with_cat(arows,cat=None):
     if cat is None: return set([x["userid"] for x in arows])

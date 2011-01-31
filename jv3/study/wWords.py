@@ -1,3 +1,5 @@
+import datetime
+
 ## Helper
 def note_to_worddict(note):
     wordDict = {}
@@ -70,8 +72,8 @@ def wordArr_walkthru(wordArr):
             input("Next? ")
     print "---DONE---"
 
+## Make wordArray of words in notes, present them graphically if walkthru=True
 def make_word_arr(notes, walkthru=False):
-    import datetime
     startTime = datetime.datetime.now()
     nDict = notes_to_dict(notes)
     print "Finished nDict, making array"
@@ -83,7 +85,6 @@ def make_word_arr(notes, walkthru=False):
         wordArr_walkthru(nArr)
     else:
         return nArr
-
 
 
 def word_length_by_ver(notes, ver):
@@ -101,5 +102,4 @@ def word_length_by_ver(notes, ver):
         pass
     print "Average length of notes over version ", ver, " is: ", float(highD[1])/highD[0] 
     print "Average length of notes under is: ", float(lowD[1])/lowD[0]
-
 

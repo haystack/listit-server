@@ -1,4 +1,5 @@
 ##python manage.py shell
+## did it work? YES!
 from django.contrib.auth.models import User
 from jv3.models import *
 from jv3.utils import *
@@ -15,13 +16,13 @@ from jv3.study.study import *
 from numpy import array
 import random
 
-
+import jv3.study.thesis_figures as tfigs
 import jv3.study.note_labels as nl
 import jv3.study.keeping_labels as kl
 import jv3.study.intention as intent
 import jv3.study.wFunc as wf
 import jv3.study.wUserWalk as uw
-import jv3.study.wMaxEntModel as wm
+##import jv3.study.wMaxEntModel as wm
 
 r = ro.r
 em = User.objects.filter(email="emax@csail.mit.edu")[0]

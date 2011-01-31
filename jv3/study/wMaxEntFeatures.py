@@ -9,7 +9,7 @@ def makeLambda(f,i):
     return lambda x,y:f(x,y,i)
 
 stopWords = set(stopwords.words('english'))
-actionWords = ['todo','ToDo','TODO', 'See', 'see', 'send', 'get', 'call', 'email', 'read', 'Call', 'Set', 'ask', 'Do','do','contact','print','use']
+actionWords = ['todo','ToDo','TODO','To-do', 'See', 'see', 'send', 'get', 'call', 'email', 'read', 'Call', 'Set', 'ask', 'Do','do','contact','print','use']
 
 ## Helper functions
 pos_word     = lambda word: nltk.pos_tag([word])[0][1]
@@ -31,7 +31,7 @@ no_numword = lambda notevals, words: ("2+_numwords", ca.numword_mix(notevals)['n
 
 # Revision 1
 #re_features=[re_num, re_numA,re_numB,re_numC,re_numD,lb_numword]
-re_features=[re_num, re_numD, no_numword]
+re_features=[re_num, re_numD, no_numword] ## HIGH INFORMATION (~3)
 
 ## Features
 first_word_noun = lambda notevals, words: ("first_word_noun", word_is_noun(words[0]))
@@ -47,10 +47,7 @@ first_word_action = lambda notevals, words: ("first_word_symbol", words[0] in ac
 first_words_action = lambda notevals, words: ("first_2words_action", words[0] in actionWords or (len(words) > 1 and words[1] in actionWords))#['WDT','WP','WRB','WDT','VBZ'])
 first_3words_action = lambda notevals, words: ("first_3words_action", words[0] in actionWords or (len(words) > 1 and words[1] in actionWords) or  (len(words) > 2 and words[2] in actionWords))
 
-# Revision 1
-#word_features = [first_word_det, first_word_verb,second_word_verb, first_word_action, first_words_action, first_word_stop, first_3words_action]
 word_features = [first_word_action, first_words_action, first_word_stop, first_3words_action]
-
 
 #count_verbs = lambda notevals, words: ("count_verbs", ca.note_verbs(notevals)['note_verbs'])
 #count_urls = lambda notevals, words: ("count_urls", ca.note_urls(notevals)['note_urls'])
@@ -60,10 +57,13 @@ word_features = [first_word_action, first_words_action, first_word_stop, first_3
 # Counts seem to be overfitting majorly, but also increasing overall accuracy...
 count_features = []  ## Not using counts does better!
 #count_features = [count_verbs,count_urls,count_numbers,count_todos,count_names]
+
 contains_url = lambda notevals, words: ("contains_url", ca.note_urls(notevals)['note_urls'] > 0)
-#contains_verbs = lambda notevals, words: ("3+_verbs", ca.note_verbs(notevals)['note_verbs'] >= 3)
-#contains_dets  = lambda notevals, words: ("1+_det", count_pos(words, ['DT']) > 0)
-contains_3_dets  = lambda notevals, words: ("3+_det", count_pos(words, ['DT']) >=3)
+
+contains_verbs = lambda notevals, words: ("3+_verbs", ca.note_verbs(notevals)['note_verbs'] >= 3)
+contains_dets  = lambda notevals, words: ("1+_det", count_pos(words, ['DT']) > 0)
+
+contains_3_dets  = lambda notevals, words: ("3+_det", count_pos(words, ['DT']) >=3) ## 6 / 17 split
 contains_adj = lambda notevals, words: ("1+_adj", count_pos(words, ['JJ', 'JJR', 'JJS']) > 0)
 contains_adv = lambda notevals, words: ("1+_adv", count_pos(words, ['RB','RBR','RBS']) > 0)
 #contains_linesZ = lambda notevals, words: ("contains_1_line", notevals['contents'].count('\n') == 0)
@@ -71,33 +71,31 @@ contains_linesA = lambda notevals, words: ("contains_2+_lines", notevals['conten
 contains_linesB = lambda notevals, words: ("3+_lines", notevals['contents'].count('\n') >= 2)
 #contains_pronoun = lambda notevals, words: ("1+_pronouns", count_pos(words, ['PRP', 'PRP$']) >= 1)
 
-
 # contains_verbs .28 # contains_dets .5 # contains_3_dets .2187 # contains_adj .52 # contains_adv .49 # contains_linesB .35
 
 # Revision 1
-#contains_features = [contains_verbs, contains_dets, contains_3_dets, contains_adj, contains_adv]#,contains_linesB]#,contains_linesZ,contains_linesA,contains_linesB]#, contains_tabs]#, contains_stopwds]
-contains_features = [contains_adj]#, contains_url] ## 
-# Consider removing: contains_3_dets
+#contains_features = [contains_verbs, contains_dets, contains_3_dets, contains_adj, contains_adv]#,contains_linesB]#,contains_linesZ,contains_linesA,contains_linesB]#, contains_tabs]
+contains_features = [contains_verbs,contains_adj]#, contains_url] ## 
 
 # Testing below features
 DOWS=["mon","monday","tue","tuesday","wed","wedmesday","thu","thurs","thursday","fri","friday","sat","saturday","su\
 n","sunday"]
 contains_dow = lambda notevals, words: ("1+_day_of_week", sum([word.lower() in DOWS for word in words]) > 0) #ca.daysofweek(notevals)['daysofweek'] > 0)
-#contains_nouns = lambda notevals, words: ("contains_nouns", count_pos(words, ['NN, NNS, NNP, NNPS']) > 0)
 contains_VBZ = lambda notevals, words: ("1+_VBZ", count_pos(words, ['VBZ']) > 0)
 contains_stopwds = lambda notevals, words: ("5+_stopwords", count_array(words, stopWords) > 0)
-
 contains_midpunct = lambda notevals, words: ("POS_:", count_pos(words, [':']) > 0)
 contains_ending = lambda notevals, words: ("noPOS_.", count_pos(words, ['.']) == 0)
 contains_TO = lambda notevals, words: ("POS_TO", count_pos(words, ['TO']) > 0)
-#contains_PRP = lambda notevals, words: ("POS_PRP", count_pos(words, ['PRP']) > 0)
 contains_MD = lambda notevals, words: ("POS_MD", count_pos(words, ['MD']) > 0) 
 contains_INA = lambda notevals, words: ("POS_IN", count_pos(words, ['IN']) == 1)
-#contains_INB = lambda notevals, words: ("2+_POS_IN", count_pos(words, ['IN']) > 2)
 contains_WDT = lambda notevals, words: ("POS_WDT-WP", count_pos(words, ['WDT','WP','WP$','WRB']) > 0) ## 13/23 split
 contains_CD = lambda notevals, words: ("POS_cardinal_number", count_pos(words, ['CD']) > 0)
 contains_CC = lambda notevals, words: ("POS_coord_conjunction", count_pos(words, ['CC']) > 0)
 contains_todos = lambda notevals, words: ("1+_todos", ca.note_todos(notevals)['note_todos'] > 0)
+
+#contains_nouns = lambda notevals, words: ("contains_nouns", count_pos(words, ['NN, NNS, NNP, NNPS']) > 0)
+#contains_PRP = lambda notevals, words: ("POS_PRP", count_pos(words, ['PRP']) > 0)
+#contains_INB = lambda notevals, words: ("2+_POS_IN", count_pos(words, ['IN']) > 2)
 #contains_names = lambda notevals, words: ("contains_names", ca.note_names(notevals)["names"] > 0)
 
 ## UNCOMMENT BELOW NOW !!!
@@ -116,19 +114,19 @@ contains_periodA = lambda notevals, words: ("2+_periods", count_re('[\.]', notev
 contains_comma = lambda notevals, words: ("1+_comma", count_re('[\,]', notevals['contents']) > 0)
 contains_qmark = lambda notevals, words: ("1+_qmark", count_re('[\?]', notevals['contents']) > 0)
 contains_qmarkA = lambda notevals, words: ("1+_qmark", count_re('[\?]', notevals['contents']) == 0)
-#contains_exmark = lambda notevals, words: ("1+_exmark",  count_re('[\!]', notevals['contents']) > 0)
 contains_semicolon = lambda notevals, words: ("1+_semicolon", count_re('[\;]', notevals['contents']) > 0)
 contains_colon = lambda notevals, words: ("1+_colon", count_re('[\:]', notevals['contents']) > 0)
 contains_and = lambda notevals, words: ("1+_&", count_re('\&+', notevals['contents']) > 0 )
-#contains_atsymb = lambda notevals, words: ("1+_@", count_re('[\@]', notevals['contents']) > 0)
 contains_hash = lambda notevals, words: ("1+_#", count_re('[\#]', notevals['contents']) > 0)
+contains_dash =  lambda notevals, words: ("1+_-", count_re('[\-]', notevals['contents']) > 0)
+
+#contains_exmark = lambda notevals, words: ("1+_exmark",  count_re('[\!]', notevals['contents']) > 0)
+#contains_atsymb = lambda notevals, words: ("1+_@", count_re('[\@]', notevals['contents']) > 0)
 #contains_dollarsign = lambda notevals, words: ("1+_$", count_re('[\$]', notevals['contents']) > 0)
 #contains_perc = lambda notevals, words: ("1+_%", count_re('[\%]', notevals['contents']) > 0)
 #contains_caret = lambda notevals, words: ("1+_^", count_re('[\^]', notevals['contents']) > 0)
 #contains_star = lambda notevals, words: ("1+_*", count_re('[\*]', notevals['contents']) > 0)
 #contains_plus =  lambda notevals, words: ("1+_+", count_re('[\+]', notevals['contents']) > 0)
-
-contains_dash =  lambda notevals, words: ("1+_-", count_re('[\-]', notevals['contents']) > 0)
 #contains_quotes = lambda notevals, words: ("1+_quotes", count_re('[\'\"]', notevals['contents']) > 0)
 #contains_parens =  lambda notevals, words: ("1+_parens", count_re('[\(\)]', notevals['contents']) > 0)
 #contains_brackets = lambda notevals, words: ("1+_brackets", count_re('[\[\]]', notevals['contents']) > 0)
@@ -139,9 +137,7 @@ contains_dash =  lambda notevals, words: ("1+_-", count_re('[\-]', notevals['con
 # Revision 1
 #punct_features = [contains_and,  contains_period, contains_periodA,contains_comma,contains_qmark,contains_semicolon,contains_colon,contains_brackets]#contains_quotes,contains_parens,contains_brackets]
 #punct_features = [contains_noperiod,contains_period,contains_periodA,contains_qmark,contains_semicolon,contains_colon,contains_hash,contains_dash]
-punct_features = [contains_noperiod,contains_period,contains_periodA,contains_qmark,contains_colon,contains_hash,contains_dash,contains_qmarkA]
-
-
+punct_features = [contains_noperiod,contains_period,contains_periodA,contains_qmarkA,contains_colon,contains_hash,contains_dash,contains_qmarkA]
 
 
 threshold_features = []
@@ -159,11 +155,12 @@ basic_threshold = [lb_actwds]
 ub_characters = lambda notevals, words, k: ("%s-_chars"%(k),  len(notevals['contents']) <= k)
 lb_characters = lambda notevals, words, k: ("%s+_chars"%(k),  len(notevals['contents']) >= k)
 ## Really low weights - too sparse it seems
-#! thresholdMaker([ub_characters],15,60,5)
-#! thresholdMaker([lb_characters],60,120,10)
+## Addition #2
+thresholdMaker([ub_characters],4,44,4)    ## -- high information feature
+thresholdMaker([lb_characters],80,120,10) ## no noticable change on F1
 
 #threshold_lines = lambda notevals, words, k: ("contains_<=%s_lines"%(k), notevals['contents'].count('\n') <= k)
-#threshold_stpwds = lambda notevals, words, k: ("contains_<=%s_stopwords"%(k), count_array(words, stopWords) <= k)
+##threshold_stpwds = lambda notevals, words, k: ("contains_<=%s_stopwords"%(k), count_array(words, stopWords) <= k)
 
 ## Lower bound
 ## Testing 4:32pm
@@ -194,7 +191,10 @@ k_linelength = lambda notevals, words, k: ("%s_words/line"%(k), len(words) in ra
 
 
 #thresholdMaker([ub_characters],15,60,5)
-thresholdMaker([lb_characters],60,120,10)
+
+
+# Addition 
+###thresholdMaker([lb_characters],60,120,10)
 #thresholdMaker([ub_words],30,41,5) ## okay
 # third worst?
 #thresholdMaker([k_chars],10,30,10) #2:24am sat -testing change 100 to 30  ?? ARGH? -- too imprecise / messy
@@ -202,11 +202,10 @@ thresholdMaker([lb_characters],60,120,10)
 #thresholdMaker([k_lines],1,2)
 #thresholdMaker([k_linelength],1, 12) ## 10 seems to identify mem trigger, not right seeming...
 
-
-
-
 k_wdlen = lambda notevals, words, k:("first-word-len:%s"%(k), len(words[0]) == k)
 
+
+## Addition Group 1: +1.35% F1 score
 ## Newest additions!
 k_punct = lambda notevals, words, k: ("%s_note_punct"%(k), count_re('[\.\,\'\:\;\?]',notevals['contents']) == k)
 thresholdMaker([k_punct], 0,2)
@@ -218,11 +217,10 @@ thresholdMaker([k_numword],0,2)
 k_stpwds = lambda notevals, words, k: ("%s_stopwords"%(k), count_array(words, stopWords) == k)
 thresholdMaker([k_stpwds],1,2)
 
-
-
 arraySW = [wd for wd in stopWords]
 
-features = word_features
+features = []
+features.extend(word_features)
 features.extend(re_features)
 features.extend(count_features)
 features.extend(contains_features)

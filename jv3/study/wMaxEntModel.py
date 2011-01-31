@@ -36,7 +36,6 @@ recall = lambda tp,fn:(1.0*tp)/(tp+fn)     ## Sensitivity
 negPred = lambda tn, fn: (1.0*tn)/(tn+fn)
 specificity = lambda tn,fp: (1.0*tn)/(tn+fp)
 
-
 class testmodel(Thread):
     def __init__(self, train_toks, posTest, negTest, count_cutoff):
         Thread.__init__(self)
@@ -84,10 +83,11 @@ def splitNotes(category):
 def splitNotes(category):
     uniqueRatings = {} # k,v = noteid,rating -- get only 1 rating of each note
     allRatings = intent.reada()
+    ## -- Ali not sling used in last run !!
     approvedRaters = ['Darren','emax','Wolfe','WolfePriOnly', 'Sling Lynch']#'Matt']#,'darren','Ali']
     for rating in filter(lambda x: x[1] in approvedRaters,allRatings):
         if rating[0] not in uniqueRatings:
-            ndt[note[0]] = rating
+            uniqueRatings[rating[0]] = rating
     cat,notCat = [], []
     for k,v in uniqueRatings.items(): ## k = noteid, v=rating
         if v[5] == category:
@@ -104,11 +104,9 @@ def refClassifier():
     ## Ref and nonRef thingies
     refNotes, nonRefNotes = splitNotes('reference')
     labels = ['reference', 'nonref']
-    ## 
     mapping, weights = getStdMapping()
     encoding = nltk.BinaryMaxentFeatureEncoding(labels, mapping)
     maxEntModel = initMaxEntModel(encoding, weights)
-
 
 nvals = lambda note : tfigs.n2vals(note)
 pos_word = lambda word: nltk.pos_tag([word])[0][1]
@@ -131,26 +129,6 @@ except:
     print "Creating mem trig notes"
     mem, notMem = splitNotes('memory trigger')
 
-#try:
-#    allWordDict = allWordDict
-#except:
-#    allWordDict = {}
-#    for note in mem:
-#        for word in nltk.word_tokenize(note.contents):
-#            if word not in allWordDict:
-#                allWordDict[word] = [0,0]
-#            allWordDict[word][0] += 1
-#    for note in notMem:
-#        for word in nltk.word_tokenize(note.contents):
-#            if word not in allWordDict:
-#                allWordDict[word]=[0,0]
-#            allWordDict[word][1] += 1
-
-try:
-    ref = ref
-except:
-    ref, notRef = splitNotes('reference')
-
 mapping = {}
 labels = ['memory trigger', 'not']
 
@@ -172,13 +150,9 @@ def noteFeatures(note):
     notePOS = nltk.pos_tag(noteWords)
     for feature in wFeatures.features:
         fname, fval = feature(notevals, noteWords)
-#        if fval != False:
+#        if fval != False:  ## True vs True and False values??  both seem okay?
         addFeature(fs, fname, fval)
-        pass
-    ## SILLY SILLY SILLY 
-    goodChars = {u'\t': [1, 9],
-                 u'\n': [132, 275],
-                 u' ': [1509, 2392],
+    goodChars = {u'\t': [1, 9],#                 u'\n': [132, 275],                 u' ': [1509, 2392],
                  u'&': [3, 42],
                  u'*': [4, 18],
                  u',': [32, 132],
@@ -197,59 +171,59 @@ def noteFeatures(note):
                  u'9': [22, 107],
                  u':': [65, 167],
                  u'=': [0, 47],
-                 u'P': [26, 66],
-                 u'Q': [0, 27],
                  u'\\': [0, 5],
                  u'|': [1, 34]}
-    """ GOOD REMOVAL !!!
-                 u'a': [613, 1097],
-                 u'b': [135, 252],
-                 u'c': [300, 568],
-                 u'd': [275, 569],
-                 u'e': [924, 1743],
-                 u'f': [156, 282],
-                 u'g': [156, 356],
-                 u'h': [253, 664],
-                 u'i': [524, 1050],
-                 u'l': [346, 674],
-                 u'm': [233, 472],
-                 u'n': [558, 977],
-                 u'o': [659, 1223],
-                 u'p': [193, 429],
-                 u'r': [542, 991],
-                 u's': [462, 1013],
-                 u't': [690, 1419],
-                 u'u': [217, 508],
-                 u'v': [79, 195],
-                 u'w': [156, 421],
-                 u'x': [39, 54],
-                 u'y': [115, 271],
+    """
+                 u'a': [613, 1097],u'b': [135, 252],
+                 u'c': [300, 568],u'd': [275, 569],u'e': [924, 1743],
+                 u'f': [156, 282],u'g': [156, 356],
+                 u'h': [253, 664],u'i': [524, 1050],
+                 u'l': [346, 674],u'm': [233, 472],
+                 u'n': [558, 977],u'o': [659, 1223],
+                 u'p': [193, 429],u'r': [542, 991],
+                 u's': [462, 1013],u't': [690, 1419],u'u': [217, 508],
+                 u'v': [79, 195],u'w': [156, 421],
+                 u'x': [39, 54],u'y': [115, 271],
                  u'|': [1, 34]}
     """
+    #"""
     seenChars = {}
+    seenCharBG, lastChar = {},"START"
     for char in note.contents:
         if char not in seenChars and char in goodChars:
             seenChars[char] = True
             addFeature(fs, "CHAR: %s"%(char), True)
-    ## First-word-in-line feature
-    """
+    #"""
+    ## First-word-in-line features == GOOD
     seenWords = {}
     goodWords = {'http':True,'get':True,'1':True,'to':True,'order':True,'need':True,'send':True,'the':True}
-    for word in noteWords:#first_nonsymb_word_line(note.contents):
+    for word in first_nonsymb_word_line(note.contents):
         word = word.lower() ## map all words to lowercase words
         if word not in seenWords:
             seenWords[word] = 0
             addFeature(fs, "HAS: %s"%(word), True)
         seenWords[word] += 1
-        pass
+        pass    
+    bestBigrams = [(':', 'JJ'),
+                   ('NN', 'WDT'),
+                   (':', '-NONE-'),
+                   (':', 'DT'),
+                   ('NN', 'NN'),
+                   ('NNS', ','),
+                   ('PRP$', 'JJ'),
+                   ('START', 'NNP'),
+                   ('JJ', 'NN'),
+                   ('IN', 'NNP'),
+                   ('NN', ':'),
+                   ('VBN', 'NN'),
+                   ('VBZ', 'JJ'),
+                   ('VBP', 'JJ'),
+                   ('NNP', 'IN'),
+                   ('CD', 'NNS'),
+                   ('.', 'JJ')]
     """
-    ## look for any line with a DT leading it
-    # First Word
-    #if len(notePOS) != 0:
-    #    addFeature(fs, "1st_word: %s"%(notePOS[0][0]),True)
-    #    addFeature(fs, "1st_pos: notePOS[0][1], True)
-    bestBigrams = [('IN', 'NN'),
-                   (':', 'JJ'),
+    bestBigrams = [('IN', 'NN'), # 36:30
+                   (':', 'JJ'),  # 17:98
                    (':', 'NNP'),
                    (':', '-NONE-'),
                    (':', 'DT'),
@@ -267,12 +241,14 @@ def noteFeatures(note):
                    ('NNP', 'IN'),
                    ('CD', 'NNS'),
                    ('NN', 'NNS')]
-#    goodPOSUG = ['IN','NNP',':','JJ','#']#,'VBN','VB',',']
-    goodPOSUG = [',','VBP','JJ','VBZ','#','NN','TO',':','NNP','VB','CC','-NONE-','IN']
+    """
+#   goodPOSUG = [',','VBP','JJ','VBZ','#','NN','TO',':','NNP','VB','CC','-NONE-','IN']
+    goodPOSUG = ['#',':','JJ','NNP','IN','.']
     posUG = {}
     posBG, prevTok = {}, ('','START') 
     ## Calculate bigram features
-    for posTok in nltk.pos_tag(noteWords):
+    
+    for posTok in notePOS:#nltk.pos_tag(noteWords):
         ## Unigrams
         if posTok[1] not in posUG and posTok[1] in goodPOSUG:
             posUG[posTok[1]] = True
@@ -284,36 +260,32 @@ def noteFeatures(note):
         if (prevTok[1],posTok[1]) not in posBG:
             posBG[(prevTok[1],posTok[1])] = True
             addFeature(fs, "2G_POS_%s_%s"%(prevTok[1], posTok[1]), True)
+        prevTok = posTok
         pass
-    goodPOSTrigrams = [(':', 'JJ', '.'), ('.', 'NN', ':'), ('JJ', '.', 'NN'), ('NN', ':', 'CD'),
-                       ('NN', 'IN', 'NNP'), ('START', 'NN', ':'), (':', 'NN', ':'), ('NNP', 'NNP', 'NNP'),
-                        ('NN', 'NNP', 'NNP'), ('NN', 'NN', 'NN'), ('NN', ':', 'JJ'), ('START', 'NNP', 'NNP'),
-                        ('START', 'NN', 'NN'), ('NN', 'NN', ':'), ('NNP', 'NNP', 'VBZ'), ('START', 'START', 'NNP')]
-    ## All trigrams = bad!
+    
+    goodPOSTrigrams = [(':', 'JJ', '.'), ('.', 'NN', ':'), ('JJ', '.', 'NN'), ('NN', ':', 'CD'), 
+                       ('START', 'NN', ':'), #('NN', 'IN', 'NNP'), ##was tried to remove
+                       (':', 'NN', ':'), 
+                       ('NNP', 'NNP', 'NNP'),
+                       ('NN', ':', 'NNS'),
+                       (':', ':', 'NN'),#
+                       ('NN', 'NNP', 'NNP'),#                        ('NN', 'NN', 'NN'), ## tried to remove
+                       ('NN', ':', 'JJ'),
+                       ('START', 'NNP', 'NNP'),
+                       ('START', 'NN', 'NN'), 
+                       ('NNP', 'NN', ':'),#
+                       ('DT', 'NN', 'NN'),#
+                       ('NN', 'NN', ':'), 
+                       ('NNP', 'NNP', ':'),#
+                       ('NNP', 'NNP', 'VBZ'), 
+                       ('START', 'START', 'NNP')]
+    ## All trigrams = bad!, some = GOOD
     posTG, oldestPOS, oldPOS = {}, ('','START'), ('','START')
-    for posTok in nltk.pos_tag(noteWords):
+    for posTok in notePOS:#nltk.pos_tag(noteWords):
         if (oldestPOS[1],oldPOS[1],posTok[1]) not in posTG and (oldestPOS[1],oldPOS[1],posTok[1]) in goodPOSTrigrams:
             posTG[(oldestPOS[1],oldPOS[1],posTok[1])] = True
             addFeature(fs, "3G_POS_%s_%s_%s"%(oldestPOS[1],oldPOS[1],posTok[1]), True)
         oldestPOS, oldPOS = oldPOS, posTok
-    
-### POS TRIGRAMS !!
-### POS Trigrams !!
-#    posTG = {}
-#    prevTGB = ['','START_TAG_2']
-#    prevTGA = ['','START_TAG_1#    for posTok in nltk.pos_tag(noteWords):
-#        if prevTGB[1] not in posTG:
-#            posTG[prevTGB[1]] = {prevTGA[1]:[posTok[1]]}
-#        elif prevTGA[1] not in posTG[prevTGB[1]]:
-#            posTG[prevTGB[1]][prevTGA[1]] = [posTok[1]]
-#        else:
-#            posTG[prevTGB[1]][prevTGA[1]].append(posTok[1])
-#        prevTGB = prevTGA
-#        prevTGA = posTok
-#    for firstPOS, secondPosDicts in posTG.items():
-#        for secondPOS, thirdPosArr in secondPosDicts.items():
-#            for thirdPOS in thirdPosArr:
-#                addFeature(fs, "PTG_%s_%s_%s"%(firstPOS, secondPOS, thirdPOS),True)
     return fs
 
 class makeTokens(Thread):
@@ -352,7 +324,6 @@ def createTokens(notesA, labelA, notesB, labelB):
     negTokens = [(noteFeatures(note), labelB) for note in notesB]
     return (posTokens, negTokens)
 
-
 def createMemTokens():
     mem, notMem = splitNotes('memory trigger')
     return createTokens(mem, 'memory trigger', notMem, 'not')
@@ -366,22 +337,47 @@ def splitTokens(posArray, negArray):
     import random as rr
     rr.shuffle(posArray)
     rr.shuffle(negArray)
-    pos_train = posArray[:80]#:int(1.0*len(posArray)/2.0)]## 1/10 => 79% f2, 77/82
-    pos_test = posArray[80:180]#int(1.0*len(posArray)/2.0):]
-    neg_train = negArray[:80]#:int(1.0*len(negArray)/2.0)]
-    neg_test = negArray[80:180]#int(1.0*len(negArray)/2.0):]  ## 1/5th and 4/5th good!
+    pos_train = posArray[:90]#:int(1.0*len(posArray)/2.0)]## 1/10 => 79% f2, 77/82
+    pos_test = posArray[90:180]#int(1.0*len(posArray)/2.0):]
+    neg_train = negArray[:90]#:int(1.0*len(negArray)/2.0)]
+    neg_test = negArray[90:180]#int(1.0*len(negArray)/2.0):]  ## 1/5th and 4/5th good!
     training_setA = pos_train
     training_setA.extend(neg_train)
     return (training_setA, pos_test, neg_test)
     #return ((training_setA, pos_test, neg_test), (training_setB, pos_train, neg_train))
 
-posTokens, negTokens = createTokens(mem, 'memory trigger', notMem, 'not')  ##createMemTokens()
-train_toks, posTest, negTest = splitTokens(posTokens, negTokens)
-allTok = []
-allTok.extend(train_toks)
-allTok.extend(posTest)
-allTok.extend(negTest)
+"""
+40, 140 split:
+Precision...: 0.846010674082
+Recall......: 0.869285714286
+True Neg....: 0.82205702456
+Specificity.: 0.792380952381
+F1 Score....: 0.857957484279
 
+50, 130 split:
+Precision...: 0.844229257622
+Recall......: 0.869487179487
+True Neg....: 0.821747253104
+Specificity.: 0.789487179487
+F1 Score....: 0.857146637265
+
+80, 100 split normal
+
+90,90 split
+Precision...: 0.852045377726
+Recall......: 0.86962962963
+True Neg....: 0.824170512064
+Specificity.: 0.801851851852
+F1 Score....: 0.861132875361
+
+
+130, 50 split (train/test for each cat)
+Precision...: 0.845244366098
+Recall......: 0.871333333333
+True Neg....: 0.824041056107
+Specificity.: 0.790666666667
+F1 Score....: 0.858747060289
+"""
 
 def getTrainingSet(posTokens, negTokens, count=4):
     training_set = []
@@ -390,8 +386,6 @@ def getTrainingSet(posTokens, negTokens, count=4):
         training_set.append(pairTokenSplit)
 #        training_set.append(pairTokenSplit[1])
     return training_set
-
-training_set = getTrainingSet(posTokens, negTokens, 20)#15)
 
 def buildModel(train_toks, posTest, negTest, count_cutoff=0):
     BMFE = nltk.BinaryMaxentFeatureEncoding.train(train_toks, count_cutoff)
@@ -415,28 +409,20 @@ def evaluateCutoffs(training_set, cutoffs):
     specificity = lambda tn,fp: (1.0*tn)/(tn+fp)
     accArray = []
     precallAverage = [] # [[Precision, Recall], ... ]
-    precallAverageB = []
+    precallAverageB = [] # Slightly different method of compiling stats
     for index,cutoff in enumerate(cutoffs):
         print "Cutoff = ", cutoff
         posAcc,negAcc, totAcc = [],[],[]
-        tpTOT = [] ## tp percents
-        fpTOT = []
-        fnTOT = []
-        tnTOT = []
-        prec = [] # Precision percents for each set in training_set
-        rec = []  # Recall percents for each set..
-        spec = []
-        negP = []
-        threadModels = []        
+        tpTOT, fpTOT, fnTOT, tnTOT = [],[],[],[]  ## tp percents
+        prec,rec,spec,negP = [],[],[],[] # Precision/... percents for each set in training_set
+        threadModels = []
         for train_toks, posTest, negTest in training_set:
             tMod = testmodel(train_toks, posTest, negTest, cutoffs[index])
             threadModels.append(tMod)
             tMod.start()
         for tModel in threadModels:           
-#        for train_toks, posTest, negTest in training_set:
-            tModel.join()
+            tModel.join() ## Wait for model to finish before compiling summary statistics
             model, mAcc, nmAcc, tAcc = tModel.getStats() #tModel.model, tModel.mAcc,tModel.nmAcc,tModel.tAcc
-#buildModel(train_toks,posTest,negTest,cutoff)
             posAcc.append(mAcc)
             negAcc.append(nmAcc)
             totAcc.append(tAcc)
@@ -459,7 +445,6 @@ def evaluateCutoffs(training_set, cutoffs):
         pass
     for i, acc in enumerate(accArray):
         print "Cutoff......: %s"%(cutoffs[i])
-#        print "Cutoff = %s => Average accuracy pos=%s, neg=%s, tot=%s"%(cutoffs[i],acc[0],acc[1],acc[2])
         print "Precision...: %s"%(precallAverageB[i][0])
         print "Recall......: %s"%(precallAverageB[i][1])
         print "True Neg....: %s"%(precallAverageB[i][2])
@@ -467,10 +452,31 @@ def evaluateCutoffs(training_set, cutoffs):
         print "F1 Score....: %s"%(2.0*precallAverage[i][0]*precallAverage[i][1]/(precallAverage[i][0]+precallAverage[i][1]))
         print "--------------------------------------"
 
+## Actually runs model! - top level control!
+modelA = None
+allTok = []
 
+def tryModel():
+    global modelA, allTok
+    posTokens, negTokens = createTokens(mem, 'memory trigger', notMem, 'not')  ##createMemTokens()
+    train_toks, posTest, negTest = splitTokens(posTokens, negTokens)
+    allTok.extend(train_toks)
+    allTok.extend(posTest)
+    allTok.extend(negTest)
+    training_set = getTrainingSet(posTokens, negTokens, 30)#20)#15)
+    evaluateCutoffs(training_set, [0])
+    ## Build specific model to look at!
+    modelA = buildModel(train_toks, posTest, negTest, 0) ## last param = cutoff
+    print "\x07"
 
-evaluateCutoffs(training_set, [0])
-
+def inspectModel():
+    global modelA
+    if modelA == None:
+        return
+    modelA[0].show_most_informative_features(n=60, show='neg')
+    dummyvar = input("Next?")
+    modelA[0].show_most_informative_features(n=60, show='pos')
+    
 
 #print "Category: Memory Trigger"
 #modelA = buildModel(train_toks, posTest, negTest, 0)
@@ -481,15 +487,14 @@ evaluateCutoffs(training_set, [0])
 #print "Category: Reference"
 #rModel = buildModel(ref_train_toks, ref_posTest, ref_negTest, 9)
 
-print "\x07"
-      
+"""
 dummyvar = input("Next?")
 modelB = buildModel(train_toks, posTest, negTest, 0)
 modelB[0].show_most_informative_features(n=60, show='neg')
 modelB[0].show_most_informative_features(n=60, show='pos')
 NB = nltk.NaiveBayesClassifier.train(allTok)
 #NB.show_most_informative_features(n=100)
-
+"""
 
 def judgeFeature(func, mem, notMem):
     posNeg= [[],[]]
@@ -649,3 +654,65 @@ Ali         . 77.1%
 """
 
 
+"""
+1/27/11 3:37am
+
+t/f features
+goodChars
+first word in line
+pos unigram
+pos bigrams - top
+pos trigrams
+
+
+Precision...: 0.852441759482
+Recall......: 0.870740740741
+True Neg....: 0.825473961841
+Specificity.: 0.802222222222
+F1 Score....: 0.861822488014
+
+
+With 'addition group 1' commented out:
+Precision...: 0.849433569927
+Recall......: 0.845555555556
+True Neg....: 0.798549547391
+Specificity.: 0.803333333333
+F1 Score....: 0.848118267967
+
+With all trigrams
+Precision...: 0.848817534918
+Recall......: 0.426296296296
+True Neg....: 0.544633723363
+Specificity.: 0.90037037037
+F1 Score....: 0.544573461369
+
+With pos Unigrams added:
+Precision...: 0.844643145516
+Recall......: 0.867037037037
+True Neg....: 0.819241615521
+Specificity.: 0.790740740741
+F1 Score....: 0.856238635631
+
+With 'Addition #2' in features list
+Precision...: 0.861907543902
+Recall......: 0.861481481481
+True Neg....: 0.818358070701
+Specificity.: 0.818888888889
+F1 Score....: 0.862038077134
+
+Removed lb_punct
+Precision...: 0.863687118052
+Recall......: 0.835185185185
+True Neg....: 0.792711078387
+Specificity.: 0.827037037037
+F1 Score....: 0.849651675762
+
+# Added pos 1+2 grams
+Precision...: 0.852138970876
+Recall......: 0.858888888889
+True Neg....: 0.812893567474
+Specificity.: 0.804444444444
+F1 Score....: 0.855990616448
+
+
+"""
