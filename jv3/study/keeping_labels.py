@@ -212,6 +212,36 @@ def is_member_of_category(kl_row,cat):
     topcats = [x for x,v in kl_row['consolidated'].iteritems() if v >= min_thresh]
     return cat in topcats
 
+
+def category_truth_table():
+    user_ratings = read()
+    cats = ['packrat', 'neat freak', 'revisaholic','sweeper']
+    truth_table = []
+    for kl_row in user_ratings:
+        user_cats = []
+        for a in [0,1]:
+            for b in [0,1]:
+                for c in [0,1]:
+                    for d in [0,1]:
+                        is_member = True
+                        if a == 1: # include packrat
+                            is_member = is_member and is_member_of_category(kl_row,'packrat')
+                        if b == 1:
+                            is_member = is_member and is_member_of_category(kl_row,'neat freak')
+                        if c == 1:
+                            is_member = is_member and is_member_of_category(kl_row,'revisaholic')
+                        if d == 1:
+                            is_member = is_member and is_member_of_category(kl_row,'sweeper')
+                        if a==0 and b==0 and c==0 and d==0:
+                            is_member = False
+                        user_cats.append(is_member)
+        truth_table.append(user_cats)
+    return truth_table
+
+
+
+
+
 def is_member_of_categories(kl_row,catArr):
     catCorr = []
     for catA in catArr:
@@ -223,6 +253,12 @@ def is_member_of_categories(kl_row,catArr):
                 catCorr.append(0)
     return catCorr
             
+def is_member_of_paired_cats():
+    rows = kl.read()
+    pairs=[]
+    map(lambda x:ee.append(kl.is_member_of_categories(x, ['packrat', 'neat freak', 'revisaholic','sweeper'])),dd)
+
+
 ## p+n, p+r, p+s
 ## n+r, n+s
 ## r+s
