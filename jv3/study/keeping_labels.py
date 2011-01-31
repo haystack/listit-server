@@ -213,6 +213,25 @@ def is_member_of_category(kl_row,cat):
     return cat in topcats
 
 
+"""
+none: 0
+s: 194
+r: 57
+r+s: 41
+n: 246
+n+s: 155
+n+r: 45
+n+r+s: 35
+p: 213
+p+s: 71
+p+r: 20
+p+r+s: 13
+p+n: 65
+p+n+s: 46
+p+n+r: 11
+p+n+r+s: 10
+"""
+
 def category_truth_table():
     user_ratings = read()
     cats = ['packrat', 'neat freak', 'revisaholic','sweeper']
@@ -237,6 +256,9 @@ def category_truth_table():
                         user_cats.append(is_member)
         truth_table.append(user_cats)
     return truth_table
+
+#for i in range(32):
+#   .....:     len(filter(lambda x:x[i],rr))
 
 
 
