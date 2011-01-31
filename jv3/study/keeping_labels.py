@@ -211,7 +211,22 @@ def is_member_of_category(kl_row,cat):
     if maxv < min_thresh: return None
     topcats = [x for x,v in kl_row['consolidated'].iteritems() if v >= min_thresh]
     return cat in topcats
-    
+
+def is_member_of_categories(kl_row,catArr):
+    catCorr = []
+    for catA in catArr:
+        for catB in catArr:
+            if (catA == catB): break
+            if is_member_of_category(kl_row,catA) and is_member_of_category(kl_row,catB):
+                catCorr.append(1)
+            else:
+                catCorr.append(0)
+    return catCorr
+            
+## p+n, p+r, p+s
+## n+r, n+s
+## r+s
+
 #topcats.sort()
 #    return topcats[0]
 
