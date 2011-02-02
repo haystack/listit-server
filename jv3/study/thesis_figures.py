@@ -279,6 +279,33 @@ def plot_note_words_hist(notes,filename="num_words",width=1024,height=800,soft_m
    r('dev.off()')
    return hh
 
+## note length distribtion
+def plot_note_words_hist_modfilename(notes,filename="num_words",width=1024,height=800,soft_max=300):
+   user = notes[0].owner
+   nwords = [ca.note_words(n2vals(x))['note_words'] for x in notes.values("contents")]
+   
+   nchars_  = [len(x["contents"].strip()) for x in notes.values("contents")]
+   nchars = [x for x in nchars_ if x < soft_max]
+
+   r.png(file='/dev/null',width=width,height=height)
+   breaks=[x for x in xrange(soft_max)]
+   nchars = r.hist(c(nchars),breaks=c(breaks))[1]
+   r('dev.off()')
+   
+   r.png(file=make_filename(filename),width=width,height=height)
+   nwords_ = [x for x in nwords]
+   nwords = [x for x in nwords if x < soft_max]
+
+   hh = r.hist(c(nwords),breaks=c(breaks),labels=c(breaks), freq=True,xlab='',ylab='',main='length of notes (in words) %s (%d)' % (user.email,len(notes)))
+   # print len(breaks)," ", len(nchars)
+   print nchars
+   r.lines(c(breaks[:-1]),nchars,col='green')
+   r.text(r.c(3.0/4.0*soft_max),r.c(3.0/4.8*max(hh[1])+0.1*max(hh[1])),"notes min-median-mode-max: %f %f %f %f" % (min(nwords_),median(nwords_),ca.mode(nwords_),max(nwords_)))
+   r.text(r.c(3.0/4.0*soft_max),r.c(3.0/4.8*max(hh[1])),"char min-median-mode-max: %f %f %f %f" % (min(nchars_),median(nchars_),ca.mode(nchars_),max(nchars_)))
+
+   r('dev.off()')
+   return hh
+
 def batch(fn,users,batchpath):
    index = 0
    for u in users:

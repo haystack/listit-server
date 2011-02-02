@@ -630,7 +630,24 @@ def hist_number_of_words(nfvs):
               title="words per note [df:%d] (min:0, max:%g, mean:%g, median:%g, var:%g)" % (total-1,stats[1],stats[2],stats[3],stats[4]),
               ylab="Notes (out of %d)" % total  )
 
-    
+def hist_capped_number_of_words(nfvs,cap=300):
+    total = len(nfvs)
+    nwords = [x['note_words'] for x in nfvs.values() if x['note_words'] < cap]
+    stats = s(nwords)
+    cap.hist2( nwords,
+              breaks=[0,1,5,10,20,30,40,50,100,200,300],
+              filename="/var/www/listit-study/n-words.png",
+              xlab="number of words",
+              title="words per note [df:%d] (min:0, max:%g, mean:%g, median:%g, var:%g)" % (total-1,stats[1],stats[2],stats[3],stats[4]),
+              ylab="Notes (out of %d)" % total  )
+    cap.loghist( nwords,
+              breaks=[0,1,5,10,20,30,40,50,100,200,500,1000,2000,5000,10000],
+              filename="/var/www/listit-study/n-logwords.png",
+              xlab="number of words",
+              title="words per note [df:%d] (min:0, max:%g, mean:%g, median:%g, var:%g)" % (total-1,stats[1],stats[2],stats[3],stats[4]),
+              ylab="Notes (out of %d)" % total  )
+
+
 #def feature_by_owner(notevals,feature_name):
 #    owners = list(set([n["owner"] for n in notevals]))
 #    for o in owners:
