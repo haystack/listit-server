@@ -1146,3 +1146,77 @@ def misc_view(request):
     ##response.status_code = 200
     return response
 
+
+def misc_viewer(request):
+    css = """
+    html, body {
+      padding: 0px;
+      margin:0px;
+    }
+    #main {
+      margin:50px auto;
+      width:80%;
+      min-width:500px;
+      border:1px solid #000;
+      border-radius:4px;
+      -moz-border-radius: 20px;
+      -webkit-border-radius: 20px;
+      -khtml-border-radius: 20px;
+      border-radius: 20px;
+      padding:20px;
+    }
+    .cat {
+        margin-top:10px;
+        background-color:#AAF;
+        -webkit-radius:
+    }
+    .text {
+        background-color:#DDF;
+    }
+    """
+    
+    body = []
+    notes = RedactedNote.objects.all().order_by('created')
+    notes.reverse()
+    for note in notes:
+        body.append("""<div class='note'>
+            <div class='cat'>%s</div>
+            <div class='text'>%s</div>
+        </div>"""%(note.noteType, note.contents))
+    
+    html = """<html>
+    <head><title>MISC Gallery</title>
+    <style type='text/css'>%s</style></head>
+    <body>
+    <div id="main">
+    %s
+    </div>
+
+    </body></html>"""%(css ,''.join(body))
+    
+    response = HttpResponse(html)
+    #response['Content-Disposition'] = 'attachment; filename=redacted_notes.csv'
+
+    #rWriter = UnicodeWriter(response)
+    #rWriter.writerow(['category', 'contents'])
+    #for note in RedactedNote.objects.all().order_by('created'):
+    #    rWriter.writerow([note.noteType, note.contents])
+    
+    ##response.status_code = 200
+    return response
+
+
+def misc_json(request):
+    allNotes = []
+    notes = RedactedNote.objects.all().order_by('created')
+    notes.reverse()
+    for note in notes:
+        allNotes.append({"type":"Note", "label":note.noteType, "contents":note.contents})
+        pass
+    print 1
+    types = {"Note":{'pluralLabel': "Notes"} }
+    print 2
+    response = HttpResponse(JSONEncoder().encode({'types':types, 'items':allNotes}), "text/json")
+    response.status_code = 200
+    return response
+    
