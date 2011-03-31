@@ -985,6 +985,8 @@ def get_redact_notes(request):
         if wMap.wordType in resultMap:
             resultMap[wMap.wordType][wMap.privWord] = True
         pass
+
+    
     userMeta = {
         'userPoints': "0",
         'totalNotes': str(numNotes),
@@ -1002,8 +1004,7 @@ def post_redacted_note(request):
             {'autherror':"Incorrect user/password combination"}), "text/json")
         response.status_code = 401
         return response
-    for datum in JSONDecoder().decode(request.raw_post_data):
-    #for datum in JSONDecoder().decode(unicode(request.raw_post_data, 'latin-1')):    
+    for datum in JSONDecoder().decode(request.raw_post_data):    
         ver = datum['version']
         noteID = datum['id']
         matchingNotes = RedactedNote.objects.filter(jid=noteID, version=ver)
@@ -1099,3 +1100,49 @@ def del_wordmeta_for_note(n):
     wMetas = WordMeta.objects.filter(rNote=n)
     for meta in wMetas:
         meta.delete()
+
+
+## Misc View
+import csv, codecs, cStringIO
+
+class UnicodeWriter:
+    """
+    A CSV writer which will write rows to CSV file "f",
+    which is encoded in the given encoding.
+    """
+
+    def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
+        # Redirect output to a queue
+        self.queue = cStringIO.StringIO()
+        self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
+        self.stream = f
+        self.encoder = codecs.getincrementalencoder(encoding)()
+
+    def writerow(self, row):
+        self.writer.writerow([s.encode("utf-8") for s in row])
+        # Fetch UTF-8 output from the queue ...
+        data = self.queue.getvalue()
+        data = data.decode("utf-8")
+        # ... and reencode it into the target encoding
+        data = self.encoder.encode(data)
+        # write to the target stream
+        self.stream.write(data)
+        # empty queue
+        self.queue.truncate(0)
+
+    def writerows(self, rows):
+        for row in rows:
+            self.writerow(row)
+
+def misc_view(request):
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=redacted_notes.csv'
+
+    rWriter = UnicodeWriter(response)
+    rWriter.writerow(['category', 'contents'])
+    for note in RedactedNote.objects.all().order_by('created'):
+        rWriter.writerow([note.noteType, note.contents])
+    
+    ##response.status_code = 200
+    return response
+
