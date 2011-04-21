@@ -1220,3 +1220,32 @@ def misc_json(request):
     response.status_code = 200
     return response
     
+
+
+## Chrome Extension Get/Post Methods
+
+def get_json_notes(request):
+    request_user = basicauth_get_user_by_emailaddr(request)
+    if not request_user:
+        logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
+        response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
+        response.status_code = 401
+        return response
+    
+    ## Filter out notes that have already been redacted
+    notes = Note.objects.filter(owner=request_user).order_by("-created")
+    
+    ndicts = [ extract_zen_notes_data(note) for note in notes ]
+    allNotes = []
+    for note in ndicts:
+        allNotes.append(
+            {"jid":note['jid'],"version":note['version'], "contents":note['noteText'],
+             "deleted":note['deleted'], "created":str(note['created']),
+             "edited":str(note['edited']) })
+    
+    response = HttpResponse(JSONEncoder().encode({"notes":allNotes}), "text/json")
+    response.status_code = 200
+    return response
+
+def post_json_notes(request):
+    return put_zen(request)
