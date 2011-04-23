@@ -404,23 +404,26 @@ def changepassword_request(request): ## GET view, parameter username
     matching_user = get_user_by_email(email)
     if not matching_user:
         response = HttpResponse("Unknown user, did you register previously for List.it under a different email address?", "text/html");    
-        response.status_code = 404;
+        response.status_code = 404
         logevent(request,'changepassword_request',404,repr(request))
         return response;    
     req = makeChangePasswordRequest(email)
     send_mail('Confirm List.it change password request', gen_confirm_change_password_email(req) , 'listit@csail.mit.edu', (matching_user.email,), fail_silently=False)
     response = render_to_response('jv3/changepassword_request.html', {'message': "(I just sent email to you at %s)" % matching_user.email})
     logevent(request,'changepassword_request',200,repr((email,req.cookie,)))
-    return response;
+
+    response.status_code = 200
+
+    return response
 
 def changepassword_confirm(request): ## GET view, parameter cookie
     cookie = request.GET['cookie'];
     matching_requests = ChangePasswordRequest.objects.filter(cookie=cookie)
     if len(matching_requests) == 0:
         response = HttpResponse("Sorry, I did not know about your request to change your password.","text/html")
-        response.status_code = 405;
+        response.status_code = 405
         logevent(request,'changepassword',404,repr(request))
-        return response;    
+        return response  
     reqobject = matching_requests[0];
     response = render_to_response('jv3/changepasswordform.html', {'cookie':cookie,'username':reqobject.username})
     logevent(request,'changepassword_confirm',200,reqobject.username)
