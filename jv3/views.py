@@ -93,11 +93,11 @@ class NoteCollection(Collection):
             ## UPDATE an existing note
             ## check if the client version needs updating
             if len(matching_notes) > 1:
-                print "# of Matching Notes : %d " % len(matching_notes)
+                ##print "# of Matching Notes : %d " % len(matching_notes)
 
             if (matching_notes[0].version > form.data['version']):
                 errormsg = "Versions for jid %d not compatible (local:%d, received: %d). Do you need to update? "  % (form.data["jid"],matching_notes[0].version,form.data["version"])
-                print "NOT UPDATED error -- server: %d, YOU %d " % (matching_notes[0].version,form.data['version'])
+                ##print "NOT UPDATED error -- server: %d, YOU %d " % (matching_notes[0].version,form.data['version'])
                 return self.responder.error(request, 400, ErrorDict({"jid":errormsg}))
             
             # If the data contains no errors, migrate the changes over to
@@ -121,7 +121,7 @@ class NoteCollection(Collection):
             logevent(request,'Note.create',400,form.errors)
             ## debug
             formerrors = form.errors
-            print "UPDATE form errors %s " % repr(form.errors)
+            ##print "UPDATE form errors %s " % repr(form.errors)
             ## end debug
             return self.responder.error(request, 400, form.errors);
         pass
@@ -201,7 +201,7 @@ def notes_post_multi(request):
             # print "UPDATE an existing note"
             ## check if the client version needs updating
             if len(matching_notes) > 1:
-                print "# of Matching Notes : %d " % len(matching_notes)
+                ##print "# of Matching Notes : %d " % len(matching_notes)
             if (matching_notes[0].version > form.data['version']):
                 responses.append({"jid":form.data['jid'],"status":400})
                 continue            
