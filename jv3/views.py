@@ -1344,6 +1344,7 @@ def post_json_get_updates(request):
     clientJIDs.extend(map(lambda x:int(x), payload['unmodifiedNotes'].keys()))
     serverNotes = map(lambda x:x, Note.objects.filter(owner=request_user, deleted=0).exclude(jid__in=clientJIDs).order_by("-created"))
     ndicts = [ extract_zen_notes_data(note) for note in serverNotes ]
+    ndicts.reverse()
     servNotes = []
     for note in ndicts:
         servNotes.append(
