@@ -142,10 +142,12 @@ urlpatterns = patterns('server.jv3.views.',
     (r'^get_redact_notes$', get_redact_notes),      ## GET              
     (r'^put_redact_notes/$', post_redacted_note),   ## POST redacted notes
 
+    
+
     ## Chrome Extension
     (r'^get_json_notes$', get_json_notes),
     (r'^post_json_notes/$', post_json_notes),
-    
+    (r'^post_json_get_updates/$', post_json_get_updates),
     
 
     (r'^miscview$', misc_view),      ## For MISC csv attachment
