@@ -813,7 +813,8 @@ def put_zen(request):
     
     for datum in JSONDecoder().decode(request.raw_post_data):
         form = NoteForm(datum)
-        form.data['owner'] = request_user.id;                 ## clobber this whole-sale from authenticating user
+        form.data['owner'] = request_user.id;
+        ## clobber this whole-sale from authenticating user
         matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)
         if len(matching_notes) == 0:
             ## Save new note
@@ -838,6 +839,7 @@ def put_zen(request):
                             ##print "Key: %s, Data: %s" % (key, form.data[key])
                             matching_notes[0].__setattr__(key, form.data[key])
                     newVersion = max(matching_notes[0].version, form.data['version']) + 1
+                    ##print newVersion
                     matching_notes[0].version = newVersion ## Saved note is MOST-up-to-date, ie:(max(both versions)+1)
                     matching_notes[0].save()
                     updateResponses.append({"jid":form.data['jid'],"content": newContent, "version": newVersion,"status":201})
@@ -1236,7 +1238,8 @@ def get_json_notes(request):
         return response
     
     ## Filter out notes that have already been redacted
-    notes = Note.objects.filter(owner=request_user).order_by("-created")
+    notes = Note.objects.filter(owner=request_user,
+                                deleted=0).order_by("-created")
     
     ndicts = [ extract_zen_notes_data(note) for note in notes ]
     allNotes = []
@@ -1245,6 +1248,9 @@ def get_json_notes(request):
             {"jid":note['jid'],"version":note['version'], "contents":note['noteText'],
              "deleted":note['deleted'], "created":str(note['created']),
              "edited":str(note['edited']) })
+
+    allNotes.sort(lambda x,y:cmp(x['created'], y['created']) )
+
     
     response = HttpResponse(JSONEncoder().encode({"notes":allNotes}), "text/json")
     response.status_code = 200
