@@ -93,11 +93,11 @@ class NoteCollection(Collection):
             ## UPDATE an existing note
             ## check if the client version needs updating
             if len(matching_notes) > 1:
-                ##print "# of Matching Notes : %d " % len(matching_notes)
+                print "# of Matching Notes : %d " % len(matching_notes)
 
             if (matching_notes[0].version > form.data['version']):
                 errormsg = "Versions for jid %d not compatible (local:%d, received: %d). Do you need to update? "  % (form.data["jid"],matching_notes[0].version,form.data["version"])
-                ##print "NOT UPDATED error -- server: %d, YOU %d " % (matching_notes[0].version,form.data['version'])
+                print "NOT UPDATED error -- server: %d, YOU %d " % (matching_notes[0].version,form.data['version'])
                 return self.responder.error(request, 400, ErrorDict({"jid":errormsg}))
             
             # If the data contains no errors, migrate the changes over to
@@ -121,7 +121,7 @@ class NoteCollection(Collection):
             logevent(request,'Note.create',400,form.errors)
             ## debug
             formerrors = form.errors
-            ##print "UPDATE form errors %s " % repr(form.errors)
+            print "UPDATE form errors %s " % repr(form.errors)
             ## end debug
             return self.responder.error(request, 400, form.errors);
         pass
@@ -201,7 +201,7 @@ def notes_post_multi(request):
             # print "UPDATE an existing note"
             ## check if the client version needs updating
             if len(matching_notes) > 1:
-                ##print "# of Matching Notes : %d " % len(matching_notes)
+                print "# of Matching Notes : %d " % len(matching_notes)
             if (matching_notes[0].version > form.data['version']):
                 responses.append({"jid":form.data['jid'],"status":400})
                 continue            
@@ -1240,6 +1240,7 @@ def get_json_notes(request):
     ## Filter out notes that have already been redacted
     notes = Note.objects.filter(owner=request_user,
                                 deleted=0).order_by("-created")
+
     
     ndicts = [ extract_zen_notes_data(note) for note in notes ]
     allNotes = []
@@ -1258,3 +1259,102 @@ def get_json_notes(request):
 
 def post_json_notes(request):
     return put_zen(request)
+
+
+def post_json_get_updates(request):
+    ## Verify User
+    request_user = basicauth_get_user_by_emailaddr(request);
+    if not request_user:
+        logevent(request,'ActivityLog.create POST',401,jv3.utils.decode_emailaddr(request))
+        response = HttpResponse(JSONEncoder().encode({'autherror':"Incorrect user/password combination"}), "text/json")
+        response.status_code = 401;
+        return response
+    
+    if not request.raw_post_data:
+        response = HttpResponse(JSONEncoder().encode({'committed':[]}), "text/json")
+        response.status_code = 200;
+        return response
+
+    ## 1) put_zen method of updating client's modified notes
+    responses = []
+    updateResponses = []
+    payload = JSONDecoder().decode(request.raw_post_data)
+  
+    for datum in payload['modifiedNotes']:
+        form = NoteForm(datum)
+        form.data['owner'] = request_user.id;
+        matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)
+        if len(matching_notes) == 0: ## Save new note
+            if form.is_valid() :
+                new_model = form.save()
+                responses.append({"jid":form.data['jid'],"version":form.data['version'],"status":201})
+                logevent(request,'Note.create',200,form.data['jid'])
+            else:
+                logevent(request,'Note.create',400,form.errors)
+                responses.append({"jid":form.data['jid'],"status":400})
+        else:
+            ## UPDATE an existing note: check if the client version needs updating
+            if (matching_notes[0].version > form.data['version']):
+                if form.is_valid():
+                    for key in Note.update_fields: ## key={contents,created,deleted,edited}
+                        if key == "contents":
+                            newContent = "Two versions of this note:\nSubmitted Copy:\n%s\n\nServer Copy:\n%s" % (form.data[key], matching_notes[0].contents)
+                            matching_notes[0].__setattr__(key, newContent)
+                        else:
+                            matching_notes[0].__setattr__(key, form.data[key])
+                    newVersion = max(matching_notes[0].version, form.data['version']) + 1
+                    matching_notes[0].version = newVersion
+                    ## Saved note is MOST-up-to-date, ie:(max(both versions)+1)
+                    matching_notes[0].save()
+                    updateResponses.append({"jid":form.data['jid'],
+                                            "content": newContent,
+                                            "version": newVersion, "status":201})
+                    continue
+                continue            
+            # If the data contains no errors,
+            if form.is_valid(): # update server note
+                for key in Note.update_fields:
+                    matching_notes[0].__setattr__(key,form.data[key])
+                matching_notes[0].version = form.data['version']+1 
+                matching_notes[0].save()
+                responses.append({"jid":form.data['jid'],
+                                  "version":form.data['version']+1,
+                                  "status":201})
+            else:
+                responses.append({"jid":form.data['jid'],"status":400})
+                logevent(request,'Note.create',400,form.errors)
+                pass
+            pass
+        pass
+
+    ## 2) Figure out which of Client's unmodified notes has been updated on server
+    updateFinal = []  
+    for jid, ver in payload['unmodifiedNotes'].items():
+        notes = Note.objects.filter(jid=jid,owner=request_user)
+        if notes.count() >= 1 and notes[0].version > ver:
+            note = extract_zen_notes_data(notes[0])
+            updateFinal.append({"jid":note['jid'],"version":note['version'],
+                                "contents":note['noteText'],
+                                "deleted":note['deleted'], "created":str(note['created']),
+                                "edited":str(note['edited']),
+                                "modified":0})
+
+    ## 3) Return notes only server knows about!
+    clientJIDs = map(lambda x:int(x['jid']), payload['modifiedNotes'])
+    clientJIDs.extend(map(lambda x:int(x), payload['unmodifiedNotes'].keys()))
+    serverNotes = map(lambda x:x, Note.objects.filter(owner=request_user, deleted=0).exclude(jid__in=clientJIDs).order_by("-created"))
+    ndicts = [ extract_zen_notes_data(note) for note in serverNotes ]
+    servNotes = []
+    for note in ndicts:
+        servNotes.append(
+            {"jid":note['jid'],"version":note['version'], "contents":note['noteText'],
+             "deleted":note['deleted'], "created":str(note['created']),
+             "edited":str(note['edited']),
+             "modified":0})
+        
+    response = HttpResponse(JSONEncoder().encode({"committed":responses,
+                                                  "update":updateResponses,
+                                                  "updateFinal":updateFinal,
+                                                  'unknownNotes':servNotes}), "text/json")
+    response.status_code = 200;
+    return response
