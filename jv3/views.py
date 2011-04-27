@@ -740,8 +740,7 @@ def sort_user_notes(request_user):
     else:
         # sort by creation date ?
         notes = Note.objects.filter(owner=request_user,deleted=False).order_by("-created").exclude(jid=-1)
-    return notes
-    
+    return notes  
 
 def get_zen(request):
     iphone = True
@@ -1261,6 +1260,28 @@ def post_json_notes(request):
     return put_zen(request)
 
 
+
+def sort_user_for_notes(request_user, django_notes):
+    ## Sort and return user's notes
+    if Note.objects.filter(owner=request_user,jid="-1").count() > 0:
+        ## we want to determine order using magic note
+        magic_note = Note.objects.filter(owner=request_user,jid="-1")[0]
+        note_order = JSONDecoder().decode(magic_note.contents)['noteorder']
+        notes = [ n for n in django_notes.exclude(jid=-1) ]
+        def sort_order(nx,ny):
+            if nx.jid in note_order and ny.jid in note_order:
+                result = note_order.index(nx.jid) - note_order.index(ny.jid)
+            else:
+                result = int((ny.created - nx.created)/1000)
+            return result
+        ## sort 'em
+        notes.sort(sort_order)
+    else:
+        # sort by creation date ?
+        notes = django_notes.order_by("-created").exclude(jid=-1)
+    return notes
+
+
 def post_json_get_updates(request):
     ## Verify User
     request_user = basicauth_get_user_by_emailaddr(request);
@@ -1342,9 +1363,15 @@ def post_json_get_updates(request):
     ## 3) Return notes only server knows about!
     clientJIDs = map(lambda x:int(x['jid']), payload['modifiedNotes'])
     clientJIDs.extend(map(lambda x:int(x), payload['unmodifiedNotes'].keys()))
-    serverNotes = map(lambda x:x, Note.objects.filter(owner=request_user, deleted=0).exclude(jid__in=clientJIDs).order_by("-created"))
+    ##serverNotes = map(lambda x:x, Note.objects.filter(owner=request_user, deleted=0).exclude(jid__in=clientJIDs).order_by("-created"))
+    serverNotes = Note.objects.filter(owner=request_user, deleted=0).exclude(jid__in=clientJIDs)
+    
+    serverNotes = sort_user_for_notes(request_user, serverNotes)
+    
     ndicts = [ extract_zen_notes_data(note) for note in serverNotes ]
+
     ndicts.reverse()
+    
     servNotes = []
     for note in ndicts:
         servNotes.append(
