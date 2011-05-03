@@ -14,6 +14,15 @@ import math
 ## Ave #Chars: 190.430594901 , Ave Var: 138125.784703
 ## Ave #Lines: 6.76770538244 , Ave Var: 123.203966006
 
+def user_searches_per_day(user):
+    import jv3.study.ca_search 
+    normed,adays = jv3.study.ca_search.searches_per_day(User.objects.filter(id=user))
+    total = reduce(lambda x,y : x+y, normed.values(), 0)
+    return ca.make_feature("user_searches_per_day", total)
+
+def user_notes_owned(user):
+    return ca.make_feature('user_notes_owned',Note.objects.filter(owner=user).count())
+
 def analyzeUserWalk(user):
     totalDays, activeDays, aliveAndDeadTotal, aliveAndDeadGained = userWalk(user)
     aliveGained = map(lambda x:x[0],aliveAndDeadGained)

@@ -35,6 +35,18 @@ def diaginfos():
          print sys.exc_info()
    return results
 
+def diaginfos_with_date():
+   import json
+   results = []
+   for slog in ServerLog.objects.filter(url='post_diagnostics').values('when','info'):
+      try:
+         info = json.loads(slog['info'])[0]
+         results.append((slog['when'],info))
+      except:
+         print sys.exc_info()
+   return results
+
+
 def diaginfos_by_clientid(infos=None):
    import json
    if infos is None: infos = diaginfos()
@@ -84,3 +96,11 @@ def histogram_of_platforms(infos,filename='/var/listit/www-ssl/_studyplots/clien
 
 #infos = diaginfos()
 #icb = diaginfos_by_clientid(infos)
+
+def number_of_clients_per_day() :
+   dis = diaginfos_with_date()
+   days = {}
+   for when,X in dis:
+      bucket = int(long(when) / (24*60.0*60.0*1000.0))
+      days[bucket] = days.get(bucket,set([])).union( [X['clientid']] )
+   return dict([(x,len(y)) for x,y in days.iteritems()])

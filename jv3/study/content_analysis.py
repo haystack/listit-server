@@ -115,6 +115,9 @@ def note_lifetime(note):
 
 # values version
 def note_lifetime_none(note):
+    if not note["deleted"]:
+        # print note["id"]," not deleted "
+        return {'note_lifetime_none':None}
     ndt = get_note_deletion_time(note)
     if ndt is not None and ndt > 0:
         return {'note_lifetime_none': ( (1.0*ndt - long(note["created"]))/(3600*1000) ) }
@@ -132,7 +135,7 @@ def time_of_activity(u):
 
 #note_lifetime = lambda note : {'note_lifetime_s': float((q(note["deleted"],  long(note["edited"] - DATABASE_SNAPSHOT_TIME, -1))/1000.0)}
 note_owner = lambda note: {'note_owner': repr(note.get("owner",note["owner_id"]))}
-note_length = lambda x : {'note_length':len(x["contents"])}
+note_length = lambda x : {'note_length':len(x["contents"].strip())}
 #note_words = lambda x : {'note_words':len(nltk.word_tokenize(eliminate_urls(x["contents"])))}
 
 DOWS=["mon","monday","tue","tuesday","wed","wedmesday","thu","thurs","thursday","fri","friday","sat","saturday","sun","sunday"]
@@ -615,7 +618,7 @@ def hist_notes_per_user(npu=None,breaks=[0,20,30,40,50,60,70,80,90,100,150,200,5
     
 def hist_number_of_words(nfvs):
     total = len(nfvs)
-    nwords = [x['note_words'] for x in nfvs.values() ]
+    nwords = [x['note_words'] for x in nfvs.values()]
     stats = s(nwords)
     cap.hist2( nwords,
               breaks=[0,1,5,10,20,30,40,50,100,200,500,1000,2000,5000,10000],
@@ -902,7 +905,25 @@ def note_displacements(n):
     # how much a note is raised or lowered
     pass
 
-        
+
+def count_histograms(counts,filename='counts.png'):
+    wc = cap.count(counts)
+    fname = cap.make_filename(filename)
+    r.png(fname,width=1280,height=1024)
+    r.barplot(c(wc),ylim=c([0,max(wc)]),**({"axis.lty":1, "names.arg": c(xrange(min(counts),max(counts)+1))}))
+    r('dev.off()')
+    
+
+def count_log_histograms(counts,filename='log_counts.png'):
+    wc = cap.count(counts)
+    fname = cap.make_filename(filename)
+    r.png(fname,width=1280,height=1024)
+    wc = [ r.log(x)[0]/r.log(10)[0] for x in wc ]
+    r.barplot(c(wc),ylim=c([0,max(wc)]),**({"axis.lty":1, "names.arg": c(xrange(min(counts),max(counts)+1))}))
+    r('dev.off()')
+    
+
+
 
 
 

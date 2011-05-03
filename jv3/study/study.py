@@ -299,6 +299,28 @@ def per_note_edit_duration(notes=None,edits=True,adds=True):
                 rows.append([ n.owner.email, a.noteid, a.noteText, long(a.when) - long(last_a.when) ])
     return rows
 
+# don't know where this went, but ...
+# icspeed = study.note_capture_speed(interesting_consenting,True,False)
+# icall = reduce(lambda x,y : x+y, icspeed)
+
+def note_capture_speed(users,edits=True,adds=True):
+    import jv3.study.wUserWalk
+    by_peep = {}
+    def append_peep(personid,val):  by_peep[personid] = by_peep.get(personid,[])+[val]
+    
+    for u in users:
+        actlogs = jv3.study.wUserWalk.reduceRepeatLogs(jv3.models.ActivityLog.objects.filter(owner=u))
+        for i in range(1,len(actlogs)):
+            a = actlogs[i]
+            last_a = actlogs[i-1]
+            if (not a.noteid == last_a.noteid) or a.noteText is None or len(a.noteText.strip()) == 0: continue
+            if adds and a.action == 'note-add' and last_a.action == 'notecapture-focus':
+                append_peep(a.owner, long(a.when) - long(last_a.when))
+            if edits and a.action == 'note-save' and last_a.action == 'note-edit' and a.noteid ==last_a.noteid :
+                append_peep(a.owner, long(a.when) - long(last_a.when))
+        
+    return by_peep
+
 def make_pned_spreadsheet(edits=True,adds=True):
     rows = per_note_edit_duration(None,edits,adds)
     for r in rows:

@@ -28,9 +28,14 @@ def hist(data,filename='hist.out',breaks="auto",auto_nbins_top=0,auto_nbins_skip
         breaks = c(breaks)
     elif breaks == "auto":
         breaks = r.seq(min(data), max(auto_nbins_top,max(data)), auto_nbins_skip)
-    histout = r.hist(c(data),plot=True,main=title,xlab=xlabel,ylab=ylabel,**kwargs)
+    histout = r.hist(c(data),plot=True,main=title,xlab=xlabel,ylab=ylabel,breaks=breaks)
     if devoff: r('dev.off()')
     return histout
+
+
+# hist creeps me out, let's use this home grown code instead
+# takes a list, counts the # of instances
+count = lambda L: [ len([y for y in L if y == x]) for x in xrange(min(L),max(L)+1) ]
 
 make_axis_labels = lambda breaks: [ "%g-%g" % (breaks[i],breaks[i+1]) for i in range(len(breaks)-1)]
 make_axis_labels = lambda breaks: [ "%d-%d" % (breaks[i]+1,breaks[i+1]) for i in range(len(breaks)-1)]

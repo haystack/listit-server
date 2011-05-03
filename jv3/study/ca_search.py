@@ -53,9 +53,10 @@ def user_search(user,days_ago=None,nosmoothing=False):
                     if len(query[key].strip()) > 0 and nosmoothing or long(al['when'])-long(last_time) > (10*1000):  # 10 second smoothing
                         queries.append(query[key])
                         al['query'] = query[key]
+                        al['hits'] = query.get('hits',[])
                         searches.append(al)
                         last_time = al['when']
-        elif al["action"] == 'clear-search' and nosmoothing or long(al['when'])-long(last_time) > (10*1000):
+        elif al["action"] == 'clear-search' and (nosmoothing or long(al['when'])-long(last_time) > (10*1000)):
             al['query'] = ''
             searches.append(al)
             last_time = al["when"]

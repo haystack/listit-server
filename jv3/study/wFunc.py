@@ -51,6 +51,18 @@ def col_of_edit(initText,type,when=0):
   else:
     print 'invalid type given to col_of_edit in wFunc.py'
 
+
+def searches_by_note_jid(u):
+  boo = cas.user_search(u)[0]
+  by_note = {}
+  for search in boo:
+    for hjid in search.get("hits",[]):
+      hjid = str(hjid) # 
+      arr = by_note.get(hjid,[])
+      arr.append(search)
+      by_note[hjid] = arr
+  return by_note  
+
 ## Given ONE user's notes, plot note attribute (created) vs activitylog attribute (when)
 def mmmPlot(filename, notes,  title='title'):
   global firstBirth
@@ -93,7 +105,9 @@ def mmmPlot(filename, notes,  title='title'):
   #New code for edits inserted here
   edits_ = ca.note_edits_for_user(notes[0].owner)
   points['note-edit'] = r.c()
+  points['note-searches'] = r.c()
   edit_dir, edit_delta, edit_col = r.c(), r.c(), r.c()
+  searches = searches_by_note_jid(notes[0].owner)
   for n in notes:  ## wCom: not all notes eval'd here may have note-add events !!
     if n.jid in edits_:
       ##print "in ",n.jid,n.owner.email,len(edits_[n.jid])
@@ -109,10 +123,18 @@ def mmmPlot(filename, notes,  title='title'):
         edit_dir = r.c(edit_dir, pch_of_innerEdit(edit_action['initial'],edit_action['final']))
         edit_delta = r.c(edit_delta, 7)#abs(10 + 10*(len(edit_action['initial']) - len(edit_action['final']))/1000.0))
         edit_col = r.c(edit_col, col_of_edit(edit_action['initial'], 'inner', edit_action['when']))
+
+        for x in searches.get(str(n.jid), []):
+          print 'searches', x
+          points['note-searches'] = r.rbind(points['note-searches'],c([float(n.created), float(x['when'])]))
+
   ##End new code
-  
+
+
+  r.points(points['note-searches'], cex=5.0,col = "dark green", pch='o')
   r.points(points['note-edit'], col=edit_col, pch=edit_dir,  cex=edit_delta)
   r.points(points['note-delete'], cex=5.0,col = "dark red", pch='x')
+
   for x in births.keys():
      if x in deaths:
        color = 'green' if (today-deaths[x] < 0.001) else 'black'

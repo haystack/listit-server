@@ -19,6 +19,7 @@ import codecs,json,csv
 from django.utils.simplejson import JSONEncoder, JSONDecoder
 import rpy2,nltk,rpy2.robjects
 import jv3.study.note_labels as nl
+import jv3.study.aov_utils as au
 #r = ro.r <-- changed this by logging into mvk for a few seconds
 ## This was breaking note_intent site
 
@@ -40,6 +41,19 @@ def augmented_get_column_index(name):
     return columns.index(name)+1 # with note id as 0
 aci = augmented_get_column_index
 
+## two methods to get note intention - just the primary cat or secondaries >= 3
+def get_note_intention_just_primary(arows,nid):
+    ff = nltk.FreqDist([row[aci('primary')] for row in filter(lambda x : x[0] == nid,arows)])
+    return ff.max()
+
+def get_note_intention_anything_over_thresh(arows,nid,thresh=4):
+    hits = [row for row in filter(lambda x : x[0] == nid,arows)]
+    return list(set( reduce(lambda x,y:x+y, [[c for c in cats if levels.index(arow[aci(c)]) >= thresh-1] for arow in hits], []) + [arow[aci('primary')]] ))
+
+## set it here ##
+get_note_intention = get_note_intention_just_primary
+#get_note_intention = get_note_intention_anything_over_thresh
+get_note_role = get_note_intention
 
 def read(filename=None):
    csv.field_size_limit(1000000000)
@@ -162,6 +176,8 @@ def build_fleiss(arows, n_raters=2): # augmented rows
     return ro.DataFrame(dict(zip(rater_names, scores_by_rater)))
 
 
+    
+    
 def _collect_all_ratings(arows,threshold='4- likely'):#'3- could be'):
     # primary is redundant since it will be set
     good_levels = levels[levels.index(threshold):]
@@ -388,7 +404,7 @@ def get_feature_for_note(nid,feature_name,coerce_fn=lambda x: float(x)):
         #         else:
         #             print "unknown feature name, trying to compute ", feature_name
         
-        #print "result .... ", Note.objects.filter(id=nid).count(), nl.compute_feature_named(feature_name,Note.objects.filter(id=nid).values()[0])
+        #print "result .... ", Note.objects.filter(id=nid).count(), nl.feature_named(feature_name,Note.objects.filter(id=nid).values()[0])
         return nl.compute_feature_named(feature_name,Note.objects.filter(id=nid).values()[0])
 
     N = N[0]
@@ -400,7 +416,7 @@ def get_feature_for_note(nid,feature_name,coerce_fn=lambda x: float(x)):
 ## fmla = aov(arows,'note_length')
 ## x,y,z = plotTukeyHSD(fmla)
 
-def aov(arows, feature_name, formula = "%s ~ cat + participant"):
+def aov_old(arows, feature_name, formula = "%s ~ cat + participant"):
     fla = formula % feature_name
     fmla = ro.Formula(fla)
     env = fmla.environment
@@ -425,6 +441,22 @@ def aov(arows, feature_name, formula = "%s ~ cat + participant"):
     
     return fmla
 
+## intention aov -- 
+def aov(arows, feature_name, formula = "%s ~ primary + owner_id"):
+    import jv3.study.keeping_labels
+    get_note_owner = lambda nid: filter(lambda x :x[0]==nid, arows)[0][aci('owner_id')]
+    feature_functions = {
+        feature_name : lambda note_id: get_feature_for_note(note_id,feature_name),
+        'primary' : lambda nid: get_note_role(arows,nid),
+        'owner_id' : get_note_owner
+    }
+    note_ids = list(set([x[0] for x in arows]))
+    # key element: b
+    fmla = au.make_fmla_repeat_when_lists(formula % feature_name, note_ids, feature_functions, ['primary', 'owner_id'])
+    au.compute_averages(note_ids,feature_functions,feature_name,'primary')    
+    return fmla
+
+aov_new = aov
 # largely a failed experiment - p values blow up completely because
 # we assign things to unknown category
 def aov_padded(arows, feature_name, min_N_per_user=20, formula = "%s ~ cat + participant"):
@@ -526,5 +558,19 @@ def plotTukeyHSD(feature_name,fmla):
     r('dev.off()')
     return name_aov,name_tsd,tsdres.getvalue(),aov,tsd
     
+# overall interesting
+
+def compute_avg_for_overall_interesting(interesting_users,feature_name):
+    interesting_notes = reduce(lambda x,y: x+y, [ list(i.note_owner.all().values()) for i in interesting_users])
+    def printstats(varr):
+        return [("len: ", len(varr)),
+                ("mean: ",mean(varr)),
+                ("median: ",median(varr)),
+                ("min ", min(varr)),
+                ("max ", max(varr)),               
+                ("stdev:", pow(ca.var(varr),0.5) if len(varr) > 1 else "CANT COMPUTE len = 1")]
+
+    
+    print printstats([ nl.compute_feature_named(feature_name, n) for n in interesting_notes if nl.compute_feature_named(feature_name, n) is not None and nl.compute_feature_named(feature_name, n) >= 0])
     
     

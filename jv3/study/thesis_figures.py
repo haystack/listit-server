@@ -55,16 +55,17 @@ def cumulative_registrations(width=1000,height=700):
       cudist[i] = total
    print make_filename('registrations')
    r.png(file=make_filename('registrations'),width=width,height=height)
-   r.plot(c(cudist.keys()), c([x for x in cudist.values()]),xlab='',ylab='',axes=False)
+   r.plot(c(cudist.keys()), c([x for x in cudist.values()]),xlab='',ylab='',axes=False,cex=0.3)
    days = 60
-   print len(r.seq(min(registrations),max(registrations),24*60*60*days))   
+   print total
+   # print len(r.seq(min(registrations),max(registrations),24*60*60*days))   
    r.axis(1, r.seq(min(registrations),max(registrations),24*60*60*days),
            [ "%s %d" % (months[x.tm_mon],x.tm_year) for x in
              [time.localtime(b) for b in xrange(min(registrations), max(registrations), 24*60*60*days)]])
 
    # label the max
    r.axis(2,r.c(r.seq(0,((total/5000)+1)*5000,5000),total),r.c(r.seq(0,((total/5000)+1)*5000,5000),total))
-   r.title('cumulative listit registrations (august 2008-august 2010)')
+   r.title('cumulative listit registrations (august 2008-may 2011)')
    
    #   r.lines(c([float(x) for x in cudist.keys()]), c([x for x in cudist.values()]),xlab=r.c(),ylab=r.c()))
    r('dev.off()')

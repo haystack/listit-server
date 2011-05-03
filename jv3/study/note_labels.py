@@ -272,8 +272,8 @@ def get_distribution_of_types(ss,filename=None,width=1600,height=1200):
     
     if filename is not None:
         t = r.sort(t,decreasing=True)
-        r.barplot(t,names=t)
-        r.legend(44,r.max(t),r.names(t),cex=0.90)
+        r.barplot(t,names=t,col='white')
+        r.legend(40,r.max(t),r.names(t),cex=0.90)
         r('dev.off()')
 
     ## find freqs -- compare max and min
