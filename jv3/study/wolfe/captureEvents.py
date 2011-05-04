@@ -68,9 +68,10 @@ def classifyUsers(users, minTimeOpen, maxTimeOpen):
     for user in users:
         tmpEvents = classifyOpen(user, minTimeOpen, maxTimeOpen)
         if len(tmpEvents) > 50: ## An open-closer
+            writes = [wr['isWrite'] for wr in tmpEvents]
             print "%s perc. of %s open-close events are write-events"%(
-                int(100.0*sum(tmpEvents)/len(tmpEvents)),
-                len(tmpEvents))
+                int(100.0*sum(writes)/len(writes)),
+                len(writes))
             events.append(tmpEvents)
             pass
         pass
@@ -101,7 +102,9 @@ def classifyOpen(user, minTimeOpen, maxTimeOpen):
             isWrite = True
         elif isOpen and log.action == 'sidebar-close' and log.when - openTime > minTimeOpen:
             ## Record type of open event
-            events.append(isWrite)
+            events.append({"isWrite":isWrite,
+                           "dur":log.when-openTime})
+            ##events.append(isWrite)
             isOpen = False
             isWrite = False
     ##print "%s perc. of %s open-close events are write-events"%(int(100.0*sum(events)/len(events)),                                                          len(events))
