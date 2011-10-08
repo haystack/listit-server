@@ -20,13 +20,13 @@ from jv3.study.study import *
 from numpy import array
 import random
 
-import jv3.study.note_labels as nl
-import jv3.study.keeping_labels as kl
-import jv3.study.intention as intent
+#import jv3.study.note_labels as nl
+#import jv3.study.keeping_labels as kl
+#import jv3.study.intention as intent
 import nltk
 import jv3.study.thesis_figures as tfigs
 import jv3.study.wMaxEntFeatures as wFeatures
-import jv3.study.wMaxEntUtils as wmU
+#import jv3.study.wMaxEntUtils as wmU
 
 from threading import Thread
 
@@ -121,13 +121,15 @@ def word_is_noun(word):
     return pos_word(word) in ["NN","NNS","NNP","NNPS"]
 
 try:
-    mem = mem
-    if mem == None:
-        print "Recreating mem trig notes"
-        mem, notMem = splitNotes('memory trigger')
+    pass
+    #mem = mem
+    #if mem == None:
+    #    print "Recreating mem trig notes"
+    #    mem, notMem = splitNotes('memory trigger')
 except:
-    print "Creating mem trig notes"
-    mem, notMem = splitNotes('memory trigger')
+    pass
+    #print "Creating mem trig notes"
+    #mem, notMem = splitNotes('memory trigger')
 
 mapping = {}
 labels = ['memory trigger', 'not']
@@ -146,7 +148,7 @@ def noteFeatures(note):
     global mem, notMem
     notevals = nvals(note)
     fs = {}
-    noteWords = nltk.tokenize.WordPunctTokenizer().tokenize(note.contents)
+    noteWords = nltk.tokenize.WordPunctTokenizer().tokenize(notevals['contents'])
     notePOS = nltk.pos_tag(noteWords)
     for feature in wFeatures.features:
         fname, fval = feature(notevals, noteWords)
@@ -189,7 +191,7 @@ def noteFeatures(note):
     #"""
     seenChars = {}
     seenCharBG, lastChar = {},"START"
-    for char in note.contents:
+    for char in note['contents']:
         if char not in seenChars and char in goodChars:
             seenChars[char] = True
             addFeature(fs, "CHAR: %s"%(char), True)
@@ -197,7 +199,7 @@ def noteFeatures(note):
     ## First-word-in-line features == GOOD
     seenWords = {}
     goodWords = {'http':True,'get':True,'1':True,'to':True,'order':True,'need':True,'send':True,'the':True}
-    for word in first_nonsymb_word_line(note.contents):
+    for word in first_nonsymb_word_line(note['contents']):
         word = word.lower() ## map all words to lowercase words
         if word not in seenWords:
             seenWords[word] = 0

@@ -27,11 +27,11 @@ re_num = lambda notevals, words: ("no_numsbers", count_re('[0-9\-]+', notevals['
 re_numA = lambda notevals, words: ("1_numbers", count_re('[0-9]+', notevals['contents']) == 1)
 re_numB = lambda notevals, words: ("2_numbers", count_re('[0-9:]+', notevals['contents']) == 2)
 re_numD = lambda notevals, words: ("4+_numbers", count_re('[0-9\-]+', notevals['contents']) > 2)
-no_numword = lambda notevals, words: ("2+_numwords", ca.numword_mix(notevals)['numword_mix'] == 0)
+#no_numword = lambda notevals, words: ("2+_numwords", ca.numword_mix(notevals)['numword_mix'] == 0)  ## ca.numword_mix disappeared :(
 
 # Revision 1
 #re_features=[re_num, re_numA,re_numB,re_numC,re_numD,lb_numword]
-re_features=[re_num, re_numD, no_numword] ## HIGH INFORMATION (~3)
+re_features=[re_num, re_numD] #, no_numword] ## HIGH INFORMATION (~3)
 
 ## Features
 first_word_noun = lambda notevals, words: ("first_word_noun", word_is_noun(words[0]))
