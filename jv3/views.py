@@ -20,6 +20,8 @@ from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_
 from django.template.loader import get_template
 import sys,string,time,logging
 import tempfile,os
+from decimal import Decimal
+
 
 logging.basicConfig(filename=os.sep.join([tempfile.gettempdir(),"listit-view-error-"+repr(int(time.time()))]),level=logging.DEBUG)
 
@@ -740,7 +742,7 @@ def sort_user_notes(request_user):
     else:
         # sort by creation date ?
         notes = Note.objects.filter(owner=request_user,deleted=False).order_by("-created").exclude(jid=-1)
-    return notes  
+    return notes
 
 def get_zen(request):
     iphone = True
@@ -841,7 +843,10 @@ def put_zen(request):
                     ##print newVersion
                     matching_notes[0].version = newVersion ## Saved note is MOST-up-to-date, ie:(max(both versions)+1)
                     matching_notes[0].save()
-                    updateResponses.append({"jid":form.data['jid'],"content": newContent, "version": newVersion,"status":201})
+                    updateResponses.append({"jid": form.data['jid'],
+                                             "content": newContent,
+                                             "version": newVersion,
+                                             "status":201})
                     continue
                 continue            
             # If the data contains no errors, migrate the changes over to the version of the note in the db,
@@ -850,9 +855,13 @@ def put_zen(request):
                 ##print "6a: update server note"
                 for key in Note.update_fields:
                     matching_notes[0].__setattr__(key,form.data[key])
-                matching_notes[0].version = form.data['version'] + 1 
+                newVersion = form.data['version'] + 1
+                matching_notes[0].version = newVersion
                 matching_notes[0].save()
-                responses.append({"jid":form.data['jid'],"status":201})
+                responses.append({
+                    "jid": form.data['jid'],
+                    "version": newVersion,
+                    "status": 201})
             else:
                 responses.append({"jid":form.data['jid'],"status":400})
                 logevent(request,'Note.create',400,form.errors)
@@ -1296,93 +1305,143 @@ def post_json_get_updates(request):
         response.status_code = 200;
         return response
 
-    ## 1) put_zen method of updating client's modified notes
-    responses = []
-    updateResponses = []
+
+    ## 1) put_zen method of updating client's "Modified Notes"
+    responses = [] # Successful commit of note.
+    updateResponses = [] # Conflicting notes with new content!
     payload = JSONDecoder().decode(request.raw_post_data)
-  
+
+    userNotes = Note.objects.filter(owner=request_user);
+
+    #print 'Process modified notes'
     for datum in payload['modifiedNotes']:
         form = NoteForm(datum)
         form.data['owner'] = request_user.id;
-        matching_notes = Note.objects.filter(jid=form.data['jid'],owner=request_user)
+        matching_notes = userNotes.filter(jid=form.data['jid'])
+        #print '# matching notes:', len(matching_notes)
         if len(matching_notes) == 0: ## Save new note
             if form.is_valid() :
                 new_model = form.save()
-                responses.append({"jid":form.data['jid'],"version":form.data['version'],"status":201})
-                logevent(request,'Note.create',200,form.data['jid'])
+                responses.append({
+                    "jid": form.data['jid'],
+                    "version": form.data['version'],
+                    "status": 201})
+                logevent(request, 'Note.create', 200, form.data['jid'])
             else:
                 logevent(request,'Note.create',400,form.errors)
-                responses.append({"jid":form.data['jid'],"status":400})
+                responses.append({"jid": form.data['jid'], "status": 400})
         else:
             ## UPDATE an existing note: check if the client version needs updating
-            if (matching_notes[0].version > form.data['version']):
+            conflictNote = matching_notes[0]
+            ##print "conflictNote/form Ver: ", conflictNote.version, form.data['version']
+            if (conflictNote.version > form.data['version']):
+                # Server's version of note is conflicting with client's version, merge!
                 if form.is_valid():
                     for key in Note.update_fields: ## key={contents,created,deleted,edited}
                         if key == "contents":
-                            newContent = "Two versions of this note:\nSubmitted Copy:\n%s\n\nServer Copy:\n%s" % (form.data[key], matching_notes[0].contents)
-                            matching_notes[0].__setattr__(key, newContent)
+                            newContent = ("Two versions of this note:" +
+                                          "\nSubmitted Copy:\n%s\n\nServer Copy:\n%s"
+                                          % (form.data[key],conflictNote.contents))
+                            conflictNote.__setattr__(key, newContent)
                         else:
-                            matching_notes[0].__setattr__(key, form.data[key])
-                    newVersion = max(matching_notes[0].version, form.data['version']) + 1
-                    matching_notes[0].version = newVersion
-                    ## Saved note is MOST-up-to-date, ie:(max(both versions)+1)
-                    matching_notes[0].save()
-                    updateResponses.append({"jid":form.data['jid'],
-                                            "content": newContent,
-                                            "version": newVersion, "status":201})
+                            conflictNote.__setattr__(key, form.data[key])
+                    newVersion = max(conflictNote.version,
+                                     form.data['version']) + 1
+                    conflictNote.version = newVersion
+                    newEdited = max(conflictNote.edited,
+                                    form.data['edited'])
+                    conflictNote.edited = newEdited
+                    ## Saved note will be MOST-up-to-date, ie:(max(both versions)+1)
+                    conflictNote.save()
+                    updateResponses.append({"jid": form.data['jid'],
+                                            "version": newVersion,
+                                            "edited": newEdited,
+                                            "contents": newContent,
+                                            "status": 201})
                     continue
                 continue            
             # If the data contains no errors,
-            if form.is_valid(): # update server note
+            elif form.is_valid(): # No version conflict, update server version.
+                #print "update server's note"
                 for key in Note.update_fields:
-                    matching_notes[0].__setattr__(key,form.data[key])
-                matching_notes[0].version = form.data['version']+1 
-                matching_notes[0].save()
-                responses.append({"jid":form.data['jid'],
-                                  "version":form.data['version']+1,
-                                  "status":201})
+                    conflictNote.__setattr__(key, form.data[key])
+                newVersion = form.data['version'] + 1
+                conflictNote.version = newVersion
+                conflictNote.save()
+                responses.append({"jid": form.data['jid'],
+                                  "version": newVersion,
+                                  "status": 201})
             else:
-                responses.append({"jid":form.data['jid'],"status":400})
-                logevent(request,'Note.create',400,form.errors)
+                responses.append({"jid": form.data['jid'], "status": 400})
+                logevent(request, 'Note.create', 400, form.errors)
                 pass
             pass
         pass
 
+    #print 'process unmodified notes'
     ## 2) Figure out which of Client's unmodified notes has been updated on server
-    updateFinal = []  
+    updateFinal = []  # Server has newer version of these notes.
     for jid, ver in payload['unmodifiedNotes'].items():
-        notes = Note.objects.filter(jid=jid,owner=request_user)
+        notes = userNotes.filter(jid=jid)
         if notes.count() >= 1 and notes[0].version > ver:
             note = extract_zen_notes_data(notes[0])
-            updateFinal.append({"jid":note['jid'],"version":note['version'],
-                                "contents":note['noteText'],
-                                "deleted":note['deleted'], "created":str(note['created']),
-                                "edited":str(note['edited']),
-                                "modified":0})
+            updateFinal.append({"jid": note['jid'],
+                                "version": note['version'],
+                                "created":str(note['created']),
+                                "edited": str(note['edited']),
+                                "deleted": note['deleted'],
+                                "contents": note['noteText'],
+                                "modified": 0})
+        pass
 
+    #print 'process notes only known to server'
     ## 3) Return notes only server knows about!
     clientJIDs = map(lambda x:int(x['jid']), payload['modifiedNotes'])
     clientJIDs.extend(map(lambda x:int(x), payload['unmodifiedNotes'].keys()))
     ##serverNotes = map(lambda x:x, Note.objects.filter(owner=request_user, deleted=0).exclude(jid__in=clientJIDs).order_by("-created"))
-    serverNotes = Note.objects.filter(owner=request_user, deleted=0).exclude(jid__in=clientJIDs)
+    serverNotes = userNotes.filter(deleted=0).exclude(jid__in=clientJIDs)
     
     serverNotes = sort_user_for_notes(request_user, serverNotes)
     
     ndicts = [ extract_zen_notes_data(note) for note in serverNotes ]
 
     ndicts.reverse()
-    
-    servNotes = []
+
+    servNotes = [] # New notes server has & client doesn't.
     for note in ndicts:
-        servNotes.append(
-            {"jid":note['jid'],"version":note['version'], "contents":note['noteText'],
-             "deleted":note['deleted'], "created":str(note['created']),
-             "edited":str(note['edited']),
-             "modified":0})
-        
-    response = HttpResponse(JSONEncoder().encode({"committed":responses,
-                                                  "update":updateResponses,
-                                                  "updateFinal":updateFinal,
-                                                  'unknownNotes':servNotes}), "text/json")
+        servNotes.append({
+            "jid": note['jid'],
+            "version": note['version'],
+            "contents": note['noteText'],
+            "deleted": note['deleted'],
+            "created": str(note['created']),
+            "edited": str(note['edited']),
+            "modified": 0})
+        pass
+
+    
+    #print 'Add magical note!'
+    magicNote = {}
+    magicalNote = userNotes.filter(jid='-1')
+    if magicalNote.count() != 0: # Magical note found!
+        for key, value in magicalNote.values()[0].items():
+            if key == 'owner_id':
+                pass
+            elif type(value) == Decimal:
+                magicNote[key] = int(value)
+            else:
+                magicNote[key] = value
+            pass
+        pass
+
+    response = HttpResponse(
+        JSONEncoder().encode({
+            "committed": responses,
+            "update": updateResponses,
+            "updateFinal": updateFinal,
+            "unknownNotes": servNotes,
+            "magicNote": magicNote}),
+        "text/json")
+    
     response.status_code = 200;
     return response
