@@ -7,6 +7,8 @@ from django_restapi.authentication import HttpBasicAuthentication, HttpDigestAut
 from django.conf import settings
 from jv3.models import SPO, SPOForm, Note, NoteForm, ActivityLog
 from jv3.views import *
+import jv3.chrome_views as cv
+import jv3.misc_views as mv
 
 class XMLReceiverSetOwner(XMLReceiver):
     def __init__(self, user):
@@ -139,24 +141,22 @@ urlpatterns = patterns('server.jv3.views.',
     (r'^put_zen/$', put_zen),   # POST edited notes
     (r'^get_iphone$', get_iphone),
                        
-    (r'^get_redact_notes$', get_redact_notes),      ## GET              
-    (r'^put_redact_notes/$', post_redacted_note),   ## POST redacted notes
+    (r'^get_redact_notes$', mv.get_redact_notes),      ## GET              
+    (r'^put_redact_notes/$', mv.post_redacted_note),   ## POST redacted notes
 
-    
-
-    ## Chrome Extension
-    (r'^get_json_notes$', get_json_notes),
-    (r'^post_json_notes/$', post_json_notes),
-    (r'^post_json_get_updates/$', post_json_get_updates),
-    
-
-    (r'^miscview$', misc_view),      ## For MISC csv attachment
-    (r'^miscviewer$', misc_viewer),
-    (r'^miscjson$', misc_json)                 
+    (r'^miscview$', mv.misc_view),      ## For MISC csv attachment
+    (r'^miscviewer$', mv.misc_viewer),
+    (r'^miscjson$', mv.misc_json),            
     ##(r'^put_skipped_redact_notes/$', post_skipped_redacted_note)    ## POST skipped redacted notes                  
     ##(r'^reconsent$', reconsent),                       
     #(r'^login$', 'django.contrib.auth.views.login', {'template_name': 'jv3/login.html', 'module_name':'jv3'}),
-    #(r'^login$', login_view),                       
+    #(r'^login$', login_view),
+
+    ## Chrome Extension
+    (r'^get_json_notes$', cv.get_json_notes),
+    (r'^post_json_notes/$', cv.post_json_notes),
+    (r'^post_json_get_updates/$', cv.post_json_get_updates)
+                           
 )
 
 if hasattr(settings,'ACTIVITY_CONTEXT_MODELS') and settings.ACTIVITY_CONTEXT_MODELS:
