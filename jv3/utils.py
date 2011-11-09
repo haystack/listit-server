@@ -97,9 +97,10 @@ def gen_confirm_change_password_email(userreg):
     """ % (userreg.username,url);
              
 def get_most_recent(act):
-    if act == None or len(act) == 0:
-        return None
-    return act.order_by("-when")[0];    
+    if act == None: return None
+    count = act.count()
+    if count == 0:  return None
+    return act.order_by("when")[count-1];    
     # def comp(x,y):
     #         if x.when >= y.when:
     #             return x;
