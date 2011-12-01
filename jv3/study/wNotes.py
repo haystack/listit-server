@@ -12,6 +12,7 @@ from jv3.study.ca_plot import make_filename
 import jv3.study.ca_search as cas
 import rpy2
 import rpy2.robjects as ro
+r = ro.r
 from jv3.study.study import *
 from numpy import array
 import random
@@ -24,7 +25,6 @@ import jv3.study.wFunc as wf
 import jv3.study.wUserWalk as uw
 ##import jv3.study.wMaxEntModel as wm
 
-r = ro.r
 em = User.objects.filter(email="emax@csail.mit.edu")[0]
 emn = em.note_owner.all()
 dk = User.objects.filter(email='karger@mit.edu')[0]

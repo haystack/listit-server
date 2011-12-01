@@ -79,7 +79,8 @@ def sort_user_for_notes(request_user, note_list):
         notes.sort(sort_order)
     else:
         # sort by creation date ?
-        notes = filter(lambda x : x.jid != -1, django_notes)
+        ##notes = filter(lambda x : x.jid != -1, django_notes)
+        notes = filter(lambda x: x.jid != -1, note_list)
         notes.sort(key=lambda x:-x.created)
     return notes
 
