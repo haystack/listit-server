@@ -97,6 +97,8 @@ def carefully(fn):
             raise
     return boo
 
+
+
 # @carefully
 def post_json_get_updates(request):
     request_user = basicauth_get_user_by_emailaddr(request);
@@ -115,7 +117,7 @@ def post_json_get_updates(request):
     updateResponses = [] # Conflicting notes with new content!
     payload = JSONDecoder().decode(request.raw_post_data)
     userNotes = _filter_dupes(request_user.note_owner.all())
-
+    
     #print 'Process modified notes'
     for datum in payload['modifiedNotes']:
         form = NoteForm(datum)
@@ -125,6 +127,7 @@ def post_json_get_updates(request):
         #print '# matching notes:', len(matching_notes)
         if len(matching_notes) == 0: ## Save new note
             if form.is_valid() :
+                #print "No conflict! Save note!"
                 new_model = form.save()
                 responses.append({
                         "jid": form.data['jid'],
@@ -132,15 +135,16 @@ def post_json_get_updates(request):
                         "status": 201})
                 logevent(request, 'Note.create', 200, form.data['jid'])
             else:
-                logevent(request,'Note.create',400,form.errors)
+                logevent(request,'Note.create', 400, form.errors)
                 responses.append({"jid": form.data['jid'], "status": 400})
         else:
             ## UPDATE an existing note: check if the client version needs updating
             conflictNote = matching_notes[0]
-            ##print "conflictNote/form Ver: ", conflictNote.version, form.data['version']
+            #print "conflictNote/form Ver: ", conflictNote.version, form.data['version']
             if (conflictNote.version > form.data['version']):
                 # Server's version of note is conflicting with client's version, merge!
                 if form.is_valid():
+                    #print "Server is more up to date:", conflictNote.jid
                     for key in Note.update_fields: ## key={contents,created,deleted,edited}
                         if key == "contents":
                             newContent = ("Two versions of this note:" +
@@ -166,7 +170,7 @@ def post_json_get_updates(request):
                 continue            
             # If the data contains no errors,
             elif form.is_valid(): # No version conflict, update server version.
-                #print "update server's note"
+                #print "Updating server's copy"
                 for key in Note.update_fields:
                     conflictNote.__setattr__(key, form.data[key])
                 newVersion = form.data['version'] + 1
@@ -186,6 +190,8 @@ def post_json_get_updates(request):
     ## 2) Figure out which of Client's unmodified notes has been updated on server
     updateFinal = []  # Server has newer version of these notes.
     for jid, ver in payload['unmodifiedNotes'].items():
+        ## Note: Keys are strings!! Must convert to int!!
+        jid, ver = int(jid), int(ver)
         notes = [u for u in userNotes if u.jid==jid]
         if notes and notes[0].version > ver:
             note = extract_zen_notes_data(notes[0])
@@ -195,6 +201,7 @@ def post_json_get_updates(request):
                                 "edited": str(note['edited']),
                                 "deleted": note['deleted'],
                                 "contents": note['noteText'],
+                                "meta": '',
                                 "modified": 0})
         pass
 
