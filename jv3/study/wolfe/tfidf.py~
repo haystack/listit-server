@@ -1,0 +1,60 @@
+import sys, math
+
+
+
+def wordCount(doc):
+    return len(doc.split(None))
+
+
+def freq(word, doc):
+    return doc.split(None).count(word)
+
+
+def tf(word, doc):
+    wc = wordCount(doc)
+    if wc == 0:
+        return 0
+    else:
+        return (freq(word, doc) / float(wc))
+
+
+def numDocsContaining(word, documentList):
+    count = 0
+    for document in documentList:
+       	if freq(word, document) > 0:
+            count += 1
+    return count
+
+
+def idf(word, docList):
+    return math.log(len(docList) / numDocsContaining(word, docList))
+
+cache_idf = {}
+def tfidf(word, document, documentList):
+    global cache_idf
+    if word not in cache_idf:
+        cache_idf[word] = idf(word, documentList)
+    return (tf(word, document) * cache_idf[word])
+
+
+
+
+def getUniqueWords(noteList):
+    uniqueWords = {}
+    for note in noteList:
+        for word in note.contents.split(None):
+            if word not in uniqueWords:
+                uniqueWords[word] = 0
+            uniqueWords[word] += 1
+    return uniqueWords
+
+def getAllTFIDF(uniqueWordDict, noteList):
+    contentList = [n.contents for n in noteList]
+    wordToNoteTFIDF = {}
+    for word in uniqueWordDict.keys():
+        wordToNoteTFIDF[word] = []
+        for note in noteList:
+            wordToNoteTFIDF[word].append((note.id, tfidf(word, note.contents, contentList)))
+    return wordToNoteTFIDF
+
+

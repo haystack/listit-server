@@ -43,7 +43,7 @@ cap.set_basedir('/home/emax/public_html/graphs')
 
 ## consenting users and notes
 u = [ us for us in User.objects.all() if is_consenting_study2(us)]
-n = Note.objects.filter( owner__in=[ us for us in User.objects.all() if is_consenting_study2(us)] )
+n = Note.objects.filter( owner__in=u )
 
 ## Returns array of property values for entityArray
 def arr_prop(objArray, prop):
