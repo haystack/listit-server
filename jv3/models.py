@@ -325,3 +325,23 @@ try:
     admin.site.register(WordMeta)
 except sites.AlreadyRegistered,r:
     pass
+
+
+
+
+class ChromeLog(models.Model):
+    owner = models.ForeignKey(authmodels.User,null=True)
+    when = models.DecimalField(max_digits=19,decimal_places=0)
+    action = models.TextField()
+    noteid = models.IntegerField(null=True)
+    url = models.TextField(blank=True,null=True)
+    tabid = models.IntegerField(blank=True,null=True)
+    info = models.TextField(null=True)
+    def __unicode__(self):
+        import utils
+        return unicode('[%s %s] - note:%s %s %s' % (repr(self.owner.username),utils.decimal_time_to_str(self.when),repr(self.noteid),self.action,self.tabid))
+
+try:
+    admin.site.register(ActivityLog)
+except sites.AlreadyRegistered,r:
+    pass

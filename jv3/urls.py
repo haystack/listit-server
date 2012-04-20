@@ -155,7 +155,8 @@ urlpatterns = patterns('server.jv3.views.',
     ## Chrome Extension
     (r'^get_json_notes$', cv.get_json_notes),
     (r'^post_json_notes/$', cv.post_json_notes),
-    (r'^post_json_get_updates/$', cv.post_json_get_updates)
+    (r'^post_json_get_updates/$', cv.post_json_get_updates),
+    (r'^post_json_chrome_logs/$', cv.post_json_chrome_logs)
                            
 )
 

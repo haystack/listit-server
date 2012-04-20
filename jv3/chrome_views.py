@@ -16,7 +16,7 @@ from jv3.models import Note, NoteForm
 from jv3.models import RedactedNote ##, RedactedSkip
 from jv3.models import WordMap, WordMeta
 import jv3.utils
-from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport, ServerLog, CachedActivityLogStats
+from jv3.models import ActivityLog, UserRegistration, CouhesConsent, ChangePasswordRequest, BugReport, ServerLog, CachedActivityLogStats, ChromeLog
 from jv3.utils import gen_cookie, makeChangePasswordRequest, nonblank, get_most_recent, gen_confirm_newuser_email_body, gen_confirm_change_password_email, logevent, current_time_decimal, basicauth_get_user_by_emailaddr, make_username, get_user_by_email, is_consenting_study1, is_consenting_study2, json_response, set_consenting
 from django.template.loader import get_template
 import sys,string,time,logging
@@ -30,7 +30,7 @@ def _filter_dupes(note_queryset):
     for n in note_queryset:
         if n.jid in notes and notes[n.jid].id < n.id : continue
         notes[n.jid] = n
-    return [notes[n.jid] for n in note_queryset]            
+    return [notes[n.jid] for n in note_queryset]
 
 ## Chrome Extension Get/Post Methods
 def get_json_notes(request):
@@ -191,7 +191,10 @@ def post_json_get_updates(request):
     updateFinal = []  # Server has newer version of these notes.
     for jid, ver in payload['unmodifiedNotes'].items():
         ## Note: Keys are strings!! Must convert to int!!
-        jid, ver = int(jid), int(ver)
+        jid = int(jid)
+        if jid == -1:
+            continue
+        ver = int(ver)
         notes = [u for u in userNotes if u.jid==jid]
         if notes and notes[0].version > ver:
             note = extract_zen_notes_data(notes[0])
@@ -201,8 +204,8 @@ def post_json_get_updates(request):
                                 "edited": str(note['edited']),
                                 "deleted": note['deleted'],
                                 "contents": note['noteText'],
-                                "meta": '',
                                 "modified": 0})
+            ## Add meta field here!
         pass
 
     #print 'process notes only known to server'
@@ -227,23 +230,33 @@ def post_json_get_updates(request):
                 "created": str(note['created']),
                 "edited": str(note['edited']),
                 "modified": 0})
+        ## Add meta field here!
         pass
+
 
     
     #print 'Add magical note!'
     magicNote = {}
-    magicalNote = [u for u in userNotes if u.jid=='-1']
-    if magicalNote: # magical note found
-        for key, value in magicalNote.values()[0].items():
-            if key == 'owner_id':
-                pass
-            elif type(value) == Decimal:
-                magicNote[key] = int(value)
-            else:
-                magicNote[key] = value
-            pass
+    ## JID is a number field...
+    magicalNote = [u for u in userNotes if u.jid == -1]
+    #print 'magical note:', magicalNote
+    if len(magicalNote) > 0: # magical note found
+        #print 'magical note found!'
+        magicalNote = magicalNote[0]
+        magicNote = {
+            'jid':  int(magicalNote.jid),
+            'version': magicalNote.version,
+            'created': int(magicalNote.created),
+            'edited': int(magicalNote.edited),
+            'deleted': magicalNote.deleted,
+            'contents': magicalNote.contents,
+            'modified': 0
+            }
         pass
 
+    #magicNote = checkMagicUpdate(clientMagic, serverMagic)
+
+    ## Return Response!
     response = HttpResponse(
         JSONEncoder().encode({
                 "committed": responses,
@@ -257,3 +270,45 @@ def post_json_get_updates(request):
     return response
 
 
+def checkMagicUpdate(clientMagic, serverMagic):
+    """Check if note jid=-1 has been updated"""
+
+    
+def post_json_chrome_logs(request):
+    """
+    Record Chrome usage logs, return timestamp of last log recorded.
+    """
+    request_user = basicauth_get_user_by_emailaddr(request)
+    if not request_user:
+        logevent(request,'post_json_chrome_logs POST',
+                 401, jv3.utils.decode_emailaddr(request))
+        response = HttpResponse(JSONEncoder().encode({
+            'autherror':"Incorrect user/password combination"}), "text/json")
+        response.status_code = 401
+        return response
+
+    payload = JSONDecoder().decode(request.raw_post_data)
+    logs = payload
+    timestamp = 0
+    for log in logs:
+        # Save each log, keep track of latest log's timestamp.
+        # keys: time, action, noteid (>0 or -10), info (JSON string)
+        # ext only: tabid (chrome ext tab), url (of focused tab)
+        entry = ChromeLog();
+        entry.owner = request_user;
+        entry.when = log['time'];
+        timestamp = max(entry.when, timestamp)
+        entry.action = log['action'];
+        entry.noteid = log.get("noteid",None);
+        entry.info = log.get("info",None);
+        entry.url = log.get("url",None);
+        entry.tabid = log.get("tabid",None); ## added in new rev
+        entry.save();
+
+    ## Return Response!
+    response = HttpResponse(
+        JSONEncoder().encode({
+            "lastTimeRecorded": timestamp,
+            }), "text/json")
+    response.status_code = 200;
+    return response
