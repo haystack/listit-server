@@ -327,8 +327,6 @@ except sites.AlreadyRegistered,r:
     pass
 
 
-
-
 class ChromeLog(models.Model):
     owner = models.ForeignKey(authmodels.User,null=True)
     when = models.DecimalField(max_digits=19,decimal_places=0)
