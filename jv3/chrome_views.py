@@ -98,8 +98,33 @@ def carefully(fn):
     return boo
 
 
+@carefully
+def getUpdatedNotes(clientUnmodifiedNoteInfo, userNotes):
+    """
+    Return notes that were modified by the server (userNotes) but not the client.
+    Tested
+    """
+    updateFinal = []
+    for jid, ver in clientUnmodifiedNoteInfo:
+        jid = int(jid)
+        if (jid == -1):
+            continue
+        ver = int(ver)
+        notes = [u for u in userNotes if u.jid == jid]
+        if notes and notes[0].version > ver:
+            note = extract_zen_notes_data(notes[0])
+            updateFinal.append({"jid": note['jid'],
+                                 "version": note['version'],
+                                 "created":str(note['created']),
+                                 "edited": str(note['edited']),
+                                 "deleted": note['deleted'],
+                                 "contents": note['noteText'],
+                                 "modified": 0})
+            pass
+        pass
+    return updateFinal
 
-# @carefully
+@carefully
 def post_json_get_updates(request):
     request_user = basicauth_get_user_by_emailaddr(request);
     if not request_user:
@@ -172,7 +197,10 @@ def post_json_get_updates(request):
             elif form.is_valid(): # No version conflict, update server version.
                 #print "Updating server's copy"
                 for key in Note.update_fields:
-                    conflictNote.__setattr__(key, form.data[key])
+                    if key in ['contents', 'created', 'deleted', 'edited']:
+                        conflictNote.__setattr__(key, form.data[key])
+                        pass
+                    pass
                 newVersion = form.data['version'] + 1
                 conflictNote.version = newVersion
                 conflictNote.save()
@@ -186,27 +214,10 @@ def post_json_get_updates(request):
             pass
         pass
 
-    #print 'process unmodified notes'
-    ## 2) Figure out which of Client's unmodified notes has been updated on server
-    updateFinal = []  # Server has newer version of these notes.
-    for jid, ver in payload['unmodifiedNotes'].items():
-        ## Note: Keys are strings!! Must convert to int!!
-        jid = int(jid)
-        if jid == -1:
-            continue
-        ver = int(ver)
-        notes = [u for u in userNotes if u.jid==jid]
-        if notes and notes[0].version > ver:
-            note = extract_zen_notes_data(notes[0])
-            updateFinal.append({"jid": note['jid'],
-                                "version": note['version'],
-                                "created":str(note['created']),
-                                "edited": str(note['edited']),
-                                "deleted": note['deleted'],
-                                "contents": note['noteText'],
-                                "modified": 0})
-            ## Add meta field here!
-        pass
+
+    ##2) Figure out which of Client's unmodified notes has been updated on server
+    updateFinal = getUpdatedNotes(payload['unmodifiedNotes'].items(), userNotes)
+    
 
     #print 'process notes only known to server'
     ## 3) Return notes only server knows about!
