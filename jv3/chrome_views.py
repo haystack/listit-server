@@ -97,6 +97,7 @@ def sort_user_for_notes(request_user, note_list):
 #             raise
 #     return boo
 
+carefully = lambda fn: fn
 
 @carefully
 def getUpdatedNotes(clientUnmodifiedNoteInfo, userNotes):
