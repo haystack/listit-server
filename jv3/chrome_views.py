@@ -85,17 +85,17 @@ def sort_user_for_notes(request_user, note_list):
     return notes
 
 
-def carefully(fn):
-    import sys, traceback
-    def boo(*args,**kwargs):
-        try:
-            return fn(*args,**kwargs)
-        except Exception as exc:
-            print "Unexpected error:", sys.exc_info()[0]
-            print str(exc)
-            traceback.print_exc(file=sys.stdout)
-            raise
-    return boo
+# def carefully(fn):
+#     import sys, traceback
+#     def boo(*args,**kwargs):
+#         try:
+#             return fn(*args,**kwargs)
+#         except Exception as exc:
+#             print "Unexpected error:", sys.exc_info()[0]
+#             print str(exc)
+#             traceback.print_exc(file=sys.stdout)
+#             raise
+#     return boo
 
 
 @carefully
