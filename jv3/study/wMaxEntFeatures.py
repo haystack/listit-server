@@ -78,7 +78,7 @@ contains_linesB = lambda notevals, words: ("3+_lines", notevals['contents'].coun
 contains_features = [contains_verbs,contains_adj]#, contains_url] ## 
 
 # Testing below features
-DOWS=["mon","monday","tue","tuesday","wed","wedmesday","thu","thurs","thursday","fri","friday","sat","saturday","su\
+DOWS=["mon","monday","tue","tuesday","wed","wednesday","thu","thurs","thursday","fri","friday","sat","saturday","su\
 n","sunday"]
 contains_dow = lambda notevals, words: ("1+_day_of_week", sum([word.lower() in DOWS for word in words]) > 0) #ca.daysofweek(notevals)['daysofweek'] > 0)
 contains_VBZ = lambda notevals, words: ("1+_VBZ", count_pos(words, ['VBZ']) > 0)

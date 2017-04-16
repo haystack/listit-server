@@ -138,7 +138,7 @@ note_owner = lambda note: {'note_owner': repr(note.get("owner",note["owner_id"])
 note_length = lambda x : {'note_length':len(x["contents"].strip())}
 #note_words = lambda x : {'note_words':len(nltk.word_tokenize(eliminate_urls(x["contents"])))}
 
-DOWS=["mon","monday","tue","tuesday","wed","wedmesday","thu","thurs","thursday","fri","friday","sat","saturday","sun","sunday"]
+DOWS=["mon","monday","tue","tuesday","wed","wednesday","thu","thurs","thursday","fri","friday","sat","saturday","sun","sunday"]
 
 MONTHS=["jan","january",
         "feb","february",
